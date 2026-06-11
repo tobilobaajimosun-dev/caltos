@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { TitleCasePipe } from '@angular/common';
 import {
-  CheckboxComponent, RadioButtonComponent,
+  SidebarComponent, CheckboxComponent, RadioButtonComponent,
   ToggleComponent, TextareaComponent, TemplateCardComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
 } from '../../../shared/components';
@@ -55,35 +56,92 @@ export interface LoanConfig {
   brandName: string;
 }
 
-const STEPS = [
-  { id: 'template',      label: 'Choose Template',    icon: RocketIcon },
-  { id: 'about',         label: 'About this Loan',    icon: IdCardLanyardIcon },
-  { id: 'application',   label: 'Application Setup',  icon: CheckIcon },
-  { id: 'verification',  label: 'Verification Setup', icon: FingerPrintIcon },
-  { id: 'pricing',       label: 'Pricing & Fees',     icon: BriefcaseDollarIcon },
-  { id: 'disbursement',  label: 'Disbursement',       icon: BankIcon },
-  { id: 'repayment',     label: 'Repayment',          icon: CreditCardIcon },
-  { id: 'controls',      label: 'Loan Controls',      icon: SlidersHorizontalIcon },
-  { id: 'branding',      label: 'Branding',           icon: ColorsIcon },
-  { id: 'publish',       label: 'Publish',            icon: GlobeIcon },
+export const STEPS = [
+  { id: 'template',     label: 'Template',           shortLabel: 'Template' },
+  { id: 'about',        label: 'About Loan',         shortLabel: 'About Loan' },
+  { id: 'application',  label: 'Application Setup',  shortLabel: 'Application' },
+  { id: 'verification', label: 'Verification Setup', shortLabel: 'Verification' },
+  { id: 'pricing',      label: 'Pricing & Fees',     shortLabel: 'Pricing' },
+  { id: 'disbursement', label: 'Disbursement',       shortLabel: 'Disbursement' },
+  { id: 'repayment',    label: 'Repayment',          shortLabel: 'Repayment' },
+  { id: 'controls',     label: 'Loan Controls',      shortLabel: 'Loan Controls' },
+  { id: 'branding',     label: 'Branding',           shortLabel: 'Branding' },
+  { id: 'publish',      label: 'Notifications',      shortLabel: 'Notifications' },
 ];
 
-const TEMPLATES = [
-  { id: 'salary',   label: 'Salary Advance',     icon: UserAccountIcon },
-  { id: 'public',   label: 'Public Sector Loan', icon: UserMultipleIcon },
-  { id: 'school',   label: 'School Fees Loan',   icon: SchoolIcon },
-  { id: 'corper',   label: 'Corper Loan',         icon: HandshakeIcon },
-  { id: 'sme',      label: 'SME Loan',           icon: BriefcaseDollarIcon },
-  { id: 'coop',     label: 'Cooperative Loan',   icon: UserMultipleIcon },
-  { id: 'bnpl',     label: 'BNPL',               icon: CreditCardIcon },
-  { id: 'scratch',  label: 'Build from Scratch', icon: CogIcon, isScratch: true },
+export const TEMPLATES = [
+  {
+    id: 'salary', label: 'Salary Advance',
+    description: 'Short term loans for private salary earners.',
+    color: '#0BA5EC', bg: '#E0F2FE',
+    tags: ['Bank Statement', 'Direct Debit'],
+    icon: UserAccountIcon,
+  },
+  {
+    id: 'public', label: 'Public Sector Loan',
+    description: 'Loans for government employees.',
+    color: '#F79009', bg: '#FEF3C7',
+    tags: ['Remita', 'IPPIS'],
+    icon: UserMultipleIcon,
+  },
+  {
+    id: 'school', label: 'School Fees Loan',
+    description: 'Help parents and students pay school fees.',
+    color: '#12B76A', bg: '#D1FAE5',
+    tags: ['School ID', 'Admission Letter'],
+    icon: SchoolIcon,
+  },
+  {
+    id: 'corper', label: 'Corper Loan',
+    description: 'Loans for NYSC members and corps employers.',
+    color: '#6941C6', bg: '#EDE9FE',
+    tags: ['Remita', 'NYSC ID'],
+    icon: HandshakeIcon,
+  },
+  {
+    id: 'sme', label: 'SME Loan',
+    description: 'Working capital and growth loans for businesses.',
+    color: '#F04438', bg: '#FEE4E2',
+    tags: ['CAC', 'Bank Statement'],
+    icon: BriefcaseDollarIcon,
+  },
+  {
+    id: 'coop', label: 'Cooperative Loan',
+    description: 'Loans for cooperative society members.',
+    color: '#0BA5EC', bg: '#E0F2FE',
+    tags: ['Membership Verification'],
+    icon: UserMultipleIcon,
+  },
+  {
+    id: 'bnpl', label: 'Buy Now Pay Later',
+    description: 'Instant purchase financing for goods and services.',
+    color: '#F04438', bg: '#FEE4E2',
+    tags: ['ID Verification', 'Affordability'],
+    icon: CreditCardIcon,
+  },
+  {
+    id: 'scratch', label: 'Build from Scratch',
+    description: 'Create a completely custom loan product.',
+    color: '#667085', bg: '#F2F4F7',
+    tags: ['Start Blank'],
+    isScratch: true,
+    icon: CogIcon,
+  },
+];
+
+const BORROWER_STEPS = [
+  { label: 'Contact Information', sub: 'We\'ll ask for their phone or email' },
+  { label: 'Verify Identity', sub: 'We\'ll verify their identity' },
+  { label: 'Confirm Employment', sub: 'We\'ll confirm their employment or income' },
+  { label: 'Upload Documents', sub: 'They\'ll upload required documents' },
+  { label: 'Review & Submit', sub: 'They\'ll review and submit their application' },
 ];
 
 @Component({
   selector: 'app-create-loan',
   standalone: true,
   imports: [
-    FormsModule, RouterLink, HiIconComponent,
+    FormsModule, RouterLink, TitleCasePipe, SidebarComponent, HiIconComponent,
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
     TextareaComponent, TemplateCardComponent, CollapsibleSectionComponent,
     CopyUrlFieldComponent, QrCodeComponent, LivePreviewComponent,
@@ -94,16 +152,12 @@ const TEMPLATES = [
 export class CreateLoanComponent {
   readonly steps = STEPS;
   readonly templates = TEMPLATES;
+  readonly borrowerSteps = BORROWER_STEPS;
   currentStep = 0;
 
-  // icon refs
   readonly chevronLeft: IconData = ChevronLeftIcon as IconData;
   readonly chevronRight: IconData = ChevronRightIcon as IconData;
 
-  // template icons (for step nav)
-  readonly stepIconMap: Record<string, IconData> = STEPS.reduce((m, s) => ({ ...m, [s.id]: s.icon as IconData }), {});
-
-  // section expand states (step 3)
   expandPersonal = true;
   expandContact = false;
   expandEmployment = false;
@@ -120,7 +174,7 @@ export class CreateLoanComponent {
     incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
     autofill: 'fill-allow', interestRate: '', interestType: 'Reducing Balance',
     processingFee: '', disburseTo: 'bank', repaymentFrequency: 'Monthly',
-    maxActiveLoan: '1', requireGuarantor: false, brandColor: '#0053a6', brandName: '',
+    maxActiveLoan: '1', requireGuarantor: false, brandColor: '#6941C6', brandName: '',
   };
 
   readonly tenorUnits = ['Days', 'Weeks', 'Months', 'Years'];
@@ -130,6 +184,7 @@ export class CreateLoanComponent {
   get stepId() { return this.steps[this.currentStep].id; }
   get isFirst() { return this.currentStep === 0; }
   get isLast() { return this.currentStep === this.steps.length - 1; }
+  get stepNumber() { return this.currentStep + 1; }
 
   stepStatus(i: number): 'active' | 'done' | 'upcoming' {
     if (i === this.currentStep) return 'active';
@@ -138,43 +193,69 @@ export class CreateLoanComponent {
 
   next() { if (!this.isLast) this.currentStep++; }
   back() { if (!this.isFirst) this.currentStep--; }
-  goToStep(i: number) { if (i <= this.currentStep) this.currentStep = i; }
-
+  goToStep(i: number) { this.currentStep = i; }
   selectTemplate(id: string) { this.config.template = id; }
 
-  get nextLabel(): string {
-    const labels: Record<string, string> = {
-      template: 'Set up your loan',
-      about: 'Configure application',
-      application: 'Set up verification',
-      verification: 'Set pricing',
-      pricing: 'Configure disbursement',
-      disbursement: 'Set up repayment',
-      repayment: 'Configure controls',
-      controls: 'Add branding',
-      branding: 'Preview & publish',
-      publish: 'Publish loan',
-    };
-    return labels[this.stepId] || 'Continue';
+  getConfig(key: string): unknown {
+    return (this.config as unknown as Record<string, unknown>)[key];
   }
 
-  get backLabel(): string {
-    const labels: Record<string, string> = {
-      about: 'Back to templates',
-      application: 'Back to loan details',
-      verification: 'Back to application setup',
-      pricing: 'Back to verification',
-      disbursement: 'Back to pricing',
-      repayment: 'Back to disbursement',
-      controls: 'Back to repayment',
-      branding: 'Back to loan controls',
-      publish: 'Back to branding',
+  toggleEntry(key: string) {
+    const rec = this.config as unknown as Record<string, unknown>;
+    rec[key] = !rec[key];
+  }
+
+  setConfig(key: string, value: unknown) {
+    (this.config as unknown as Record<string, unknown>)[key] = value;
+  }
+
+  get selectedTemplate() {
+    return TEMPLATES.find(t => t.id === this.config.template);
+  }
+
+  get nextLabel(): string {
+    if (this.isLast) return 'Review & Publish';
+    return 'Save & Continue';
+  }
+
+  get stepTitle(): string {
+    const titles: Record<string, string> = {
+      template: 'Create a Loan Product',
+      about: 'About this Loan',
+      application: 'Application Setup',
+      verification: 'Verification Setup',
+      pricing: 'Pricing & Fees',
+      disbursement: 'Disbursement',
+      repayment: 'Repayment',
+      controls: 'Loan Controls',
+      branding: 'Branding & Customization',
+      publish: 'Notifications',
     };
-    return labels[this.stepId] || 'Back';
+    return titles[this.stepId] || '';
+  }
+
+  get stepSubtitle(): string {
+    const subs: Record<string, string> = {
+      template: 'Launch your loan in 10 simple steps',
+      about: 'Tell us about the loan you want to offer.',
+      application: 'Choose the information you want to collect from applicants.',
+      verification: 'Select the methods you want to use to verify your applicants.',
+      pricing: 'Configure interest rate and other charges for this loan.',
+      disbursement: 'Define how and when loans should be disbursed.',
+      repayment: 'Set up how your customers will repay this loan.',
+      controls: 'Set limits and targets for this loan product.',
+      branding: 'Customize the look and feel of your loan product.',
+      publish: 'Set up how you want to communicate with your customers.',
+    };
+    return subs[this.stepId] || '';
   }
 
   get publishUrl(): string {
     const slug = (this.config.name || 'my-loan').toLowerCase().replace(/\s+/g, '-');
     return `https://apply.caltos.co/${slug}`;
+  }
+
+  get templateIconData(): Record<string, IconData> {
+    return TEMPLATES.reduce((m, t) => ({ ...m, [t.id]: t.icon as IconData }), {});
   }
 }
