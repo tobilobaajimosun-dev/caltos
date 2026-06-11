@@ -7,27 +7,19 @@
   (click)="!disabled && clicked.emit()">
 
   @if (variant === 'back') {
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+    <hugeicons-icon [icon]="backIcon" size="16" color="currentColor" />
   }
 
   @if (variant === 'filter') {
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M1.5 3.5h11M3.5 7h7M5.5 10.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-    </svg>
+    <hugeicons-icon [icon]="filterIcon" size="14" color="currentColor" />
   }
 
   @if (variant === 'primary' || variant === 'dropdown') {
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 8a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm-4.5 5.5a4.5 4.5 0 019 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+    <hugeicons-icon [icon]="userIcon" size="16" color="currentColor" />
   }
 
   @if (variant === 'round') {
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 1.5v4M12.19 3.81a7 7 0 11-8.38 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
+    <hugeicons-icon [icon]="refreshIcon" size="16" color="currentColor" />
   }
 
   @if (variant !== 'round') {
@@ -35,8 +27,6 @@
   }
 
   @if (variant === 'secondary' || variant === 'dropdown') {
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+    <hugeicons-icon [icon]="chevronRightIcon" size="14" color="currentColor" />
   }
 </button>
