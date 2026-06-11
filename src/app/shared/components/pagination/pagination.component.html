@@ -1,0 +1,31 @@
+<div class="pagination">
+  <div class="page-size-selector">
+    <span class="label">Showing</span>
+    <div class="size-control">
+      <button class="chevron" (click)="prevPageSize()" aria-label="Fewer rows">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8L10 4" stroke="#0053A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <span class="size-value">{{ pageSize }}</span>
+      <button class="chevron" (click)="nextPageSize()" aria-label="More rows">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4L10 8L6 12" stroke="#0053A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <span class="label">rows</span>
+  </div>
+
+  <div class="page-numbers">
+    @for (page of pages; track $index) {
+      <button
+        class="page-btn"
+        [class.active]="page === currentPage"
+        [class.ellipsis]="page === '...'"
+        (click)="goTo(page)"
+        [attr.aria-current]="page === currentPage ? 'page' : null"
+      >{{ page }}</button>
+    }
+  </div>
+</div>

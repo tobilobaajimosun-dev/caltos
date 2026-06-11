@@ -1,0 +1,93 @@
+.inline-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 23px;
+  height: 88px;
+  background: #fff;
+  border: 1px solid #e1e4ea;
+  border-radius: 12px;
+  overflow: hidden;
+  width: 446px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #fff, #f1f1f1);
+  border: 1.2px solid #e7e7e7;
+  box-shadow: 0 4.8px 7.2px -4.8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+
+  &[data-type='mp4'] .file-ext { color: #0f6a47; }
+  &[data-type='pdf'] .file-ext { color: #c0392b; }
+  &[data-type='png'],
+  &[data-type='jpeg'] { .file-ext { color: #2980b9; } }
+}
+
+.file-ext {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  color: var(--color-body);
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-name {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-blue);
+  letter-spacing: -0.28px;
+  text-decoration: underline;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.upload-date {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-body);
+  letter-spacing: -0.24px;
+  margin: 0;
+  line-height: 1.4;
+  max-width: 219px;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1px solid var(--color-stroke);
+  border-radius: 46px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-body);
+  letter-spacing: -0.28px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f7f9fb;
+    border-color: #d0d5da;
+  }
+}

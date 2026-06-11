@@ -1,0 +1,50 @@
+<div class="file-upload">
+  @if (label) {
+    <p class="upload-label">{{ label }}</p>
+  }
+
+  <div class="upload-area">
+    <div
+      class="drop-zone"
+      [class.drag-over]="isDragOver"
+      (click)="onZoneClick()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+      role="button"
+      tabindex="0"
+      (keydown.enter)="onZoneClick()"
+    >
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M9.33 19.83C7.12 19.83 5.33 18.06 5.33 15.86C5.33 14.03 6.52 12.47 8.18 11.98C8.19 11.86 8.21 11.75 8.22 11.63C8.55 8.33 11.25 5.83 14.59 5.83C17.8 5.83 20.42 8.15 20.87 11.22C22.58 11.5 23.92 12.98 23.92 14.78C23.92 16.75 22.32 18.36 20.34 18.36L14.02 18.35" stroke="#0053A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16.33 20.58L14 18.25L11.67 20.58" stroke="#0053A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 18.25V24.5" stroke="#0053A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="drop-text">
+        <p class="drop-title">Drag and drop here or click to upload</p>
+        <p class="drop-subtitle">You can upload .jpeg, .png or pdf files</p>
+      </div>
+    </div>
+
+    <div class="file-row">
+      <span class="file-name" [class.has-file]="selectedFile">
+        {{ selectedFile ? selectedFile.name : 'No file uploaded' }}
+      </span>
+      @if (selectedFile) {
+        <button class="remove-btn" (click)="removeFile()" aria-label="Remove file">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <path d="M3.33 5.83H16.67M8.33 9.17V14.17M11.67 9.17V14.17M4.17 5.83L5 15.83C5 16.75 5.75 17.5 6.67 17.5H13.33C14.25 17.5 15 16.75 15 15.83L15.83 5.83M7.5 5.83V3.33C7.5 2.87 7.87 2.5 8.33 2.5H11.67C12.13 2.5 12.5 2.87 12.5 3.33V5.83" stroke="#8A93A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      }
+    </div>
+  </div>
+
+  <input
+    #fileInput
+    type="file"
+    [accept]="accept"
+    class="hidden-input"
+    (change)="onFileChange($event)"
+  />
+</div>

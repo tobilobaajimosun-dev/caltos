@@ -1,0 +1,9 @@
+<div class="round-tabs">
+  @for (tab of tabs; track tab.value) {
+    <button
+      class="tab"
+      [class.active]="tab.value === activeTab"
+      (click)="select(tab.value)"
+    >{{ tab.label }}</button>
+  }
+</div>

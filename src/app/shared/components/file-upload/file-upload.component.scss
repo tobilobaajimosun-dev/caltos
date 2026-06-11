@@ -1,0 +1,115 @@
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.upload-label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-header);
+  letter-spacing: -0.28px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drop-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 143px;
+  border: 1px dashed #e1e4e9;
+  border-radius: 8px;
+  background: rgba(231, 238, 246, 0.5);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  outline: none;
+
+  &:hover,
+  &.drag-over {
+    border-color: var(--color-blue);
+    background: rgba(0, 83, 166, 0.04);
+  }
+}
+
+.drop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 208px;
+}
+
+.drop-title {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-body);
+  letter-spacing: -0.26px;
+  margin: 0;
+  line-height: 1.48;
+}
+
+.drop-subtitle {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-grey-header);
+  letter-spacing: -0.24px;
+  margin: 0;
+  line-height: 1.48;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 16px;
+  background: #f8f8f8;
+  border-top: 1px solid #f4f4f4;
+  border-bottom: 1px solid #f4f4f4;
+  overflow: hidden;
+}
+
+.file-name {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-input-stroke);
+  letter-spacing: -0.28px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &.has-file {
+    color: var(--color-body);
+  }
+}
+
+.remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+
+  &:hover {
+    background: var(--color-stroke);
+  }
+}
+
+.hidden-input {
+  display: none;
+}

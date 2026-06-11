@@ -1,0 +1,114 @@
+.upload-modal-body {
+  padding: 15px 39px 32px;
+  width: 678px;
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-body);
+  letter-spacing: -0.28px;
+  margin: 0 0 16px;
+  line-height: 1.48;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-header);
+    letter-spacing: -0.28px;
+    line-height: 1.4;
+  }
+}
+
+.input-wrap {
+  position: relative;
+  height: 44px;
+  background: #fff;
+  border: 1px solid var(--color-stroke);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+
+  &.currency { border-radius: 3px; }
+
+  input {
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: none;
+    padding: 0 15px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-body);
+    letter-spacing: -0.28px;
+    outline: none;
+    min-width: 0;
+
+    &::placeholder { color: var(--color-grey); }
+
+    &[type='date']::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+  }
+
+  .prefix {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-grey);
+    padding-left: 15px;
+    padding-right: 2px;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  .trailing-icon {
+    position: absolute;
+    right: 11px;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+
+  &.select input,
+  &.calendar input {
+    padding-right: 36px;
+  }
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  background: rgba(0, 83, 166, 0.4);
+  opacity: 0.3;
+  color: #6e849a;
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: -0.28px;
+  cursor: not-allowed;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+
+  &.active {
+    background: var(--color-blue);
+    opacity: 1;
+    color: #fff;
+    cursor: pointer;
+
+    &:hover { background: #0047a0; }
+  }
+}
