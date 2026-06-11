@@ -1,4 +1,9 @@
 export { HiIconComponent } from './hi-icon/hi-icon.component';
+export { TextareaComponent } from './textarea/textarea.component';
+export { CopyUrlFieldComponent } from './copy-url-field/copy-url-field.component';
+export { QrCodeComponent } from './qr-code/qr-code.component';
+export { TemplateCardComponent } from './template-card/template-card.component';
+export { CollapsibleSectionComponent } from './collapsible-section/collapsible-section.component';
 // Existing components
 export { ModalComponent } from './modal/modal.component';
 export { PaginationComponent } from './pagination/pagination.component';
