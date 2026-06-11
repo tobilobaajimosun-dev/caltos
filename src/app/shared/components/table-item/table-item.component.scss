@@ -1,0 +1,147 @@
+:host { display: table-cell; }
+
+.table-cell {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+/* User with avatar */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.user-name {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-blue);
+  letter-spacing: -0.28px;
+}
+
+.user-email {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-grey-header);
+  letter-spacing: -0.24px;
+}
+
+/* Date */
+.date-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-body);
+  letter-spacing: -0.28px;
+}
+
+/* Generic text */
+.cell-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-body);
+  letter-spacing: -0.28px;
+}
+
+/* Tags */
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 100px;
+  border: 1px solid var(--color-stroke);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-body);
+  background: #fff;
+}
+
+/* Amount */
+.amount-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.amount-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-header);
+  letter-spacing: -0.28px;
+}
+
+.amount-date {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-grey-header);
+}
+
+/* Actions */
+.actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.act-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+
+  &:hover { background: rgba(0,0,0,0.05); }
+}
+
+/* More */
+.more-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+
+  &:hover { background: rgba(0,0,0,0.05); }
+}
+
+.link-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-blue);
+  letter-spacing: -0.28px;
+}

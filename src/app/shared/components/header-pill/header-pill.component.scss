@@ -1,0 +1,26 @@
+:host { display: inline-flex; }
+
+.pill {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 100px;
+  border: 1.5px solid var(--color-grey);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-grey-header);
+  cursor: pointer;
+  letter-spacing: -0.26px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: var(--color-blue);
+    color: var(--color-blue);
+  }
+
+  &.active {
+    background: var(--color-blue);
+    border-color: var(--color-blue);
+    color: #fff;
+  }
+}

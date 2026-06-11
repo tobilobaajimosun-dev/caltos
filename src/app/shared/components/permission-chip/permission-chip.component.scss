@@ -1,0 +1,48 @@
+:host { display: inline-flex; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 100px;
+  border: 1.5px solid var(--color-stroke);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-body);
+  cursor: pointer;
+  letter-spacing: -0.26px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  svg path { stroke: var(--color-grey); }
+
+  &:hover {
+    border-color: var(--color-blue);
+    color: var(--color-blue);
+
+    svg path { stroke: var(--color-blue); }
+  }
+
+  &.active {
+    border-color: rgba(0, 83, 166, 0.3);
+    color: var(--color-blue);
+
+    svg path { stroke: var(--color-blue); }
+  }
+}
+
+.remove {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-left: 2px;
+
+  svg path { stroke: var(--color-grey-header); }
+
+  &:hover svg path { stroke: #FF3B30; }
+}

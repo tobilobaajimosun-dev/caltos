@@ -1,0 +1,23 @@
+:host { display: inline-flex; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.24px;
+  white-space: nowrap;
+}
+
+.active    { background: rgba(52, 199, 89, 0.12); color: #1a9c3a; }
+.inactive  { background: rgba(255, 59, 48, 0.12); color: #d03030; }
+.suspended { background: rgba(0, 83, 166, 0.1);   color: #0053a6; }
+.pending   { background: rgba(255, 196, 0, 0.15); color: #907000; }
+.overdue   { background: rgba(255, 120, 0, 0.12); color: #b84f00; }
+.dormant   { background: rgba(139, 90, 43, 0.12); color: #7a4f22; }
+.successful { background: rgba(52, 199, 89, 0.12); color: #1a9c3a; }
+.failed    { background: rgba(255, 59, 48, 0.12); color: #d03030; }

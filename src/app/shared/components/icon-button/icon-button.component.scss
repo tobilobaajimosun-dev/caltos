@@ -1,0 +1,35 @@
+:host { display: inline-flex; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  color: var(--color-grey-header);
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: rgba(0,0,0,0.05); }
+}
+
+/* Color variants */
+.icon-btn.blue   { color: var(--color-blue); }
+.icon-btn.green  { color: #34C759; }
+.icon-btn.red    { color: #FF3B30; }
+
+/* Filled variant */
+.icon-btn.filled {
+  background: rgba(0, 83, 166, 0.1);
+  color: var(--color-blue);
+
+  &:hover { background: rgba(0, 83, 166, 0.18); }
+}
+
+.lbl {
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: -0.26px;
+}

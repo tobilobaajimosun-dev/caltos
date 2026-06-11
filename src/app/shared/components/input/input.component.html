@@ -1,0 +1,14 @@
+@if (label) {
+  <label class="label">{{ label }}</label>
+}
+<input
+  class="input"
+  [class.focused]="focused"
+  [type]="type"
+  [placeholder]="placeholder"
+  [value]="value"
+  [disabled]="disabled"
+  (input)="onInput($event)"
+  (focus)="focused = true"
+  (blur)="focused = false"
+/>

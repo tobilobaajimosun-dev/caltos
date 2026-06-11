@@ -1,0 +1,31 @@
+:host { display: inline-flex; }
+
+.toggle {
+  width: 52px;
+  height: 24px;
+  border-radius: 100px;
+  background: #efefef;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  transition: background 0.2s;
+  flex-shrink: 0;
+
+  &.on { background: #60e83e; }
+}
+
+.thumb {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  top: 2px;
+  left: 2px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.toggle.on .thumb { left: 30px; }

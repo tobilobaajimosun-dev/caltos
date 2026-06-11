@@ -1,7 +1,13 @@
+.showcase-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
 .showcase {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 48px 32px 80px;
+  flex: 1;
+  max-width: 900px;
+  padding: 48px 40px 80px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -75,4 +81,40 @@
   color: var(--color-grey-header);
   font-size: 13px;
   font-family: var(--font-body);
+}
+
+.col-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.table-demo {
+  border: 1px solid var(--color-stroke);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.table-head {
+  display: flex;
+  background: #f7f9fb;
+  border-bottom: 1px solid var(--color-stroke);
+
+  app-column-title {
+    flex: 1;
+    display: block;
+  }
+}
+
+.table-row {
+  display: flex;
+  border-bottom: 1px solid var(--color-stroke);
+
+  &:last-child { border-bottom: none; }
+
+  app-table-item {
+    flex: 1;
+    display: block;
+  }
 }

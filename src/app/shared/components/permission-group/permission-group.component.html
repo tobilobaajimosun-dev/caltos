@@ -1,0 +1,41 @@
+@if (showCustomToggle) {
+  <div class="custom-toggle-row">
+    <app-checkbox
+      [checked]="customEnabled"
+      label="Add custom permissions"
+      (checkedChange)="customEnabledChange.emit($event)"
+    />
+  </div>
+}
+
+@if (!showCustomToggle || customEnabled) {
+  <div class="group">
+    <div class="group-header" (click)="expanded = !expanded">
+      <svg class="chevron" [class.open]="expanded" width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M5 4l3 3-3 3" stroke="#44444B" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="group-name">{{ groupName }}</span>
+      @if (expanded) {
+        <div class="select-all" (click)="$event.stopPropagation()">
+          <app-checkbox
+            [checked]="allSelected"
+            (checkedChange)="toggleAll()"
+          />
+          <span class="select-all-label">Select all</span>
+        </div>
+      }
+    </div>
+
+    @if (expanded) {
+      <div class="chips-wrap">
+        @for (perm of permissions; track perm.id) {
+          <app-permission-chip
+            [label]="perm.label"
+            [active]="perm.selected"
+            (clicked)="toggleItem(perm.id)"
+          />
+        }
+      </div>
+    }
+  </div>
+}

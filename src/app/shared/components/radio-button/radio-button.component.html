@@ -1,0 +1,10 @@
+<label class="radio-wrap" (click)="select()">
+  <span class="radio" [class.selected]="selected">
+    @if (selected) {
+      <span class="dot"></span>
+    }
+  </span>
+  @if (label) {
+    <span class="label">{{ label }}</span>
+  }
+</label>

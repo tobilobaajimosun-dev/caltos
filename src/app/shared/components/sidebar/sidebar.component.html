@@ -1,0 +1,26 @@
+<nav class="sidebar">
+  <div class="sidebar-top">
+    <app-org-profile
+      [orgName]="orgName"
+      avatarLetter="P"
+      avatarColor="#E55A2B"
+      role="ADMIN"
+    />
+  </div>
+
+  <div class="nav-list">
+    @for (item of navItems; track item.id) {
+      <app-nav-item
+        [label]="item.label"
+        [icon]="item.icon"
+        [active]="activeItemId === item.id"
+        [hasDropdown]="item.hasDropdown ?? false"
+        (clicked)="navigate(item.id)"
+      />
+    }
+  </div>
+
+  <div class="sidebar-bottom">
+    <app-badge-card />
+  </div>
+</nav>

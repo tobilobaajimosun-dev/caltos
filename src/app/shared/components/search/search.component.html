@@ -1,0 +1,21 @@
+<div class="search-wrap" [class.focused]="focused" [class.filled]="value">
+  <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="7" cy="7" r="5" stroke="#8A93A6" stroke-width="1.4"/>
+    <path d="M11 11L14 14" stroke="#8A93A6" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>
+  <input
+    class="input"
+    [placeholder]="placeholder"
+    [value]="value"
+    (input)="onInput($event)"
+    (focus)="focused = true"
+    (blur)="focused = false"
+  />
+  @if (value) {
+    <button class="clear" (click)="clear()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M3 3L11 11M11 3L3 11" stroke="#FF3B30" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  }
+</div>
