@@ -1,0 +1,238 @@
+<div class="page">
+  <app-sidebar activeItemId="products" />
+
+  <div class="main">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input class="search-input" placeholder="Search customer details" />
+        <span class="search-kbd"><kbd>⌘</kbd><kbd>/Ctrl K</kbd></span>
+      </div>
+      <div class="top-actions">
+        <button class="icon-circle"><hi-icon [icon]="infoIcon" size="18" color="var(--color-grey-header)" /></button>
+        <button class="icon-circle">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="avatar">JA</button>
+      </div>
+    </div>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 class="page-title">Products</h1>
+        <p class="page-subtitle">Create and manage your loan product seamlessly.</p>
+      </div>
+      <a class="create-btn" routerLink="/products/create">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Create a loan product
+      </a>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">
+          All products
+          <hi-icon [icon]="infoIcon" size="14" color="var(--color-grey-header)" />
+        </div>
+        <div class="stat-value">{{ stats.all }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          Live Products
+          <hi-icon [icon]="infoIcon" size="14" color="var(--color-grey-header)" />
+        </div>
+        <div class="stat-value">{{ stats.live }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          Deactivated Products
+          <hi-icon [icon]="infoIcon" size="14" color="var(--color-grey-header)" />
+        </div>
+        <div class="stat-value">{{ stats.deactivated }}</div>
+      </div>
+    </div>
+
+    <!-- Tabs + filter -->
+    <div class="tabs-row">
+      <div class="tabs">
+        <button class="tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">All Products</button>
+        <button class="tab" [class.active]="activeTab === 'live'" (click)="setTab('live')">Live</button>
+        <button class="tab" [class.active]="activeTab === 'deactivated'" (click)="setTab('deactivated')">Deactivated</button>
+        <button class="tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees</button>
+      </div>
+      @if (activeTab === 'fees') {
+        <button class="add-fee-btn">
+          <hi-icon [icon]="plusIcon" size="14" color="var(--color-blue)" />
+          Add custom new fee
+        </button>
+      } @else {
+        <button class="filter-btn">
+          <hi-icon [icon]="filterIcon" size="14" color="var(--color-body)" />
+          Filter
+        </button>
+      }
+    </div>
+
+    <!-- Products table -->
+    @if (showProductTable) {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Product name</th>
+              <th>Product ID</th>
+              <th>Amount range</th>
+              <th>Tenor</th>
+              <th>Interest rate</th>
+              <th>Status</th>
+              <th>Created on</th>
+              <th></th>
+            </tr>
+          </thead>
+          @if (!isEmpty) {
+            <tbody>
+              @for (product of filteredProducts; track product.productId) {
+                <tr>
+                  <td class="col-name">{{ product.name }}</td>
+                  <td class="col-id">{{ product.productId }}</td>
+                  <td>₦{{ product.minAmount }} - ₦{{ product.maxAmount }}</td>
+                  <td>{{ product.minTenor }}-{{ product.maxTenor }} months</td>
+                  <td>{{ product.interestRate }}</td>
+                  <td>
+                    <span class="status-badge" [class]="product.status">
+                      {{ product.status === 'live' ? 'Live' : 'Deactivated' }}
+                    </span>
+                  </td>
+                  <td class="col-date">{{ product.createdAt }}</td>
+                  <td class="col-actions">
+                    <button class="more-btn">
+                      <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          }
+        </table>
+
+        @if (isEmpty) {
+          <div class="empty-state">
+            <div class="empty-illustration">
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                <rect x="15" y="20" width="50" height="50" rx="4" stroke="#d0d5dd" stroke-width="2"/>
+                <path d="M25 35h30M25 45h20M25 55h15" stroke="#d0d5dd" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="58" cy="22" r="12" fill="#f2f4f7" stroke="#d0d5dd" stroke-width="2"/>
+                <path d="M54 22h8M58 18v8" stroke="#d0d5dd" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="empty-title">You haven't created any product yet.</p>
+            <p class="empty-sub">Start giving out loans with just one click!</p>
+            <a class="create-btn" routerLink="/products/create">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Create a loan product
+            </a>
+          </div>
+        } @else {
+          <div class="pagination-row">
+            <div class="page-size">
+              Showing
+              <button class="page-size-btn">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              10
+              <button class="page-size-btn">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              rows
+            </div>
+            <div class="page-nums">
+              <button class="page-num active">1</button>
+              <button class="page-num">2</button>
+              <button class="page-num">3</button>
+              <button class="page-num">4</button>
+              <button class="page-num">5</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Fees table -->
+    @if (activeTab === 'fees') {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fee Name</th>
+              <th>Fee Type</th>
+              <th>Flat Fee</th>
+              <th>Percentage</th>
+              <th>Minimum Fee</th>
+              <th>Maximum Fee</th>
+              <th>Created on</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fee of fees; track fee.name) {
+              <tr>
+                <td class="col-name">{{ fee.name }}</td>
+                <td>{{ fee.type }}</td>
+                <td>{{ fee.flatFee }}</td>
+                <td>{{ fee.percentage }}</td>
+                <td>{{ fee.minFee }}</td>
+                <td>{{ fee.maxFee }}</td>
+                <td class="col-date">{{ fee.createdAt }}</td>
+                <td class="col-actions">
+                  <button class="more-btn">
+                    <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <div class="pagination-row">
+          <div class="page-size">
+            Showing
+            <button class="page-size-btn">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            10
+            <button class="page-size-btn">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            rows
+          </div>
+          <div class="page-nums">
+            <button class="page-num active">1</button>
+            <button class="page-num">2</button>
+            <button class="page-num">3</button>
+            <button class="page-num">4</button>
+            <button class="page-num">5</button>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
