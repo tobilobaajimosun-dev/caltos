@@ -1,7 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { HugeiconsIconComponent } from '@hugeicons/angular';
-import type { IconSvgObject } from '@hugeicons/angular';
+import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -15,7 +14,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'back' | 'filt
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [NgClass, HugeiconsIconComponent],
+  imports: [NgClass, HiIconComponent],
   templateUrl: './button.component.html',
   styleUrls: ['./button.component.scss']
 })
@@ -27,9 +26,9 @@ export class ButtonComponent {
   @Input() dark = false;
   @Output() clicked = new EventEmitter<void>();
 
-  readonly backIcon: IconSvgObject = ChevronLeftIcon;
-  readonly filterIcon: IconSvgObject = FilterIcon;
-  readonly userIcon: IconSvgObject = UserCircleIcon;
-  readonly refreshIcon: IconSvgObject = RefreshIcon;
-  readonly chevronRightIcon: IconSvgObject = ChevronRightIcon;
+  readonly backIcon: IconData = ChevronLeftIcon as IconData;
+  readonly filterIcon: IconData = FilterIcon as IconData;
+  readonly userIcon: IconData = UserCircleIcon as IconData;
+  readonly refreshIcon: IconData = RefreshIcon as IconData;
+  readonly chevronRightIcon: IconData = ChevronRightIcon as IconData;
 }

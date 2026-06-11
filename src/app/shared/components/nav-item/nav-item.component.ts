@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { HugeiconsIconComponent } from '@hugeicons/angular';
-import type { IconSvgObject } from '@hugeicons/angular';
+import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
 import {
   DashboardCircleIcon,
   HouseHeartIcon,
@@ -23,7 +22,7 @@ export type NavItemIcon =
 @Component({
   selector: 'app-nav-item',
   standalone: true,
-  imports: [HugeiconsIconComponent],
+  imports: [HiIconComponent],
   templateUrl: './nav-item.component.html',
   styleUrls: ['./nav-item.component.scss']
 })
@@ -37,21 +36,21 @@ export class NavItemComponent {
   @Output() clicked = new EventEmitter<void>();
   @Output() expandedChange = new EventEmitter<boolean>();
 
-  readonly iconMap: Record<string, IconSvgObject> = {
-    dashboard: DashboardCircleIcon,
-    home: HouseHeartIcon,
-    customers: UserCircleIcon,
-    wallet: WalletCardsIcon,
-    products: CubeIcon,
-    loans: BankIcon,
-    reports: ChartBarBigIcon,
-    risk: AlertDiamondIcon,
-    teams: UserGroupIcon,
-    settings: CogIcon,
-    'quick-action': FlashIcon,
+  readonly iconMap: Record<string, IconData> = {
+    dashboard: DashboardCircleIcon as IconData,
+    home: HouseHeartIcon as IconData,
+    customers: UserCircleIcon as IconData,
+    wallet: WalletCardsIcon as IconData,
+    products: CubeIcon as IconData,
+    loans: BankIcon as IconData,
+    reports: ChartBarBigIcon as IconData,
+    risk: AlertDiamondIcon as IconData,
+    teams: UserGroupIcon as IconData,
+    settings: CogIcon as IconData,
+    'quick-action': FlashIcon as IconData,
   };
 
-  readonly chevronIcon: IconSvgObject = ChevronDownIcon;
+  readonly chevronIcon: IconData = ChevronDownIcon as IconData;
 
   onClick() {
     if (this.hasDropdown) {

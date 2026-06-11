@@ -1,3 +1,4 @@
+export { HiIconComponent } from './hi-icon/hi-icon.component';
 // Existing components
 export { ModalComponent } from './modal/modal.component';
 export { PaginationComponent } from './pagination/pagination.component';

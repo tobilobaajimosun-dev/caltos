@@ -7,19 +7,19 @@
   (click)="!disabled && clicked.emit()">
 
   @if (variant === 'back') {
-    <hugeicons-icon [icon]="backIcon" size="16" color="currentColor" />
+    <hi-icon [icon]="backIcon" size="16" color="currentColor" />
   }
 
   @if (variant === 'filter') {
-    <hugeicons-icon [icon]="filterIcon" size="14" color="currentColor" />
+    <hi-icon [icon]="filterIcon" size="14" color="currentColor" />
   }
 
   @if (variant === 'primary' || variant === 'dropdown') {
-    <hugeicons-icon [icon]="userIcon" size="16" color="currentColor" />
+    <hi-icon [icon]="userIcon" size="16" color="currentColor" />
   }
 
   @if (variant === 'round') {
-    <hugeicons-icon [icon]="refreshIcon" size="16" color="currentColor" />
+    <hi-icon [icon]="refreshIcon" size="16" color="currentColor" />
   }
 
   @if (variant !== 'round') {
@@ -27,6 +27,6 @@
   }
 
   @if (variant === 'secondary' || variant === 'dropdown') {
-    <hugeicons-icon [icon]="chevronRightIcon" size="14" color="currentColor" />
+    <hi-icon [icon]="chevronRightIcon" size="14" color="currentColor" />
   }
 </button>

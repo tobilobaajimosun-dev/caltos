@@ -1,5 +1,5 @@
 <button class="icon-btn" [ngClass]="[icon, color]" [class.filled]="filled" (click)="clicked.emit()">
-  <hugeicons-icon [icon]="iconMap[icon]" size="14" color="currentColor" />
+  <hi-icon [icon]="iconMap[icon]" size="14" color="currentColor" />
   @if (label) {
     <span class="lbl">{{ label }}</span>
   }

@@ -6,14 +6,14 @@
 
   @if (icon !== 'none') {
     <span class="icon-slot">
-      <hugeicons-icon [icon]="iconMap[icon]" size="16" color="currentColor" />
+      <hi-icon [icon]="iconMap[icon]" size="16" color="currentColor" />
     </span>
   }
 
   <span class="label-text">{{ label }}</span>
 
   @if (hasDropdown) {
-    <hugeicons-icon
+    <hi-icon
       class="chevron"
       [class.open]="expanded"
       [icon]="chevronIcon"
