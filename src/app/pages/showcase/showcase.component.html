@@ -1,0 +1,258 @@
+<div class="showcase-layout">
+  <!-- Sidebar -->
+  <app-sidebar [activeItemId]="activeNavItem" (navChange)="activeNavItem = $event" />
+
+  <div class="showcase">
+
+    <!-- ── KPI Cards ─────────────────────────────── -->
+    <h2 class="section-title">KPI Cards</h2>
+    <div class="row">
+      <app-kpi-card label="Total number of payouts (Daily)" value="0" />
+      <app-kpi-card label="Total disbursed (Monthly)" value="₦4.2M" />
+      <app-kpi-card label="Active Loans" value="128" />
+      <app-kpi-card label="Overdue" value="14" />
+    </div>
+
+    <!-- ── Tabs & Pills ──────────────────────────── -->
+    <h2 class="section-title">Round Tabs</h2>
+    <app-round-tabs [tabs]="tabs" [(activeTab)]="activeTab" />
+
+    <h2 class="section-title">Header Pills</h2>
+    <div class="row">
+      @for (pill of pills; track pill.value) {
+        <app-header-pill
+          [label]="pill.label"
+          [active]="activePill === pill.value"
+          (clicked)="activePill = pill.value"
+        />
+      }
+    </div>
+
+    <!-- ── Buttons ────────────────────────────────── -->
+    <h2 class="section-title">Buttons</h2>
+    <div class="row">
+      <app-button variant="primary" label="Sample text" />
+      <app-button variant="dropdown" label="Sample text" />
+      <app-button variant="primary" label="Disabled" [disabled]="true" />
+    </div>
+    <div class="row">
+      <app-button variant="secondary" label="View more" />
+      <app-button variant="secondary" label="View more" [dark]="true" />
+      <app-button variant="filter" label="Filter" />
+      <app-button variant="filter" label="Filter" [active]="true" />
+      <app-button variant="back" label="Back to teams" />
+      <app-button variant="round" label="" />
+    </div>
+
+    <!-- ── Icon Buttons ──────────────────────────── -->
+    <h2 class="section-title">Icon Buttons</h2>
+    <div class="row">
+      <app-icon-button icon="edit" />
+      <app-icon-button icon="edit" label="Edit" />
+      <app-icon-button icon="edit-open" color="blue" [filled]="true" />
+      <app-icon-button icon="check" color="green" />
+      <app-icon-button icon="close" color="red" />
+      <app-icon-button icon="delete" color="red" />
+      <app-icon-button icon="more" />
+      <app-icon-button icon="view" />
+      <app-icon-button icon="info" />
+      <app-icon-button icon="info" color="blue" />
+      <app-icon-button icon="expand" />
+    </div>
+
+    <!-- ── Form Inputs ───────────────────────────── -->
+    <h2 class="section-title">Input Field</h2>
+    <app-input placeholder="Sample text" [(value)]="inputValue" />
+    <app-input placeholder="With label" label="Company name" [(value)]="inputValue" />
+
+    <h2 class="section-title">Search</h2>
+    <div class="row">
+      <app-search placeholder="Search members" [(value)]="searchValue" style="width:320px" />
+    </div>
+
+    <!-- ── Toggle, Checkbox, Radio ──────────────── -->
+    <h2 class="section-title">Toggle</h2>
+    <div class="row">
+      <app-toggle [checked]="false" />
+      <app-toggle [checked]="true" />
+      <app-toggle [(checked)]="toggleOn" />
+      <span class="hint">Bound: {{ toggleOn }}</span>
+    </div>
+
+    <h2 class="section-title">Checkbox</h2>
+    <div class="row">
+      <app-checkbox [(checked)]="checked1" label="Active users" />
+      <app-checkbox [checked]="true" label="Active users" />
+      <app-checkbox variant="round" [(checked)]="checked2" label="Round variant" />
+    </div>
+
+    <h2 class="section-title">Radio Button</h2>
+    <div class="row">
+      <app-radio-button [selected]="false" label="Inactive" />
+      <app-radio-button [selected]="true" label="Selected" />
+    </div>
+
+    <!-- ── Status Badges ─────────────────────────── -->
+    <h2 class="section-title">Status Badges</h2>
+    <div class="row">
+      <app-status-badge status="active" />
+      <app-status-badge status="inactive" />
+      <app-status-badge status="suspended" />
+      <app-status-badge status="pending" />
+      <app-status-badge status="overdue" />
+      <app-status-badge status="dormant" />
+      <app-status-badge status="successful" />
+      <app-status-badge status="failed" />
+    </div>
+
+    <!-- ── Toasts ────────────────────────────────── -->
+    <h2 class="section-title">Toasts</h2>
+    <div class="col-gap">
+      <app-toast
+        type="success"
+        title="Note added successfully!"
+        message="Note has been added to customer profile successfully."
+      />
+      <app-toast
+        type="error"
+        title="Action failed!"
+        message="Note has been added to customer profile successfully."
+      />
+    </div>
+
+    <!-- ── Badge Card (Feedback) ─────────────────── -->
+    <h2 class="section-title">Badge Card</h2>
+    <div class="row">
+      <app-badge-card />
+      <app-badge-card title="Need help?" description="Contact support or visit our documentation portal." />
+    </div>
+
+    <!-- ── Org Profile ───────────────────────────── -->
+    <h2 class="section-title">Org Profile</h2>
+    <div style="max-width:280px; border:1px solid var(--color-stroke); border-radius:8px; overflow:hidden;">
+      <app-org-profile orgName="Princeps Finance" avatarLetter="P" avatarColor="#E55A2B" role="ADMIN" />
+    </div>
+
+    <!-- ── Nav Item ──────────────────────────────── -->
+    <h2 class="section-title">Nav Items</h2>
+    <div style="max-width:220px; display:flex; flex-direction:column; gap:2px;">
+      <app-nav-item label="Quick Actions" icon="dashboard" [active]="true" />
+      <app-nav-item label="Home" icon="home" />
+      <app-nav-item label="Customers" icon="customers" />
+      <app-nav-item label="Loans" icon="loans" [hasDropdown]="true" />
+      <app-nav-item label="Settings" icon="settings" />
+    </div>
+
+    <!-- ── Settings Rows ─────────────────────────── -->
+    <h2 class="section-title">Settings Rows</h2>
+    <div class="col-gap" style="max-width:700px;">
+      <app-settings-row
+        type="text"
+        label="Company Name"
+        subtitle="This is the name that appears on your profile"
+        [(value)]="settingsValue"
+      />
+      <app-settings-row
+        type="email"
+        label="Admin Email"
+        subtitle="This is the email you signed up with"
+        [(value)]="emailValue"
+      />
+      <app-settings-row
+        type="toggle"
+        label="Webhook call back"
+        subtitle="This is the name that appears on your profile"
+        value="tobiloba.ajimosun@princepsfinance.com"
+        [toggled]="true"
+      />
+    </div>
+
+    <!-- ── Permission Group ──────────────────────── -->
+    <h2 class="section-title">Permission Group</h2>
+    <div style="max-width:600px;">
+      <app-permission-group
+        groupName="Waivers"
+        [permissions]="permissions"
+        [showCustomToggle]="true"
+        [customEnabled]="customEnabled"
+        (customEnabledChange)="customEnabled = $event"
+        (permissionsChange)="permissions = $event"
+      />
+    </div>
+
+    <!-- ── Inline File & File Upload ─────────────── -->
+    <h2 class="section-title">Inline File</h2>
+    <app-inline-file fileName="Repayment proof.pdf" fileType="pdf" uploadDate="Aug 29, 2024, 3:52:12 PM GMT" />
+    <app-inline-file fileName="Customer video.mp4" fileType="mp4" uploadDate="Jun 10, 2025, 11:00:00 AM GMT" />
+
+    <h2 class="section-title">File Upload</h2>
+    <div class="upload-demo">
+      <app-file-upload label="Upload proof of payment" />
+    </div>
+
+    <!-- ── Table ─────────────────────────────────── -->
+    <h2 class="section-title">Table Components</h2>
+    <div class="table-demo">
+      <div class="table-head">
+        <app-column-title label="Customer" [sortable]="true" />
+        <app-column-title label="Date" />
+        <app-column-title label="Status" />
+        <app-column-title label="Amount" />
+        <app-column-title label="Actions" />
+      </div>
+      <div class="table-row">
+        <app-table-item type="user-avatar" [user]="tableUser" />
+        <app-table-item type="date" text="Aug 29, 2024, 3:52:12 PM GMT" />
+        <app-table-item type="status" status="active" />
+        <app-table-item type="amount" amount="₦80,010.00" date="Aug 29, 2024" />
+        <app-table-item type="actions" />
+      </div>
+      <div class="table-row">
+        <app-table-item type="user" [user]="tableUser" />
+        <app-table-item type="date" text="Jun 10, 2025, 11:00:00 AM GMT" />
+        <app-table-item type="status" status="pending" />
+        <app-table-item type="tags" [tags]="['Wallet', 'Waivers', 'Repayments']" />
+        <app-table-item type="more" linkLabel="Jesulademi Ajimosun" />
+      </div>
+    </div>
+
+    <!-- ── Pagination ────────────────────────────── -->
+    <h2 class="section-title">Pagination</h2>
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="6"
+      [pageSize]="pageSize"
+      (pageChange)="currentPage = $event"
+      (pageSizeChange)="pageSize = $event"
+    />
+
+    <!-- ── Modals ────────────────────────────────── -->
+    <h2 class="section-title">Modals</h2>
+    <div class="row">
+      <button class="demo-btn" (click)="showModal = true">Open Generic Modal</button>
+      <button class="demo-btn" (click)="showUploadModal = true">Open Upload Modal</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal overlays -->
+<app-modal
+  [isOpen]="showModal"
+  title="Mandatory Two-Factor Authentication Required!"
+  (closed)="showModal = false"
+>
+  <div class="modal-demo-content">
+    <p class="modal-demo-text">
+      Use Google Authenticator, One Password, Twillio or any other 2FA app
+      to scan the QR code below or use the set up key below.
+    </p>
+    <div class="qr-placeholder">QR Code</div>
+  </div>
+</app-modal>
+
+<app-upload-modal
+  [isOpen]="showUploadModal"
+  (closed)="showUploadModal = false"
+  (submitted)="showUploadModal = false"
+/>

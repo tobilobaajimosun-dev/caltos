@@ -1,0 +1,120 @@
+.showcase-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.showcase {
+  flex: 1;
+  max-width: 900px;
+  padding: 48px 40px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-grey-header);
+  margin: 12px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-stroke);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin: 0;
+}
+
+.upload-demo {
+  max-width: 598px;
+}
+
+.demo-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--color-stroke);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-blue);
+  cursor: pointer;
+  letter-spacing: -0.28px;
+
+  &:hover { background: #f2f6fa; }
+}
+
+.modal-demo-content {
+  padding: 20px 28px 28px;
+  width: 495px;
+}
+
+.modal-demo-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-grey-header);
+  line-height: 1.48;
+  letter-spacing: -0.28px;
+  margin: 0 0 24px;
+}
+
+.qr-placeholder {
+  height: 220px;
+  background: var(--color-stroke);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-grey-header);
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+
+.col-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.table-demo {
+  border: 1px solid var(--color-stroke);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.table-head {
+  display: flex;
+  background: #f7f9fb;
+  border-bottom: 1px solid var(--color-stroke);
+
+  app-column-title {
+    flex: 1;
+    display: block;
+  }
+}
+
+.table-row {
+  display: flex;
+  border-bottom: 1px solid var(--color-stroke);
+
+  &:last-child { border-bottom: none; }
+
+  app-table-item {
+    flex: 1;
+    display: block;
+  }
+}
