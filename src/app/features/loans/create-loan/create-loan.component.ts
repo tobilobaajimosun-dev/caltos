@@ -69,6 +69,191 @@ export const STEPS = [
   { id: 'publish',      label: 'Notifications',      shortLabel: 'Notifications' },
 ];
 
+export interface TemplatePreset {
+  name: string;
+  targetAudience: string;
+  minAmount: string;
+  maxAmount: string;
+  minTenor: string;
+  maxTenor: string;
+  tenorUnit: string;
+  entryPhone: boolean;
+  entryEmail: boolean;
+  entryBvn: boolean;
+  entryNin: boolean;
+  collectPersonal: boolean;
+  collectContact: boolean;
+  collectEmployment: boolean;
+  collectAddress: boolean;
+  collectBusiness: boolean;
+  returningApplicants: string;
+  identityBvn: boolean;
+  identityNin: boolean;
+  identityPhoneOtp: boolean;
+  identityEmailOtp: boolean;
+  incomeRemita: boolean;
+  incomeIppis: boolean;
+  incomeBankStatement: boolean;
+  autofill: string;
+  interestRate: string;
+  interestType: string;
+  processingFee: string;
+  disburseTo: string;
+  repaymentFrequency: string;
+  requireGuarantor: boolean;
+}
+
+const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
+  salary: {
+    name: 'Salary Advance Loan',
+    targetAudience: 'Salary Earners',
+    minAmount: '10000',    maxAmount: '500000',
+    minTenor: '1',         maxTenor: '12',        tenorUnit: 'Months',
+    // Entry: phone is the primary identifier; BVN for identity
+    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
+    // Collect employment + personal + contact (need payslip, employer letter)
+    collectPersonal: true, collectContact: true, collectEmployment: true,
+    collectAddress: false, collectBusiness: false,
+    returningApplicants: 'continue',
+    // Identity: BVN mandatory + phone OTP; employer does salary domiciliation
+    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
+    // Income: Remita preferred (salary deduction), bank statement as fallback
+    incomeRemita: true, incomeIppis: false, incomeBankStatement: true,
+    autofill: 'fill-allow',
+    interestRate: '5',   interestType: 'Reducing Balance',
+    processingFee: '1.5',
+    disburseTo: 'bank',
+    repaymentFrequency: 'Monthly',
+    requireGuarantor: false,
+  },
+  public: {
+    name: 'Public Sector Loan',
+    targetAudience: 'Public Servants',
+    minAmount: '50000',    maxAmount: '5000000',
+    minTenor: '3',         maxTenor: '36',        tenorUnit: 'Months',
+    entryPhone: true,  entryEmail: false, entryBvn: true,  entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true,
+    collectAddress: false, collectBusiness: false,
+    returningApplicants: 'continue',
+    // Civil servants must have IPPIS number; BVN + NIN both required
+    identityBvn: true,  identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
+    // IPPIS is primary income verification for federal workers; Remita for state
+    incomeRemita: true, incomeIppis: true, incomeBankStatement: false,
+    autofill: 'fill-allow',
+    interestRate: '3',   interestType: 'Reducing Balance',
+    processingFee: '1',
+    disburseTo: 'bank',
+    repaymentFrequency: 'Monthly',
+    requireGuarantor: false,
+  },
+  school: {
+    name: 'School Fees Loan',
+    targetAudience: 'Students',
+    minAmount: '50000',    maxAmount: '1000000',
+    minTenor: '1',         maxTenor: '12',        tenorUnit: 'Months',
+    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
+    // Collect personal + contact for student; address for guarantor
+    collectPersonal: true, collectContact: true, collectEmployment: false,
+    collectAddress: true,  collectBusiness: false,
+    returningApplicants: 'continue',
+    // BVN + phone OTP; NIN optional for students under 18
+    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
+    // No Remita/IPPIS for students; bank statement from parent/guardian
+    incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    autofill: 'fill-allow',
+    interestRate: '6',   interestType: 'Flat Rate',
+    processingFee: '2',
+    disburseTo: 'bank',
+    repaymentFrequency: 'Monthly',
+    requireGuarantor: true,  // Parent/guardian guarantor required
+  },
+  corper: {
+    name: 'Corper Wallet Loan',
+    targetAudience: 'Public Servants',
+    minAmount: '10000',    maxAmount: '150000',
+    minTenor: '1',         maxTenor: '11',        tenorUnit: 'Months',
+    // Phone is primary; BVN mandatory; NIN for NYSC validation
+    entryPhone: true,  entryEmail: false, entryBvn: true,  entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true,
+    collectAddress: false, collectBusiness: false,
+    returningApplicants: 'continue',
+    // BVN + NIN mandatory (NYSC validates these); phone OTP for security
+    identityBvn: true,  identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
+    // NYSC monthly allowance paid via Remita
+    incomeRemita: true, incomeIppis: false, incomeBankStatement: false,
+    autofill: 'fill-allow',
+    interestRate: '5',   interestType: 'Flat Rate',
+    processingFee: '2',
+    disburseTo: 'bank',
+    repaymentFrequency: 'Monthly',
+    requireGuarantor: false,
+  },
+  sme: {
+    name: 'SME Working Capital Loan',
+    targetAudience: 'Business Owners',
+    minAmount: '100000',   maxAmount: '10000000',
+    minTenor: '3',         maxTenor: '24',        tenorUnit: 'Months',
+    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
+    // Business info (CAC, TIN) is critical; employment = business employment
+    collectPersonal: true, collectContact: true, collectEmployment: true,
+    collectAddress: true,  collectBusiness: true,
+    returningApplicants: 'continue',
+    // BVN + NIN; business identity via CAC registration
+    identityBvn: true,  identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
+    // 6-12 months bank statements required; no salary verification
+    incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    autofill: 'fill-allow',
+    interestRate: '4',   interestType: 'Reducing Balance',
+    processingFee: '2',
+    disburseTo: 'bank',
+    repaymentFrequency: 'Monthly',
+    requireGuarantor: true,
+  },
+  coop: {
+    name: 'Cooperative Society Loan',
+    targetAudience: 'Cooperative Members',
+    minAmount: '10000',    maxAmount: '500000',
+    minTenor: '1',         maxTenor: '12',        tenorUnit: 'Months',
+    entryPhone: true,  entryEmail: false, entryBvn: true,  entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true,
+    collectAddress: false, collectBusiness: false,
+    returningApplicants: 'continue',
+    // BVN mandatory; phone OTP; members verified through society records
+    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
+    // Savings history replaces income verification; bank statement as backup
+    incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    autofill: 'fill-allow',
+    interestRate: '2',   interestType: 'Reducing Balance',
+    processingFee: '1',
+    disburseTo: 'bank',
+    repaymentFrequency: 'Monthly',
+    requireGuarantor: false,
+  },
+  bnpl: {
+    name: 'Buy Now Pay Later',
+    targetAudience: 'Everyone',
+    minAmount: '5000',     maxAmount: '500000',
+    minTenor: '1',         maxTenor: '6',         tenorUnit: 'Months',
+    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
+    // Minimal data collection for frictionless checkout experience
+    collectPersonal: true, collectContact: true, collectEmployment: false,
+    collectAddress: true,  collectBusiness: false,
+    returningApplicants: 'continue',
+    // Light KYC: BVN + phone OTP sufficient; NIN for high-value transactions
+    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
+    // Affordability check via bank statement; no salary deduction
+    incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    autofill: 'fill-allow',
+    interestRate: '0',   interestType: 'Flat Rate',
+    processingFee: '3',
+    // Disburse directly to merchant, not borrower
+    disburseTo: 'third-party',
+    repaymentFrequency: 'Weekly',
+    requireGuarantor: false,
+  },
+  scratch: {},
+};
+
 export const TEMPLATES = [
   {
     id: 'salary', label: 'Salary Advance',
@@ -194,7 +379,10 @@ export class CreateLoanComponent {
   next() { if (!this.isLast) this.currentStep++; }
   back() { if (!this.isFirst) this.currentStep--; }
   goToStep(i: number) { this.currentStep = i; }
-  selectTemplate(id: string) { this.config.template = id; }
+  selectTemplate(id: string) {
+    const preset = TEMPLATE_PRESETS[id] ?? {};
+    this.config = { ...this.config, ...preset, template: id };
+  }
 
   getConfig(key: string): unknown {
     return (this.config as unknown as Record<string, unknown>)[key];
