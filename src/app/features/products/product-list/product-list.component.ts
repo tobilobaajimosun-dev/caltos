@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
+import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
 import {
   InformationCircleIcon,
   FilterIcon,
@@ -38,12 +39,13 @@ interface Fee {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, HiIconComponent],
+  imports: [RouterLink, SidebarComponent, HiIconComponent, LoanTypeModalComponent],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
 })
 export class ProductListComponent {
   activeTab: ActiveTab = 'all';
+  showLoanTypeModal = false;
 
   readonly infoIcon: IconData = InformationCircleIcon as IconData;
   readonly filterIcon: IconData = FilterIcon as IconData;

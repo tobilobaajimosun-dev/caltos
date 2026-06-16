@@ -30,7 +30,7 @@
         <h1 class="page-title">Products</h1>
         <p class="page-subtitle">Create and manage your loan product seamlessly.</p>
       </div>
-      <a class="create-btn" routerLink="/products/create">
+      <button class="create-btn" (click)="showLoanTypeModal = true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
           <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
@@ -38,7 +38,7 @@
           <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
         </svg>
         Create a loan product
-      </a>
+      </button>
     </div>
 
     <!-- KPI cards -->
@@ -141,7 +141,7 @@
             </div>
             <p class="empty-title">You haven't created any product yet.</p>
             <p class="empty-sub">Start giving out loans with just one click!</p>
-            <a class="create-btn" routerLink="/products/create">
+            <button class="create-btn" (click)="showLoanTypeModal = true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
                 <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
@@ -149,7 +149,7 @@
                 <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
               </svg>
               Create a loan product
-            </a>
+            </button>
           </div>
         } @else {
           <div class="pagination-row">
@@ -236,3 +236,9 @@
 
   </div>
 </div>
+
+@if (showLoanTypeModal) {
+  <app-loan-type-modal
+    (closed)="showLoanTypeModal = false"
+    (typeSelected)="showLoanTypeModal = false" />
+}

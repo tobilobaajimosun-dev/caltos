@@ -1,42 +1,49 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TitleCasePipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TitleCasePipe, LowerCasePipe } from '@angular/common';
 import {
   SidebarComponent, CheckboxComponent, RadioButtonComponent,
-  ToggleComponent, TextareaComponent, TemplateCardComponent,
+  ToggleComponent, TextareaComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
+  FileUploadComponent,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
 import {
-  UserMultipleIcon, UserAccountIcon, SchoolIcon, BankIcon, HandshakeIcon,
-  BriefcaseDollarIcon, CreditCardIcon, RocketIcon,
-  FingerPrintIcon, IdCardLanyardIcon,
-  SlidersHorizontalIcon, CheckIcon, CogIcon, ColorsIcon, GlobeIcon,
   ChevronLeftIcon, ChevronRightIcon,
+  PlusSignIcon,
 } from '@hugeicons/core-free-icons';
 
 export interface LoanConfig {
   template: string;
+  // Step 1
   name: string;
   description: string;
-  targetAudience: string;
+  targetAudiences: string[];
   minAmount: string;
   maxAmount: string;
   minTenor: string;
   maxTenor: string;
   tenorUnit: string;
+  interestModel: string;
+  interestRate: string;
+  minAge: string;
+  maxAge: string;
+  // Step 2
   entryPhone: boolean;
   entryEmail: boolean;
   entryBvn: boolean;
   entryNin: boolean;
   collectPersonal: boolean;
   collectContact: boolean;
-  collectEmployment: boolean;
   collectAddress: boolean;
+  collectEmployment: boolean;
   collectBusiness: boolean;
-  returningApplicants: string;
+  allowContinue: boolean;
+  recogniseExisting: boolean;
+  // Step 3
   identityBvn: boolean;
   identityNin: boolean;
   identityPhoneOtp: boolean;
@@ -44,332 +51,331 @@ export interface LoanConfig {
   incomeRemita: boolean;
   incomeIppis: boolean;
   incomeBankStatement: boolean;
-  autofill: string;
-  interestRate: string;
-  interestType: string;
-  processingFee: string;
+  docGovId: string;
+  docUtilityBill: string;
+  docWorkVerification: string;
+  docGuarantorForm: string;
+  docSchoolId: string;
+  docAdmissionLetter: string;
+  docNyscLetter: string;
+  docCacCert: string;
+  docMembershipCert: string;
+  // Step 4
+  processingFeeType: string;
+  processingFeeRate: string;
+  processingFeeApplicableTo: string;
+  processingFeeMin: string;
+  processingFeeMax: string;
+  latePenaltyMethod: string;
+  latePenaltyRate: string;
+  latePenaltyGraceDays: string;
+  latePenaltyApplyTo: string;
+  // Step 5
   disburseTo: string;
+  disburseTiming: string;
+  offerLetter: boolean;
+  salaryAccountOnly: boolean;
+  repaymentDeductionFirst: boolean;
+  videoConfirmation: boolean;
+  // Step 6
   repaymentFrequency: string;
-  maxActiveLoan: string;
-  requireGuarantor: boolean;
+  firstRepaymentDays: string;
+  repaymentDay: string;
+  // Step 7
+  docTerms: string;
+  docPrivacy: string;
+  docAgreement: string;
+  useDefaultConsent: boolean;
+  // Step 8
+  welcomeMessage: string;
+  thankYouMessage: string;
+  supportEmail: string;
+  supportPhone: string;
+  whatsappContact: string;
+  // Brand
   brandColor: string;
   brandName: string;
 }
 
 export const STEPS = [
-  { id: 'template',     label: 'Template',           shortLabel: 'Template' },
-  { id: 'about',        label: 'About Loan',         shortLabel: 'About Loan' },
-  { id: 'application',  label: 'Application Setup',  shortLabel: 'Application' },
-  { id: 'verification', label: 'Verification Setup', shortLabel: 'Verification' },
-  { id: 'pricing',      label: 'Pricing & Fees',     shortLabel: 'Pricing' },
-  { id: 'disbursement', label: 'Disbursement',       shortLabel: 'Disbursement' },
-  { id: 'repayment',    label: 'Repayment',          shortLabel: 'Repayment' },
-  { id: 'controls',     label: 'Loan Controls',      shortLabel: 'Loan Controls' },
-  { id: 'branding',     label: 'Branding',           shortLabel: 'Branding' },
-  { id: 'publish',      label: 'Notifications',      shortLabel: 'Notifications' },
+  { id: 'about',         label: 'About this Loan',         shortLabel: 'About Loan' },
+  { id: 'application',   label: 'Set Up Your Application', shortLabel: 'Application' },
+  { id: 'verification',  label: 'Verification',            shortLabel: 'Verification' },
+  { id: 'pricing',       label: 'Pricing & Fees',          shortLabel: 'Pricing' },
+  { id: 'disbursement',  label: 'Disbursement',            shortLabel: 'Disbursement' },
+  { id: 'repayment',     label: 'Repayment',               shortLabel: 'Repayment' },
+  { id: 'legal',         label: 'Legal',                   shortLabel: 'Legal' },
+  { id: 'customisation', label: 'Customisation',           shortLabel: 'Customise' },
+  { id: 'review',        label: 'Review & Publish',        shortLabel: 'Review' },
 ];
-
-export interface TemplatePreset {
-  name: string;
-  targetAudience: string;
-  minAmount: string;
-  maxAmount: string;
-  minTenor: string;
-  maxTenor: string;
-  tenorUnit: string;
-  entryPhone: boolean;
-  entryEmail: boolean;
-  entryBvn: boolean;
-  entryNin: boolean;
-  collectPersonal: boolean;
-  collectContact: boolean;
-  collectEmployment: boolean;
-  collectAddress: boolean;
-  collectBusiness: boolean;
-  returningApplicants: string;
-  identityBvn: boolean;
-  identityNin: boolean;
-  identityPhoneOtp: boolean;
-  identityEmailOtp: boolean;
-  incomeRemita: boolean;
-  incomeIppis: boolean;
-  incomeBankStatement: boolean;
-  autofill: string;
-  interestRate: string;
-  interestType: string;
-  processingFee: string;
-  disburseTo: string;
-  repaymentFrequency: string;
-  requireGuarantor: boolean;
-}
 
 const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
   salary: {
     name: 'Salary Advance Loan',
-    targetAudience: 'Salary Earners',
-    minAmount: '10000',    maxAmount: '500000',
-    minTenor: '1',         maxTenor: '12',        tenorUnit: 'Months',
-    // Entry: phone is the primary identifier; BVN for identity
-    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
-    // Collect employment + personal + contact (need payslip, employer letter)
-    collectPersonal: true, collectContact: true, collectEmployment: true,
-    collectAddress: false, collectBusiness: false,
-    returningApplicants: 'continue',
-    // Identity: BVN mandatory + phone OTP; employer does salary domiciliation
-    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    // Income: Remita preferred (salary deduction), bank statement as fallback
+    description: 'Quick access to earned wages for private sector employees.',
+    targetAudiences: ['Salary Earners'],
+    minAmount: '10000', maxAmount: '500000',
+    minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
+    interestModel: 'Reducing Balance', interestRate: '5',
+    minAge: '21', maxAge: '60',
+    entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: true,
-    autofill: 'fill-allow',
-    interestRate: '5',   interestType: 'Reducing Balance',
-    processingFee: '1.5',
-    disburseTo: 'bank',
-    repaymentFrequency: 'Monthly',
-    requireGuarantor: false,
+    docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '1.5', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'instant', salaryAccountOnly: true,
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: 'Welcome! Get quick access to your salary in advance. The process takes about 5 minutes.',
   },
   public: {
     name: 'Public Sector Loan',
-    targetAudience: 'Public Servants',
-    minAmount: '50000',    maxAmount: '5000000',
-    minTenor: '3',         maxTenor: '36',        tenorUnit: 'Months',
-    entryPhone: true,  entryEmail: false, entryBvn: true,  entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: true,
-    collectAddress: false, collectBusiness: false,
-    returningApplicants: 'continue',
-    // Civil servants must have IPPIS number; BVN + NIN both required
-    identityBvn: true,  identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
-    // IPPIS is primary income verification for federal workers; Remita for state
+    description: 'Affordable loans for federal and state government employees.',
+    targetAudiences: ['Public Servants'],
+    minAmount: '50000', maxAmount: '5000000',
+    minTenor: '3', maxTenor: '36', tenorUnit: 'Months',
+    interestModel: 'Reducing Balance', interestRate: '3',
+    minAge: '21', maxAge: '60',
+    entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: true, incomeBankStatement: false,
-    autofill: 'fill-allow',
-    interestRate: '3',   interestType: 'Reducing Balance',
-    processingFee: '1',
-    disburseTo: 'bank',
-    repaymentFrequency: 'Monthly',
-    requireGuarantor: false,
+    docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '1', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'instant', salaryAccountOnly: true,
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: 'Welcome! Loans designed specifically for civil servants. Get started in minutes.',
   },
   school: {
     name: 'School Fees Loan',
-    targetAudience: 'Students',
-    minAmount: '50000',    maxAmount: '1000000',
-    minTenor: '1',         maxTenor: '12',        tenorUnit: 'Months',
-    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
-    // Collect personal + contact for student; address for guarantor
-    collectPersonal: true, collectContact: true, collectEmployment: false,
-    collectAddress: true,  collectBusiness: false,
-    returningApplicants: 'continue',
-    // BVN + phone OTP; NIN optional for students under 18
-    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    // No Remita/IPPIS for students; bank statement from parent/guardian
+    description: 'Help families pay school fees and educational expenses.',
+    targetAudiences: ['Students', 'Everyone'],
+    minAmount: '50000', maxAmount: '1000000',
+    minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
+    interestModel: 'Flat Rate', interestRate: '6',
+    minAge: '18', maxAge: '55',
+    entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    autofill: 'fill-allow',
-    interestRate: '6',   interestType: 'Flat Rate',
-    processingFee: '2',
-    disburseTo: 'bank',
-    repaymentFrequency: 'Monthly',
-    requireGuarantor: true,  // Parent/guardian guarantor required
+    docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'none',
+    docGuarantorForm: 'required', docSchoolId: 'required', docAdmissionLetter: 'required',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '2', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'instant',
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: 'Welcome! Fund your education without the financial stress. Apply in minutes.',
   },
   corper: {
     name: 'Corper Wallet Loan',
-    targetAudience: 'Public Servants',
-    minAmount: '10000',    maxAmount: '150000',
-    minTenor: '1',         maxTenor: '11',        tenorUnit: 'Months',
-    // Phone is primary; BVN mandatory; NIN for NYSC validation
-    entryPhone: true,  entryEmail: false, entryBvn: true,  entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: true,
-    collectAddress: false, collectBusiness: false,
-    returningApplicants: 'continue',
-    // BVN + NIN mandatory (NYSC validates these); phone OTP for security
-    identityBvn: true,  identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
-    // NYSC monthly allowance paid via Remita
+    description: 'Quick loans for NYSC corps members throughout their service year.',
+    targetAudiences: ['Public Servants'],
+    minAmount: '10000', maxAmount: '150000',
+    minTenor: '1', maxTenor: '11', tenorUnit: 'Months',
+    interestModel: 'Flat Rate', interestRate: '5',
+    minAge: '18', maxAge: '35',
+    entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: false,
-    autofill: 'fill-allow',
-    interestRate: '5',   interestType: 'Flat Rate',
-    processingFee: '2',
-    disburseTo: 'bank',
-    repaymentFrequency: 'Monthly',
-    requireGuarantor: false,
+    docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '2', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'instant',
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: 'Welcome, corps member! Quick loans to support your NYSC service year.',
   },
   sme: {
     name: 'SME Working Capital Loan',
-    targetAudience: 'Business Owners',
-    minAmount: '100000',   maxAmount: '10000000',
-    minTenor: '3',         maxTenor: '24',        tenorUnit: 'Months',
-    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
-    // Business info (CAC, TIN) is critical; employment = business employment
-    collectPersonal: true, collectContact: true, collectEmployment: true,
-    collectAddress: true,  collectBusiness: true,
-    returningApplicants: 'continue',
-    // BVN + NIN; business identity via CAC registration
-    identityBvn: true,  identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
-    // 6-12 months bank statements required; no salary verification
+    description: 'Working capital and growth financing for registered businesses.',
+    targetAudiences: ['Business Owners'],
+    minAmount: '100000', maxAmount: '10000000',
+    minTenor: '3', maxTenor: '24', tenorUnit: 'Months',
+    interestModel: 'Reducing Balance', interestRate: '4',
+    minAge: '21', maxAge: '65',
+    entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: true, collectBusiness: true,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    autofill: 'fill-allow',
-    interestRate: '4',   interestType: 'Reducing Balance',
-    processingFee: '2',
-    disburseTo: 'bank',
-    repaymentFrequency: 'Monthly',
-    requireGuarantor: true,
+    docGovId: 'required', docUtilityBill: 'required', docWorkVerification: 'optional',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '2', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'verify',
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: 'Welcome! Get the working capital your business needs to grow.',
   },
   coop: {
     name: 'Cooperative Society Loan',
-    targetAudience: 'Cooperative Members',
-    minAmount: '10000',    maxAmount: '500000',
-    minTenor: '1',         maxTenor: '12',        tenorUnit: 'Months',
-    entryPhone: true,  entryEmail: false, entryBvn: true,  entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: true,
-    collectAddress: false, collectBusiness: false,
-    returningApplicants: 'continue',
-    // BVN mandatory; phone OTP; members verified through society records
-    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    // Savings history replaces income verification; bank statement as backup
+    description: 'Member-only loans tied to savings and cooperative standing.',
+    targetAudiences: ['Cooperative Members'],
+    minAmount: '10000', maxAmount: '500000',
+    minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
+    interestModel: 'Reducing Balance', interestRate: '2',
+    minAge: '18', maxAge: '65',
+    entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    autofill: 'fill-allow',
-    interestRate: '2',   interestType: 'Reducing Balance',
-    processingFee: '1',
-    disburseTo: 'bank',
-    repaymentFrequency: 'Monthly',
-    requireGuarantor: false,
+    docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required',
+    processingFeeType: 'Flat Amount', processingFeeRate: '500', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'instant',
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: 'Welcome, member! Access your cooperative loan benefits quickly and easily.',
   },
   bnpl: {
     name: 'Buy Now Pay Later',
-    targetAudience: 'Everyone',
-    minAmount: '5000',     maxAmount: '500000',
-    minTenor: '1',         maxTenor: '6',         tenorUnit: 'Months',
-    entryPhone: true,  entryEmail: true,  entryBvn: false, entryNin: false,
-    // Minimal data collection for frictionless checkout experience
-    collectPersonal: true, collectContact: true, collectEmployment: false,
-    collectAddress: true,  collectBusiness: false,
-    returningApplicants: 'continue',
-    // Light KYC: BVN + phone OTP sufficient; NIN for high-value transactions
-    identityBvn: true,  identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    // Affordability check via bank statement; no salary deduction
+    description: 'Instant purchase financing that lets customers shop and pay over time.',
+    targetAudiences: ['Everyone'],
+    minAmount: '5000', maxAmount: '500000',
+    minTenor: '1', maxTenor: '6', tenorUnit: 'Months',
+    interestModel: 'Flat Rate', interestRate: '0',
+    minAge: '18', maxAge: '55',
+    entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
+    collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    autofill: 'fill-allow',
-    interestRate: '0',   interestType: 'Flat Rate',
-    processingFee: '3',
-    // Disburse directly to merchant, not borrower
-    disburseTo: 'third-party',
-    repaymentFrequency: 'Weekly',
-    requireGuarantor: false,
+    docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '3', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'third-party', disburseTiming: 'instant',
+    repaymentFrequency: 'Weekly', firstRepaymentDays: '7',
+    welcomeMessage: 'Shop now, pay later. Get instant purchase financing with no hidden fees.',
   },
-  scratch: {},
+  scratch: {
+    name: '',
+    description: '',
+    targetAudiences: [],
+    minAmount: '', maxAmount: '',
+    minTenor: '', maxTenor: '', tenorUnit: 'Months',
+    interestModel: 'Flat Rate', interestRate: '',
+    entryPhone: false, entryEmail: false, entryBvn: false, entryNin: false,
+    collectPersonal: false, collectContact: false, collectEmployment: false, collectAddress: false, collectBusiness: false,
+    allowContinue: false, recogniseExisting: false,
+    identityBvn: false, identityNin: false, identityPhoneOtp: false, identityEmailOtp: false,
+    incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
+    docGovId: 'none', docUtilityBill: 'none', docWorkVerification: 'none',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '', processingFeeApplicableTo: 'Loan Amount',
+    disburseTo: 'bank', disburseTiming: 'instant',
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    welcomeMessage: '',
+  },
 };
-
-export const TEMPLATES = [
-  {
-    id: 'salary', label: 'Salary Advance',
-    description: 'Short term loans for private salary earners.',
-    color: '#0BA5EC', bg: '#E0F2FE',
-    tags: ['Bank Statement', 'Direct Debit'],
-    icon: UserAccountIcon,
-  },
-  {
-    id: 'public', label: 'Public Sector Loan',
-    description: 'Loans for government employees.',
-    color: '#F79009', bg: '#FEF3C7',
-    tags: ['Remita', 'IPPIS'],
-    icon: UserMultipleIcon,
-  },
-  {
-    id: 'school', label: 'School Fees Loan',
-    description: 'Help parents and students pay school fees.',
-    color: '#12B76A', bg: '#D1FAE5',
-    tags: ['School ID', 'Admission Letter'],
-    icon: SchoolIcon,
-  },
-  {
-    id: 'corper', label: 'Corper Loan',
-    description: 'Loans for NYSC members and corps employers.',
-    color: '#6941C6', bg: '#EDE9FE',
-    tags: ['Remita', 'NYSC ID'],
-    icon: HandshakeIcon,
-  },
-  {
-    id: 'sme', label: 'SME Loan',
-    description: 'Working capital and growth loans for businesses.',
-    color: '#F04438', bg: '#FEE4E2',
-    tags: ['CAC', 'Bank Statement'],
-    icon: BriefcaseDollarIcon,
-  },
-  {
-    id: 'coop', label: 'Cooperative Loan',
-    description: 'Loans for cooperative society members.',
-    color: '#0BA5EC', bg: '#E0F2FE',
-    tags: ['Membership Verification'],
-    icon: UserMultipleIcon,
-  },
-  {
-    id: 'bnpl', label: 'Buy Now Pay Later',
-    description: 'Instant purchase financing for goods and services.',
-    color: '#F04438', bg: '#FEE4E2',
-    tags: ['ID Verification', 'Affordability'],
-    icon: CreditCardIcon,
-  },
-  {
-    id: 'scratch', label: 'Build from Scratch',
-    description: 'Create a completely custom loan product.',
-    color: '#667085', bg: '#F2F4F7',
-    tags: ['Start Blank'],
-    isScratch: true,
-    icon: CogIcon,
-  },
-];
-
-const BORROWER_STEPS = [
-  { label: 'Contact Information', sub: 'We\'ll ask for their phone or email' },
-  { label: 'Verify Identity', sub: 'We\'ll verify their identity' },
-  { label: 'Confirm Employment', sub: 'We\'ll confirm their employment or income' },
-  { label: 'Upload Documents', sub: 'They\'ll upload required documents' },
-  { label: 'Review & Submit', sub: 'They\'ll review and submit their application' },
-];
 
 @Component({
   selector: 'app-create-loan',
   standalone: true,
   imports: [
-    FormsModule, RouterLink, TitleCasePipe, SidebarComponent, HiIconComponent,
+    FormsModule, RouterLink, TitleCasePipe, LowerCasePipe,
+    SidebarComponent, HiIconComponent,
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
-    TextareaComponent, TemplateCardComponent, CollapsibleSectionComponent,
-    CopyUrlFieldComponent, QrCodeComponent, LivePreviewComponent,
+    TextareaComponent, CollapsibleSectionComponent,
+    CopyUrlFieldComponent, QrCodeComponent,
+    FileUploadComponent, LivePreviewComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrls: ['./create-loan.component.scss'],
 })
-export class CreateLoanComponent {
+export class CreateLoanComponent implements OnInit {
   readonly steps = STEPS;
-  readonly templates = TEMPLATES;
-  readonly borrowerSteps = BORROWER_STEPS;
   currentStep = 0;
+  isDraft = false;
+  showUnsavedDialog = false;
+  pricingTab: 'fees' | 'penalties' = 'fees';
+  nameAvailable = false;
+  nameCheckTimeout: ReturnType<typeof setTimeout> | null = null;
+  showConsentText = false;
+
+  expandPersonal = false;
+  expandContact = false;
+  expandAddress = false;
+  expandEmployment = false;
+  expandBusiness = false;
+
+  showInsuranceFee = false;
+  showAdminFee = false;
+  showMgmtFee = false;
 
   readonly chevronLeft: IconData = ChevronLeftIcon as IconData;
   readonly chevronRight: IconData = ChevronRightIcon as IconData;
+  readonly plusIcon: IconData = PlusSignIcon as IconData;
 
-  expandPersonal = true;
-  expandContact = false;
-  expandEmployment = false;
-  expandAddress = false;
-  expandBusiness = false;
-
-  config: LoanConfig = {
-    template: '', name: '', description: '', targetAudience: '',
-    minAmount: '', maxAmount: '', minTenor: '', maxTenor: '', tenorUnit: 'Months',
-    entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: false,
-    collectAddress: false, collectBusiness: false, returningApplicants: 'continue',
-    identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
-    autofill: 'fill-allow', interestRate: '', interestType: 'Reducing Balance',
-    processingFee: '', disburseTo: 'bank', repaymentFrequency: 'Monthly',
-    maxActiveLoan: '1', requireGuarantor: false, brandColor: '#6941C6', brandName: '',
-  };
+  readonly audiences = [
+    'Everyone', 'Salary Earners', 'Public Servants',
+    'Students', 'Business Owners', 'Cooperative Members',
+    'Existing Customers', 'Custom Audience',
+  ];
 
   readonly tenorUnits = ['Days', 'Weeks', 'Months', 'Years'];
   readonly repayFreqs = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'At end of tenor'];
-  readonly interestTypes = ['Reducing Balance', 'Flat Rate'];
+  readonly interestModels = ['Flat Rate', 'Reducing Balance'];
+
+  config: LoanConfig = {
+    template: '', name: '', description: '', targetAudiences: [],
+    minAmount: '', maxAmount: '', minTenor: '', maxTenor: '', tenorUnit: 'Months',
+    interestModel: 'Flat Rate', interestRate: '', minAge: '18', maxAge: '',
+    entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
+    collectPersonal: true, collectContact: true, collectAddress: false,
+    collectEmployment: false, collectBusiness: false,
+    allowContinue: true, recogniseExisting: true,
+    identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
+    incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
+    docGovId: 'none', docUtilityBill: 'none', docWorkVerification: 'none',
+    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    processingFeeType: 'Percentage', processingFeeRate: '', processingFeeApplicableTo: 'Loan Amount',
+    processingFeeMin: '', processingFeeMax: '',
+    latePenaltyMethod: 'Percentage', latePenaltyRate: '', latePenaltyGraceDays: '3',
+    latePenaltyApplyTo: 'Outstanding Balance',
+    disburseTo: 'bank', disburseTiming: 'instant',
+    offerLetter: false, salaryAccountOnly: false, repaymentDeductionFirst: false, videoConfirmation: false,
+    repaymentFrequency: 'Monthly', firstRepaymentDays: '30', repaymentDay: 'Day 30',
+    docTerms: '', docPrivacy: '', docAgreement: '', useDefaultConsent: false,
+    welcomeMessage: '', thankYouMessage: '', supportEmail: 'hello@yourcompany.ng',
+    supportPhone: '', whatsappContact: '',
+    brandColor: '#6941C6', brandName: '',
+  };
+
+  constructor(private route: ActivatedRoute, private router: Router) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      const type = params['type'];
+      if (type && TEMPLATE_PRESETS[type]) {
+        const preset = TEMPLATE_PRESETS[type];
+        this.config = { ...this.config, ...preset, template: type };
+      }
+    });
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.config.name) {
+      event.preventDefault();
+    }
+  }
 
   get stepId() { return this.steps[this.currentStep].id; }
   get isFirst() { return this.currentStep === 0; }
   get isLast() { return this.currentStep === this.steps.length - 1; }
-  get stepNumber() { return this.currentStep + 1; }
+  get isReview() { return this.stepId === 'review'; }
 
   stepStatus(i: number): 'active' | 'done' | 'upcoming' {
     if (i === this.currentStep) return 'active';
@@ -379,71 +385,212 @@ export class CreateLoanComponent {
   next() { if (!this.isLast) this.currentStep++; }
   back() { if (!this.isFirst) this.currentStep--; }
   goToStep(i: number) { this.currentStep = i; }
-  selectTemplate(id: string) {
-    const preset = TEMPLATE_PRESETS[id] ?? {};
-    this.config = { ...this.config, ...preset, template: id };
+
+  saveDraft() {
+    this.isDraft = true;
+    this.showUnsavedDialog = false;
+  }
+
+  discardAndLeave() {
+    this.showUnsavedDialog = false;
+    this.router.navigate(['/products']);
+  }
+
+  toggleAudience(aud: string) {
+    const idx = this.config.targetAudiences.indexOf(aud);
+    if (idx >= 0) {
+      this.config.targetAudiences = this.config.targetAudiences.filter(a => a !== aud);
+    } else {
+      this.config.targetAudiences = [...this.config.targetAudiences, aud];
+    }
+  }
+
+  onNameChange(val: string) {
+    this.config.name = val;
+    this.nameAvailable = false;
+    if (this.nameCheckTimeout) clearTimeout(this.nameCheckTimeout);
+    if (val.trim().length > 2) {
+      this.nameCheckTimeout = setTimeout(() => { this.nameAvailable = true; }, 500);
+    }
   }
 
   getConfig(key: string): unknown {
     return (this.config as unknown as Record<string, unknown>)[key];
   }
 
-  toggleEntry(key: string) {
-    const rec = this.config as unknown as Record<string, unknown>;
-    rec[key] = !rec[key];
-  }
-
   setConfig(key: string, value: unknown) {
     (this.config as unknown as Record<string, unknown>)[key] = value;
   }
 
-  get selectedTemplate() {
-    return TEMPLATES.find(t => t.id === this.config.template);
+  toggleBoolConfig(key: string) {
+    const rec = this.config as unknown as Record<string, unknown>;
+    rec[key] = !rec[key];
   }
 
-  get nextLabel(): string {
-    if (this.isLast) return 'Review & Publish';
-    return 'Save & Continue';
+  setDocRequirement(doc: string, val: string) {
+    this.setConfig(doc, val);
   }
 
-  get stepTitle(): string {
-    const titles: Record<string, string> = {
-      template: 'Create a Loan Product',
-      about: 'About this Loan',
-      application: 'Application Setup',
-      verification: 'Verification Setup',
-      pricing: 'Pricing & Fees',
-      disbursement: 'Disbursement',
-      repayment: 'Repayment',
-      controls: 'Loan Controls',
-      branding: 'Branding & Customization',
-      publish: 'Notifications',
-    };
-    return titles[this.stepId] || '';
+  getDocRequirement(doc: string): string {
+    return (this.getConfig(doc) as string) || 'none';
   }
 
-  get stepSubtitle(): string {
-    const subs: Record<string, string> = {
-      template: 'Launch your loan in 10 simple steps',
-      about: 'Tell us about the loan you want to offer.',
-      application: 'Choose the information you want to collect from applicants.',
-      verification: 'Select the methods you want to use to verify your applicants.',
-      pricing: 'Configure interest rate and other charges for this loan.',
-      disbursement: 'Define how and when loans should be disbursed.',
-      repayment: 'Set up how your customers will repay this loan.',
-      controls: 'Set limits and targets for this loan product.',
-      branding: 'Customize the look and feel of your loan product.',
-      publish: 'Set up how you want to communicate with your customers.',
-    };
-    return subs[this.stepId] || '';
+  get showIncomeVerification(): boolean {
+    return ['salary', 'public', 'corper', 'sme', 'coop', 'school', 'bnpl'].includes(this.config.template);
+  }
+
+  get showSchoolDocs(): boolean { return this.config.template === 'school'; }
+  get showCorperDocs(): boolean { return this.config.template === 'corper'; }
+  get showSmeDocs(): boolean { return this.config.template === 'sme'; }
+  get showCoopDocs(): boolean { return this.config.template === 'coop'; }
+
+  get borrowerJourneySteps(): { label: string; sub: string }[] {
+    const steps: { label: string; sub: string }[] = [];
+    steps.push({ label: 'Contact Information', sub: 'Phone, email or identifier' });
+    if (this.config.identityBvn || this.config.identityNin || this.config.identityPhoneOtp || this.config.identityEmailOtp) {
+      steps.push({ label: 'Verify Your Identity', sub: 'BVN, NIN or OTP verification' });
+    }
+    if (this.config.collectEmployment) {
+      steps.push({ label: 'Confirm Employment', sub: 'Employer and income details' });
+    }
+    const anyDoc = this.config.docGovId === 'required' || this.config.docWorkVerification === 'required'
+      || this.config.docGuarantorForm === 'required' || this.config.docSchoolId === 'required'
+      || this.config.docAdmissionLetter === 'required' || this.config.docNyscLetter === 'required'
+      || this.config.docCacCert === 'required' || this.config.docMembershipCert === 'required';
+    if (anyDoc) {
+      steps.push({ label: 'Upload Documents', sub: 'Required verification documents' });
+    }
+    steps.push({ label: 'Review & Submit', sub: 'Confirm and send application' });
+    return steps;
+  }
+
+  get estimatedMinutes(): number {
+    const heavy = this.config.template === 'sme';
+    const medium = this.config.collectBusiness || this.config.docCacCert === 'required';
+    if (heavy) return 8;
+    if (medium) return 6;
+    return 4;
   }
 
   get publishUrl(): string {
-    const slug = (this.config.name || 'my-loan').toLowerCase().replace(/\s+/g, '-');
+    const slug = (this.config.name || 'my-loan').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     return `https://apply.caltos.co/${slug}`;
   }
 
-  get templateIconData(): Record<string, IconData> {
-    return TEMPLATES.reduce((m, t) => ({ ...m, [t.id]: t.icon as IconData }), {});
+  get descLength(): number { return this.config.description?.length ?? 0; }
+
+  compact(arr: string[]): string { return arr.filter(s => s).join(', ') || '—'; }
+
+  reviewSections = [
+    { title: 'Loan Details',       subtitle: 'Name, audience, amounts, tenor, interest' },
+    { title: 'Application Setup',  subtitle: 'Entry methods, data collection, returning applicants' },
+    { title: 'Verification',       subtitle: 'Identity, income, and document requirements' },
+    { title: 'Pricing & Fees',     subtitle: 'Processing fee and penalties' },
+    { title: 'Disbursement',       subtitle: 'Method, timing, and rules' },
+    { title: 'Repayment',          subtitle: 'Frequency, first payment, repayment day' },
+    { title: 'Legal',              subtitle: 'Documents and consent text' },
+    { title: 'Customisation',      subtitle: 'Branding and support contacts' },
+  ];
+
+  reviewExpanded: boolean[] = [true, false, false, false, false, false, false, false];
+
+  toggleReview(i: number) {
+    this.reviewExpanded[i] = !this.reviewExpanded[i];
+  }
+
+  entryOptions = [
+    { id: 'entryPhone', label: 'Phone Number',   sub: 'Applicants start with their phone' },
+    { id: 'entryEmail', label: 'Email Address',  sub: 'Applicants start with their email' },
+    { id: 'entryBvn',   label: 'BVN',            sub: 'Applicants start with their BVN' },
+    { id: 'entryNin',   label: 'NIN',            sub: 'Applicants start with their NIN' },
+  ];
+
+  collectionSections = [
+    { key: 'collectPersonal',    label: 'Personal Information',    count: '5',
+      fields: ['First Name', 'Middle Name', 'Last Name', 'Date of Birth', 'Gender'],
+      expand: 'expandPersonal' },
+    { key: 'collectContact',     label: 'Contact Information',     count: '4',
+      fields: ['Email Address', 'Phone Number', 'WhatsApp Number', 'Preferred Contact'],
+      expand: 'expandContact' },
+    { key: 'collectAddress',     label: 'Address Information',     count: '5',
+      fields: ['Street Address', 'City', 'State', 'LGA', 'Landmark'],
+      expand: 'expandAddress' },
+    { key: 'collectEmployment',  label: 'Employment Information',  count: '5',
+      fields: ['Employer Name', 'Staff ID', 'Job Title', 'Monthly Salary', 'Employment Type'],
+      expand: 'expandEmployment' },
+    { key: 'collectBusiness',    label: 'Business Information',    count: '4',
+      fields: ['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue'],
+      expand: 'expandBusiness' },
+  ];
+
+  getExpand(key: string): boolean {
+    return (this as unknown as Record<string, unknown>)[key] as boolean;
+  }
+
+  toggleExpand(key: string) {
+    const rec = this as unknown as Record<string, unknown>;
+    rec[key] = !rec[key];
+  }
+
+  docRows: { key: string; label: string }[] = [
+    { key: 'docGovId',            label: 'Government Issued ID' },
+    { key: 'docUtilityBill',      label: 'Utility Bill' },
+    { key: 'docWorkVerification', label: 'Work Verification Letter' },
+    { key: 'docGuarantorForm',    label: 'Guarantor Form' },
+  ];
+
+  get conditionalDocRows(): { key: string; label: string }[] {
+    const rows: { key: string; label: string }[] = [];
+    if (this.showSchoolDocs) {
+      rows.push({ key: 'docSchoolId', label: 'School ID Card' });
+      rows.push({ key: 'docAdmissionLetter', label: 'Admission Letter' });
+    }
+    if (this.showCorperDocs) {
+      rows.push({ key: 'docNyscLetter', label: 'NYSC Call-Up Letter' });
+    }
+    if (this.showSmeDocs) {
+      rows.push({ key: 'docCacCert', label: 'CAC Certificate' });
+    }
+    if (this.showCoopDocs) {
+      rows.push({ key: 'docMembershipCert', label: 'Membership Certificate' });
+    }
+    return rows;
+  }
+
+  weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  monthDays = Array.from({ length: 31 }, (_, i) => `Day ${i + 1}`);
+
+  get showRepaymentDay(): boolean {
+    return ['Weekly', 'Bi-weekly', 'Monthly'].includes(this.config.repaymentFrequency);
+  }
+
+  get repaymentDayOptions(): string[] {
+    if (this.config.repaymentFrequency === 'Monthly') return this.monthDays;
+    return this.weekdays;
+  }
+
+  get templateLabel(): string {
+    const labels: Record<string, string> = {
+      salary: 'Salary Advance', public: 'Public Sector', school: 'School Fees',
+      corper: 'Corper Loan', sme: 'SME Loan', coop: 'Cooperative',
+      bnpl: 'Buy Now Pay Later', scratch: 'Custom',
+    };
+    return labels[this.config.template] || 'Custom';
+  }
+
+  get templateColor(): string {
+    const colors: Record<string, string> = {
+      salary: '#0BA5EC', public: '#F79009', school: '#12B76A', corper: '#6941C6',
+      sme: '#F04438', coop: '#0BA5EC', bnpl: '#D92D20', scratch: '#667085',
+    };
+    return colors[this.config.template] || '#667085';
+  }
+
+  get templateBg(): string {
+    const bgs: Record<string, string> = {
+      salary: '#E0F2FE', public: '#FEF3C7', school: '#D1FAE5', corper: '#EDE9FE',
+      sme: '#FEE4E2', coop: '#E0F2FE', bnpl: '#FEE4E2', scratch: '#F2F4F7',
+    };
+    return bgs[this.config.template] || '#F2F4F7';
   }
 }

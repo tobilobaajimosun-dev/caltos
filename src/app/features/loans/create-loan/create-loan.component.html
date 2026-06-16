@@ -12,11 +12,20 @@
         Back to Products
       </a>
       <div class="loan-name-wrap">
-        <span class="loan-name">{{ config.name || 'New Loan Product' }}</span>
-        <span class="draft-badge">Draft</span>
+        <input
+          class="loan-name-input"
+          placeholder="New Loan Product"
+          [value]="config.name"
+          (input)="onNameChange($any($event.target).value)" />
+        @if (isDraft) {
+          <span class="draft-badge">Draft</span>
+        }
+        @if (config.name.length > 2 && nameAvailable) {
+          <span class="available-badge">Available</span>
+        }
       </div>
       <div class="top-actions">
-        <button class="btn-save-draft">Save as Draft</button>
+        <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
         <button class="btn-next-step" (click)="next()" [disabled]="isLast">
           Next Step
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -30,7 +39,10 @@
     <div class="stepper-bar">
       <div class="stepper-inner">
         @for (step of steps; track step.id; let i = $index) {
-          <button class="step-item" [class.active]="stepStatus(i) === 'active'" [class.done]="stepStatus(i) === 'done'" (click)="goToStep(i)">
+          <button class="step-item"
+            [class.active]="stepStatus(i) === 'active'"
+            [class.done]="stepStatus(i) === 'done'"
+            (click)="goToStep(i)">
             <div class="step-circle">
               @if (stepStatus(i) === 'done') {
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
@@ -50,113 +62,91 @@
     </div>
 
     <!-- Body -->
-    <div class="body" [class.full-width]="stepId === 'template'">
-
-      <!-- ── Main content ── -->
+    <div class="body">
       <div class="content">
 
-        <div class="content-header">
-          <h1 class="content-title">{{ stepTitle }}</h1>
-          <p class="content-sub">{{ stepSubtitle }}</p>
-        </div>
+        <!-- ── STEP: about ── -->
+        @if (stepId === 'about') {
+          <div class="content-header">
+            <h1 class="content-title">About this Loan</h1>
+            <p class="content-sub">Define the basics of your loan product — name, target audience, amounts and interest.</p>
+          </div>
+          <div class="form-sections">
 
-        <!-- STEP 1: Template -->
-        @if (stepId === 'template') {
-          <div class="template-grid">
-            @for (tpl of templates; track tpl.id) {
-              <button
-                class="tpl-card"
-                [class.selected]="config.template === tpl.id"
-                [class.scratch]="!!tpl['isScratch']"
-                (click)="selectTemplate(tpl.id)">
-                @if (config.template === tpl.id) {
-                  <div class="tpl-check">
-                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                      <path d="M2.5 7l3 3 6-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </div>
-                }
-                <div class="tpl-icon" [style.background]="tpl.bg" [style.color]="tpl.color">
-                  <hi-icon [icon]="templateIconData[tpl.id]" [size]="22" color="currentColor" />
-                </div>
-                <div class="tpl-name">{{ tpl.label }}</div>
-                <div class="tpl-desc">{{ tpl.description }}</div>
-                @if (!tpl['isScratch']) {
-                  <div class="tpl-meta">
-                    <span class="tpl-recommended">Recommended</span>
-                  </div>
-                }
-                <div class="tpl-tags">
-                  @for (tag of tpl.tags; track tag) {
-                    <span class="tpl-tag">{{ tag }}</span>
+            <!-- Loan Identity -->
+            <div class="form-card">
+              <div class="form-card-title">Loan Identity</div>
+              <div class="field-group">
+                <label class="field-label">Product name <span class="req">*</span></label>
+                <div class="name-input-wrap">
+                  <input class="text-input" type="text" placeholder="e.g. Corper Wallet Loan"
+                    [value]="config.name" (input)="onNameChange($any($event.target).value)" />
+                  @if (config.name.length > 2 && nameAvailable) {
+                    <span class="name-available">
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                        <circle cx="7" cy="7" r="7" fill="#12B76A"/>
+                        <path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      Available
+                    </span>
                   }
                 </div>
-              </button>
-            }
-          </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Description <span class="req">*</span></label>
+                <app-textarea
+                  [value]="config.description"
+                  placeholder="A short description of this loan product (max 160 characters)"
+                  [rows]="3"
+                  (valueChange)="config.description = $event" />
+                <div class="char-count" [class.over]="descLength > 160">{{ descLength }}/160</div>
+              </div>
+            </div>
 
-          <div class="tip-row">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6H8.3A7.07 7.07 0 0 1 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div>
-              <strong>Why start with a template?</strong>
-              Templates come with pre-configured application flow, verification methods, recommended documents, pricing structure and repayment options — so you can launch faster.
-            </div>
-          </div>
-        }
-
-        <!-- STEP 2: About this Loan -->
-        @if (stepId === 'about') {
-          <div class="form-sections">
+            <!-- Audience -->
             <div class="form-card">
-              <div class="form-card-title">Loan product name <span class="req">*</span></div>
-              <input class="text-input" type="text" placeholder="e.g. Corper Wallet Loan" [(ngModel)]="config.name" />
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Short description <span class="req">*</span></div>
-              <app-textarea [value]="config.description" placeholder="Quick loans for NYSC corps members to handle their immediate needs and expenses." [rows]="3" (valueChange)="config.description = $event" />
-              <div class="char-count">{{ config.description.length }}/1000</div>
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Who is this loan designed for? <span class="req">*</span></div>
+              <div class="form-card-title">Who is this loan for? <span class="req">*</span></div>
+              <div class="form-card-sub">Select all that apply. This helps applicants know if they qualify.</div>
               <div class="audience-grid">
-                @for (aud of ['Everyone', 'Salary Earners', 'Public Servants', 'Students', 'Business Owners', 'Cooperative Members', 'Existing Customers', 'Custom Audience']; track aud) {
-                  <button class="audience-btn" [class.selected]="config.targetAudience === aud" (click)="config.targetAudience = aud">
+                @for (aud of audiences; track aud) {
+                  <button class="audience-btn"
+                    [class.selected]="config.targetAudiences.includes(aud)"
+                    (click)="toggleAudience(aud)">
                     <div class="aud-icon">
-                      @if (aud === 'Everyone') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
-                      @if (aud === 'Salary Earners') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
-                      @if (aud === 'Public Servants') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> }
-                      @if (aud === 'Students') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
-                      @if (aud === 'Business Owners') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/></svg> }
-                      @if (aud === 'Cooperative Members') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
-                      @if (aud === 'Existing Customers') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M16 11l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> }
-                      @if (aud === 'Custom Audience') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
+                      @if (aud === 'Everyone') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
+                      @if (aud === 'Salary Earners') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
+                      @if (aud === 'Public Servants') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      }
+                      @if (aud === 'Students') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
+                      @if (aud === 'Business Owners') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/></svg>
+                      }
+                      @if (aud === 'Cooperative Members') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
+                      @if (aud === 'Existing Customers') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M16 11l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      }
+                      @if (aud === 'Custom Audience') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
                     </div>
                     {{ aud }}
                   </button>
                 }
               </div>
             </div>
+
+            <!-- Amount Range -->
             <div class="form-card">
-              <div class="form-card-title">Age range</div>
-              <div class="field-row">
-                <div class="field-group">
-                  <label class="field-label">Minimum age <span class="req">*</span></label>
-                  <select class="select-input" [(ngModel)]="config.minTenor">
-                    @for (age of [16,18,21,25]; track age) { <option [value]="age">{{ age }} years</option> }
-                  </select>
-                </div>
-                <div class="field-group">
-                  <label class="field-label">Maximum age <span class="req">*</span></label>
-                  <select class="select-input" [(ngModel)]="config.maxTenor">
-                    @for (age of [30,35,40,50,60,65,70]; track age) { <option [value]="age">{{ age }} years</option> }
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Loan amount range</div>
+              <div class="form-card-title">Loan Amount Range</div>
               <div class="field-row">
                 <div class="field-group">
                   <label class="field-label">Minimum amount (₦)</label>
@@ -168,24 +158,97 @@
                 </div>
               </div>
             </div>
+
+            <!-- Duration -->
+            <div class="form-card">
+              <div class="form-card-title">Loan Duration</div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label class="field-label">Minimum tenor</label>
+                  <input class="text-input" type="number" placeholder="e.g. 1" [(ngModel)]="config.minTenor" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Maximum tenor</label>
+                  <input class="text-input" type="number" placeholder="e.g. 12" [(ngModel)]="config.maxTenor" />
+                </div>
+                <div class="field-group unit-group">
+                  <label class="field-label">Unit</label>
+                  <select class="select-input" [(ngModel)]="config.tenorUnit">
+                    @for (u of tenorUnits; track u) { <option [value]="u">{{ u }}</option> }
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interest -->
+            <div class="form-card">
+              <div class="form-card-title">Interest</div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label class="field-label">Interest model</label>
+                  <select class="select-input" [(ngModel)]="config.interestModel">
+                    @for (m of interestModels; track m) { <option [value]="m">{{ m }}</option> }
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Interest rate <span class="req">*</span></label>
+                  <div class="input-suffix-wrap">
+                    <input class="text-input" type="number" placeholder="e.g. 5" [(ngModel)]="config.interestRate" />
+                    <span class="input-suffix">% per {{ config.tenorUnit || 'cycle' | lowercase }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Age Range -->
+            <div class="form-card">
+              <div class="form-card-title">Age Range</div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label class="field-label">Minimum age</label>
+                  <input class="text-input" type="number" placeholder="e.g. 18" [(ngModel)]="config.minAge" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Maximum age <span class="optional">(optional)</span></label>
+                  <input class="text-input" type="number" placeholder="No limit" [(ngModel)]="config.maxAge" />
+                </div>
+              </div>
+            </div>
+
           </div>
         }
 
-        <!-- STEP 3: Application Setup -->
+        <!-- ── STEP: application ── -->
         @if (stepId === 'application') {
+          <div class="content-header">
+            <h1 class="content-title">Set Up Your Application</h1>
+            <p class="content-sub">Configure how applicants start, what information they provide, and how returning applicants are handled.</p>
+          </div>
           <div class="form-sections">
+
+            <!-- Entry options -->
             <div class="form-card">
               <div class="form-card-number">1</div>
-              <div class="form-card-title">How should applicants start their application?</div>
-              <div class="form-card-sub">This will be used to identify returning applicants and prevent duplicates.</div>
+              <div class="form-card-title">How should applicants start?</div>
+              <div class="form-card-sub">Select identifiers applicants will use to begin their application.</div>
               <div class="entry-options">
-                @for (opt of [{id:'entryPhone',label:'Phone Number',sub:'Applicants enter their phone number'},{id:'entryEmail',label:'Email Address',sub:'Applicants enter their email address'},{id:'entryBvn',label:'BVN',sub:'Applicants will start with their BVN'},{id:'entryNin',label:'NIN',sub:'Applicants will start with their NIN'}]; track opt.id) {
-                  <button class="entry-opt" [class.selected]="getConfig(opt.id)" (click)="toggleEntry(opt.id)">
+                @for (opt of entryOptions; track opt.id) {
+                  <button class="entry-opt"
+                    [class.selected]="getConfig(opt.id)"
+                    (click)="toggleBoolConfig(opt.id)">
                     <div class="entry-icon">
-                      @if (opt.id === 'entryPhone') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg> }
-                      @if (opt.id === 'entryEmail') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="m2 7 10 7 10-7" stroke="currentColor" stroke-width="1.5"/></svg> }
-                      @if (opt.id === 'entryBvn') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h5M7 13h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
-                      @if (opt.id === 'entryNin') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> }
+                      @if (opt.id === 'entryPhone') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+                      }
+                      @if (opt.id === 'entryEmail') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="m2 7 10 7 10-7" stroke="currentColor" stroke-width="1.5"/></svg>
+                      }
+                      @if (opt.id === 'entryBvn') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h5M7 13h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
+                      @if (opt.id === 'entryNin') {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
                     </div>
                     <div class="entry-text">
                       <div class="entry-label">{{ opt.label }}</div>
@@ -199,380 +262,909 @@
               </div>
             </div>
 
+            <!-- Collection -->
             <div class="form-card">
               <div class="form-card-number">2</div>
               <div class="form-card-title">What information would you like to collect?</div>
-              <div class="form-card-sub">Configure the information fields for your application form.</div>
+              <div class="form-card-sub">Toggle categories on or off. Expand to configure individual fields.</div>
               <div class="collection-list">
-                @for (sec of [{key:'collectPersonal',label:'Personal Information',count:'5 fields'},{key:'collectContact',label:'Contact Information',count:'4 fields'},{key:'collectAddress',label:'Address Information',count:'4 fields'},{key:'collectEmployment',label:'Employment Information',count:'4 fields'},{key:'collectBusiness',label:'Business Information',count:'2 fields'}]; track sec.key) {
+                @for (sec of collectionSections; track sec.key) {
                   <div class="collection-row">
                     <app-toggle [checked]="!!getConfig(sec.key)" (checkedChange)="setConfig(sec.key, $event)" />
                     <div class="collection-info">
                       <div class="collection-label">{{ sec.label }}</div>
                     </div>
-                    <div class="collection-count">{{ sec.count }}</div>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <div class="collection-count">{{ sec.count }} fields</div>
+                    <button class="expand-btn" (click)="toggleExpand(sec.expand)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        [style.transform]="getExpand(sec.expand) ? 'rotate(90deg)' : 'none'"
+                        style="transition: transform 0.18s">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  @if (getExpand(sec.expand)) {
+                    <div class="collection-fields">
+                      @for (field of sec.fields; track field) {
+                        <div class="field-row-item">
+                          <span class="field-row-name">{{ field }}</span>
+                          <div class="doc-btn-group">
+                            <button class="doc-btn" [class.selected]="true">Required</button>
+                            <button class="doc-btn">Optional</button>
+                            <button class="doc-btn">Skip</button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+              <button class="add-field-btn">
+                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
+                Add a custom field
+              </button>
+            </div>
+
+            <!-- Returning applicants -->
+            <div class="form-card">
+              <div class="form-card-number">3</div>
+              <div class="form-card-title">Returning applicants</div>
+              <div class="toggle-option-list">
+                <div class="toggle-option">
+                  <div class="toggle-option-text">
+                    <div class="toggle-option-title">Allow applicants to continue unfinished applications</div>
+                    <div class="toggle-option-sub">Applicants can resume an application they didn't complete.</div>
+                  </div>
+                  <app-toggle [checked]="config.allowContinue" (checkedChange)="config.allowContinue = $event" />
+                </div>
+                <div class="toggle-option">
+                  <div class="toggle-option-text">
+                    <div class="toggle-option-title">Recognise existing customers automatically</div>
+                    <div class="toggle-option-sub">We'll use verified data to identify returning customers and pre-fill their details.</div>
+                  </div>
+                  <app-toggle [checked]="config.recogniseExisting" (checkedChange)="config.recogniseExisting = $event" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: verification ── -->
+        @if (stepId === 'verification') {
+          <div class="content-header">
+            <h1 class="content-title">Verification</h1>
+            <p class="content-sub">Choose how you'll verify applicant identity, income, and required documents.</p>
+          </div>
+          <div class="form-sections">
+
+            <!-- Identity -->
+            <div class="form-card">
+              <div class="form-card-title">Identity Verification</div>
+              <div class="form-card-sub">Select one or more methods to verify your applicants' identity.</div>
+              <div class="verify-grid">
+                <button class="verify-card" [class.selected]="config.identityBvn" (click)="config.identityBvn = !config.identityBvn">
+                  <div class="verify-check" [class.active]="config.identityBvn"></div>
+                  <div class="verify-title">BVN</div>
+                  <div class="verify-sub">Bank Verification Number</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.identityNin" (click)="config.identityNin = !config.identityNin">
+                  <div class="verify-check" [class.active]="config.identityNin"></div>
+                  <div class="verify-title">NIN</div>
+                  <div class="verify-sub">National Identification Number</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.identityPhoneOtp" (click)="config.identityPhoneOtp = !config.identityPhoneOtp">
+                  <div class="verify-check" [class.active]="config.identityPhoneOtp"></div>
+                  <div class="verify-title">Phone OTP</div>
+                  <div class="verify-sub">Verify phone via one-time code</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.identityEmailOtp" (click)="config.identityEmailOtp = !config.identityEmailOtp">
+                  <div class="verify-check" [class.active]="config.identityEmailOtp"></div>
+                  <div class="verify-title">Email OTP</div>
+                  <div class="verify-sub">Verify email via one-time code</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Income -->
+            @if (showIncomeVerification) {
+              <div class="form-card">
+                <div class="form-card-title">Income Verification</div>
+                <div class="form-card-sub">Choose how applicants will prove their income.</div>
+                <div class="verify-grid">
+                  <button class="verify-card" [class.selected]="config.incomeRemita" (click)="config.incomeRemita = !config.incomeRemita">
+                    <div class="verify-check" [class.active]="config.incomeRemita"></div>
+                    <div class="verify-title">Remita</div>
+                    <div class="verify-sub">Verify salary via Remita</div>
+                  </button>
+                  <button class="verify-card" [class.selected]="config.incomeIppis" (click)="config.incomeIppis = !config.incomeIppis">
+                    <div class="verify-check" [class.active]="config.incomeIppis"></div>
+                    <div class="verify-title">IPPIS</div>
+                    <div class="verify-sub">For federal government employees</div>
+                  </button>
+                  <button class="verify-card" [class.selected]="config.incomeBankStatement" (click)="config.incomeBankStatement = !config.incomeBankStatement">
+                    <div class="verify-check" [class.active]="config.incomeBankStatement"></div>
+                    <div class="verify-title">Bank Statement</div>
+                    <div class="verify-sub">Analyse bank statements automatically</div>
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- Documents -->
+            <div class="form-card">
+              <div class="form-card-title">Required Documents</div>
+              <div class="form-card-sub">Set whether each document is required, optional, or not collected.</div>
+              <div class="doc-list">
+                @for (doc of docRows; track doc.key) {
+                  <div class="doc-row">
+                    <span class="doc-name">{{ doc.label }}</span>
+                    <div class="doc-btn-group">
+                      <button class="doc-btn" [class.selected]="getDocRequirement(doc.key) === 'required'" (click)="setDocRequirement(doc.key, 'required')">Required</button>
+                      <button class="doc-btn" [class.selected]="getDocRequirement(doc.key) === 'optional'" (click)="setDocRequirement(doc.key, 'optional')">Optional</button>
+                      <button class="doc-btn" [class.selected]="getDocRequirement(doc.key) === 'none'" (click)="setDocRequirement(doc.key, 'none')">Don't collect</button>
+                    </div>
+                  </div>
+                }
+                @for (doc of conditionalDocRows; track doc.key) {
+                  <div class="doc-row">
+                    <span class="doc-name">{{ doc.label }}</span>
+                    <div class="doc-btn-group">
+                      <button class="doc-btn" [class.selected]="getDocRequirement(doc.key) === 'required'" (click)="setDocRequirement(doc.key, 'required')">Required</button>
+                      <button class="doc-btn" [class.selected]="getDocRequirement(doc.key) === 'optional'" (click)="setDocRequirement(doc.key, 'optional')">Optional</button>
+                      <button class="doc-btn" [class.selected]="getDocRequirement(doc.key) === 'none'" (click)="setDocRequirement(doc.key, 'none')">Don't collect</button>
+                    </div>
                   </div>
                 }
               </div>
             </div>
 
-            <div class="form-card">
-              <div class="form-card-number">3</div>
-              <div class="form-card-title">How should we handle returning applicants?</div>
-              <div class="form-card-sub">Manage how existing customers can continue their previous applications.</div>
-              <div class="toggle-option-list">
-                <div class="toggle-option">
-                  <div class="toggle-option-text">
-                    <div class="toggle-option-title">Allow applicants to continue unfinished applications</div>
-                    <div class="toggle-option-sub">Applicants can resume applications they didn't complete.</div>
-                  </div>
-                  <app-toggle [checked]="config.returningApplicants === 'continue'" (checkedChange)="config.returningApplicants = $event ? 'continue' : 'fresh'" />
-                </div>
-                <div class="toggle-option">
-                  <div class="toggle-option-text">
-                    <div class="toggle-option-title">Recognise existing customers automatically</div>
-                    <div class="toggle-option-sub">We'll use the information collected and verified to identify returning customers.</div>
-                  </div>
-                  <app-toggle [checked]="true" />
-                </div>
-              </div>
-            </div>
           </div>
         }
 
-        <!-- STEP 4: Verification Setup -->
-        @if (stepId === 'verification') {
-          <div class="form-sections">
-            <div class="form-card">
-              <div class="form-card-title">Identity verification</div>
-              <div class="form-card-sub">Choose one or more identity verification methods.</div>
-              <div class="verify-grid">
-                <button class="verify-card" [class.selected]="config.identityBvn" (click)="config.identityBvn = !config.identityBvn">
-                  <div class="verify-check" [class.active]="config.identityBvn"></div>
-                  <div class="verify-title">BVN</div>
-                  <div class="verify-sub">Verify using Bank Verification Number</div>
-                </button>
-                <button class="verify-card" [class.selected]="config.identityNin" (click)="config.identityNin = !config.identityNin">
-                  <div class="verify-check" [class.active]="config.identityNin"></div>
-                  <div class="verify-title">NIN</div>
-                  <div class="verify-sub">Verify using National Identification Number</div>
-                </button>
-                <button class="verify-card" [class.selected]="config.identityPhoneOtp" (click)="config.identityPhoneOtp = !config.identityPhoneOtp">
-                  <div class="verify-check" [class.active]="config.identityPhoneOtp"></div>
-                  <div class="verify-title">Phone verification</div>
-                  <div class="verify-sub">Verify phone number with OTP</div>
-                </button>
-                <button class="verify-card" [class.selected]="config.identityEmailOtp" (click)="config.identityEmailOtp = !config.identityEmailOtp">
-                  <div class="verify-check" [class.active]="config.identityEmailOtp"></div>
-                  <div class="verify-title">Email verification</div>
-                  <div class="verify-sub">Verify email address with OTP</div>
-                </button>
-              </div>
-            </div>
-
-            <div class="form-card">
-              <div class="form-card-title">Income verification</div>
-              <div class="form-card-sub">Choose how applicants will prove their income.</div>
-              <div class="verify-grid">
-                <button class="verify-card" [class.selected]="config.incomeRemita" (click)="config.incomeRemita = !config.incomeRemita">
-                  <div class="verify-check" [class.active]="config.incomeRemita"></div>
-                  <div class="verify-title">Remita</div>
-                  <div class="verify-sub">Verify salary via Remita</div>
-                </button>
-                <button class="verify-card" [class.selected]="config.incomeIppis" (click)="config.incomeIppis = !config.incomeIppis">
-                  <div class="verify-check" [class.active]="config.incomeIppis"></div>
-                  <div class="verify-title">IPPIS</div>
-                  <div class="verify-sub">Verify salary via IPPIS</div>
-                </button>
-                <button class="verify-card" [class.selected]="config.incomeBankStatement" (click)="config.incomeBankStatement = !config.incomeBankStatement">
-                  <div class="verify-check" [class.active]="config.incomeBankStatement"></div>
-                  <div class="verify-title">Bank statement</div>
-                  <div class="verify-sub">Analyse bank statements automatically</div>
-                </button>
-              </div>
-            </div>
-
-            <div class="form-card">
-              <div class="form-card-title">Auto-fill behaviour</div>
-              <div class="radio-option-list">
-                <label class="radio-option">
-                  <input type="radio" name="autofill" value="fill-allow" [(ngModel)]="config.autofill" />
-                  <div>
-                    <div class="radio-label">Fill applicant details automatically and allow edits</div>
-                  </div>
-                </label>
-                <label class="radio-option">
-                  <input type="radio" name="autofill" value="fill-lock" [(ngModel)]="config.autofill" />
-                  <div>
-                    <div class="radio-label">Fill applicant details automatically (lock fields)</div>
-                  </div>
-                </label>
-                <label class="radio-option">
-                  <input type="radio" name="autofill" value="none" [(ngModel)]="config.autofill" />
-                  <div>
-                    <div class="radio-label">Do not auto-fill applicant details</div>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
-        }
-
-        <!-- STEP 5: Pricing & Fees -->
+        <!-- ── STEP: pricing ── -->
         @if (stepId === 'pricing') {
+          <div class="content-header">
+            <h1 class="content-title">Pricing &amp; Fees</h1>
+            <p class="content-sub">Configure processing fees and late payment penalties for this loan product.</p>
+          </div>
           <div class="form-sections">
+
             <div class="tab-row">
-              <button class="tab-btn active">Interest</button>
-              <button class="tab-btn">Fees</button>
-              <button class="tab-btn">Penalties</button>
-              <button class="tab-btn">Other Charges</button>
+              <button class="tab-btn" [class.active]="pricingTab === 'fees'" (click)="pricingTab = 'fees'">Fees</button>
+              <button class="tab-btn" [class.active]="pricingTab === 'penalties'" (click)="pricingTab = 'penalties'">Penalties</button>
             </div>
-            <div class="form-card">
-              <div class="field-row">
-                <div class="field-group">
-                  <label class="field-label">Interest type</label>
-                  <select class="select-input" [(ngModel)]="config.interestType">
-                    @for (t of interestTypes; track t) { <option [value]="t">{{ t }}</option> }
-                  </select>
+
+            @if (pricingTab === 'fees') {
+              <div class="form-card">
+                <div class="form-card-title">Processing Fee</div>
+                <div class="field-row">
+                  <div class="field-group">
+                    <label class="field-label">Fee type</label>
+                    <select class="select-input" [(ngModel)]="config.processingFeeType">
+                      <option>Percentage</option>
+                      <option>Flat Amount</option>
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Rate / Amount <span class="req">*</span></label>
+                    <div class="input-suffix-wrap">
+                      <input class="text-input" type="number" placeholder="e.g. 1.5" [(ngModel)]="config.processingFeeRate" />
+                      @if (config.processingFeeType === 'Percentage') {
+                        <span class="input-suffix">%</span>
+                      } @else {
+                        <span class="input-suffix">₦</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Applicable to</label>
+                    <select class="select-input" [(ngModel)]="config.processingFeeApplicableTo">
+                      <option>Loan Amount</option>
+                      <option>Disbursed Amount</option>
+                      <option>Principal</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="field-group">
-                  <label class="field-label">Interest rate <span class="req">*</span></label>
-                  <div class="input-suffix-wrap">
-                    <input class="text-input" type="number" placeholder="20" [(ngModel)]="config.interestRate" />
-                    <span class="input-suffix">% per annum</span>
+                <div class="fee-limits-row">
+                  <div class="field-group">
+                    <label class="field-label">Min amount (optional)</label>
+                    <input class="text-input" type="number" placeholder="₦ 0" [(ngModel)]="config.processingFeeMin" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Max amount (optional)</label>
+                    <input class="text-input" type="number" placeholder="No limit" [(ngModel)]="config.processingFeeMax" />
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Processing fee</div>
-              <div class="fee-row">
-                <div class="field-group sm">
-                  <label class="field-label">Type</label>
-                  <select class="select-input"><option>Percentage</option><option>Flat</option></select>
+
+              <div class="suggestions-card">
+                <div class="suggestions-label">You may also want to add:</div>
+                <div class="suggestion-pills">
+                  <button class="suggestion-pill" [class.active]="showInsuranceFee" (click)="showInsuranceFee = !showInsuranceFee">
+                    @if (showInsuranceFee) {
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    }
+                    Insurance Fee
+                  </button>
+                  <button class="suggestion-pill" [class.active]="showAdminFee" (click)="showAdminFee = !showAdminFee">
+                    @if (showAdminFee) {
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    }
+                    Admin Fee
+                  </button>
+                  <button class="suggestion-pill" [class.active]="showMgmtFee" (click)="showMgmtFee = !showMgmtFee">
+                    @if (showMgmtFee) {
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    }
+                    Management Fee
+                  </button>
                 </div>
-                <div class="field-group sm">
-                  <label class="field-label">Rate <span class="req">*</span></label>
-                  <input class="text-input" type="number" placeholder="2.50" [(ngModel)]="config.processingFee" />
+                @if (showInsuranceFee) {
+                  <div class="mini-fee-row">
+                    <span class="mini-fee-name">Insurance Fee</span>
+                    <select class="select-input sm"><option>Percentage</option><option>Flat Amount</option></select>
+                    <input class="text-input sm" type="number" placeholder="Rate" />
+                  </div>
+                }
+                @if (showAdminFee) {
+                  <div class="mini-fee-row">
+                    <span class="mini-fee-name">Admin Fee</span>
+                    <select class="select-input sm"><option>Percentage</option><option>Flat Amount</option></select>
+                    <input class="text-input sm" type="number" placeholder="Rate" />
+                  </div>
+                }
+                @if (showMgmtFee) {
+                  <div class="mini-fee-row">
+                    <span class="mini-fee-name">Management Fee</span>
+                    <select class="select-input sm"><option>Percentage</option><option>Flat Amount</option></select>
+                    <input class="text-input sm" type="number" placeholder="Rate" />
+                  </div>
+                }
+              </div>
+
+              <button class="add-field-btn">
+                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
+                Add custom fee
+              </button>
+            }
+
+            @if (pricingTab === 'penalties') {
+              <div class="form-card">
+                <div class="form-card-title">Late Repayment Penalty</div>
+                <div class="field-row">
+                  <div class="field-group">
+                    <label class="field-label">Method</label>
+                    <select class="select-input" [(ngModel)]="config.latePenaltyMethod">
+                      <option>Percentage</option>
+                      <option>Flat Amount</option>
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Rate</label>
+                    <div class="input-suffix-wrap">
+                      <input class="text-input" type="number" placeholder="e.g. 1" [(ngModel)]="config.latePenaltyRate" />
+                      <span class="input-suffix">@if (config.latePenaltyMethod === 'Percentage') { % } @else { ₦ }</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="field-group sm">
-                  <label class="field-label">Applicable to</label>
-                  <select class="select-input"><option>Loan amount</option><option>Interest</option></select>
+                <div class="field-row">
+                  <div class="field-group">
+                    <label class="field-label">Grace period (days)</label>
+                    <div class="input-suffix-wrap">
+                      <input class="text-input" type="number" placeholder="3" [(ngModel)]="config.latePenaltyGraceDays" />
+                      <span class="input-suffix">days</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Apply to</label>
+                    <select class="select-input" [(ngModel)]="config.latePenaltyApplyTo">
+                      <option>Outstanding Balance</option>
+                      <option>Principal</option>
+                      <option>Interest</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <button class="add-field-btn">
+                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
+                Add new penalty
+              </button>
+            }
+
           </div>
         }
 
-        <!-- STEP 6: Disbursement -->
+        <!-- ── STEP: disbursement ── -->
         @if (stepId === 'disbursement') {
+          <div class="content-header">
+            <h1 class="content-title">Disbursement</h1>
+            <p class="content-sub">Define how and when approved loans should be disbursed to borrowers.</p>
+          </div>
           <div class="form-sections">
+
             <div class="form-card">
-              <div class="form-card-title">Disbursement method <span class="req">*</span></div>
+              <div class="form-card-title">Disbursement Method <span class="req">*</span></div>
               <div class="disburse-grid">
-                @for (opt of [{id:'bank',label:'Bank Transfer'},{id:'wallet',label:'Wallet'},{id:'virtual',label:'Virtual Account'},{id:'manual',label:'Manual'}]; track opt.id) {
+                @for (opt of [{id:'bank',label:'Bank Transfer'},{id:'wallet',label:'Wallet'},{id:'virtual',label:'Virtual Account'},{id:'manual',label:'Manual'},{id:'third-party',label:'Merchant / 3rd Party'}]; track opt.id) {
                   <button class="disburse-card" [class.selected]="config.disburseTo === opt.id" (click)="config.disburseTo = opt.id">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      @if (opt.id === 'bank') {
+                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @if (opt.id === 'wallet') {
+                        <rect x="1" y="6" width="22" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="13" r="2" stroke="currentColor" stroke-width="1.5"/>
+                      }
+                      @if (opt.id === 'virtual') {
+                        <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h3M7 13h3M14 9h3M14 13h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @if (opt.id === 'manual') {
+                        <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6H8.3A7 7 0 0 1 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M9 18h6M10 22h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @if (opt.id === 'third-party') {
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5"/>
+                      }
                     </svg>
                     {{ opt.label }}
                   </button>
                 }
               </div>
             </div>
+
             <div class="form-card">
-              <div class="form-card-title">Disbursement timing <span class="req">*</span></div>
+              <div class="form-card-title">Disbursement Timing <span class="req">*</span></div>
               <div class="radio-option-list">
-                <label class="radio-option"><input type="radio" name="timing" value="instant" [(ngModel)]="config.returningApplicants" /> <div class="radio-label">Instantly after approval</div></label>
-                <label class="radio-option"><input type="radio" name="timing" value="verify" [(ngModel)]="config.returningApplicants" /> <div class="radio-label">After additional verification</div></label>
-                <label class="radio-option"><input type="radio" name="timing" value="scheduled" [(ngModel)]="config.returningApplicants" /> <div class="radio-label">Scheduled disbursement</div></label>
+                <label class="radio-option">
+                  <input type="radio" name="timing" value="instant" [(ngModel)]="config.disburseTiming" />
+                  <div>
+                    <div class="radio-label">Instantly after approval</div>
+                    <div class="radio-sub">Funds are released as soon as the loan is approved</div>
+                  </div>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="timing" value="verify" [(ngModel)]="config.disburseTiming" />
+                  <div>
+                    <div class="radio-label">After additional verification</div>
+                    <div class="radio-sub">Requires a final check before funds are released</div>
+                  </div>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="timing" value="scheduled" [(ngModel)]="config.disburseTiming" />
+                  <div>
+                    <div class="radio-label">Scheduled disbursement</div>
+                    <div class="radio-sub">Funds are released on a specific scheduled date</div>
+                  </div>
+                </label>
               </div>
             </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Disbursement Rules</div>
+              <div class="disbursement-rules">
+                <div class="disburse-rule">
+                  <div class="disburse-rule-content">
+                    <div class="disburse-rule-q">Should an offer letter be sent before disbursement?</div>
+                    <div class="toggle-option">
+                      <div class="toggle-option-text">
+                        <div class="toggle-option-title">Send offer letter via Digisign before disbursement <span class="paid-badge">PAID</span></div>
+                        <div class="toggle-option-sub">Applicant must sign the offer letter before funds are released.</div>
+                      </div>
+                      <app-toggle [checked]="config.offerLetter" (checkedChange)="config.offerLetter = $event" />
+                    </div>
+                  </div>
+                </div>
+                <div class="disburse-rule">
+                  <div class="disburse-rule-content">
+                    <div class="disburse-rule-q">Should the loan only be sent to the customer's salary account?</div>
+                    <div class="toggle-option">
+                      <div class="toggle-option-text">
+                        <div class="toggle-option-title">Disburse to salary account only</div>
+                        <div class="toggle-option-sub">Funds will only be sent to the verified salary account.</div>
+                      </div>
+                      <app-toggle [checked]="config.salaryAccountOnly" (checkedChange)="config.salaryAccountOnly = $event" />
+                    </div>
+                  </div>
+                </div>
+                <div class="disburse-rule">
+                  <div class="disburse-rule-content">
+                    <div class="disburse-rule-q">Should repayment deductions be set up before disbursement?</div>
+                    <div class="toggle-option">
+                      <div class="toggle-option-text">
+                        <div class="toggle-option-title">Set up repayment deductions before disbursing</div>
+                        <div class="toggle-option-sub">Confirm the repayment schedule is active before releasing funds.</div>
+                      </div>
+                      <app-toggle [checked]="config.repaymentDeductionFirst" (checkedChange)="config.repaymentDeductionFirst = $event" />
+                    </div>
+                  </div>
+                </div>
+                <div class="disburse-rule">
+                  <div class="disburse-rule-content">
+                    <div class="disburse-rule-q">Do customers require a video confirmation before taking this loan?</div>
+                    <div class="toggle-option">
+                      <div class="toggle-option-text">
+                        <div class="toggle-option-title">Require video confirmation from customers</div>
+                        <div class="toggle-option-sub">Customers record a short video confirming they understand the loan terms.</div>
+                      </div>
+                      <app-toggle [checked]="config.videoConfirmation" (checkedChange)="config.videoConfirmation = $event" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         }
 
-        <!-- STEP 7: Repayment -->
+        <!-- ── STEP: repayment ── -->
         @if (stepId === 'repayment') {
+          <div class="content-header">
+            <h1 class="content-title">Repayment</h1>
+            <p class="content-sub">Set how and when borrowers will repay this loan.</p>
+          </div>
           <div class="form-sections">
+
             <div class="form-card">
-              <div class="form-card-title">Repayment frequency <span class="req">*</span></div>
+              <div class="form-card-title">Repayment Frequency <span class="req">*</span></div>
               <div class="freq-row">
                 @for (freq of repayFreqs; track freq) {
                   <button class="freq-btn" [class.selected]="config.repaymentFrequency === freq" (click)="config.repaymentFrequency = freq">{{ freq }}</button>
                 }
               </div>
             </div>
+
             <div class="form-card">
-              <div class="form-card-title">First repayment date</div>
-              <div class="form-card-sub">How far after disbursement should repayment start?</div>
+              <div class="form-card-title">First Repayment Date</div>
+              <div class="form-card-sub">How many days after disbursement should the first repayment be collected?</div>
               <div class="inline-days">
-                <input class="text-input sm" type="number" placeholder="30" />
+                <input class="text-input sm" type="number" placeholder="30" [(ngModel)]="config.firstRepaymentDays" />
                 <span class="inline-label">days after disbursement</span>
               </div>
             </div>
-            <div class="form-card">
-              <div class="form-card-title">Repayment day</div>
-              <div class="form-card-sub">What day of the month should we collect repayment?</div>
-              <select class="select-input" style="width:160px"><option>Day 30</option><option>Day 1</option><option>Day 15</option></select>
-            </div>
+
+            @if (showRepaymentDay) {
+              <div class="form-card">
+                <div class="form-card-title">Repayment Day</div>
+                <div class="form-card-sub">
+                  @if (config.repaymentFrequency === 'Monthly') {
+                    Which day of the month should repayment be collected?
+                  } @else {
+                    Which day of the week should repayment be collected?
+                  }
+                </div>
+                <select class="select-input" style="max-width:180px" [(ngModel)]="config.repaymentDay">
+                  @for (day of repaymentDayOptions; track day) {
+                    <option [value]="day">{{ day }}</option>
+                  }
+                </select>
+              </div>
+            }
+
           </div>
         }
 
-        <!-- STEP 8: Loan Controls -->
-        @if (stepId === 'controls') {
+        <!-- ── STEP: legal ── -->
+        @if (stepId === 'legal') {
+          <div class="content-header">
+            <h1 class="content-title">Legal</h1>
+            <p class="content-sub">Upload your legal documents or use our default consent text.</p>
+          </div>
           <div class="form-sections">
+
             <div class="form-card">
-              <div class="form-card-title">Maximum number of customers</div>
-              <input class="text-input" type="number" placeholder="1,000" [(ngModel)]="config.maxActiveLoan" style="max-width:200px" />
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Maximum portfolio amount</div>
-              <input class="text-input" type="number" placeholder="₦50,000,000" style="max-width:240px" />
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Guarantor</div>
-              <div class="toggle-option">
-                <div class="toggle-option-text">
-                  <div class="toggle-option-title">Require guarantor</div>
-                  <div class="toggle-option-sub">Applicants must provide a guarantor to qualify</div>
+              <div class="form-card-title">Legal Documents</div>
+              <div class="legal-uploads">
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">
+                    Terms &amp; Conditions <span class="req">*</span>
+                  </div>
+                  <app-file-upload label="Upload Terms & Conditions" />
                 </div>
-                <app-toggle [checked]="config.requireGuarantor" (checkedChange)="config.requireGuarantor = $event" />
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">
+                    Privacy Policy <span class="req">*</span>
+                  </div>
+                  <app-file-upload label="Upload Privacy Policy" />
+                </div>
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">
+                    Loan Agreement / Offer Letter <span class="optional">(optional)</span>
+                  </div>
+                  <app-file-upload label="Upload Loan Agreement Template" />
+                </div>
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">
+                    Other Legal Document <span class="optional">(optional)</span>
+                  </div>
+                  <app-file-upload label="Upload Document" />
+                </div>
               </div>
+              <button class="add-field-btn">
+                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
+                Add another document
+              </button>
             </div>
+
+            <div class="form-card">
+              <div class="consent-header" (click)="showConsentText = !showConsentText">
+                <span class="form-card-title" style="margin:0">Or use our default consent text</span>
+                <div class="consent-toggle-row">
+                  <app-toggle [checked]="config.useDefaultConsent" (checkedChange)="config.useDefaultConsent = $event" />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    [style.transform]="showConsentText ? 'rotate(180deg)' : 'none'"
+                    style="transition:transform 0.2s; color:var(--color-grey-header)">
+                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+              @if (showConsentText) {
+                <div class="consent-body">
+                  <textarea class="consent-textarea" readonly rows="6">By submitting your loan application, you acknowledge and agree to the following terms: [Company Name] may verify information about your employment, salary, and loans from third-party sources to assess your loan eligibility. If approved, loan instalments may be automatically deducted from your salary before being credited to your account. In case of default, any outstanding balance may be recovered from other linked accounts.</textarea>
+                  <p class="consent-note">This text will appear on the application form. Enable the toggle above to use it.</p>
+                </div>
+              }
+            </div>
+
           </div>
         }
 
-        <!-- STEP 9: Branding -->
-        @if (stepId === 'branding') {
+        <!-- ── STEP: customisation ── -->
+        @if (stepId === 'customisation') {
+          <div class="content-header">
+            <h1 class="content-title">Customisation</h1>
+            <p class="content-sub">Personalise the borrower experience with your brand and messaging.</p>
+          </div>
           <div class="form-sections">
-            <div class="form-card">
-              <div class="form-card-title">Brand logo</div>
-              <div class="logo-upload-row">
-                <div class="logo-preview">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 12s1.3 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/></svg>
+
+            <div class="form-card brand-readonly-card">
+              <div class="form-card-title">From your company profile</div>
+              <div class="brand-preview-row">
+                <div class="brand-color-swatch" [style.background]="config.brandColor"></div>
+                <div class="brand-info">
+                  <div class="brand-name">{{ config.brandName || 'Your Company' }}</div>
+                  <div class="brand-color-hex">{{ config.brandColor }}</div>
                 </div>
-                <button class="upload-btn">Change logo</button>
-                <span class="upload-hint">PNG, JPG up to 2MB</span>
+                <div class="brand-logo-box">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 12s1.3 2 4 2 4-2 4-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/></svg>
+                </div>
+              </div>
+              <a class="edit-brand-link" href="#">Edit in company settings →</a>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Product Banner</div>
+              <app-file-upload label="Upload banner image" />
+              <p class="upload-hint">Recommended: 1200 × 400px. JPG or PNG.</p>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Messaging</div>
+              <div class="field-group">
+                <label class="field-label">Welcome message</label>
+                <app-textarea
+                  [value]="config.welcomeMessage"
+                  placeholder="Welcome! Tell applicants what this loan is about and encourage them to apply."
+                  [rows]="3"
+                  (valueChange)="config.welcomeMessage = $event" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Thank you message</label>
+                <app-textarea
+                  [value]="config.thankYouMessage"
+                  placeholder="Thank you for applying! We'll review your application and get back to you within 24 hours."
+                  [rows]="3"
+                  (valueChange)="config.thankYouMessage = $event" />
               </div>
             </div>
+
             <div class="form-card">
-              <div class="form-card-title">Brand colors</div>
-              <div class="color-fields">
+              <div class="form-card-title">Support Contact</div>
+              <div class="field-row">
                 <div class="field-group">
-                  <label class="field-label">Primary color</label>
-                  <div class="color-row">
-                    <input type="color" class="color-swatch" [(ngModel)]="config.brandColor" />
-                    <input class="text-input color-hex" type="text" [(ngModel)]="config.brandColor" />
+                  <label class="field-label">Support email</label>
+                  <input class="text-input" type="email" placeholder="hello@yourcompany.ng" [(ngModel)]="config.supportEmail" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Support phone</label>
+                  <input class="text-input" type="tel" placeholder="+234 800 000 0000" [(ngModel)]="config.supportPhone" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">WhatsApp contact <span class="optional">(optional)</span></label>
+                <input class="text-input" type="tel" placeholder="+234 800 000 0000" [(ngModel)]="config.whatsappContact" style="max-width:280px" />
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: review ── -->
+        @if (stepId === 'review') {
+          <div class="content-header">
+            <h1 class="content-title">Review &amp; Publish</h1>
+            <p class="content-sub">Review all your settings before publishing this loan product.</p>
+          </div>
+          <div class="form-sections">
+
+            @for (section of reviewSections; track section.title; let i = $index) {
+              <div class="review-section" [class.open]="reviewExpanded[i]">
+                <div class="review-section-header" (click)="toggleReview(i)">
+                  <div class="review-section-left">
+                    <div class="review-num">{{ i + 1 }}</div>
+                    <div>
+                      <div class="review-section-title">{{ section.title }}</div>
+                      <div class="review-section-sub">{{ section.subtitle }}</div>
+                    </div>
+                  </div>
+                  <div class="review-section-actions">
+                    <button class="review-edit-btn" (click)="goToStep(i); $event.stopPropagation()">Edit</button>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      [style.transform]="reviewExpanded[i] ? 'rotate(180deg)' : 'none'"
+                      style="transition:transform 0.2s; color:var(--color-grey-header); flex-shrink:0">
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="form-card">
-              <div class="form-card-title">Brand name</div>
-              <input class="text-input" type="text" placeholder="e.g. GreenLeaf Finance" [(ngModel)]="config.brandName" />
-            </div>
-          </div>
-        }
-
-        <!-- STEP 10: Notifications/Publish -->
-        @if (stepId === 'publish') {
-          <div class="form-sections">
-            <div class="form-card">
-              <div class="form-card-title">Communication channels</div>
-              <div class="notif-list">
-                @for (ch of [{label:'Email notifications',on:true},{label:'SMS notifications',on:true},{label:'WhatsApp notifications',on:false},{label:'In-app notifications',on:true}]; track ch.label) {
-                  <div class="notif-row">
-                    <span class="notif-label">{{ ch.label }}</span>
-                    <app-toggle [checked]="ch.on" />
+                @if (reviewExpanded[i]) {
+                  <div class="review-section-body">
+                    @if (i === 0) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Name</span><span class="r-val">{{ config.name || '—' }}</span></div>
+                        <div class="review-item"><span class="r-label">Audience</span><span class="r-val">{{ config.targetAudiences.join(', ') || '—' }}</span></div>
+                        <div class="review-item"><span class="r-label">Amount range</span><span class="r-val">₦{{ config.minAmount || '0' }} – ₦{{ config.maxAmount || '0' }}</span></div>
+                        <div class="review-item"><span class="r-label">Tenor</span><span class="r-val">{{ config.minTenor }}–{{ config.maxTenor }} {{ config.tenorUnit }}</span></div>
+                        <div class="review-item"><span class="r-label">Interest</span><span class="r-val">{{ config.interestRate || '0' }}% {{ config.interestModel }}</span></div>
+                        <div class="review-item"><span class="r-label">Age range</span><span class="r-val">{{ config.minAge || '18' }}–{{ config.maxAge || 'No limit' }}</span></div>
+                      </div>
+                    }
+                    @if (i === 1) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Entry methods</span><span class="r-val">{{ compact([config.entryPhone ? 'Phone' : '', config.entryEmail ? 'Email' : '', config.entryBvn ? 'BVN' : '', config.entryNin ? 'NIN' : '']) }}</span></div>
+                        <div class="review-item"><span class="r-label">Returning</span><span class="r-val">{{ config.allowContinue ? 'Allow continue' : 'Fresh start' }}</span></div>
+                      </div>
+                    }
+                    @if (i === 2) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Identity</span><span class="r-val">{{ compact([config.identityBvn ? 'BVN' : '', config.identityNin ? 'NIN' : '', config.identityPhoneOtp ? 'Phone OTP' : '']) }}</span></div>
+                        <div class="review-item"><span class="r-label">Income</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'IPPIS' : '', config.incomeBankStatement ? 'Bank Statement' : '']) }}</span></div>
+                        <div class="review-item"><span class="r-label">Gov ID</span><span class="r-val">{{ config.docGovId | titlecase }}</span></div>
+                      </div>
+                    }
+                    @if (i === 3) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Processing fee</span><span class="r-val">{{ config.processingFeeRate || '0' }}{{ config.processingFeeType === 'Percentage' ? '%' : '₦' }} {{ config.processingFeeType }}</span></div>
+                        <div class="review-item"><span class="r-label">Late penalty</span><span class="r-val">{{ config.latePenaltyRate || '0' }}{{ config.latePenaltyMethod === 'Percentage' ? '%' : '₦' }} after {{ config.latePenaltyGraceDays }} days</span></div>
+                      </div>
+                    }
+                    @if (i === 4) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Method</span><span class="r-val">{{ config.disburseTo | titlecase }}</span></div>
+                        <div class="review-item"><span class="r-label">Timing</span><span class="r-val">{{ config.disburseTiming | titlecase }}</span></div>
+                      </div>
+                    }
+                    @if (i === 5) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Frequency</span><span class="r-val">{{ config.repaymentFrequency }}</span></div>
+                        <div class="review-item"><span class="r-label">First payment</span><span class="r-val">{{ config.firstRepaymentDays }} days after disbursement</span></div>
+                        @if (showRepaymentDay) {
+                          <div class="review-item"><span class="r-label">Repayment day</span><span class="r-val">{{ config.repaymentDay }}</span></div>
+                        }
+                      </div>
+                    }
+                    @if (i === 6) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Default consent</span><span class="r-val">{{ config.useDefaultConsent ? 'Using default' : 'Custom documents' }}</span></div>
+                      </div>
+                    }
+                    @if (i === 7) {
+                      <div class="review-grid">
+                        <div class="review-item"><span class="r-label">Welcome message</span><span class="r-val">{{ config.welcomeMessage ? 'Set' : 'Not set' }}</span></div>
+                        <div class="review-item"><span class="r-label">Support email</span><span class="r-val">{{ config.supportEmail || '—' }}</span></div>
+                      </div>
+                    }
                   </div>
                 }
               </div>
-            </div>
+            }
+
+            <!-- Borrower Journey -->
             <div class="form-card">
-              <div class="form-card-title">Summary</div>
-              <div class="summary-list">
-                <div class="summary-row"><span class="s-label">Loan product</span><span class="s-val">{{ config.name || '—' }}</span></div>
-                <div class="summary-row"><span class="s-label">Interest rate</span><span class="s-val">{{ config.interestRate ? config.interestRate + '% per annum' : '—' }}</span></div>
-                <div class="summary-row"><span class="s-label">Repayment frequency</span><span class="s-val">{{ config.repaymentFrequency }}</span></div>
-                <div class="summary-row"><span class="s-label">Disbursement method</span><span class="s-val">{{ config.disburseTo | titlecase }}</span></div>
+              <div class="form-card-title">Borrower Journey</div>
+              <div class="form-card-sub">This is what applicants will see when they apply.</div>
+              <div class="journey-steps">
+                @for (step of borrowerJourneySteps; track step.label; let i = $index) {
+                  <div class="journey-step">
+                    <div class="journey-num">{{ i + 1 }}</div>
+                    <div class="journey-info">
+                      <div class="journey-label">{{ step.label }}</div>
+                      <div class="journey-sub">{{ step.sub }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="est-time">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Estimated completion time: <strong>{{ estimatedMinutes }} minutes</strong>
               </div>
             </div>
-            <app-copy-url-field label="Application link" [url]="publishUrl" />
-            <div class="qr-section">
-              <div class="field-label">QR code</div>
-              <app-qr-code [value]="publishUrl" [size]="140" />
+
+            <!-- Application Link -->
+            <div class="form-card">
+              <div class="form-card-title">Application Link</div>
+              <app-copy-url-field label="Shareable link" [url]="publishUrl" />
+              <div class="qr-section">
+                <div class="field-label">QR Code</div>
+                <app-qr-code [value]="publishUrl" [size]="140" />
+              </div>
             </div>
+
           </div>
         }
 
       </div>
 
-      <!-- ── Right panel ── -->
+      <!-- Right panel -->
       <aside class="right-panel">
-        @if (stepId === 'template') {
-          <div class="panel-card">
-            <div class="panel-header">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#6941C6" stroke-width="1.5"/><path d="M12 8v4" stroke="#6941C6" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#6941C6"/></svg>
-              <span class="panel-title">Live Borrower Journey Preview</span>
+        <div class="panel-card">
+          @if (config.template) {
+            <div class="template-badge-row">
+              <span class="template-badge" [style.background]="templateBg" [style.color]="templateColor">{{ templateLabel }}</span>
             </div>
-            <p class="panel-sub">This is how your applicants will experience the loan.</p>
+          }
+
+          @if (stepId === 'application') {
+            <div class="panel-header">
+              <span class="panel-title">Entry Screen Preview</span>
+            </div>
+            <p class="panel-sub">How applicants will start their application.</p>
+            <div class="phone-mock">
+              <div class="phone-screen">
+                <div class="phone-header-bar" [style.background]="config.brandColor"></div>
+                <div class="phone-content">
+                  <div class="phone-step-label">Get Started</div>
+                  @if (config.entryPhone) { <div class="phone-field">Phone Number</div> }
+                  @if (config.entryEmail) { <div class="phone-field">Email Address</div> }
+                  @if (config.entryBvn) { <div class="phone-field">BVN</div> }
+                  @if (config.entryNin) { <div class="phone-field">NIN</div> }
+                  @if (!config.entryPhone && !config.entryEmail && !config.entryBvn && !config.entryNin) {
+                    <div class="phone-empty">Select at least one entry method</div>
+                  }
+                  <div class="phone-btn" [style.background]="config.brandColor">Continue</div>
+                </div>
+              </div>
+            </div>
+          } @else if (stepId === 'verification') {
+            <div class="panel-header">
+              <span class="panel-title">Verification Screen</span>
+            </div>
+            <p class="panel-sub">How applicants verify their identity.</p>
+            <div class="phone-mock">
+              <div class="phone-screen">
+                <div class="phone-header-bar" [style.background]="config.brandColor"></div>
+                <div class="phone-content">
+                  <div class="phone-step-label">Verify Identity</div>
+                  @if (config.identityBvn) { <div class="phone-verify-item">BVN Verification</div> }
+                  @if (config.identityNin) { <div class="phone-verify-item">NIN Verification</div> }
+                  @if (config.identityPhoneOtp) { <div class="phone-verify-item">Phone OTP</div> }
+                  @if (config.identityEmailOtp) { <div class="phone-verify-item">Email OTP</div> }
+                  @if (!config.identityBvn && !config.identityNin && !config.identityPhoneOtp && !config.identityEmailOtp) {
+                    <div class="phone-empty">No verification selected</div>
+                  }
+                </div>
+              </div>
+            </div>
+          } @else if (stepId === 'customisation') {
+            <div class="panel-header">
+              <span class="panel-title">Portal Preview</span>
+            </div>
+            <p class="panel-sub">How your loan portal homepage will look.</p>
+            <div class="phone-mock">
+              <div class="phone-screen">
+                <div class="phone-header-bar" [style.background]="config.brandColor"></div>
+                <div class="phone-content">
+                  <div class="phone-welcome-msg">{{ config.welcomeMessage || 'Your welcome message will appear here.' }}</div>
+                  <div class="phone-btn" [style.background]="config.brandColor">Apply Now</div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="panel-header">
+              <span class="panel-title">Live Borrower Journey</span>
+            </div>
+            <p class="panel-sub">What applicants will experience when they apply.</p>
             <div class="journey-steps">
-              @for (bs of borrowerSteps; track bs.label; let i = $index) {
+              @for (step of borrowerJourneySteps; track step.label; let i = $index) {
                 <div class="journey-step">
                   <div class="journey-num">{{ i + 1 }}</div>
                   <div class="journey-info">
-                    <div class="journey-label">{{ bs.label }}</div>
-                    <div class="journey-sub">{{ bs.sub }}</div>
+                    <div class="journey-label">{{ step.label }}</div>
+                    <div class="journey-sub">{{ step.sub }}</div>
                   </div>
                 </div>
               }
             </div>
             <div class="est-time">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Estimated completion time
-              <strong>4 – 6 minutes</strong>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Est. completion
+              <strong>{{ estimatedMinutes }} min</strong>
             </div>
-            <div class="tpl-includes">
-              <div class="ti-title">Template Includes</div>
-              @for (item of ['Pre-configured application flow','Recommended verification methods','Required documents checklist','Pricing & repayment defaults','Risk & eligibility suggestions']; track item) {
-                <div class="ti-row">
-                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#6941C6"/><path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  {{ item }}
+            @if (config.minAmount && config.maxAmount) {
+              <div class="panel-stats">
+                <div class="panel-stat">
+                  <div class="panel-stat-label">Amount</div>
+                  <div class="panel-stat-val">₦{{ config.minAmount }} – ₦{{ config.maxAmount }}</div>
                 </div>
-              }
-            </div>
-          </div>
-        } @else {
-          <div class="panel-card">
-            <div class="panel-header">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#6941C6" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span class="panel-title">Live Borrower Experience</span>
-              <span class="live-badge">● Live</span>
-            </div>
-            <p class="panel-sub">This is how your customers will experience the application.</p>
-            <app-live-preview [config]="config" [step]="currentStep" />
-          </div>
-        }
+                @if (config.interestRate) {
+                  <div class="panel-stat">
+                    <div class="panel-stat-label">Interest</div>
+                    <div class="panel-stat-val">{{ config.interestRate }}%</div>
+                  </div>
+                }
+                @if (config.repaymentFrequency) {
+                  <div class="panel-stat">
+                    <div class="panel-stat-label">Repayment</div>
+                    <div class="panel-stat-val">{{ config.repaymentFrequency }}</div>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
       </aside>
-
     </div>
 
-    <!-- Footer nav -->
+    <!-- Footer -->
     <div class="wizard-footer">
-      @if (!isFirst) {
-        <button class="btn-back" (click)="back()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Back
+      @if (isReview) {
+        <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
+        <span class="footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
+        <button class="btn-publish">
+          Publish Loan Product
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
       } @else {
-        <a routerLink="/products" class="btn-back">Cancel</a>
+        @if (!isFirst) {
+          <button class="btn-back" (click)="back()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back
+          </button>
+        } @else {
+          <a routerLink="/products" class="btn-back">Cancel</a>
+        }
+        <span class="footer-hint">Don't worry, you can change any of these settings later.</span>
+        <button class="btn-continue" (click)="next()">
+          Save &amp; Continue
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       }
-      <span class="footer-hint">Don't worry, you can change any of these settings later.</span>
-      <button class="btn-continue" (click)="isLast ? null : next()">
-        {{ nextLabel }} <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
     </div>
 
   </div>
 </div>
+
+<!-- Unsaved dialog -->
+@if (showUnsavedDialog) {
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <h3 class="dialog-title">What would you like to do?</h3>
+      <p class="dialog-body">You have unsaved changes to this loan product.</p>
+      <div class="dialog-actions">
+        <button class="dialog-btn primary" (click)="saveDraft()">Save as Draft</button>
+        <button class="dialog-btn danger" (click)="discardAndLeave()">Cancel &amp; Discard</button>
+        <button class="dialog-btn secondary" (click)="showUnsavedDialog = false">Continue editing</button>
+      </div>
+    </div>
+  </div>
+}
