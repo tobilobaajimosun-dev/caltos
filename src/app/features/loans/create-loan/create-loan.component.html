@@ -103,47 +103,6 @@
               </div>
             </div>
 
-            <!-- Audience -->
-            <div class="form-card">
-              <div class="form-card-title">Who is this loan for? <span class="req">*</span></div>
-              <div class="form-card-sub">Select all that apply. This helps applicants know if they qualify.</div>
-              <div class="audience-grid">
-                @for (aud of audiences; track aud) {
-                  <button class="audience-btn"
-                    [class.selected]="config.targetAudiences.includes(aud)"
-                    (click)="toggleAudience(aud)">
-                    <div class="aud-icon">
-                      @if (aud === 'Everyone') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                      }
-                      @if (aud === 'Salary Earners') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                      }
-                      @if (aud === 'Public Servants') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      }
-                      @if (aud === 'Students') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                      }
-                      @if (aud === 'Business Owners') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/></svg>
-                      }
-                      @if (aud === 'Cooperative Members') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                      }
-                      @if (aud === 'Existing Customers') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M16 11l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      }
-                      @if (aud === 'Custom Audience') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                      }
-                    </div>
-                    {{ aud }}
-                  </button>
-                }
-              </div>
-            </div>
-
             <!-- Amount Range -->
             <div class="form-card">
               <div class="form-card-title">Loan Amount Range</div>
@@ -291,7 +250,6 @@
                           <div class="doc-btn-group">
                             <button class="doc-btn" [class.selected]="true">Required</button>
                             <button class="doc-btn">Optional</button>
-                            <button class="doc-btn">Skip</button>
                           </div>
                         </div>
                       }
@@ -299,7 +257,17 @@
                   }
                 }
               </div>
-              <button class="add-field-btn">
+              @for (field of customFields; track field.label) {
+                <div class="custom-fee-row">
+                  <span class="custom-fee-name">{{ field.label }}</span>
+                  <span class="custom-fee-type">{{ field.type }}</span>
+                  <span class="custom-fee-rate">{{ field.required }}</span>
+                  <button class="remove-btn" (click)="removeCustomField($index)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+                </div>
+              }
+              <button class="add-field-btn" (click)="showCustomFieldModal = true">
                 <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
                 Add a custom field
               </button>
@@ -523,7 +491,17 @@
                 }
               </div>
 
-              <button class="add-field-btn">
+              @for (fee of customFees; track fee.name) {
+                <div class="custom-fee-row">
+                  <span class="custom-fee-name">{{ fee.name }}</span>
+                  <span class="custom-fee-type">{{ fee.type }}</span>
+                  <span class="custom-fee-rate">{{ fee.rate }}{{ fee.type === 'Percentage' ? '%' : ' flat' }}</span>
+                  <button class="remove-btn" (click)="removeCustomFee($index)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </button>
+                </div>
+              }
+              <button class="add-field-btn" (click)="showCustomFeeModal = true">
                 <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
                 Add custom fee
               </button>
@@ -613,35 +591,20 @@
             </div>
 
             <div class="form-card">
-              <div class="form-card-title">Disbursement Timing <span class="req">*</span></div>
-              <div class="radio-option-list">
-                <label class="radio-option">
-                  <input type="radio" name="timing" value="instant" [(ngModel)]="config.disburseTiming" />
-                  <div>
-                    <div class="radio-label">Instantly after approval</div>
-                    <div class="radio-sub">Funds are released as soon as the loan is approved</div>
-                  </div>
-                </label>
-                <label class="radio-option">
-                  <input type="radio" name="timing" value="verify" [(ngModel)]="config.disburseTiming" />
-                  <div>
-                    <div class="radio-label">After additional verification</div>
-                    <div class="radio-sub">Requires a final check before funds are released</div>
-                  </div>
-                </label>
-                <label class="radio-option">
-                  <input type="radio" name="timing" value="scheduled" [(ngModel)]="config.disburseTiming" />
-                  <div>
-                    <div class="radio-label">Scheduled disbursement</div>
-                    <div class="radio-sub">Funds are released on a specific scheduled date</div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div class="form-card">
               <div class="form-card-title">Disbursement Rules</div>
               <div class="disbursement-rules">
+                <div class="disburse-rule">
+                  <div class="disburse-rule-content">
+                    <div class="disburse-rule-q">Should funds only go to a bank account in the borrower's name?</div>
+                    <div class="toggle-option">
+                      <div class="toggle-option-text">
+                        <div class="toggle-option-title">Disburse to named account only</div>
+                        <div class="toggle-option-sub">Funds can only be sent to an account whose name matches the borrower's verified identity. Turn off to allow any bank account.</div>
+                      </div>
+                      <app-toggle [checked]="config.namedAccountOnly" (checkedChange)="config.namedAccountOnly = $event" />
+                    </div>
+                  </div>
+                </div>
                 <div class="disburse-rule">
                   <div class="disburse-rule-content">
                     <div class="disburse-rule-q">Should an offer letter be sent before disbursement?</div>
@@ -656,23 +619,11 @@
                 </div>
                 <div class="disburse-rule">
                   <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Should the loan only be sent to the customer's salary account?</div>
-                    <div class="toggle-option">
-                      <div class="toggle-option-text">
-                        <div class="toggle-option-title">Disburse to salary account only</div>
-                        <div class="toggle-option-sub">Funds will only be sent to the verified salary account.</div>
-                      </div>
-                      <app-toggle [checked]="config.salaryAccountOnly" (checkedChange)="config.salaryAccountOnly = $event" />
-                    </div>
-                  </div>
-                </div>
-                <div class="disburse-rule">
-                  <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Should repayment deductions be set up before disbursement?</div>
+                    <div class="disburse-rule-q">Should repayment deductions be confirmed before disbursement?</div>
                     <div class="toggle-option">
                       <div class="toggle-option-text">
                         <div class="toggle-option-title">Set up repayment deductions before disbursing</div>
-                        <div class="toggle-option-sub">Confirm the repayment schedule is active before releasing funds.</div>
+                        <div class="toggle-option-sub">Confirm the repayment mandate is active before releasing funds.</div>
                       </div>
                       <app-toggle [checked]="config.repaymentDeductionFirst" (checkedChange)="config.repaymentDeductionFirst = $event" />
                     </div>
@@ -680,7 +631,7 @@
                 </div>
                 <div class="disburse-rule">
                   <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Do customers require a video confirmation before taking this loan?</div>
+                    <div class="disburse-rule-q">Do customers need to record a video confirmation?</div>
                     <div class="toggle-option">
                       <div class="toggle-option-text">
                         <div class="toggle-option-title">Require video confirmation from customers</div>
@@ -688,6 +639,25 @@
                       </div>
                       <app-toggle [checked]="config.videoConfirmation" (checkedChange)="config.videoConfirmation = $event" />
                     </div>
+                  </div>
+                </div>
+                <div class="disburse-rule">
+                  <div class="disburse-rule-content">
+                    <div class="disburse-rule-q">Auto-disburse small loans without manual review?</div>
+                    <div class="toggle-option">
+                      <div class="toggle-option-text">
+                        <div class="toggle-option-title">Auto-disburse loans under a set amount</div>
+                        <div class="toggle-option-sub">Loans below the threshold are disbursed automatically upon approval. Larger loans go through manual review.</div>
+                      </div>
+                      <app-toggle [checked]="config.autoDisburseEnabled" (checkedChange)="config.autoDisburseEnabled = $event" />
+                    </div>
+                    @if (config.autoDisburseEnabled) {
+                      <div class="inline-days" style="margin-top: 10px">
+                        <span class="inline-label">Auto-disburse loans under</span>
+                        <input class="text-input sm" type="number" placeholder="e.g. 50000" [(ngModel)]="config.autoDisburseUnder" style="max-width:140px" />
+                        <span class="inline-label">₦</span>
+                      </div>
+                    }
                   </div>
                 </div>
               </div>
@@ -714,11 +684,34 @@
             </div>
 
             <div class="form-card">
-              <div class="form-card-title">First Repayment Date</div>
-              <div class="form-card-sub">How many days after disbursement should the first repayment be collected?</div>
-              <div class="inline-days">
-                <input class="text-input sm" type="number" placeholder="30" [(ngModel)]="config.firstRepaymentDays" />
-                <span class="inline-label">days after disbursement</span>
+              <div class="form-card-title">Number of Repayments</div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label class="field-label">Minimum repayments</label>
+                  <input class="text-input" type="number" placeholder="Input number of repayments" [(ngModel)]="config.minRepayments" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Maximum repayments</label>
+                  <input class="text-input" type="number" placeholder="Input number of repayments" [(ngModel)]="config.maxRepayments" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Repayment Schedule</div>
+              <div class="field-group">
+                <label class="field-label">Move first repayment date, if date of loan disbursement is later than:</label>
+                <div class="inline-days">
+                  <input class="text-input sm" type="number" placeholder="Input number days" [(ngModel)]="config.moveFirstRepaymentDays" />
+                  <span class="inline-label">days</span>
+                </div>
+              </div>
+              <div class="field-group" style="margin-top:14px">
+                <label class="field-label">First repayment date</label>
+                <div class="inline-days">
+                  <input class="text-input sm" type="number" placeholder="30" [(ngModel)]="config.firstRepaymentDays" />
+                  <span class="inline-label">days after disbursement</span>
+                </div>
               </div>
             </div>
 
@@ -739,6 +732,31 @@
                 </select>
               </div>
             }
+
+            <div class="form-card">
+              <div class="form-card-title">Select repayment order</div>
+              <div class="form-card-sub">Drag to reorder how repayments are applied — fees, interest, penalty, then principal.</div>
+              <div class="repayment-order-list">
+                @for (item of repaymentOrder; track item; let i = $index) {
+                  <div class="repayment-order-item">
+                    <div class="repayment-order-drag">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                    <span class="repayment-order-label">{{ item }}</span>
+                    <div class="repayment-order-arrows">
+                      <button class="order-arrow-btn" (click)="moveRepaymentOrder(i, -1)" [disabled]="i === 0">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      </button>
+                      <button class="order-arrow-btn" (click)="moveRepaymentOrder(i, 1)" [disabled]="i === repaymentOrder.length - 1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
 
           </div>
         }
@@ -1006,115 +1024,43 @@
 
       </div>
 
-      <!-- Right panel -->
+      <!-- Right panel: Setup Guide -->
       <aside class="right-panel">
-        <div class="panel-card">
-          @if (config.template) {
-            <div class="template-badge-row">
-              <span class="template-badge" [style.background]="templateBg" [style.color]="templateColor">{{ templateLabel }}</span>
-            </div>
-          }
-
-          @if (stepId === 'application') {
-            <div class="panel-header">
-              <span class="panel-title">Entry Screen Preview</span>
-            </div>
-            <p class="panel-sub">How applicants will start their application.</p>
-            <div class="phone-mock">
-              <div class="phone-screen">
-                <div class="phone-header-bar" [style.background]="config.brandColor"></div>
-                <div class="phone-content">
-                  <div class="phone-step-label">Get Started</div>
-                  @if (config.entryPhone) { <div class="phone-field">Phone Number</div> }
-                  @if (config.entryEmail) { <div class="phone-field">Email Address</div> }
-                  @if (config.entryBvn) { <div class="phone-field">BVN</div> }
-                  @if (config.entryNin) { <div class="phone-field">NIN</div> }
-                  @if (!config.entryPhone && !config.entryEmail && !config.entryBvn && !config.entryNin) {
-                    <div class="phone-empty">Select at least one entry method</div>
-                  }
-                  <div class="phone-btn" [style.background]="config.brandColor">Continue</div>
-                </div>
-              </div>
-            </div>
-          } @else if (stepId === 'verification') {
-            <div class="panel-header">
-              <span class="panel-title">Verification Screen</span>
-            </div>
-            <p class="panel-sub">How applicants verify their identity.</p>
-            <div class="phone-mock">
-              <div class="phone-screen">
-                <div class="phone-header-bar" [style.background]="config.brandColor"></div>
-                <div class="phone-content">
-                  <div class="phone-step-label">Verify Identity</div>
-                  @if (config.identityBvn) { <div class="phone-verify-item">BVN Verification</div> }
-                  @if (config.identityNin) { <div class="phone-verify-item">NIN Verification</div> }
-                  @if (config.identityPhoneOtp) { <div class="phone-verify-item">Phone OTP</div> }
-                  @if (config.identityEmailOtp) { <div class="phone-verify-item">Email OTP</div> }
-                  @if (!config.identityBvn && !config.identityNin && !config.identityPhoneOtp && !config.identityEmailOtp) {
-                    <div class="phone-empty">No verification selected</div>
+        <div class="panel-card setup-guide">
+          <div class="setup-guide-header">
+            <div class="setup-guide-title">Setup guide</div>
+            <div class="setup-guide-count">{{ currentStep + 1 }} / {{ steps.length }} completed</div>
+          </div>
+          <div class="setup-progress-bar">
+            <div class="setup-progress-fill" [style.width.%]="((currentStep) / (steps.length - 1)) * 100"></div>
+          </div>
+          <div class="setup-step-list">
+            @for (step of steps; track step.id; let i = $index) {
+              <button class="setup-step-item" [class.done]="i < currentStep" [class.active]="i === currentStep" (click)="goToStep(i)">
+                <div class="setup-step-icon">
+                  @if (i < currentStep) {
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="8" fill="#6941C6"/>
+                      <path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  } @else if (i === currentStep) {
+                    <div class="setup-step-dot active-dot"></div>
+                  } @else {
+                    <div class="setup-step-dot upcoming-dot"></div>
                   }
                 </div>
-              </div>
-            </div>
-          } @else if (stepId === 'customisation') {
-            <div class="panel-header">
-              <span class="panel-title">Portal Preview</span>
-            </div>
-            <p class="panel-sub">How your loan portal homepage will look.</p>
-            <div class="phone-mock">
-              <div class="phone-screen">
-                <div class="phone-header-bar" [style.background]="config.brandColor"></div>
-                <div class="phone-content">
-                  <div class="phone-welcome-msg">{{ config.welcomeMessage || 'Your welcome message will appear here.' }}</div>
-                  <div class="phone-btn" [style.background]="config.brandColor">Apply Now</div>
-                </div>
-              </div>
-            </div>
-          } @else {
-            <div class="panel-header">
-              <span class="panel-title">Live Borrower Journey</span>
-            </div>
-            <p class="panel-sub">What applicants will experience when they apply.</p>
-            <div class="journey-steps">
-              @for (step of borrowerJourneySteps; track step.label; let i = $index) {
-                <div class="journey-step">
-                  <div class="journey-num">{{ i + 1 }}</div>
-                  <div class="journey-info">
-                    <div class="journey-label">{{ step.label }}</div>
-                    <div class="journey-sub">{{ step.sub }}</div>
-                  </div>
-                </div>
-              }
-            </div>
-            <div class="est-time">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-              Est. completion
-              <strong>{{ estimatedMinutes }} min</strong>
-            </div>
-            @if (config.minAmount && config.maxAmount) {
-              <div class="panel-stats">
-                <div class="panel-stat">
-                  <div class="panel-stat-label">Amount</div>
-                  <div class="panel-stat-val">₦{{ config.minAmount }} – ₦{{ config.maxAmount }}</div>
-                </div>
-                @if (config.interestRate) {
-                  <div class="panel-stat">
-                    <div class="panel-stat-label">Interest</div>
-                    <div class="panel-stat-val">{{ config.interestRate }}%</div>
-                  </div>
+                <span class="setup-step-label">{{ step.label }}</span>
+                @if (i === currentStep) {
+                  <svg class="setup-step-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
                 }
-                @if (config.repaymentFrequency) {
-                  <div class="panel-stat">
-                    <div class="panel-stat-label">Repayment</div>
-                    <div class="panel-stat-val">{{ config.repaymentFrequency }}</div>
-                  </div>
-                }
-              </div>
+              </button>
             }
-          }
+          </div>
+          <div class="setup-guide-footer">
+            Completing all steps is required before publishing.
+          </div>
         </div>
       </aside>
     </div>
@@ -1153,6 +1099,72 @@
 
   </div>
 </div>
+
+<!-- Custom Fee Modal -->
+@if (showCustomFeeModal) {
+  <div class="dialog-overlay" (click)="showCustomFeeModal = false">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h3 class="dialog-title">Add Custom Fee</h3>
+      <div class="dialog-form">
+        <div class="field-group">
+          <label class="field-label">Fee name <span class="req">*</span></label>
+          <input class="text-input" type="text" placeholder="e.g. Insurance Fee" [(ngModel)]="customFeeName" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Fee type</label>
+          <select class="select-input" [(ngModel)]="customFeeType">
+            <option>Percentage</option>
+            <option>Flat Amount</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Rate / Amount</label>
+          <input class="text-input" type="number" [placeholder]="customFeeType === 'Percentage' ? 'e.g. 1.5' : 'e.g. 2500'" [(ngModel)]="customFeeRate" />
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="dialog-btn secondary" (click)="showCustomFeeModal = false">Cancel</button>
+        <button class="dialog-btn primary" (click)="addCustomFee()" [disabled]="!customFeeName.trim()">Add Fee</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Custom Field Modal -->
+@if (showCustomFieldModal) {
+  <div class="dialog-overlay" (click)="showCustomFieldModal = false">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h3 class="dialog-title">Add Custom Field</h3>
+      <div class="dialog-form">
+        <div class="field-group">
+          <label class="field-label">Field label <span class="req">*</span></label>
+          <input class="text-input" type="text" placeholder="e.g. Passport Number" [(ngModel)]="customFieldLabel" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Field type</label>
+          <select class="select-input" [(ngModel)]="customFieldType">
+            <option>Text</option>
+            <option>Number</option>
+            <option>Date</option>
+            <option>File Upload</option>
+            <option>Yes / No</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Is this field required?</label>
+          <select class="select-input" [(ngModel)]="customFieldRequired">
+            <option value="required">Required</option>
+            <option value="optional">Optional</option>
+          </select>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="dialog-btn secondary" (click)="showCustomFieldModal = false">Cancel</button>
+        <button class="dialog-btn primary" (click)="addCustomField()" [disabled]="!customFieldLabel.trim()">Add Field</button>
+      </div>
+    </div>
+  </div>
+}
 
 <!-- Unsaved dialog -->
 @if (showUnsavedDialog) {

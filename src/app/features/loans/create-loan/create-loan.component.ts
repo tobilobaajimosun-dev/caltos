@@ -74,13 +74,18 @@ export interface LoanConfig {
   disburseTo: string;
   disburseTiming: string;
   offerLetter: boolean;
-  salaryAccountOnly: boolean;
+  namedAccountOnly: boolean;
   repaymentDeductionFirst: boolean;
   videoConfirmation: boolean;
+  autoDisburseEnabled: boolean;
+  autoDisburseUnder: string;
   // Step 6
   repaymentFrequency: string;
   firstRepaymentDays: string;
   repaymentDay: string;
+  minRepayments: string;
+  maxRepayments: string;
+  moveFirstRepaymentDays: string;
   // Step 7
   docTerms: string;
   docPrivacy: string;
@@ -113,11 +118,6 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
   salary: {
     name: 'Salary Advance Loan',
     description: 'Quick access to earned wages for private sector employees.',
-    targetAudiences: ['Salary Earners'],
-    minAmount: '10000', maxAmount: '500000',
-    minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
-    interestModel: 'Reducing Balance', interestRate: '5',
-    minAge: '21', maxAge: '60',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
@@ -126,19 +126,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '1.5', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'instant', salaryAccountOnly: true,
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get quick access to your salary in advance. The process takes about 5 minutes.',
   },
   public: {
     name: 'Public Sector Loan',
     description: 'Affordable loans for federal and state government employees.',
-    targetAudiences: ['Public Servants'],
-    minAmount: '50000', maxAmount: '5000000',
-    minTenor: '3', maxTenor: '36', tenorUnit: 'Months',
-    interestModel: 'Reducing Balance', interestRate: '3',
-    minAge: '21', maxAge: '60',
     entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
@@ -147,19 +140,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '1', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'instant', salaryAccountOnly: true,
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Loans designed specifically for civil servants. Get started in minutes.',
   },
   school: {
     name: 'School Fees Loan',
     description: 'Help families pay school fees and educational expenses.',
-    targetAudiences: ['Students', 'Everyone'],
-    minAmount: '50000', maxAmount: '1000000',
-    minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
-    interestModel: 'Flat Rate', interestRate: '6',
-    minAge: '18', maxAge: '55',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
@@ -168,19 +154,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'none',
     docGuarantorForm: 'required', docSchoolId: 'required', docAdmissionLetter: 'required',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '2', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'instant',
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Fund your education without the financial stress. Apply in minutes.',
   },
   corper: {
     name: 'Corper Wallet Loan',
     description: 'Quick loans for NYSC corps members throughout their service year.',
-    targetAudiences: ['Public Servants'],
-    minAmount: '10000', maxAmount: '150000',
-    minTenor: '1', maxTenor: '11', tenorUnit: 'Months',
-    interestModel: 'Flat Rate', interestRate: '5',
-    minAge: '18', maxAge: '35',
     entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
@@ -189,19 +168,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '2', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'instant',
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, corps member! Quick loans to support your NYSC service year.',
   },
   sme: {
     name: 'SME Working Capital Loan',
     description: 'Working capital and growth financing for registered businesses.',
-    targetAudiences: ['Business Owners'],
-    minAmount: '100000', maxAmount: '10000000',
-    minTenor: '3', maxTenor: '24', tenorUnit: 'Months',
-    interestModel: 'Reducing Balance', interestRate: '4',
-    minAge: '21', maxAge: '65',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: true, collectBusiness: true,
     allowContinue: true, recogniseExisting: true,
@@ -210,19 +182,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'required', docWorkVerification: 'optional',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '2', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'verify',
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get the working capital your business needs to grow.',
   },
   coop: {
     name: 'Cooperative Society Loan',
     description: 'Member-only loans tied to savings and cooperative standing.',
-    targetAudiences: ['Cooperative Members'],
-    minAmount: '10000', maxAmount: '500000',
-    minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
-    interestModel: 'Reducing Balance', interestRate: '2',
-    minAge: '18', maxAge: '65',
     entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
@@ -231,19 +196,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required',
-    processingFeeType: 'Flat Amount', processingFeeRate: '500', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'instant',
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
+    disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, member! Access your cooperative loan benefits quickly and easily.',
   },
   bnpl: {
     name: 'Buy Now Pay Later',
     description: 'Instant purchase financing that lets customers shop and pay over time.',
-    targetAudiences: ['Everyone'],
-    minAmount: '5000', maxAmount: '500000',
-    minTenor: '1', maxTenor: '6', tenorUnit: 'Months',
-    interestModel: 'Flat Rate', interestRate: '0',
-    minAge: '18', maxAge: '55',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
     collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
@@ -252,31 +210,10 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '3', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'third-party', disburseTiming: 'instant',
-    repaymentFrequency: 'Weekly', firstRepaymentDays: '7',
+    disburseTo: 'third-party', repaymentFrequency: 'Weekly',
     welcomeMessage: 'Shop now, pay later. Get instant purchase financing with no hidden fees.',
   },
-  scratch: {
-    name: '',
-    description: '',
-    targetAudiences: [],
-    minAmount: '', maxAmount: '',
-    minTenor: '', maxTenor: '', tenorUnit: 'Months',
-    interestModel: 'Flat Rate', interestRate: '',
-    entryPhone: false, entryEmail: false, entryBvn: false, entryNin: false,
-    collectPersonal: false, collectContact: false, collectEmployment: false, collectAddress: false, collectBusiness: false,
-    allowContinue: false, recogniseExisting: false,
-    identityBvn: false, identityNin: false, identityPhoneOtp: false, identityEmailOtp: false,
-    incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
-    docGovId: 'none', docUtilityBill: 'none', docWorkVerification: 'none',
-    docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
-    processingFeeType: 'Percentage', processingFeeRate: '', processingFeeApplicableTo: 'Loan Amount',
-    disburseTo: 'bank', disburseTiming: 'instant',
-    repaymentFrequency: 'Monthly', firstRepaymentDays: '30',
-    welcomeMessage: '',
-  },
+  scratch: {},
 };
 
 @Component({
@@ -313,6 +250,20 @@ export class CreateLoanComponent implements OnInit {
   showAdminFee = false;
   showMgmtFee = false;
 
+  showCustomFeeModal = false;
+  customFeeName = '';
+  customFeeType = 'Percentage';
+  customFeeRate = '';
+  customFees: { name: string; type: string; rate: string }[] = [];
+
+  showCustomFieldModal = false;
+  customFieldLabel = '';
+  customFieldType = 'Text';
+  customFieldRequired = 'required';
+  customFields: { label: string; type: string; required: string }[] = [];
+
+  repaymentOrder = ['Fees', 'Interest', 'Penalty', 'Principal'];
+
   readonly chevronLeft: IconData = ChevronLeftIcon as IconData;
   readonly chevronRight: IconData = ChevronRightIcon as IconData;
   readonly plusIcon: IconData = PlusSignIcon as IconData;
@@ -345,8 +296,10 @@ export class CreateLoanComponent implements OnInit {
     latePenaltyMethod: 'Percentage', latePenaltyRate: '', latePenaltyGraceDays: '3',
     latePenaltyApplyTo: 'Outstanding Balance',
     disburseTo: 'bank', disburseTiming: 'instant',
-    offerLetter: false, salaryAccountOnly: false, repaymentDeductionFirst: false, videoConfirmation: false,
+    offerLetter: false, namedAccountOnly: false, repaymentDeductionFirst: false, videoConfirmation: false,
+    autoDisburseEnabled: false, autoDisburseUnder: '',
     repaymentFrequency: 'Monthly', firstRepaymentDays: '30', repaymentDay: 'Day 30',
+    minRepayments: '', maxRepayments: '', moveFirstRepaymentDays: '',
     docTerms: '', docPrivacy: '', docAgreement: '', useDefaultConsent: false,
     welcomeMessage: '', thankYouMessage: '', supportEmail: 'hello@yourcompany.ng',
     supportPhone: '', whatsappContact: '',
@@ -480,6 +433,30 @@ export class CreateLoanComponent implements OnInit {
   get descLength(): number { return this.config.description?.length ?? 0; }
 
   compact(arr: string[]): string { return arr.filter(s => s).join(', ') || '—'; }
+
+  addCustomFee() {
+    if (!this.customFeeName.trim()) return;
+    this.customFees.push({ name: this.customFeeName, type: this.customFeeType, rate: this.customFeeRate });
+    this.customFeeName = ''; this.customFeeType = 'Percentage'; this.customFeeRate = '';
+    this.showCustomFeeModal = false;
+  }
+
+  removeCustomFee(i: number) { this.customFees.splice(i, 1); }
+
+  addCustomField() {
+    if (!this.customFieldLabel.trim()) return;
+    this.customFields.push({ label: this.customFieldLabel, type: this.customFieldType, required: this.customFieldRequired });
+    this.customFieldLabel = ''; this.customFieldType = 'Text'; this.customFieldRequired = 'required';
+    this.showCustomFieldModal = false;
+  }
+
+  removeCustomField(i: number) { this.customFields.splice(i, 1); }
+
+  moveRepaymentOrder(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= this.repaymentOrder.length) return;
+    [this.repaymentOrder[i], this.repaymentOrder[j]] = [this.repaymentOrder[j], this.repaymentOrder[i]];
+  }
 
   reviewSections = [
     { title: 'Loan Details',       subtitle: 'Name, audience, amounts, tenor, interest' },

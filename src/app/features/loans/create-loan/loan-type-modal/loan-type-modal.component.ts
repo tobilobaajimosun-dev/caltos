@@ -40,6 +40,7 @@ export class LoanTypeModalComponent {
   readonly closeIcon: IconData = Cancel01Icon as IconData;
 
   selectedId: string | null = null;
+  view: 'grid' | 'detail' = 'grid';
 
   constructor(private router: Router) {}
 
@@ -49,6 +50,12 @@ export class LoanTypeModalComponent {
 
   select(id: string) {
     this.selectedId = id;
+    this.view = 'detail';
+  }
+
+  back() {
+    this.view = 'grid';
+    this.selectedId = null;
   }
 
   continue() {
