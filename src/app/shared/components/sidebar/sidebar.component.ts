@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Router } from '@angular/router';
 import { NavItemComponent, NavItemIcon } from '../nav-item/nav-item.component';
 import { OrgProfileComponent } from '../org-profile/org-profile.component';
 import { BadgeCardComponent } from '../badge-card/badge-card.component';
@@ -7,6 +8,7 @@ export interface SideNavItem {
   id: string;
   label: string;
   icon: NavItemIcon;
+  route?: string;
   hasDropdown?: boolean;
 }
 
@@ -23,20 +25,23 @@ export class SidebarComponent {
   @Output() navChange = new EventEmitter<string>();
 
   navItems: SideNavItem[] = [
-    { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard' },
-    { id: 'home', label: 'Home', icon: 'home' },
-    { id: 'customers', label: 'Customers', icon: 'customers' },
-    { id: 'wallet', label: 'Wallet', icon: 'wallet' },
-    { id: 'products', label: 'Products', icon: 'products' },
-    { id: 'loans', label: 'Loans', icon: 'loans', hasDropdown: true },
-    { id: 'reports', label: 'Reports & Performance', icon: 'reports' },
-    { id: 'risk', label: 'Risk Monitor', icon: 'risk' },
-    { id: 'teams', label: 'Teams', icon: 'teams' },
-    { id: 'settings', label: 'Settings', icon: 'settings' },
+    { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/' },
+    { id: 'home',          label: 'Home',                icon: 'home',      route: '/' },
+    { id: 'customers',     label: 'Customers',           icon: 'customers' },
+    { id: 'wallet',        label: 'Wallet',              icon: 'wallet' },
+    { id: 'products',      label: 'Products',            icon: 'products',  route: '/products' },
+    { id: 'loans',         label: 'Loans',               icon: 'loans',     hasDropdown: true },
+    { id: 'reports',       label: 'Reports & Performance', icon: 'reports' },
+    { id: 'risk',          label: 'Risk Monitor',        icon: 'risk' },
+    { id: 'teams',         label: 'Teams',               icon: 'teams' },
+    { id: 'settings',      label: 'Settings',            icon: 'settings' },
   ];
 
-  navigate(id: string) {
-    this.activeItemId = id;
-    this.navChange.emit(id);
+  constructor(private router: Router) {}
+
+  navigate(item: SideNavItem) {
+    this.activeItemId = item.id;
+    this.navChange.emit(item.id);
+    if (item.route) this.router.navigate([item.route]);
   }
 }

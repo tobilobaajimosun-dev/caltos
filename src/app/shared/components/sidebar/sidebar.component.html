@@ -15,7 +15,7 @@
         [icon]="item.icon"
         [active]="activeItemId === item.id"
         [hasDropdown]="item.hasDropdown ?? false"
-        (clicked)="navigate(item.id)"
+        (clicked)="navigate(item)"
       />
     }
   </div>
