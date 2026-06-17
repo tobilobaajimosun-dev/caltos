@@ -351,6 +351,7 @@ export class CreateLoanComponent implements OnInit {
   }
 
   publish() {
+    localStorage.setItem('caltos_published_config', JSON.stringify(this.config));
     this.isPublished = true;
     this.isDraft = false;
   }

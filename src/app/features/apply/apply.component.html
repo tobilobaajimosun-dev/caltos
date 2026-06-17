@@ -14,11 +14,19 @@
           </div>
         </div>
         <h1 class="success-title">Application Sent!</h1>
-        <p class="success-sub">We've received your application and will review it within 24 hours. You'll get a notification when there's an update.</p>
+        <p class="success-sub">We've received your application and will review it within 24 hours. Check your phone or email for updates.</p>
         <div class="ref-chip">
           <span class="ref-chip-label">Reference</span>
           <span class="ref-chip-code">{{ refNumber }}</span>
         </div>
+        @if (product.supportEmail || product.supportPhone) {
+          <p class="support-note">
+            Questions? Contact us at
+            @if (product.supportEmail) { <a [href]="'mailto:' + product.supportEmail">{{ product.supportEmail }}</a> }
+            @if (product.supportEmail && product.supportPhone) { &nbsp;or&nbsp; }
+            @if (product.supportPhone) { <span>{{ product.supportPhone }}</span> }
+          </p>
+        }
         <a routerLink="/" class="success-cta">Done</a>
       </div>
     </div>
@@ -33,8 +41,9 @@
           <path d="M10 22V12l6-4 6 4v10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13 22v-5h6v5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="header-logo-name">Caltos</span>
+        <span class="header-logo-name">{{ product.brandName || 'Caltos' }}</span>
       </div>
+      <span class="header-product">{{ product.name }}</span>
       <button class="header-close" routerLink="/">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -42,9 +51,14 @@
       </button>
     </header>
 
-    <!-- ── PROGRESS BAR ────────────────────────────────────────────────────── -->
+    <!-- ── PROGRESS ────────────────────────────────────────────────────────── -->
     <div class="progress-rail">
       <div class="progress-fill" [style.width.%]="progress"></div>
+    </div>
+    <div class="step-pill-row">
+      @for (s of steps; track s.id; let i = $index) {
+        <div class="step-dot" [class.done]="i < stepIndex" [class.active]="i === stepIndex"></div>
+      }
     </div>
 
     <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
@@ -53,28 +67,83 @@
       <!-- WELCOME -->
       @if (currentStep.id === 'welcome') {
         <div class="screen screen-welcome">
-          <div class="welcome-badge">Salary Advance</div>
-          <h1 class="screen-headline">Get cash<br>when you need it.</h1>
-          <p class="screen-body">Up to ₦500,000 in your account in minutes. No collateral. No branches.</p>
+          @if (configSource === 'fallback') {
+            <div class="demo-banner">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Preview mode — no published product found. Create and publish a loan product first.
+            </div>
+          }
+          <div class="welcome-badge">{{ product.targetAudiences[0] || 'Loan Application' }}</div>
+          <h1 class="screen-headline">{{ product.name }}</h1>
+          <p class="screen-body">
+            {{ product.welcomeMessage || product.description }}
+          </p>
           <div class="feature-list">
-            <div class="feature-item">
-              <div class="feature-dot green"></div>
-              <span>Repay in 1–12 months</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-dot blue"></div>
-              <span>2.5% flat interest rate</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-dot purple"></div>
-              <span>5-minute application</span>
-            </div>
+            @if (product.minAmount && product.maxAmount) {
+              <div class="feature-item">
+                <div class="feature-dot purple"></div>
+                <span>₦{{ (+product.minAmount).toLocaleString() }} – ₦{{ (+product.maxAmount).toLocaleString() }}</span>
+              </div>
+            }
+            @if (product.minTenor && product.maxTenor) {
+              <div class="feature-item">
+                <div class="feature-dot blue"></div>
+                <span>{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }}</span>
+              </div>
+            }
+            @if (product.interestRate) {
+              <div class="feature-item">
+                <div class="feature-dot green"></div>
+                <span>{{ product.interestRate }}% {{ product.interestModel }}</span>
+              </div>
+            }
             <div class="feature-item">
               <div class="feature-dot yellow"></div>
-              <span>Instant decision</span>
+              <span>Fast decision, quick disbursement</span>
             </div>
           </div>
           <p class="legal-note">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+        </div>
+      }
+
+      <!-- ENTRY -->
+      @if (currentStep.id === 'entry') {
+        <div class="screen">
+          <p class="screen-eyebrow">Let's get started</p>
+          <h2 class="screen-headline sm">Identify<br>yourself</h2>
+          <p class="screen-body-sm">
+            @if (product.allowContinue) { Returning? We'll pick up where you left off. }
+            @else { Enter your details to begin your application. }
+          </p>
+          <div class="form-stack">
+            @if (product.entryPhone) {
+              <div class="dark-field">
+                <label class="dark-label">Phone number</label>
+                <div class="dark-phone-wrap">
+                  <span class="dark-phone-prefix">+234</span>
+                  <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="entryPhone" />
+                </div>
+              </div>
+            }
+            @if (product.entryEmail) {
+              <div class="dark-field">
+                <label class="dark-label">Email address</label>
+                <input class="dark-input" type="email" placeholder="you@example.com" [(ngModel)]="entryEmail" />
+              </div>
+            }
+            @if (product.entryBvn) {
+              <div class="dark-field">
+                <label class="dark-label">BVN</label>
+                <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="entryBvn" />
+              </div>
+            }
+            @if (product.entryNin) {
+              <div class="dark-field">
+                <label class="dark-label">NIN</label>
+                <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit NIN" [(ngModel)]="entryNin" />
+              </div>
+            }
+          </div>
         </div>
       }
 
@@ -86,32 +155,54 @@
             <span class="amount-currency">₦</span>
             <span class="amount-value">{{ (+loanAmount).toLocaleString() }}</span>
           </div>
-          <input class="dark-slider" type="range" min="10000" max="500000" step="5000" [(ngModel)]="loanAmount" />
+          <input class="dark-slider" type="range"
+            [min]="amountMin" [max]="amountMax" step="5000"
+            [(ngModel)]="loanAmount" />
           <div class="slider-limits">
-            <span>₦10,000</span>
-            <span>₦500,000</span>
+            <span>₦{{ amountMin.toLocaleString() }}</span>
+            <span>₦{{ amountMax.toLocaleString() }}</span>
           </div>
 
           <div class="section-divider"></div>
 
           <p class="screen-eyebrow">Repayment period</p>
-          <div class="tenor-grid">
-            @for (m of [1,2,3,6,9,12]; track m) {
+          <div class="tenor-grid" [style.grid-template-columns]="'repeat(' + Math.min(tenorOptions.length, 3) + ', 1fr)'">
+            @for (m of tenorOptions; track m) {
               <button class="tenor-chip" [class.active]="loanTenor === m.toString()" (click)="loanTenor = m.toString()">
-                {{ m }} <span class="tenor-unit">mo</span>
+                {{ m }} <span class="tenor-unit">{{ product.tenorUnit === 'Days' ? 'd' : product.tenorUnit === 'Weeks' ? 'wk' : product.tenorUnit === 'Years' ? 'yr' : 'mo' }}</span>
               </button>
             }
           </div>
 
+          @if (product.description || product.targetAudiences?.length) {
+            <div class="section-divider"></div>
+            <p class="screen-eyebrow">Loan purpose <span class="opt-inline">optional</span></p>
+            <select class="dark-input dark-select" [(ngModel)]="loanPurpose">
+              <option value="">Select purpose</option>
+              <option>Working capital</option>
+              <option>Salary advance</option>
+              <option>Medical expenses</option>
+              <option>School fees</option>
+              <option>Home expenses</option>
+              <option>Business growth</option>
+              <option>Other</option>
+            </select>
+          }
+
           <div class="loan-est-row">
             <div class="loan-est-item">
               <span class="est-label">Monthly est.</span>
-              <span class="est-val">₦{{ Math.ceil((+loanAmount * 1.025) / (+loanTenor || 1)).toLocaleString() }}</span>
+              <span class="est-val">₦{{ monthlyEst.toLocaleString() }}</span>
             </div>
             <div class="loan-est-divider"></div>
             <div class="loan-est-item">
               <span class="est-label">Total repayment</span>
-              <span class="est-val">₦{{ Math.ceil(+loanAmount * 1.025).toLocaleString() }}</span>
+              <span class="est-val">₦{{ totalRepayment.toLocaleString() }}</span>
+            </div>
+            <div class="loan-est-divider"></div>
+            <div class="loan-est-item">
+              <span class="est-label">Interest</span>
+              <span class="est-val">{{ product.interestRate || '—' }}%</span>
             </div>
           </div>
         </div>
@@ -146,13 +237,11 @@
               </div>
             </div>
             <div class="dark-field">
-              <label class="dark-label">Marital status</label>
+              <label class="dark-label">Marital status <span class="opt-label">Optional</span></label>
               <select class="dark-input dark-select" [(ngModel)]="maritalStatus">
                 <option value="">Select</option>
-                <option>Single</option>
-                <option>Married</option>
-                <option>Divorced</option>
-                <option>Widowed</option>
+                <option>Single</option><option>Married</option>
+                <option>Divorced</option><option>Widowed</option>
               </select>
             </div>
           </div>
@@ -165,19 +254,30 @@
           <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
           <h2 class="screen-headline sm">Contact<br>Details</h2>
           <div class="form-stack">
-            <div class="dark-field">
-              <label class="dark-label">Phone number</label>
-              <div class="dark-phone-wrap">
-                <span class="dark-phone-prefix">+234</span>
-                <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
+            @if (product.entryPhone) {
+              <!-- Pre-populated from entry step -->
+              <div class="dark-field">
+                <label class="dark-label">Phone number</label>
+                <div class="dark-phone-wrap">
+                  <span class="dark-phone-prefix">+234</span>
+                  <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
+                </div>
               </div>
-            </div>
+            } @else {
+              <div class="dark-field">
+                <label class="dark-label">Phone number</label>
+                <div class="dark-phone-wrap">
+                  <span class="dark-phone-prefix">+234</span>
+                  <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
+                </div>
+              </div>
+            }
             <div class="dark-field">
               <label class="dark-label">Email address</label>
               <input class="dark-input" type="email" placeholder="you@example.com" [(ngModel)]="email" />
             </div>
             <div class="dark-field">
-              <label class="dark-label">Alternate phone <span class="opt-tag">Optional</span></label>
+              <label class="dark-label">Alternate phone <span class="opt-label">Optional</span></label>
               <div class="dark-phone-wrap">
                 <span class="dark-phone-prefix">+234</span>
                 <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="altPhone" />
@@ -211,9 +311,7 @@
               <label class="dark-label">State</label>
               <select class="dark-input dark-select" [(ngModel)]="state">
                 <option value="">Select state</option>
-                @for (s of nigerianStates; track s) {
-                  <option>{{ s }}</option>
-                }
+                @for (s of nigerianStates; track s) { <option>{{ s }}</option> }
               </select>
             </div>
           </div>
@@ -235,11 +333,11 @@
               </div>
             </div>
             <div class="dark-field">
-              <label class="dark-label">Employer / Business name</label>
-              <input class="dark-input" type="text" placeholder="e.g. First Bank of Nigeria" [(ngModel)]="employerName" />
+              <label class="dark-label">{{ product.collectBusiness ? 'Business name' : 'Employer name' }}</label>
+              <input class="dark-input" type="text" [placeholder]="product.collectBusiness ? 'e.g. Acme Ltd' : 'e.g. First Bank'" [(ngModel)]="employerName" />
             </div>
             <div class="dark-field">
-              <label class="dark-label">Staff ID <span class="opt-tag">Optional</span></label>
+              <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
               <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
             </div>
             <div class="dark-field">
@@ -260,28 +358,34 @@
             256-bit encrypted. Never shared with third parties.
           </div>
           <div class="form-stack">
-            <div class="dark-field">
-              <label class="dark-label">Bank Verification Number (BVN)</label>
-              <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="bvn" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">National ID Number (NIN)</label>
-              <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit NIN" [(ngModel)]="nin" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Phone OTP</label>
-              @if (!otpSent) {
-                <button class="otp-trigger" (click)="sendOtp()">
-                  Send code to {{ phone ? '+234' + phone : 'your phone' }}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              } @else {
-                <div class="otp-row">
-                  <input class="dark-input" style="flex:1" type="tel" maxlength="6" placeholder="6-digit code" [(ngModel)]="otp" />
-                  <button class="otp-resend" (click)="otpSent = false">Resend</button>
-                </div>
-              }
-            </div>
+            @if (product.identityBvn) {
+              <div class="dark-field">
+                <label class="dark-label">Bank Verification Number (BVN)</label>
+                <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="bvn" />
+              </div>
+            }
+            @if (product.identityNin) {
+              <div class="dark-field">
+                <label class="dark-label">National ID Number (NIN)</label>
+                <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit NIN" [(ngModel)]="nin" />
+              </div>
+            }
+            @if (product.identityPhoneOtp) {
+              <div class="dark-field">
+                <label class="dark-label">Phone OTP</label>
+                @if (!otpSent) {
+                  <button class="otp-trigger" (click)="sendOtp()">
+                    Send code to {{ phone ? '+234' + phone : 'your phone' }}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                } @else {
+                  <div class="otp-row">
+                    <input class="dark-input" style="flex:1" type="tel" maxlength="6" placeholder="6-digit code" [(ngModel)]="otp" />
+                    <button class="otp-resend" (click)="otpSent = false">Resend</button>
+                  </div>
+                }
+              </div>
+            }
           </div>
         </div>
       }
@@ -291,13 +395,9 @@
         <div class="screen">
           <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
           <h2 class="screen-headline sm">Verify your<br>income</h2>
-          <p class="screen-body-sm">Choose the fastest method for you.</p>
+          <p class="screen-body-sm">Choose the fastest method available to you.</p>
           <div class="income-cards">
-            @for (ch of [
-              { id: 'remita', label: 'Remita', tag: 'Instant', desc: 'For government & corporate employees', color: 'green' },
-              { id: 'ippis', label: 'IPPIS', tag: 'Instant', desc: 'Government payroll system', color: 'blue' },
-              { id: 'bank', label: 'Bank Statement', tag: '3–6 hrs', desc: 'Upload a 3-month bank statement', color: 'yellow' }
-            ]; track ch.id) {
+            @for (ch of incomeOptions; track ch.id) {
               <button class="income-card" [class.active]="incomeChannel === ch.id" (click)="incomeChannel = ch.id">
                 <div class="income-card-left">
                   <div class="income-icon-dot" [class]="ch.color"></div>
@@ -319,67 +419,42 @@
           <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
           <h2 class="screen-headline sm">Upload<br>documents</h2>
           <p class="screen-body-sm">Clear photos or scans, under 5MB each.</p>
-
           <div class="doc-stack">
-            <label class="doc-card" [class.uploaded]="!!docGovIdName">
-              @if (!docGovIdName) {
-                <div class="doc-card-inner">
-                  <div class="doc-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h10M7 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            @for (doc of docFields; track doc.key) {
+              <label class="doc-card" [class.uploaded]="!!getDoc(doc.key)">
+                @if (!getDoc(doc.key)) {
+                  <div class="doc-card-inner">
+                    <div class="doc-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h10M7 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </div>
+                    <div style="flex:1">
+                      <div class="doc-title">
+                        {{ doc.label }}
+                        @if (doc.required) { <span class="req-dot"></span> }
+                        @else { <span class="opt-tag-dark">Optional</span> }
+                      </div>
+                      <div class="doc-sub">{{ doc.sub }}</div>
+                    </div>
+                    <div class="doc-upload-cta">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Upload
+                    </div>
                   </div>
-                  <div>
-                    <div class="doc-title">Government-issued ID <span class="req-dot"></span></div>
-                    <div class="doc-sub">National ID · Voter's Card · Driver's Licence · Passport</div>
+                  <input type="file" accept="image/*,.pdf" (change)="onFileChange($event, doc.key)" />
+                } @else {
+                  <div class="doc-card-inner">
+                    <div class="doc-check">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="doc-file-info">
+                      <div class="doc-file-name">{{ getDoc(doc.key)!.name }}</div>
+                      <div class="doc-sub">{{ doc.label }} · Uploaded</div>
+                    </div>
+                    <button class="doc-remove" (click)="removeDoc(doc.key); $event.preventDefault()">Remove</button>
                   </div>
-                  <div class="doc-upload-cta">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Upload
-                  </div>
-                </div>
-                <input type="file" accept="image/*,.pdf" (change)="onFileChange($event,'govId')" />
-              } @else {
-                <div class="doc-card-inner">
-                  <div class="doc-check">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </div>
-                  <div class="doc-file-info">
-                    <div class="doc-file-name">{{ docGovIdName }}</div>
-                    <div class="doc-sub">Government ID · Uploaded</div>
-                  </div>
-                  <button class="doc-remove" (click)="docGovIdName=''; docGovId=null; $event.preventDefault()">Remove</button>
-                </div>
-              }
-            </label>
-
-            <label class="doc-card" [class.uploaded]="!!docPayslipName">
-              @if (!docPayslipName) {
-                <div class="doc-card-inner">
-                  <div class="doc-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.5"/></svg>
-                  </div>
-                  <div>
-                    <div class="doc-title">Recent payslip <span class="opt-tag-dark">Optional</span></div>
-                    <div class="doc-sub">Last 1–3 months to support your income</div>
-                  </div>
-                  <div class="doc-upload-cta">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Upload
-                  </div>
-                </div>
-                <input type="file" accept="image/*,.pdf" (change)="onFileChange($event,'payslip')" />
-              } @else {
-                <div class="doc-card-inner">
-                  <div class="doc-check">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </div>
-                  <div class="doc-file-info">
-                    <div class="doc-file-name">{{ docPayslipName }}</div>
-                    <div class="doc-sub">Payslip · Uploaded</div>
-                  </div>
-                  <button class="doc-remove" (click)="docPayslipName=''; docPayslip=null; $event.preventDefault()">Remove</button>
-                </div>
-              }
-            </label>
+                }
+              </label>
+            }
           </div>
         </div>
       }
@@ -389,38 +464,61 @@
         <div class="screen">
           <p class="screen-eyebrow">Almost there</p>
           <h2 class="screen-headline sm">Review &amp;<br>Submit</h2>
+
           <div class="review-stack">
             <div class="review-card">
               <div class="review-card-title">Loan</div>
+              <div class="review-line"><span>Product</span><strong>{{ product.name }}</strong></div>
               <div class="review-line"><span>Amount</span><strong>₦{{ (+loanAmount).toLocaleString() }}</strong></div>
-              <div class="review-line"><span>Tenor</span><strong>{{ loanTenor }} month(s)</strong></div>
-              <div class="review-line"><span>Purpose</span><strong>{{ loanPurpose || '—' }}</strong></div>
+              <div class="review-line"><span>Tenor</span><strong>{{ loanTenor }} {{ product.tenorUnit?.toLowerCase() || 'months' }}</strong></div>
+              <div class="review-line"><span>Repayment</span><strong>₦{{ monthlyEst.toLocaleString() }} / {{ product.repaymentFrequency?.toLowerCase() || 'month' }}</strong></div>
+              @if (loanPurpose) {
+                <div class="review-line"><span>Purpose</span><strong>{{ loanPurpose }}</strong></div>
+              }
             </div>
-            <div class="review-card">
-              <div class="review-card-title">Personal</div>
-              <div class="review-line"><span>Name</span><strong>{{ firstName }} {{ lastName }}</strong></div>
-              <div class="review-line"><span>DOB</span><strong>{{ dob || '—' }}</strong></div>
-              <div class="review-line"><span>Gender</span><strong>{{ gender || '—' }}</strong></div>
-            </div>
-            <div class="review-card">
-              <div class="review-card-title">Contact</div>
-              <div class="review-line"><span>Phone</span><strong>+234{{ phone }}</strong></div>
-              <div class="review-line"><span>Email</span><strong>{{ email || '—' }}</strong></div>
-            </div>
-            <div class="review-card">
-              <div class="review-card-title">Employment</div>
-              <div class="review-line"><span>Employer</span><strong>{{ employerName || '—' }}</strong></div>
-              <div class="review-line"><span>Type</span><strong>{{ employmentType || '—' }}</strong></div>
-              <div class="review-line"><span>Income</span><strong>₦{{ (+monthlyIncome || 0).toLocaleString() }}/mo</strong></div>
-            </div>
+
+            @if (product.collectPersonal && (firstName || lastName)) {
+              <div class="review-card">
+                <div class="review-card-title">Personal</div>
+                <div class="review-line"><span>Name</span><strong>{{ firstName }} {{ lastName }}</strong></div>
+                @if (dob) { <div class="review-line"><span>DOB</span><strong>{{ dob }}</strong></div> }
+                @if (gender) { <div class="review-line"><span>Gender</span><strong>{{ gender }}</strong></div> }
+              </div>
+            }
+
+            @if (product.collectContact && (phone || email)) {
+              <div class="review-card">
+                <div class="review-card-title">Contact</div>
+                @if (phone) { <div class="review-line"><span>Phone</span><strong>+234{{ phone }}</strong></div> }
+                @if (email) { <div class="review-line"><span>Email</span><strong>{{ email }}</strong></div> }
+              </div>
+            }
+
+            @if (product.collectAddress && houseAddress) {
+              <div class="review-card">
+                <div class="review-card-title">Address</div>
+                <div class="review-line"><span>Address</span><strong>{{ houseAddress }}{{ city ? ', ' + city : '' }}</strong></div>
+                @if (state) { <div class="review-line"><span>State</span><strong>{{ state }}</strong></div> }
+              </div>
+            }
+
+            @if (product.collectEmployment && employerName) {
+              <div class="review-card">
+                <div class="review-card-title">Employment</div>
+                <div class="review-line"><span>Employer</span><strong>{{ employerName }}</strong></div>
+                @if (employmentType) { <div class="review-line"><span>Type</span><strong>{{ employmentType }}</strong></div> }
+                @if (monthlyIncome) { <div class="review-line"><span>Income</span><strong>₦{{ (+monthlyIncome).toLocaleString() }}/mo</strong></div> }
+              </div>
+            }
           </div>
-          <p class="consent-note">By submitting, I confirm all information is accurate and I consent to credit checks and data processing per the <a href="#">Privacy Policy</a>.</p>
+
+          <p class="consent-note">By submitting, I confirm all information is accurate and I consent to credit checks and data processing as described in the <a href="#">Privacy Policy</a> of {{ product.brandName || 'Caltos' }}.</p>
         </div>
       }
 
     </main>
 
-    <!-- ── FOOTER NAV ──────────────────────────────────────────────────────── -->
+    <!-- ── FOOTER ──────────────────────────────────────────────────────────── -->
     <div class="apply-footer">
       @if (!isFirst) {
         <button class="back-btn" (click)="back()">
@@ -429,7 +527,6 @@
           </svg>
         </button>
       }
-
       @if (isLast) {
         <button class="cta-btn submit-btn" (click)="submit()">Submit Application</button>
       } @else {
