@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
+import { ProductSettingsDrawerComponent } from '../product-settings-drawer/product-settings-drawer.component';
 import {
   InformationCircleIcon,
   FilterIcon,
@@ -39,19 +40,29 @@ interface Fee {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, HiIconComponent, LoanTypeModalComponent],
+  imports: [RouterLink, SidebarComponent, HiIconComponent, LoanTypeModalComponent, ProductSettingsDrawerComponent],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
 })
 export class ProductListComponent {
   activeTab: ActiveTab = 'all';
   showLoanTypeModal = false;
+  showSettingsDrawer = false;
+  openDropdownId: string | null = null;
 
   readonly infoIcon: IconData = InformationCircleIcon as IconData;
   readonly filterIcon: IconData = FilterIcon as IconData;
   readonly moreIcon: IconData = MoreVerticalIcon as IconData;
   readonly plusIcon: IconData = PlusSignIcon as IconData;
   readonly emptyIcon: IconData = FileNotFoundIcon as IconData;
+
+  @HostListener('document:click')
+  closeDropdown() { this.openDropdownId = null; }
+
+  toggleDropdown(event: Event, productId: string) {
+    event.stopPropagation();
+    this.openDropdownId = this.openDropdownId === productId ? null : productId;
+  }
 
   readonly products: Product[] = [
     { name: 'Corper Wallet', productId: 'CW001', minAmount: '30,000', maxAmount: '100,000', minTenor: '3', maxTenor: '9', interestRate: '7.5% MoM', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },

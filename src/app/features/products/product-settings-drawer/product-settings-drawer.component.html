@@ -1,0 +1,168 @@
+@if (isOpen) {
+  <div class="drawer-backdrop" (click)="close()"></div>
+  <div class="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <h2 class="drawer-title">Product Settings</h2>
+        <p class="drawer-subtitle">Manage automations, integrations, and global product configuration.</p>
+      </div>
+      <button class="drawer-close" (click)="close()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Section nav -->
+      <nav class="section-nav">
+        @for (s of sections; track s.id) {
+          <button class="section-nav-item" [class.active]="activeSection === s.id" (click)="setSection(s.id)">
+            {{ s.label }}
+          </button>
+        }
+      </nav>
+
+      <!-- Content -->
+      <div class="section-content">
+
+        <!-- Automations -->
+        @if (activeSection === 'automations') {
+          <div class="section-head">
+            <h3 class="section-title">Automations</h3>
+            <p class="section-desc">Rule-based triggers that run automatically across all loan products.</p>
+          </div>
+          <div class="automation-list">
+            @for (auto of automations; track auto.id) {
+              <div class="automation-row">
+                <div class="automation-info">
+                  <p class="automation-title">{{ auto.title }}</p>
+                  <p class="automation-desc">{{ auto.description }}</p>
+                </div>
+                <button class="toggle-btn" [class.on]="auto.enabled" (click)="toggleAutomation(auto.id)">
+                  <span class="toggle-knob"></span>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Integrations -->
+        @if (activeSection === 'integrations') {
+          <div class="section-head">
+            <h3 class="section-title">Integrations</h3>
+            <p class="section-desc">Connect payment gateways, credit bureaus, and messaging services.</p>
+          </div>
+          <div class="integrations-grid">
+            @for (intg of integrations; track intg.id) {
+              <div class="integration-card" [class.connected]="intg.connected">
+                <div class="integration-top">
+                  <div class="integration-logo">{{ intg.logo }}</div>
+                  <span class="integration-status" [class.connected]="intg.connected">
+                    {{ intg.connected ? 'Connected' : 'Not connected' }}
+                  </span>
+                </div>
+                <p class="integration-name">{{ intg.name }}</p>
+                <p class="integration-category">{{ intg.category }}</p>
+                <p class="integration-desc">{{ intg.description }}</p>
+                <button class="integration-btn" [class.connected]="intg.connected">
+                  {{ intg.connected ? 'Manage' : 'Connect' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Approval Workflows -->
+        @if (activeSection === 'approval') {
+          <div class="section-head">
+            <h3 class="section-title">Approval Workflows</h3>
+            <p class="section-desc">Define who signs off on loan applications before disbursement.</p>
+          </div>
+          <div class="approval-chain">
+            @for (step of approvalSteps; track step.role; let i = $index) {
+              <div class="approval-step">
+                <div class="step-index">{{ i + 1 }}</div>
+                <div class="step-info">
+                  <p class="step-role">{{ step.role }}</p>
+                  <p class="step-action">{{ step.action }}</p>
+                </div>
+                <span class="step-badge" [class.optional]="!step.required">
+                  {{ step.required ? 'Required' : 'Optional' }}
+                </span>
+              </div>
+              @if (i < approvalSteps.length - 1) {
+                <div class="step-connector"></div>
+              }
+            }
+          </div>
+          <button class="add-step-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            Add approval step
+          </button>
+        }
+
+        <!-- Document Types -->
+        @if (activeSection === 'documents') {
+          <div class="section-head">
+            <h3 class="section-title">Document Types</h3>
+            <p class="section-desc">Global document library that all products can reference for requirements.</p>
+          </div>
+          <div class="doc-list">
+            @for (doc of documentTypes; track doc.name) {
+              <div class="doc-row">
+                <div class="doc-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="doc-info">
+                  <p class="doc-name">{{ doc.name }}</p>
+                  <p class="doc-formats">Accepted: {{ doc.accepted.join(', ') }}</p>
+                </div>
+                <span class="doc-badge" [class.required]="doc.required">
+                  {{ doc.required ? 'Required' : 'Optional' }}
+                </span>
+              </div>
+            }
+          </div>
+          <button class="add-step-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            Add document type
+          </button>
+        }
+
+        <!-- Notification Templates -->
+        @if (activeSection === 'notifications') {
+          <div class="section-head">
+            <h3 class="section-title">Notification Templates</h3>
+            <p class="section-desc">SMS and email copy sent to borrowers at key loan lifecycle events.</p>
+          </div>
+          <div class="notif-list">
+            @for (tmpl of notificationTemplates; track tmpl.event) {
+              <div class="notif-row">
+                <div class="notif-info">
+                  <p class="notif-event">{{ tmpl.event }}</p>
+                  <p class="notif-meta">{{ tmpl.channel }} · Last edited {{ tmpl.lastEdited }}</p>
+                </div>
+                <button class="edit-tmpl-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Edit
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+}
