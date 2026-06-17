@@ -34,6 +34,7 @@ export { PermissionChipComponent } from './permission-chip/permission-chip.compo
 export { PermissionGroupComponent } from './permission-group/permission-group.component';
 export { OrgProfileComponent } from './org-profile/org-profile.component';
 export { SidebarComponent } from './sidebar/sidebar.component';
+export { TooltipComponent } from './tooltip/tooltip.component';
 export { ColumnTitleComponent } from './column-title/column-title.component';
 export { TableItemComponent } from './table-item/table-item.component';
 

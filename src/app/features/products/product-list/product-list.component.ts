@@ -3,7 +3,8 @@ import { RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
-import { ProductSettingsDrawerComponent } from '../product-settings-drawer/product-settings-drawer.component';
+import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
+import { TooltipComponent } from '../../../shared/components';
 import {
   InformationCircleIcon,
   FilterIcon,
@@ -40,7 +41,7 @@ interface Fee {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, HiIconComponent, LoanTypeModalComponent, ProductSettingsDrawerComponent],
+  imports: [RouterLink, SidebarComponent, HiIconComponent, LoanTypeModalComponent, ProductSettingsModalComponent, TooltipComponent],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
 })

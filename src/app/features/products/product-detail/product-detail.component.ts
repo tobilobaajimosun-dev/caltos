@@ -1,20 +1,21 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SidebarComponent, CopyUrlFieldComponent } from '../../../shared/components';
+import { SidebarComponent, TooltipComponent } from '../../../shared/components';
 
-type DetailTab = 'overview' | 'activity' | 'integrations';
+type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity';
 
 interface ChecklistItem {
   id: string;
   label: string;
   description: string;
   done: boolean;
+  tab: DetailTab;
 }
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, CopyUrlFieldComponent],
+  imports: [RouterLink, SidebarComponent, TooltipComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
@@ -25,36 +26,74 @@ export class ProductDetailComponent {
     name: 'Corper Wallet',
     status: 'live' as const,
     createdAt: 'Aug 29, 2024, 3:52:12 PM GMT',
-    description: 'This loan is for National Youth Service Corps members',
+    description: 'This loan is for National Youth Service Corps members seeking quick access to personal finance during their service year.',
     websiteLink: 'https://saas.product.com/7pzY',
+
+    // Step 1 – Product Details
+    productId: 'CW001',
     minAmount: '20,000',
     maxAmount: '100,000',
     minTenor: '3',
     maxTenor: '12',
-    minRate: '1.5',
-    maxRate: '7.5',
-    hasFees: true,
-    hasDocuments: true,
+    tenorUnit: 'Months',
+    interestType: 'Percentage Based',
+    interestFrequency: 'Monthly',
+    interestRate: '7.5',
+    minInterest: '500',
+    maxInterest: '5,000',
+
+    // Step 2 – Eligibility
+    eligibility: ['Remita', 'IPPIS', 'Salary Earner'],
+    activeLoanPolicy: 'Restrict — borrowers with active loans cannot apply',
+    kycDocs: ['National ID (NIN)', 'Utility Bill', 'Last 3 months payslip', 'Bank statement (6 months)'],
+
+    // Step 3 – Fees
+    processingFee: { enabled: true, method: 'Percentage', value: '1.5%', applyTo: 'Loan Amount', min: '₦750', max: '₦1,550' },
+    customFees: [
+      { name: 'Admin Fee', method: 'Flat Fee', value: '₦2,500', applyTo: 'Per Loan' },
+    ],
+
+    // Step 4 – Disbursement
+    offerLetter: 'Digital signature required',
+    disburseToSalary: 'Yes',
+    autoDeductions: 'No',
+    videoConfirmation: 'No',
+
+    // Step 5 – Repayment
+    repaymentFrequency: 'Monthly',
+    minRepayments: '3',
+    maxRepayments: '12',
+    firstPaymentOffset: '30 days after disbursement',
+    repaymentOrder: ['Fees', 'Interest', 'Penalty', 'Principal'],
+    activateImmediately: true,
+
+    // Step 6 – Penalty
+    latePenalty: { enabled: true, type: 'Percentage', value: '2%', frequency: 'Daily', gracePeriod: '3 days' },
+
+    // Step 7 – Legal
+    policyText: `By submitting your loan application, you acknowledge and agree to the following terms: Princeps Finance may verify information about your employment, salary, loans, and other relevant data from third-party sources to assess your loan eligibility. If your application is approved, loan instalments will be automatically deducted from your salary source before being credited to your account. In case of default, any outstanding balance may be recovered from other linked accounts you own.\n\nYou confirm your acknowledgment and acceptance of our Privacy Policy and Loan Terms and Conditions.`,
   };
 
   checklist: ChecklistItem[] = [
-    { id: 'basic', label: 'Basic configuration', description: 'Amounts, tenor, and interest rate set', done: true },
-    { id: 'fees', label: 'Fees attached', description: 'At least one fee is linked to this product', done: true },
-    { id: 'documents', label: 'Required documents listed', description: 'Borrowers know what to upload', done: true },
-    { id: 'eligibility', label: 'Eligibility criteria defined', description: 'Rules for who qualifies for this product', done: false },
-    { id: 'approval', label: 'Approval workflow assigned', description: 'At least one approver is required', done: false },
-    { id: 'portal', label: 'Borrower portal enabled', description: 'Product is accessible on the public portal', done: true },
+    { id: 'details', label: 'Product details', description: 'Name, amounts, tenor, and interest rate configured', done: true, tab: 'overview' },
+    { id: 'eligibility', label: 'Eligibility & KYC', description: 'Borrower requirements and documents defined', done: false, tab: 'eligibility' },
+    { id: 'fees', label: 'Fees & penalties', description: 'Processing fee and penalty rules set up', done: true, tab: 'fees' },
+    { id: 'disbursement', label: 'Disbursement & repayment', description: 'Disbursement method and repayment schedule configured', done: false, tab: 'disbursement' },
+    { id: 'legal', label: 'Legal documentation', description: 'Policy text and consent language added', done: true, tab: 'legal' },
+    { id: 'portal', label: 'Borrower portal live', description: 'Product is visible on the public application portal', done: true, tab: 'overview' },
   ];
 
-  get completedCount() {
-    return this.checklist.filter(c => c.done).length;
+  get completedCount() { return this.checklist.filter(c => c.done).length; }
+  get isFullySetup() { return this.completedCount === this.checklist.length; }
+
+  setTab(tab: DetailTab) { this.activeTab = tab; }
+
+  goToTab(tab: DetailTab) {
+    this.setTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  get isFullySetup() {
-    return this.completedCount === this.checklist.length;
-  }
-
-  setTab(tab: DetailTab) {
-    this.activeTab = tab;
+  copyLink() {
+    navigator.clipboard.writeText(this.product.websiteLink).catch(() => {});
   }
 }
