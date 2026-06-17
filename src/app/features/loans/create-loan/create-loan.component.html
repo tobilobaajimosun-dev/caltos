@@ -35,30 +35,23 @@
       </div>
     </div>
 
-    <!-- Stepper -->
-    <div class="stepper-bar">
-      <div class="stepper-inner">
-        @for (step of steps; track step.id; let i = $index) {
-          <button class="step-item"
-            [class.active]="stepStatus(i) === 'active'"
-            [class.done]="stepStatus(i) === 'done'"
-            (click)="goToStep(i)">
-            <div class="step-circle">
-              @if (stepStatus(i) === 'done') {
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                  <path d="M2.5 6l2.5 2.5 4.5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              } @else {
-                {{ i + 1 }}
-              }
-            </div>
-            <span class="step-label">{{ step.shortLabel }}</span>
-          </button>
-          @if (i < steps.length - 1) {
-            <div class="step-connector" [class.done]="stepStatus(i) === 'done'"></div>
-          }
-        }
-      </div>
+    <!-- Step nav (sidebar-style, not breadcrumb) -->
+    <div class="step-nav-bar">
+      @for (step of steps; track step.id; let i = $index) {
+        <button class="step-nav-item"
+          [class.active]="stepStatus(i) === 'active'"
+          [class.done]="stepStatus(i) === 'done'"
+          (click)="goToStep(i)">
+          <div class="step-nav-dot">
+            @if (stepStatus(i) === 'done') {
+              <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 6l2.5 2.5 4.5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            }
+          </div>
+          <span class="step-nav-label">{{ step.shortLabel }}</span>
+        </button>
+      }
     </div>
 
     <!-- Body -->
@@ -153,25 +146,37 @@
                   <label class="field-label">Interest rate <span class="req">*</span></label>
                   <div class="input-suffix-wrap">
                     <input class="text-input" type="number" placeholder="e.g. 5" [(ngModel)]="config.interestRate" />
-                    <span class="input-suffix">% per {{ config.tenorUnit || 'cycle' | lowercase }}</span>
+                    <span class="input-suffix">%</span>
                   </div>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Charged</label>
+                  <select class="select-input" [(ngModel)]="config.interestChargedWhen">
+                    @for (p of interestChargePeriods; track p) { <option [value]="p">{{ p }}</option> }
+                  </select>
                 </div>
               </div>
             </div>
 
             <!-- Age Range -->
             <div class="form-card">
-              <div class="form-card-title">Age Range</div>
+              <div class="form-card-title">Age Range <span class="optional">(optional)</span></div>
               <div class="field-row">
                 <div class="field-group">
                   <label class="field-label">Minimum age</label>
                   <input class="text-input" type="number" placeholder="e.g. 18" [(ngModel)]="config.minAge" />
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Maximum age <span class="optional">(optional)</span></label>
+                  <label class="field-label">Maximum age</label>
                   <input class="text-input" type="number" placeholder="No limit" [(ngModel)]="config.maxAge" />
                 </div>
               </div>
+              @if (config.minAge || config.maxAge) {
+                <div class="info-callout" style="margin-top:12px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                  Borrowers will be asked for their date of birth so their age can be verified against this range.
+                </div>
+              }
             </div>
 
           </div>
@@ -219,6 +224,10 @@
                   </button>
                 }
               </div>
+              <div class="info-callout" style="margin-top:14px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                The identifiers selected here will be the <strong>first screen borrowers see</strong> when they open the application form — before anything else.
+              </div>
             </div>
 
             <!-- Collection -->
@@ -257,12 +266,30 @@
                   }
                 }
               </div>
+              @if (recommendedCustomFields.length > 0) {
+                <div class="recommended-fields-section">
+                  <div class="recommended-fields-label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Recommended from past products
+                  </div>
+                  <div class="recommended-pills">
+                    @for (rf of recommendedCustomFields; track rf.label) {
+                      @if (!customFields.some(f => f.label === rf.label)) {
+                        <button class="recommended-pill" (click)="addRecommendedCustomField(rf)">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                          {{ rf.label }}
+                        </button>
+                      }
+                    }
+                  </div>
+                </div>
+              }
               @for (field of customFields; track field.label) {
                 <div class="custom-fee-row">
                   <span class="custom-fee-name">{{ field.label }}</span>
                   <span class="custom-fee-type">{{ field.type }}</span>
                   <span class="custom-fee-rate">{{ field.required }}</span>
-                  <button class="remove-btn" (click)="removeCustomField($index)">
+                  <button class="remove-btn" (click)="confirmRemoveCustomField($index)">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                   </button>
                 </div>
@@ -356,6 +383,18 @@
                     <div class="verify-sub">Analyse bank statements automatically</div>
                   </button>
                 </div>
+                @if (noIncomeSelected) {
+                  <div class="info-callout warn" style="margin-top:14px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                    No income verification selected — this section will not appear in the borrower application.
+                  </div>
+                }
+                @if (!noIncomeSelected && (config.incomeRemita || config.incomeIppis)) {
+                  <div class="info-callout" style="margin-top:14px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5"/></svg>
+                    {{ config.incomeRemita && config.incomeIppis ? 'Remita and IPPIS require' : config.incomeRemita ? 'Remita requires' : 'IPPIS requires' }} integration keys to function. You can provide your keys in Settings → Integrations, or our team can help you set this up.
+                  </div>
+                }
               </div>
             }
 
@@ -563,102 +602,59 @@
           <div class="form-sections">
 
             <div class="form-card">
-              <div class="form-card-title">Disbursement Method <span class="req">*</span></div>
-              <div class="disburse-grid">
-                @for (opt of [{id:'bank',label:'Bank Transfer'},{id:'wallet',label:'Wallet'},{id:'virtual',label:'Virtual Account'},{id:'manual',label:'Manual'},{id:'third-party',label:'Merchant / 3rd Party'}]; track opt.id) {
-                  <button class="disburse-card" [class.selected]="config.disburseTo === opt.id" (click)="config.disburseTo = opt.id">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      @if (opt.id === 'bank') {
-                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                      }
-                      @if (opt.id === 'wallet') {
-                        <rect x="1" y="6" width="22" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="13" r="2" stroke="currentColor" stroke-width="1.5"/>
-                      }
-                      @if (opt.id === 'virtual') {
-                        <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h3M7 13h3M14 9h3M14 13h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                      }
-                      @if (opt.id === 'manual') {
-                        <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6H8.3A7 7 0 0 1 5 9a7 7 0 0 1 7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M9 18h6M10 22h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                      }
-                      @if (opt.id === 'third-party') {
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5"/>
-                      }
-                    </svg>
-                    {{ opt.label }}
-                  </button>
-                }
-              </div>
-            </div>
-
-            <div class="form-card">
               <div class="form-card-title">Disbursement Rules</div>
               <div class="disbursement-rules">
                 <div class="disburse-rule">
-                  <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Should funds only go to a bank account in the borrower's name?</div>
-                    <div class="toggle-option">
-                      <div class="toggle-option-text">
-                        <div class="toggle-option-title">Disburse to named account only</div>
-                        <div class="toggle-option-sub">Funds can only be sent to an account whose name matches the borrower's verified identity. Turn off to allow any bank account.</div>
-                      </div>
-                      <app-toggle [checked]="config.namedAccountOnly" (checkedChange)="config.namedAccountOnly = $event" />
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Disburse to named account only</div>
+                      <div class="toggle-option-sub">Funds can only be sent to an account whose name matches the borrower's verified identity. Turn off to allow any bank account.</div>
                     </div>
+                    <app-toggle [checked]="config.namedAccountOnly" (checkedChange)="config.namedAccountOnly = $event" />
                   </div>
                 </div>
                 <div class="disburse-rule">
-                  <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Should an offer letter be sent before disbursement?</div>
-                    <div class="toggle-option">
-                      <div class="toggle-option-text">
-                        <div class="toggle-option-title">Send offer letter via Digisign before disbursement <span class="paid-badge">PAID</span></div>
-                        <div class="toggle-option-sub">Applicant must sign the offer letter before funds are released.</div>
-                      </div>
-                      <app-toggle [checked]="config.offerLetter" (checkedChange)="config.offerLetter = $event" />
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Send offer letter via Digisign before disbursement <span class="paid-badge">PAID</span></div>
+                      <div class="toggle-option-sub">Applicant must sign the offer letter before funds are released.</div>
                     </div>
+                    <app-toggle [checked]="config.offerLetter" (checkedChange)="config.offerLetter = $event" />
                   </div>
                 </div>
                 <div class="disburse-rule">
-                  <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Should repayment deductions be confirmed before disbursement?</div>
-                    <div class="toggle-option">
-                      <div class="toggle-option-text">
-                        <div class="toggle-option-title">Set up repayment deductions before disbursing</div>
-                        <div class="toggle-option-sub">Confirm the repayment mandate is active before releasing funds.</div>
-                      </div>
-                      <app-toggle [checked]="config.repaymentDeductionFirst" (checkedChange)="config.repaymentDeductionFirst = $event" />
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Set up repayment deductions before disbursing</div>
+                      <div class="toggle-option-sub">Confirm the repayment mandate is active before releasing funds.</div>
                     </div>
+                    <app-toggle [checked]="config.repaymentDeductionFirst" (checkedChange)="config.repaymentDeductionFirst = $event" />
                   </div>
                 </div>
                 <div class="disburse-rule">
-                  <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Do customers need to record a video confirmation?</div>
-                    <div class="toggle-option">
-                      <div class="toggle-option-text">
-                        <div class="toggle-option-title">Require video confirmation from customers</div>
-                        <div class="toggle-option-sub">Customers record a short video confirming they understand the loan terms.</div>
-                      </div>
-                      <app-toggle [checked]="config.videoConfirmation" (checkedChange)="config.videoConfirmation = $event" />
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Require video confirmation from customers</div>
+                      <div class="toggle-option-sub">Customers record a short video confirming they understand the loan terms.</div>
                     </div>
+                    <app-toggle [checked]="config.videoConfirmation" (checkedChange)="config.videoConfirmation = $event" />
                   </div>
                 </div>
                 <div class="disburse-rule">
-                  <div class="disburse-rule-content">
-                    <div class="disburse-rule-q">Auto-disburse small loans without manual review?</div>
-                    <div class="toggle-option">
-                      <div class="toggle-option-text">
-                        <div class="toggle-option-title">Auto-disburse loans under a set amount</div>
-                        <div class="toggle-option-sub">Loans below the threshold are disbursed automatically upon approval. Larger loans go through manual review.</div>
-                      </div>
-                      <app-toggle [checked]="config.autoDisburseEnabled" (checkedChange)="config.autoDisburseEnabled = $event" />
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Auto-disburse loans under a set amount</div>
+                      <div class="toggle-option-sub">Loans below the threshold are disbursed automatically upon approval. Larger loans go through manual review.</div>
                     </div>
-                    @if (config.autoDisburseEnabled) {
-                      <div class="inline-days" style="margin-top: 10px">
-                        <span class="inline-label">Auto-disburse loans under</span>
-                        <input class="text-input sm" type="number" placeholder="e.g. 50000" [(ngModel)]="config.autoDisburseUnder" style="max-width:140px" />
-                        <span class="inline-label">₦</span>
-                      </div>
-                    }
+                    <app-toggle [checked]="config.autoDisburseEnabled" (checkedChange)="config.autoDisburseEnabled = $event" />
                   </div>
+                  @if (config.autoDisburseEnabled) {
+                    <div class="inline-days" style="margin-top: 10px">
+                      <span class="inline-label">Auto-disburse loans under</span>
+                      <input class="text-input sm" type="number" placeholder="e.g. 50000" [(ngModel)]="config.autoDisburseUnder" style="max-width:140px" />
+                      <span class="inline-label">₦</span>
+                    </div>
+                  }
                 </div>
               </div>
             </div>
@@ -702,7 +698,7 @@
               <div class="field-group">
                 <label class="field-label">Move first repayment date, if date of loan disbursement is later than:</label>
                 <div class="inline-days">
-                  <input class="text-input sm" type="number" placeholder="Input number days" [(ngModel)]="config.moveFirstRepaymentDays" />
+                  <input class="text-input sm" type="number" placeholder="e.g. 5" [(ngModel)]="config.moveFirstRepaymentDays" />
                   <span class="inline-label">days</span>
                 </div>
               </div>
@@ -738,7 +734,13 @@
               <div class="form-card-sub">Drag to reorder how repayments are applied — fees, interest, penalty, then principal.</div>
               <div class="repayment-order-list">
                 @for (item of repaymentOrder; track item; let i = $index) {
-                  <div class="repayment-order-item">
+                  <div class="repayment-order-item"
+                    draggable="true"
+                    (dragstart)="onDragStart(i)"
+                    (dragover)="onDragOver($event, i)"
+                    (drop)="onDrop(i)"
+                    (dragend)="onDragEnd()"
+                    [class.drag-over]="dragOverIndex === i && dragIndex !== i">
                     <div class="repayment-order-drag">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                         <path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1189,6 +1191,20 @@
       <div class="dialog-actions">
         <button class="dialog-btn secondary" (click)="showCustomFieldModal = false">Cancel</button>
         <button class="dialog-btn primary" (click)="addCustomField()" [disabled]="!customFieldLabel.trim()">Add Field</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Remove custom field confirmation dialog -->
+@if (showRemoveCustomFieldModal) {
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <h3 class="dialog-title">Remove field?</h3>
+      <p class="dialog-body">This custom field will be removed from the borrower application. This action cannot be undone.</p>
+      <div class="dialog-actions">
+        <button class="dialog-btn secondary" (click)="showRemoveCustomFieldModal = false">Keep field</button>
+        <button class="dialog-btn danger" (click)="executeRemoveCustomField()">Remove field</button>
       </div>
     </div>
   </div>

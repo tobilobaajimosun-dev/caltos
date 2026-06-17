@@ -29,6 +29,7 @@ export interface LoanConfig {
   tenorUnit: string;
   interestModel: string;
   interestRate: string;
+  interestChargedWhen: string;
   minAge: string;
   maxAge: string;
   // Step 2
@@ -263,7 +264,13 @@ export class CreateLoanComponent implements OnInit {
   customFieldRequired = 'required';
   customFields: { label: string; type: string; required: string }[] = [];
 
+  showRemoveCustomFieldModal = false;
+  removeCustomFieldIndex = -1;
+  recommendedCustomFields: { label: string; type: string }[] = [];
+
   repaymentOrder = ['Fees', 'Interest', 'Penalty', 'Principal'];
+  dragIndex = -1;
+  dragOverIndex = -1;
 
   readonly chevronLeft: IconData = ChevronLeftIcon as IconData;
   readonly chevronRight: IconData = ChevronRightIcon as IconData;
@@ -277,12 +284,13 @@ export class CreateLoanComponent implements OnInit {
 
   readonly tenorUnits = ['Days', 'Weeks', 'Months', 'Years'];
   readonly repayFreqs = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'At end of tenor'];
-  readonly interestModels = ['Flat Rate', 'Reducing Balance'];
+  readonly interestModels = ['Flat Rate', 'Reducing Balance', 'Percentage Based'];
+  readonly interestChargePeriods = ['Daily', 'Weekly', 'Monthly', 'Yearly', 'One Time'];
 
   config: LoanConfig = {
     template: '', name: '', description: '', targetAudiences: [],
     minAmount: '', maxAmount: '', minTenor: '', maxTenor: '', tenorUnit: 'Months',
-    interestModel: 'Flat Rate', interestRate: '', minAge: '18', maxAge: '',
+    interestModel: 'Flat Rate', interestRate: '', interestChargedWhen: 'Monthly', minAge: '18', maxAge: '',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
     collectPersonal: true, collectContact: true, collectAddress: false,
     collectEmployment: false, collectBusiness: false,
@@ -317,7 +325,48 @@ export class CreateLoanComponent implements OnInit {
         this.config = { ...this.config, ...preset, template: type };
       }
     });
+    this.loadRecommendedCustomFields();
   }
+
+  private loadRecommendedCustomFields() {
+    try {
+      const raw = localStorage.getItem('caltos_custom_fields_history');
+      if (raw) this.recommendedCustomFields = JSON.parse(raw);
+    } catch {}
+  }
+
+  addRecommendedCustomField(field: { label: string; type: string }) {
+    if (this.customFields.some(f => f.label === field.label)) return;
+    this.customFields.push({ label: field.label, type: field.type, required: 'required' });
+  }
+
+  confirmRemoveCustomField(i: number) {
+    this.removeCustomFieldIndex = i;
+    this.showRemoveCustomFieldModal = true;
+  }
+
+  executeRemoveCustomField() {
+    if (this.removeCustomFieldIndex >= 0) this.customFields.splice(this.removeCustomFieldIndex, 1);
+    this.showRemoveCustomFieldModal = false;
+    this.removeCustomFieldIndex = -1;
+  }
+
+  onDragStart(i: number) { this.dragIndex = i; }
+
+  onDragOver(event: DragEvent, i: number) {
+    event.preventDefault();
+    this.dragOverIndex = i;
+  }
+
+  onDrop(i: number) {
+    if (this.dragIndex < 0 || this.dragIndex === i) { this.dragIndex = -1; this.dragOverIndex = -1; return; }
+    const item = this.repaymentOrder.splice(this.dragIndex, 1)[0];
+    this.repaymentOrder.splice(i, 0, item);
+    this.dragIndex = -1;
+    this.dragOverIndex = -1;
+  }
+
+  onDragEnd() { this.dragIndex = -1; this.dragOverIndex = -1; }
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent) {
@@ -395,8 +444,9 @@ export class CreateLoanComponent implements OnInit {
     return (this.getConfig(doc) as string) || 'none';
   }
 
-  get showIncomeVerification(): boolean {
-    return ['salary', 'public', 'corper', 'sme', 'coop', 'school', 'bnpl'].includes(this.config.template);
+  get showIncomeVerification(): boolean { return true; }
+  get noIncomeSelected(): boolean {
+    return !this.config.incomeRemita && !this.config.incomeIppis && !this.config.incomeBankStatement;
   }
 
   get showSchoolDocs(): boolean { return this.config.template === 'school'; }
@@ -452,7 +502,15 @@ export class CreateLoanComponent implements OnInit {
 
   addCustomField() {
     if (!this.customFieldLabel.trim()) return;
-    this.customFields.push({ label: this.customFieldLabel, type: this.customFieldType, required: this.customFieldRequired });
+    const newField = { label: this.customFieldLabel, type: this.customFieldType, required: this.customFieldRequired };
+    this.customFields.push(newField);
+    // Save to history for recommendations in future sessions
+    const history = this.recommendedCustomFields;
+    if (!history.some(f => f.label === newField.label)) {
+      history.push({ label: newField.label, type: newField.type });
+      localStorage.setItem('caltos_custom_fields_history', JSON.stringify(history));
+      this.recommendedCustomFields = [...history];
+    }
     this.customFieldLabel = ''; this.customFieldType = 'Text'; this.customFieldRequired = 'required';
     this.showCustomFieldModal = false;
   }

@@ -12,7 +12,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   targetAudiences: ['Salary Earners'],
   minAmount: '10000', maxAmount: '500000',
   minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
-  interestModel: 'Flat Rate', interestRate: '2.5',
+  interestModel: 'Flat Rate', interestRate: '2.5', interestChargedWhen: 'Monthly',
   minAge: '18', maxAge: '',
   entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
   collectPersonal: true, collectContact: true, collectAddress: false,

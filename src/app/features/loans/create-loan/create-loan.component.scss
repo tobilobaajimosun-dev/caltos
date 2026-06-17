@@ -59,7 +59,7 @@ $purple-border: #E9D7FE;
   background: transparent;
   font-family: var(--font-heading);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-header);
   width: 100%;
   min-width: 0;
@@ -215,7 +215,7 @@ $purple-border: #E9D7FE;
 .content-title {
   font-family: var(--font-heading);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-header);
   margin: 0 0 4px;
   letter-spacing: -0.3px;
@@ -1633,4 +1633,149 @@ $purple-border: #E9D7FE;
   text-decoration: none;
   cursor: pointer;
   &:hover { background: #53389E; }
+}
+
+// ── Compact step nav (dot-based) ──────────────────────────────────────────────
+.step-nav-bar {
+  background: #fff;
+  border-bottom: 1px solid var(--color-stroke);
+  padding: 0 32px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.step-nav-inner {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  gap: 4px;
+  min-width: max-content;
+}
+
+.step-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s;
+  &:hover:not(.active) { background: #f9fafb; }
+}
+
+.step-nav-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-stroke);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+
+  .step-nav-item.active & {
+    background: $purple;
+  }
+  .step-nav-item.done & {
+    background: $purple;
+  }
+  .step-nav-item:not(.active):not(.done) & {
+    width: 7px;
+    height: 7px;
+  }
+}
+
+.step-nav-label {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  white-space: nowrap;
+  transition: color 0.12s;
+
+  .step-nav-item.active & {
+    color: $purple;
+    font-weight: 600;
+  }
+  .step-nav-item.done & {
+    color: var(--color-body);
+  }
+}
+
+// ── Info callout ──────────────────────────────────────────────────────────────
+.info-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #EFF8FF;
+  border: 1px solid #B2DDFF;
+  font-size: 12.5px;
+  color: #175CD3;
+  line-height: 1.5;
+
+  &.warn {
+    background: #FFFAEB;
+    border-color: #FEC84B;
+    color: #B54708;
+  }
+}
+
+// ── Recommended custom fields ─────────────────────────────────────────────────
+.recommended-fields-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recommended-fields-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-grey-header);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.recommended-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recommended-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1.5px dashed var(--color-input-stroke);
+  background: #fafafa;
+  font-size: 12px;
+  color: var(--color-body);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+
+  &:hover {
+    border-color: $purple;
+    background: $purple-light;
+    color: $purple;
+  }
+}
+
+// ── Drag-over state on repayment order items ──────────────────────────────────
+.repayment-order-item {
+  &.drag-over {
+    border-color: $purple;
+    background: $purple-light;
+    box-shadow: 0 0 0 2px rgba(105, 65, 198, 0.15);
+  }
+
+  &[draggable="true"] {
+    cursor: grab;
+    &:active { cursor: grabbing; }
+  }
 }
