@@ -1543,3 +1543,94 @@ $purple-border: #E9D7FE;
   &:hover:not(:disabled) { background: $purple-light; color: $purple; border-color: $purple-border; }
   &:disabled { opacity: 0.3; cursor: not-allowed; }
 }
+
+// ── Publish success overlay ───────────────────────────────────────────────────
+.publish-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 24px;
+}
+
+.publish-success-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 40px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  animation: fadeUp 0.25s ease;
+}
+
+.publish-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ECFDF3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.publish-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-header);
+  letter-spacing: -0.3px;
+  margin: 0 0 10px;
+}
+
+.publish-sub {
+  font-size: 14px;
+  color: var(--color-body);
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.publish-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.publish-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-stroke);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-header);
+  text-decoration: none;
+  cursor: pointer;
+  &:hover { background: #f9fafb; }
+}
+
+.publish-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  background: $purple;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  &:hover { background: #53389E; }
+}

@@ -250,6 +250,7 @@ export class CreateLoanComponent implements OnInit {
   showAdminFee = false;
   showMgmtFee = false;
 
+  isPublished = false;
   showCustomFeeModal = false;
   customFeeName = '';
   customFeeType = 'Percentage';
@@ -347,6 +348,11 @@ export class CreateLoanComponent implements OnInit {
   discardAndLeave() {
     this.showUnsavedDialog = false;
     this.router.navigate(['/products']);
+  }
+
+  publish() {
+    this.isPublished = true;
+    this.isDraft = false;
   }
 
   toggleAudience(aud: string) {

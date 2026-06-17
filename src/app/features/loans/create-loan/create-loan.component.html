@@ -957,7 +957,8 @@
                     @if (i === 4) {
                       <div class="review-grid">
                         <div class="review-item"><span class="r-label">Method</span><span class="r-val">{{ config.disburseTo | titlecase }}</span></div>
-                        <div class="review-item"><span class="r-label">Timing</span><span class="r-val">{{ config.disburseTiming | titlecase }}</span></div>
+                        <div class="review-item"><span class="r-label">Account restriction</span><span class="r-val">{{ config.namedAccountOnly ? 'Named account only' : 'Any account' }}</span></div>
+                        <div class="review-item"><span class="r-label">Auto-disburse</span><span class="r-val">{{ config.autoDisburseEnabled ? 'Enabled (under ₦' + config.autoDisburseUnder + ')' : 'Disabled' }}</span></div>
                       </div>
                     }
                     @if (i === 5) {
@@ -1070,7 +1071,7 @@
       @if (isReview) {
         <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
         <span class="footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
-        <button class="btn-publish">
+        <button class="btn-publish" (click)="publish()">
           Publish Loan Product
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1099,6 +1100,33 @@
 
   </div>
 </div>
+
+<!-- Publish Success Overlay -->
+@if (isPublished) {
+  <div class="publish-overlay">
+    <div class="publish-success-card">
+      <div class="publish-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="12" fill="#12B76A" opacity="0.12"/>
+          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="publish-title">Loan Product Published!</h2>
+      <p class="publish-sub">
+        <strong>{{ config.name }}</strong> is now live and available to applicants.
+      </p>
+      <div class="publish-actions">
+        <a routerLink="/products" class="publish-btn-secondary">Back to Products</a>
+        <a routerLink="/apply" class="publish-btn-primary">
+          Preview Borrower Portal
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+}
 
 <!-- Custom Fee Modal -->
 @if (showCustomFeeModal) {
