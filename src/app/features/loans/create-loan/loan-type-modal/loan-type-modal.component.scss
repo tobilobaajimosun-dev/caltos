@@ -1,6 +1,6 @@
-$purple: #6941C6;
-$purple-light: #F9F5FF;
-$purple-border: #E9D7FE;
+$blue: #0053a6;
+$blue-light: #EFF8FF;
+$blue-border: #B2DDFF;
 
 .modal-overlay {
   position: fixed;
@@ -98,8 +98,8 @@ $purple-border: #E9D7FE;
   transition: border-color 0.15s, box-shadow 0.15s;
 
   &:hover {
-    border-color: #C4B5FD;
-    box-shadow: 0 2px 8px rgba(105, 65, 198, 0.08);
+    border-color: #93C6F4;
+    box-shadow: 0 2px 8px rgba(0, 83, 166, 0.08);
   }
 
   &.scratch {
@@ -250,8 +250,8 @@ $purple-border: #E9D7FE;
 }
 
 .detail-info-card {
-  background: $purple-light;
-  border: 1px solid $purple-border;
+  background: $blue-light;
+  border: 1px solid $blue-border;
   border-radius: 12px;
   padding: 16px 18px;
   display: flex;
@@ -262,7 +262,7 @@ $purple-border: #E9D7FE;
 .detail-info-label {
   font-size: 11px;
   font-weight: 600;
-  color: $purple;
+  color: $blue;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -305,7 +305,7 @@ $purple-border: #E9D7FE;
   gap: 7px;
   font-size: 13px;
   color: var(--color-body);
-  svg { flex-shrink: 0; color: $purple; }
+  svg { flex-shrink: 0; color: $blue; }
 }
 
 .detail-warn-card {
@@ -344,11 +344,11 @@ $purple-border: #E9D7FE;
   padding: 0 22px;
   border-radius: 8px;
   border: none;
-  background: $purple;
+  background: $blue;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  &:hover { background: #53389E; }
+  &:hover { background: #003d7a; }
 }

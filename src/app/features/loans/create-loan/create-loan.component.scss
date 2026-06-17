@@ -1,6 +1,6 @@
-$purple: #6941C6;
-$purple-light: #F9F5FF;
-$purple-border: #E9D7FE;
+$blue: #0053a6;
+$blue-light: #EFF8FF;
+$blue-border: #B2DDFF;
 
 :host { display: block; }
 
@@ -64,7 +64,7 @@ $purple-border: #E9D7FE;
   width: 100%;
   min-width: 0;
   &::placeholder { color: var(--color-grey-header); font-weight: 500; }
-  &:focus { border-bottom: 2px solid $purple; }
+  &:focus { border-bottom: 2px solid $blue; }
 }
 
 .draft-badge {
@@ -110,6 +110,24 @@ $purple-border: #E9D7FE;
   &:hover { background: #f9fafb; }
 }
 
+.btn-preview-product {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-input-stroke);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-body);
+  cursor: pointer;
+  text-decoration: none;
+  &:hover { background: #f9fafb; border-color: $blue; color: $blue; }
+}
+
 .btn-next-step {
   display: inline-flex;
   align-items: center;
@@ -118,13 +136,13 @@ $purple-border: #E9D7FE;
   padding: 0 18px;
   border-radius: 8px;
   border: none;
-  background: $purple;
+  background: $blue;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  &:hover { background: #53389E; }
+  &:hover { background: #003d7a; }
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
@@ -159,10 +177,10 @@ $purple-border: #E9D7FE;
 
   &:hover:not(.active) { background: #f9fafb; }
 
-  &.active .step-circle { background: $purple; color: white; border-color: $purple; }
-  &.active .step-label  { color: $purple; font-weight: 600; }
+  &.active .step-circle { background: $blue; color: white; border-color: $blue; }
+  &.active .step-label  { color: $blue; font-weight: 600; }
 
-  &.done .step-circle { background: $purple; color: white; border-color: $purple; }
+  &.done .step-circle { background: $blue; color: white; border-color: $blue; }
   &.done .step-label  { color: var(--color-body); }
 
   &:not(.active):not(.done) .step-circle { background: #fff; color: var(--color-grey-header); border-color: var(--color-stroke); }
@@ -195,7 +213,7 @@ $purple-border: #E9D7FE;
   height: 1.5px;
   background: var(--color-stroke);
   flex-shrink: 0;
-  &.done { background: $purple; }
+  &.done { background: $blue; }
 }
 
 // ── Body ─────────────────────────────────────────────────────────────────────
@@ -249,9 +267,9 @@ $purple-border: #E9D7FE;
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: $purple-light;
-  border: 1.5px solid $purple-border;
-  color: $purple;
+  background: $blue-light;
+  border: 1.5px solid $blue-border;
+  color: $blue;
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -326,12 +344,12 @@ $purple-border: #E9D7FE;
   transition: border-color 0.12s, background 0.12s;
   text-align: center;
 
-  &:hover:not(.selected) { border-color: $purple-border; }
+  &:hover:not(.selected) { border-color: $blue-border; }
   &.selected {
-    border-color: $purple;
-    background: $purple-light;
-    color: $purple;
-    .aud-icon { color: $purple; }
+    border-color: $blue;
+    background: $blue-light;
+    color: $blue;
+    .aud-icon { color: $blue; }
   }
 }
 
@@ -371,7 +389,7 @@ $purple-border: #E9D7FE;
   width: 100%;
   box-sizing: border-box;
   &::placeholder { color: var(--color-grey-header); }
-  &:focus { border-color: $purple; box-shadow: 0 0 0 3px rgba(105,65,198,.1); }
+  &:focus { border-color: $blue; box-shadow: 0 0 0 3px rgba(0,83,166,.1); }
   &.sm { width: 90px; }
 }
 
@@ -387,7 +405,7 @@ $purple-border: #E9D7FE;
   outline: none;
   width: 100%;
   cursor: pointer;
-  &:focus { border-color: $purple; }
+  &:focus { border-color: $blue; }
   &.sm { height: 36px; font-size: 12px; }
 }
 
@@ -398,7 +416,7 @@ $purple-border: #E9D7FE;
   border-radius: 8px;
   background: #fff;
   overflow: hidden;
-  &:focus-within { border-color: $purple; }
+  &:focus-within { border-color: $blue; }
   input { border: none; outline: none; box-shadow: none; height: 40px; flex: 1; min-width: 0; }
 }
 
@@ -433,8 +451,8 @@ $purple-border: #E9D7FE;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
 
-  &:hover:not(.selected) { border-color: $purple-border; }
-  &.selected { border-color: $purple; background: $purple-light; }
+  &:hover:not(.selected) { border-color: $blue-border; }
+  &.selected { border-color: $blue; background: $blue-light; }
 }
 
 .entry-icon {
@@ -449,7 +467,7 @@ $purple-border: #E9D7FE;
   color: var(--color-body);
 }
 
-.selected .entry-icon { background: $purple-border; color: $purple; }
+.selected .entry-icon { background: $blue-border; color: $blue; }
 
 .entry-text { flex: 1; }
 .entry-label { font-size: 13px; font-weight: 600; color: var(--color-header); }
@@ -459,7 +477,7 @@ $purple-border: #E9D7FE;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: $purple;
+  background: $blue;
   flex-shrink: 0;
   margin-top: 4px;
 }
@@ -528,7 +546,7 @@ $purple-border: #E9D7FE;
   color: var(--color-grey-header);
   cursor: pointer;
   align-self: flex-start;
-  &:hover { border-color: $purple; color: $purple; background: $purple-light; }
+  &:hover { border-color: $blue; color: $blue; background: $blue-light; }
 }
 
 // Toggle options
@@ -567,8 +585,8 @@ $purple-border: #E9D7FE;
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
-  &:hover:not(.selected) { border-color: $purple-border; }
-  &.selected { border-color: $purple; background: $purple-light; }
+  &:hover:not(.selected) { border-color: $blue-border; }
+  &.selected { border-color: $blue; background: $blue-light; }
 }
 
 .verify-check {
@@ -582,8 +600,8 @@ $purple-border: #E9D7FE;
   background: #fff;
   transition: background 0.12s, border-color 0.12s;
   &.active {
-    background: $purple;
-    border-color: $purple;
+    background: $blue;
+    border-color: $blue;
     &::after {
       content: '';
       display: block;
@@ -640,7 +658,7 @@ $purple-border: #E9D7FE;
   transition: background 0.1s, color 0.1s;
   &:last-child { border-right: none; }
   &:hover:not(.selected) { background: #f2f4f7; }
-  &.selected { background: $purple; color: white; font-weight: 600; }
+  &.selected { background: $blue; color: white; font-weight: 600; }
 }
 
 // Pricing tabs
@@ -708,7 +726,7 @@ $purple-border: #E9D7FE;
   color: var(--color-body);
   cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
-  &.active { border-color: $purple; background: $purple-light; color: $purple; }
+  &.active { border-color: $blue; background: $blue-light; color: $blue; }
 }
 
 .mini-fee-row {
@@ -734,7 +752,7 @@ $purple-border: #E9D7FE;
   align-items: flex-start;
   gap: 10px;
   cursor: pointer;
-  input[type=radio] { accent-color: $purple; width: 16px; height: 16px; margin-top: 1px; flex-shrink: 0; }
+  input[type=radio] { accent-color: $blue; width: 16px; height: 16px; margin-top: 1px; flex-shrink: 0; }
 }
 
 .radio-label { font-size: 13px; font-weight: 600; color: var(--color-header); }
@@ -762,8 +780,8 @@ $purple-border: #E9D7FE;
   cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
   svg { color: var(--color-grey-header); }
-  &:hover:not(.selected) { border-color: $purple-border; }
-  &.selected { border-color: $purple; background: $purple-light; color: $purple; svg { color: $purple; } }
+  &:hover:not(.selected) { border-color: $blue-border; }
+  &.selected { border-color: $blue; background: $blue-light; color: $blue; svg { color: $blue; } }
 }
 
 .disbursement-rules { display: flex; flex-direction: column; }
@@ -784,8 +802,8 @@ $purple-border: #E9D7FE;
 .paid-badge {
   font-size: 9px;
   font-weight: 700;
-  color: #6941C6;
-  background: #EDE9FE;
+  color: #0053a6;
+  background: #EFF8FF;
   border-radius: 4px;
   padding: 1px 5px;
   margin-left: 6px;
@@ -810,7 +828,7 @@ $purple-border: #E9D7FE;
   color: var(--color-body);
   cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
-  &.selected { border-color: $purple; background: $purple-light; color: $purple; font-weight: 600; }
+  &.selected { border-color: $blue; background: $blue-light; color: $blue; font-weight: 600; }
 }
 
 .inline-days {
@@ -919,7 +937,7 @@ $purple-border: #E9D7FE;
 
 .edit-brand-link {
   font-size: 12px;
-  color: $purple;
+  color: $blue;
   text-decoration: none;
   align-self: flex-start;
   &:hover { text-decoration: underline; }
@@ -931,7 +949,7 @@ $purple-border: #E9D7FE;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
-  &.open { border-color: $purple-border; }
+  &.open { border-color: $blue-border; }
 }
 
 .review-section-header {
@@ -953,9 +971,9 @@ $purple-border: #E9D7FE;
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: $purple-light;
-  border: 1.5px solid $purple-border;
-  color: $purple;
+  background: $blue-light;
+  border: 1.5px solid $blue-border;
+  color: $blue;
   font-size: 12px;
   font-weight: 700;
   display: flex;
@@ -981,9 +999,9 @@ $purple-border: #E9D7FE;
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
-  color: $purple;
+  color: $blue;
   cursor: pointer;
-  &:hover { background: $purple-light; border-color: $purple-border; }
+  &:hover { background: $blue-light; border-color: $blue-border; }
 }
 
 .review-section-body {
@@ -1023,7 +1041,7 @@ $purple-border: #E9D7FE;
 
 .journey-step {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid var(--color-stroke);
@@ -1034,9 +1052,9 @@ $purple-border: #E9D7FE;
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1.5px solid $purple-border;
-  background: $purple-light;
-  color: $purple;
+  border: 1.5px solid $blue-border;
+  background: $blue-light;
+  color: $blue;
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -1143,7 +1161,7 @@ $purple-border: #E9D7FE;
 
 .phone-header-bar {
   height: 36px;
-  background: $purple;
+  background: $blue;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1189,7 +1207,7 @@ $purple-border: #E9D7FE;
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: $purple;
+    background: $blue;
     flex-shrink: 0;
   }
 }
@@ -1212,7 +1230,7 @@ $purple-border: #E9D7FE;
 .phone-btn {
   height: 28px;
   border-radius: 6px;
-  background: $purple;
+  background: $blue;
   color: white;
   font-size: 10px;
   font-weight: 600;
@@ -1271,14 +1289,14 @@ $purple-border: #E9D7FE;
   padding: 0 22px;
   border-radius: 8px;
   border: none;
-  background: $purple;
+  background: $blue;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
   color: white;
   cursor: pointer;
   flex-shrink: 0;
-  &:hover { background: #53389E; }
+  &:hover { background: #003d7a; }
 }
 
 .btn-publish {
@@ -1349,7 +1367,7 @@ $purple-border: #E9D7FE;
   font-weight: 600;
   cursor: pointer;
 
-  &.primary   { background: $purple; color: white; &:hover { background: #53389E; } &:disabled { opacity: 0.4; cursor: not-allowed; } }
+  &.primary   { background: $blue; color: white; &:hover { background: #003d7a; } &:disabled { opacity: 0.4; cursor: not-allowed; } }
   &.danger    { background: #FEE4E2; color: #D92D20; &:hover { background: #FECDCA; } }
   &.secondary { background: #f2f4f7; color: var(--color-body); &:hover { background: #e8eaed; } }
 }
@@ -1395,7 +1413,7 @@ $purple-border: #E9D7FE;
 
 .setup-progress-fill {
   height: 100%;
-  background: $purple;
+  background: $blue;
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -1418,7 +1436,7 @@ $purple-border: #E9D7FE;
   transition: background 0.1s;
 
   &:hover { background: #f9fafb; }
-  &.active { background: $purple-light; }
+  &.active { background: $blue-light; }
 }
 
 .setup-step-icon {
@@ -1433,7 +1451,7 @@ $purple-border: #E9D7FE;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  &.active-dot   { background: $purple; }
+  &.active-dot   { background: $blue; }
   &.upcoming-dot { background: var(--color-stroke); border: 1.5px solid var(--color-grey-header); width: 7px; height: 7px; }
 }
 
@@ -1443,12 +1461,12 @@ $purple-border: #E9D7FE;
   font-weight: 500;
   color: var(--color-body);
 
-  .active & { color: $purple; font-weight: 600; }
+  .active & { color: $blue; font-weight: 600; }
   .done &   { color: var(--color-grey-header); }
 }
 
 .setup-step-arrow {
-  color: $purple;
+  color: $blue;
   flex-shrink: 0;
 }
 
@@ -1474,7 +1492,7 @@ $purple-border: #E9D7FE;
 
 .custom-fee-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--color-header); }
 .custom-fee-type { font-size: 11px; color: var(--color-grey-header); }
-.custom-fee-rate { font-size: 12px; font-weight: 600; color: $purple; }
+.custom-fee-rate { font-size: 12px; font-weight: 600; color: $blue; }
 
 .remove-btn {
   width: 24px;
@@ -1540,7 +1558,7 @@ $purple-border: #E9D7FE;
   justify-content: center;
   cursor: pointer;
   color: var(--color-body);
-  &:hover:not(:disabled) { background: $purple-light; color: $purple; border-color: $purple-border; }
+  &:hover:not(:disabled) { background: $blue-light; color: $blue; border-color: $blue-border; }
   &:disabled { opacity: 0.3; cursor: not-allowed; }
 }
 
@@ -1625,14 +1643,14 @@ $purple-border: #E9D7FE;
   padding: 0 20px;
   border-radius: 8px;
   border: none;
-  background: $purple;
+  background: $blue;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
   color: #fff;
   text-decoration: none;
   cursor: pointer;
-  &:hover { background: #53389E; }
+  &:hover { background: #003d7a; }
 }
 
 // ── Compact step nav (dot-based) ──────────────────────────────────────────────
@@ -1679,10 +1697,10 @@ $purple-border: #E9D7FE;
   flex-shrink: 0;
 
   .step-nav-item.active & {
-    background: $purple;
+    background: $blue;
   }
   .step-nav-item.done & {
-    background: $purple;
+    background: $blue;
   }
   .step-nav-item:not(.active):not(.done) & {
     width: 7px;
@@ -1697,7 +1715,7 @@ $purple-border: #E9D7FE;
   transition: color 0.12s;
 
   .step-nav-item.active & {
-    color: $purple;
+    color: $blue;
     font-weight: 600;
   }
   .step-nav-item.done & {
@@ -1710,13 +1728,14 @@ $purple-border: #E9D7FE;
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
   background: #EFF8FF;
   border: 1px solid #B2DDFF;
-  font-size: 12.5px;
+  font-size: 12px;
   color: #175CD3;
   line-height: 1.5;
+  margin-top: 8px;
 
   &.warn {
     background: #FFFAEB;
@@ -1760,18 +1779,18 @@ $purple-border: #E9D7FE;
   transition: border-color 0.12s, background 0.12s;
 
   &:hover {
-    border-color: $purple;
-    background: $purple-light;
-    color: $purple;
+    border-color: $blue;
+    background: $blue-light;
+    color: $blue;
   }
 }
 
 // ── Drag-over state on repayment order items ──────────────────────────────────
 .repayment-order-item {
   &.drag-over {
-    border-color: $purple;
-    background: $purple-light;
-    box-shadow: 0 0 0 2px rgba(105, 65, 198, 0.15);
+    border-color: $blue;
+    background: $blue-light;
+    box-shadow: 0 0 0 2px rgba(0, 83, 166, 0.15);
   }
 
   &[draggable="true"] {

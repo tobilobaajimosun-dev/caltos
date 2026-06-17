@@ -13,7 +13,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { LivePreviewComponent } from './live-preview/live-preview.component';
 import {
   ChevronLeftIcon, ChevronRightIcon,
-  PlusSignIcon,
+  PlusSignIcon, EyeIcon, Clock01Icon,
 } from '@hugeicons/core-free-icons';
 
 export interface LoanConfig {
@@ -275,6 +275,8 @@ export class CreateLoanComponent implements OnInit {
   readonly chevronLeft: IconData = ChevronLeftIcon as IconData;
   readonly chevronRight: IconData = ChevronRightIcon as IconData;
   readonly plusIcon: IconData = PlusSignIcon as IconData;
+  readonly eyeIcon: IconData = EyeIcon as IconData;
+  readonly clockIcon: IconData = Clock01Icon as IconData;
 
   readonly audiences = [
     'Everyone', 'Salary Earners', 'Public Servants',

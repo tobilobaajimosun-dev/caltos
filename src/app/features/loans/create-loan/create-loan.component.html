@@ -26,6 +26,10 @@
       </div>
       <div class="top-actions">
         <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
+        <a routerLink="/apply" target="_blank" class="btn-preview-product">
+          <hi-icon [icon]="eyeIcon" size="14" color="currentColor" />
+          Preview Product
+        </a>
         <button class="btn-next-step" (click)="next()" [disabled]="isLast">
           Next Step
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -33,25 +37,6 @@
           </svg>
         </button>
       </div>
-    </div>
-
-    <!-- Step nav (sidebar-style, not breadcrumb) -->
-    <div class="step-nav-bar">
-      @for (step of steps; track step.id; let i = $index) {
-        <button class="step-nav-item"
-          [class.active]="stepStatus(i) === 'active'"
-          [class.done]="stepStatus(i) === 'done'"
-          (click)="goToStep(i)">
-          <div class="step-nav-dot">
-            @if (stepStatus(i) === 'done') {
-              <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                <path d="M2.5 6l2.5 2.5 4.5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            }
-          </div>
-          <span class="step-nav-label">{{ step.shortLabel }}</span>
-        </button>
-      }
     </div>
 
     <!-- Body -->
@@ -223,10 +208,6 @@
                     }
                   </button>
                 }
-              </div>
-              <div class="info-callout" style="margin-top:14px">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                The identifiers selected here will be the <strong>first screen borrowers see</strong> when they open the application form — before anything else.
               </div>
             </div>
 
@@ -1004,10 +985,7 @@
                 }
               </div>
               <div class="est-time">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
+                <hi-icon [icon]="clockIcon" size="14" color="var(--color-grey-header)" />
                 Estimated completion time: <strong>{{ estimatedMinutes }} minutes</strong>
               </div>
             </div>
@@ -1043,7 +1021,7 @@
                 <div class="setup-step-icon">
                   @if (i < currentStep) {
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="8" fill="#6941C6"/>
+                      <circle cx="8" cy="8" r="8" fill="#0053a6"/>
                       <path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   } @else if (i === currentStep) {
