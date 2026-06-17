@@ -1,200 +1,187 @@
 <div class="apply-shell">
 
-  <!-- Success screen -->
+  <!-- ── SUCCESS SCREEN ─────────────────────────────────────────────────── -->
   @if (submitted) {
     <div class="success-screen">
-      <div class="success-card">
-        <div class="success-icon">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-            <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#12B76A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+      <div class="success-inner">
+        <div class="success-ripple">
+          <div class="success-ripple-1"></div>
+          <div class="success-ripple-2"></div>
+          <div class="success-check">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M5 13l4 4L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
-        <h1 class="success-title">Application Submitted!</h1>
-        <p class="success-sub">Your loan application has been received. We'll review it and get back to you within 24 hours.</p>
-        <div class="ref-box">
-          <span class="ref-label">Reference number</span>
-          <span class="ref-code">{{ refNumber }}</span>
+        <h1 class="success-title">Application Sent!</h1>
+        <p class="success-sub">We've received your application and will review it within 24 hours. You'll get a notification when there's an update.</p>
+        <div class="ref-chip">
+          <span class="ref-chip-label">Reference</span>
+          <span class="ref-chip-code">{{ refNumber }}</span>
         </div>
-        <p class="success-hint">Save your reference number — you'll need it to track your application status.</p>
-        <a routerLink="/" class="success-home-btn">Back to Home</a>
+        <a routerLink="/" class="success-cta">Done</a>
       </div>
     </div>
   }
 
   @if (!submitted) {
-    <!-- Header -->
+    <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
     <header class="apply-header">
-      <div class="apply-logo">
-        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#6941C6"/>
+      <div class="header-logo">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="10" fill="#7C5CEB"/>
           <path d="M10 22V12l6-4 6 4v10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13 22v-5h6v5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="apply-logo-name">Caltos</span>
+        <span class="header-logo-name">Caltos</span>
       </div>
-      <span class="apply-product-name">Salary Advance Loan</span>
+      <button class="header-close" routerLink="/">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
     </header>
 
-    <!-- Progress bar -->
-    <div class="progress-track">
+    <!-- ── PROGRESS BAR ────────────────────────────────────────────────────── -->
+    <div class="progress-rail">
       <div class="progress-fill" [style.width.%]="progress"></div>
     </div>
 
-    <!-- Step indicator -->
-    <div class="step-pill-row">
-      <span class="step-pill">Step {{ stepIndex + 1 }} of {{ steps.length }}</span>
-      <span class="step-label-text">{{ currentStep.label }}</span>
-    </div>
-
-    <!-- Content -->
+    <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
     <main class="apply-main">
 
       <!-- WELCOME -->
       @if (currentStep.id === 'welcome') {
-        <div class="step-card welcome-card">
-          <div class="welcome-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" stroke="#6941C6" stroke-width="1.5"/>
-              <path d="M8 12l2.5 2.5L16 9" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+        <div class="screen screen-welcome">
+          <div class="welcome-badge">Salary Advance</div>
+          <h1 class="screen-headline">Get cash<br>when you need it.</h1>
+          <p class="screen-body">Up to ₦500,000 in your account in minutes. No collateral. No branches.</p>
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-dot green"></div>
+              <span>Repay in 1–12 months</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot blue"></div>
+              <span>2.5% flat interest rate</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot purple"></div>
+              <span>5-minute application</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot yellow"></div>
+              <span>Instant decision</span>
+            </div>
           </div>
-          <h1 class="welcome-title">Quick Salary Advance</h1>
-          <p class="welcome-desc">Get up to ₦500,000 in your account within minutes. This application takes about 5 minutes to complete.</p>
-          <ul class="welcome-list">
-            <li>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#6941C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              No collateral required
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#6941C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Repay in 1–12 months
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#6941C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Competitive interest rates
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#6941C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Instant decision, fast disbursement
-            </li>
-          </ul>
-          <p class="welcome-note">By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+          <p class="legal-note">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
         </div>
       }
 
       <!-- LOAN DETAILS -->
       @if (currentStep.id === 'loan') {
-        <div class="step-card">
-          <h2 class="step-title">How much do you need?</h2>
-          <p class="step-sub">Tell us about the loan you want to apply for.</p>
+        <div class="screen">
+          <p class="screen-eyebrow">How much do you need?</p>
+          <div class="amount-display">
+            <span class="amount-currency">₦</span>
+            <span class="amount-value">{{ (+loanAmount).toLocaleString() }}</span>
+          </div>
+          <input class="dark-slider" type="range" min="10000" max="500000" step="5000" [(ngModel)]="loanAmount" />
+          <div class="slider-limits">
+            <span>₦10,000</span>
+            <span>₦500,000</span>
+          </div>
 
-          <div class="field-group">
-            <label class="field-label">Loan amount</label>
-            <div class="amount-slider-display">
-              <span class="amount-big">₦{{ (+loanAmount).toLocaleString() }}</span>
+          <div class="section-divider"></div>
+
+          <p class="screen-eyebrow">Repayment period</p>
+          <div class="tenor-grid">
+            @for (m of [1,2,3,6,9,12]; track m) {
+              <button class="tenor-chip" [class.active]="loanTenor === m.toString()" (click)="loanTenor = m.toString()">
+                {{ m }} <span class="tenor-unit">mo</span>
+              </button>
+            }
+          </div>
+
+          <div class="loan-est-row">
+            <div class="loan-est-item">
+              <span class="est-label">Monthly est.</span>
+              <span class="est-val">₦{{ Math.ceil((+loanAmount * 1.025) / (+loanTenor || 1)).toLocaleString() }}</span>
             </div>
-            <input class="range-slider" type="range" min="10000" max="500000" step="10000" [(ngModel)]="loanAmount" />
-            <div class="range-limits"><span>₦10,000</span><span>₦500,000</span></div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Repayment period</label>
-            <div class="tenor-pills">
-              @for (m of [1,2,3,6,9,12]; track m) {
-                <button class="tenor-pill" [class.active]="loanTenor === m.toString()" (click)="loanTenor = m.toString()">{{ m }}mo</button>
-              }
+            <div class="loan-est-divider"></div>
+            <div class="loan-est-item">
+              <span class="est-label">Total repayment</span>
+              <span class="est-val">₦{{ Math.ceil(+loanAmount * 1.025).toLocaleString() }}</span>
             </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Loan purpose <span class="opt-tag">Optional</span></label>
-            <select class="text-input" [(ngModel)]="loanPurpose">
-              <option value="">Select purpose</option>
-              <option>Salary advance</option>
-              <option>Medical expenses</option>
-              <option>School fees</option>
-              <option>Business capital</option>
-              <option>Home expenses</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div class="loan-summary-box">
-            <div class="ls-row"><span class="ls-label">Monthly repayment (est.)</span><span class="ls-val">₦{{ Math.ceil((+loanAmount * 1.025) / (+loanTenor || 1)).toLocaleString() }}</span></div>
-            <div class="ls-row"><span class="ls-label">Total repayment (est.)</span><span class="ls-val">₦{{ Math.ceil(+loanAmount * 1.025).toLocaleString() }}</span></div>
-            <div class="ls-row"><span class="ls-label">Interest rate</span><span class="ls-val">2.5% / month</span></div>
           </div>
         </div>
       }
 
       <!-- PERSONAL -->
       @if (currentStep.id === 'personal') {
-        <div class="step-card">
-          <h2 class="step-title">Personal Information</h2>
-          <p class="step-sub">We need this to verify your identity.</p>
-
-          <div class="field-row">
-            <div class="field-group">
-              <label class="field-label">First name <span class="req">*</span></label>
-              <input class="text-input" type="text" placeholder="e.g. Aisha" [(ngModel)]="firstName" />
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Personal<br>Information</h2>
+          <div class="form-stack">
+            <div class="dark-field-row">
+              <div class="dark-field">
+                <label class="dark-label">First name</label>
+                <input class="dark-input" type="text" placeholder="Aisha" [(ngModel)]="firstName" />
+              </div>
+              <div class="dark-field">
+                <label class="dark-label">Last name</label>
+                <input class="dark-input" type="text" placeholder="Bello" [(ngModel)]="lastName" />
+              </div>
             </div>
-            <div class="field-group">
-              <label class="field-label">Last name <span class="req">*</span></label>
-              <input class="text-input" type="text" placeholder="e.g. Bello" [(ngModel)]="lastName" />
+            <div class="dark-field">
+              <label class="dark-label">Date of birth</label>
+              <input class="dark-input" type="date" [(ngModel)]="dob" />
             </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Date of birth <span class="req">*</span></label>
-            <input class="text-input" type="date" [(ngModel)]="dob" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Gender <span class="req">*</span></label>
-            <div class="radio-row">
-              @for (g of ['Male','Female','Prefer not to say']; track g) {
-                <button class="radio-pill" [class.active]="gender === g" (click)="gender = g">{{ g }}</button>
-              }
+            <div class="dark-field">
+              <label class="dark-label">Gender</label>
+              <div class="chip-row">
+                @for (g of ['Male','Female','Other']; track g) {
+                  <button class="select-chip" [class.active]="gender === g" (click)="gender = g">{{ g }}</button>
+                }
+              </div>
             </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Marital status</label>
-            <select class="text-input" [(ngModel)]="maritalStatus">
-              <option value="">Select status</option>
-              <option>Single</option>
-              <option>Married</option>
-              <option>Divorced</option>
-              <option>Widowed</option>
-            </select>
+            <div class="dark-field">
+              <label class="dark-label">Marital status</label>
+              <select class="dark-input dark-select" [(ngModel)]="maritalStatus">
+                <option value="">Select</option>
+                <option>Single</option>
+                <option>Married</option>
+                <option>Divorced</option>
+                <option>Widowed</option>
+              </select>
+            </div>
           </div>
         </div>
       }
 
       <!-- CONTACT -->
       @if (currentStep.id === 'contact') {
-        <div class="step-card">
-          <h2 class="step-title">Contact Details</h2>
-          <p class="step-sub">We'll use these to reach you about your application.</p>
-
-          <div class="field-group">
-            <label class="field-label">Phone number <span class="req">*</span></label>
-            <div class="phone-input-wrap">
-              <span class="phone-prefix">+234</span>
-              <input class="text-input phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Contact<br>Details</h2>
+          <div class="form-stack">
+            <div class="dark-field">
+              <label class="dark-label">Phone number</label>
+              <div class="dark-phone-wrap">
+                <span class="dark-phone-prefix">+234</span>
+                <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
+              </div>
             </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Email address <span class="req">*</span></label>
-            <input class="text-input" type="email" placeholder="you@example.com" [(ngModel)]="email" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Alternate phone <span class="opt-tag">Optional</span></label>
-            <div class="phone-input-wrap">
-              <span class="phone-prefix">+234</span>
-              <input class="text-input phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="altPhone" />
+            <div class="dark-field">
+              <label class="dark-label">Email address</label>
+              <input class="dark-input" type="email" placeholder="you@example.com" [(ngModel)]="email" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Alternate phone <span class="opt-tag">Optional</span></label>
+              <div class="dark-phone-wrap">
+                <span class="dark-phone-prefix">+234</span>
+                <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="altPhone" />
+              </div>
             </div>
           </div>
         </div>
@@ -202,129 +189,124 @@
 
       <!-- ADDRESS -->
       @if (currentStep.id === 'address') {
-        <div class="step-card">
-          <h2 class="step-title">Residential Address</h2>
-          <p class="step-sub">Enter your current home address.</p>
-
-          <div class="field-group">
-            <label class="field-label">House address <span class="req">*</span></label>
-            <input class="text-input" type="text" placeholder="e.g. 12 Adeola Street" [(ngModel)]="houseAddress" />
-          </div>
-
-          <div class="field-row">
-            <div class="field-group">
-              <label class="field-label">City <span class="req">*</span></label>
-              <input class="text-input" type="text" placeholder="e.g. Ikeja" [(ngModel)]="city" />
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Where do<br>you live?</h2>
+          <div class="form-stack">
+            <div class="dark-field">
+              <label class="dark-label">House address</label>
+              <input class="dark-input" type="text" placeholder="e.g. 12 Adeola Street" [(ngModel)]="houseAddress" />
             </div>
-            <div class="field-group">
-              <label class="field-label">LGA</label>
-              <input class="text-input" type="text" placeholder="Local Govt. Area" [(ngModel)]="lga" />
+            <div class="dark-field-row">
+              <div class="dark-field">
+                <label class="dark-label">City</label>
+                <input class="dark-input" type="text" placeholder="Ikeja" [(ngModel)]="city" />
+              </div>
+              <div class="dark-field">
+                <label class="dark-label">LGA</label>
+                <input class="dark-input" type="text" placeholder="Alimosho" [(ngModel)]="lga" />
+              </div>
             </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">State <span class="req">*</span></label>
-            <select class="text-input" [(ngModel)]="state">
-              <option value="">Select state</option>
-              @for (s of nigerianStates; track s) {
-                <option>{{ s }}</option>
-              }
-            </select>
+            <div class="dark-field">
+              <label class="dark-label">State</label>
+              <select class="dark-input dark-select" [(ngModel)]="state">
+                <option value="">Select state</option>
+                @for (s of nigerianStates; track s) {
+                  <option>{{ s }}</option>
+                }
+              </select>
+            </div>
           </div>
         </div>
       }
 
       <!-- EMPLOYMENT -->
       @if (currentStep.id === 'employment') {
-        <div class="step-card">
-          <h2 class="step-title">Employment Information</h2>
-          <p class="step-sub">Tell us about your current employment.</p>
-
-          <div class="field-group">
-            <label class="field-label">Employment type <span class="req">*</span></label>
-            <div class="radio-row">
-              @for (t of ['Salaried','Self-employed','Contract']; track t) {
-                <button class="radio-pill" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
-              }
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Employment<br>Details</h2>
+          <div class="form-stack">
+            <div class="dark-field">
+              <label class="dark-label">Employment type</label>
+              <div class="chip-row">
+                @for (t of ['Salaried','Self-employed','Contract']; track t) {
+                  <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
+                }
+              </div>
             </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Employer / Business name <span class="req">*</span></label>
-            <input class="text-input" type="text" placeholder="e.g. First Bank of Nigeria" [(ngModel)]="employerName" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Staff ID <span class="opt-tag">Optional</span></label>
-            <input class="text-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Monthly net income (₦) <span class="req">*</span></label>
-            <input class="text-input" type="number" placeholder="e.g. 250000" [(ngModel)]="monthlyIncome" />
+            <div class="dark-field">
+              <label class="dark-label">Employer / Business name</label>
+              <input class="dark-input" type="text" placeholder="e.g. First Bank of Nigeria" [(ngModel)]="employerName" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Staff ID <span class="opt-tag">Optional</span></label>
+              <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Monthly net income (₦)</label>
+              <input class="dark-input" type="number" placeholder="250000" [(ngModel)]="monthlyIncome" />
+            </div>
           </div>
         </div>
       }
 
       <!-- IDENTITY -->
       @if (currentStep.id === 'identity') {
-        <div class="step-card">
-          <h2 class="step-title">Identity Verification</h2>
-          <p class="step-sub">We'll verify your identity using BVN and NIN.</p>
-
-          <div class="info-banner">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6941C6" stroke-width="1.5"/><path d="M12 8v4m0 4h.01" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round"/></svg>
-            Your BVN and NIN are encrypted and never shared with third parties.
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Verify your<br>identity</h2>
+          <div class="security-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#7C5CEB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            256-bit encrypted. Never shared with third parties.
           </div>
-
-          <div class="field-group">
-            <label class="field-label">Bank Verification Number (BVN) <span class="req">*</span></label>
-            <input class="text-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="bvn" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">National Identification Number (NIN) <span class="req">*</span></label>
-            <input class="text-input" type="tel" maxlength="11" placeholder="11-digit NIN" [(ngModel)]="nin" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Phone OTP verification <span class="req">*</span></label>
-            @if (!otpSent) {
-              <button class="otp-send-btn" (click)="sendOtp()">Send OTP to {{ phone || 'your phone' }}</button>
-            } @else {
-              <div class="otp-sent-row">
-                <input class="text-input otp-input" type="tel" maxlength="6" placeholder="Enter 6-digit OTP" [(ngModel)]="otp" />
-                <button class="otp-resend-btn" (click)="otpSent = false">Resend</button>
-              </div>
-              <p class="otp-hint">OTP sent to +234{{ phone }}</p>
-            }
+          <div class="form-stack">
+            <div class="dark-field">
+              <label class="dark-label">Bank Verification Number (BVN)</label>
+              <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="bvn" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">National ID Number (NIN)</label>
+              <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit NIN" [(ngModel)]="nin" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Phone OTP</label>
+              @if (!otpSent) {
+                <button class="otp-trigger" (click)="sendOtp()">
+                  Send code to {{ phone ? '+234' + phone : 'your phone' }}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              } @else {
+                <div class="otp-row">
+                  <input class="dark-input" style="flex:1" type="tel" maxlength="6" placeholder="6-digit code" [(ngModel)]="otp" />
+                  <button class="otp-resend" (click)="otpSent = false">Resend</button>
+                </div>
+              }
+            </div>
           </div>
         </div>
       }
 
       <!-- INCOME -->
       @if (currentStep.id === 'income') {
-        <div class="step-card">
-          <h2 class="step-title">Income Verification</h2>
-          <p class="step-sub">Select how we should verify your income.</p>
-
-          <div class="channel-list">
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Verify your<br>income</h2>
+          <p class="screen-body-sm">Choose the fastest method for you.</p>
+          <div class="income-cards">
             @for (ch of [
-              { id: 'remita', label: 'Remita', desc: 'Instant verification via Remita for government & corporate employees' },
-              { id: 'ippis', label: 'IPPIS', desc: 'Verify salary payments through the government IPPIS platform' },
-              { id: 'bank', label: 'Bank Statement', desc: 'Upload your 3-month bank statement for income analysis' }
+              { id: 'remita', label: 'Remita', tag: 'Instant', desc: 'For government & corporate employees', color: 'green' },
+              { id: 'ippis', label: 'IPPIS', tag: 'Instant', desc: 'Government payroll system', color: 'blue' },
+              { id: 'bank', label: 'Bank Statement', tag: '3–6 hrs', desc: 'Upload a 3-month bank statement', color: 'yellow' }
             ]; track ch.id) {
-              <button class="channel-card" [class.active]="incomeChannel === ch.id" (click)="incomeChannel = ch.id">
-                <div class="channel-card-left">
-                  <div class="channel-radio" [class.selected]="incomeChannel === ch.id"></div>
-                  <div>
-                    <div class="channel-label">{{ ch.label }}</div>
-                    <div class="channel-desc">{{ ch.desc }}</div>
+              <button class="income-card" [class.active]="incomeChannel === ch.id" (click)="incomeChannel = ch.id">
+                <div class="income-card-left">
+                  <div class="income-icon-dot" [class]="ch.color"></div>
+                  <div class="income-info">
+                    <span class="income-label">{{ ch.label }}</span>
+                    <span class="income-desc">{{ ch.desc }}</span>
                   </div>
                 </div>
-                @if (incomeChannel === ch.id) {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#6941C6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                }
+                <span class="income-tag" [class]="ch.color">{{ ch.tag }}</span>
               </button>
             }
           </div>
@@ -333,124 +315,126 @@
 
       <!-- DOCUMENTS -->
       @if (currentStep.id === 'documents') {
-        <div class="step-card">
-          <h2 class="step-title">Upload Documents</h2>
-          <p class="step-sub">Upload clear, unobstructed photos or scans. Files must be under 5MB.</p>
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Upload<br>documents</h2>
+          <p class="screen-body-sm">Clear photos or scans, under 5MB each.</p>
 
-          <div class="doc-upload-card">
-            <div class="doc-upload-header">
-              <div class="doc-upload-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#6941C6" stroke-width="1.5"/><polyline points="14,2 14,8 20,8" stroke="#6941C6" stroke-width="1.5"/></svg>
-              </div>
-              <div>
-                <div class="doc-upload-title">Government-issued ID <span class="req">*</span></div>
-                <div class="doc-upload-sub">National ID, Voter's Card, Driver's Licence or International Passport</div>
-              </div>
-            </div>
-            @if (docGovIdName) {
-              <div class="doc-file-row">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span class="doc-file-name">{{ docGovIdName }}</span>
-                <button class="doc-remove" (click)="docGovIdName=''; docGovId=null">Remove</button>
-              </div>
-            } @else {
-              <label class="doc-upload-label">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Choose file
+          <div class="doc-stack">
+            <label class="doc-card" [class.uploaded]="!!docGovIdName">
+              @if (!docGovIdName) {
+                <div class="doc-card-inner">
+                  <div class="doc-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h10M7 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </div>
+                  <div>
+                    <div class="doc-title">Government-issued ID <span class="req-dot"></span></div>
+                    <div class="doc-sub">National ID · Voter's Card · Driver's Licence · Passport</div>
+                  </div>
+                  <div class="doc-upload-cta">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Upload
+                  </div>
+                </div>
                 <input type="file" accept="image/*,.pdf" (change)="onFileChange($event,'govId')" />
-              </label>
-            }
-          </div>
+              } @else {
+                <div class="doc-card-inner">
+                  <div class="doc-check">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <div class="doc-file-info">
+                    <div class="doc-file-name">{{ docGovIdName }}</div>
+                    <div class="doc-sub">Government ID · Uploaded</div>
+                  </div>
+                  <button class="doc-remove" (click)="docGovIdName=''; docGovId=null; $event.preventDefault()">Remove</button>
+                </div>
+              }
+            </label>
 
-          <div class="doc-upload-card">
-            <div class="doc-upload-header">
-              <div class="doc-upload-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#6941C6" stroke-width="1.5"/><polyline points="14,2 14,8 20,8" stroke="#6941C6" stroke-width="1.5"/></svg>
-              </div>
-              <div>
-                <div class="doc-upload-title">Recent payslip <span class="opt-tag">Optional</span></div>
-                <div class="doc-upload-sub">Last 1–3 months payslip to support your income claim</div>
-              </div>
-            </div>
-            @if (docPayslipName) {
-              <div class="doc-file-row">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span class="doc-file-name">{{ docPayslipName }}</span>
-                <button class="doc-remove" (click)="docPayslipName=''; docPayslip=null">Remove</button>
-              </div>
-            } @else {
-              <label class="doc-upload-label">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Choose file
+            <label class="doc-card" [class.uploaded]="!!docPayslipName">
+              @if (!docPayslipName) {
+                <div class="doc-card-inner">
+                  <div class="doc-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="1.5"/></svg>
+                  </div>
+                  <div>
+                    <div class="doc-title">Recent payslip <span class="opt-tag-dark">Optional</span></div>
+                    <div class="doc-sub">Last 1–3 months to support your income</div>
+                  </div>
+                  <div class="doc-upload-cta">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Upload
+                  </div>
+                </div>
                 <input type="file" accept="image/*,.pdf" (change)="onFileChange($event,'payslip')" />
-              </label>
-            }
+              } @else {
+                <div class="doc-card-inner">
+                  <div class="doc-check">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <div class="doc-file-info">
+                    <div class="doc-file-name">{{ docPayslipName }}</div>
+                    <div class="doc-sub">Payslip · Uploaded</div>
+                  </div>
+                  <button class="doc-remove" (click)="docPayslipName=''; docPayslip=null; $event.preventDefault()">Remove</button>
+                </div>
+              }
+            </label>
           </div>
         </div>
       }
 
       <!-- REVIEW -->
       @if (currentStep.id === 'review') {
-        <div class="step-card">
-          <h2 class="step-title">Review Your Application</h2>
-          <p class="step-sub">Please review before submitting. You can go back to edit any section.</p>
-
-          <div class="review-block">
-            <div class="review-block-title">Loan Details</div>
-            <div class="review-row"><span class="rr-label">Amount</span><span class="rr-val">₦{{ (+loanAmount).toLocaleString() }}</span></div>
-            <div class="review-row"><span class="rr-label">Tenor</span><span class="rr-val">{{ loanTenor }} month(s)</span></div>
-            <div class="review-row"><span class="rr-label">Purpose</span><span class="rr-val">{{ loanPurpose || '—' }}</span></div>
+        <div class="screen">
+          <p class="screen-eyebrow">Almost there</p>
+          <h2 class="screen-headline sm">Review &amp;<br>Submit</h2>
+          <div class="review-stack">
+            <div class="review-card">
+              <div class="review-card-title">Loan</div>
+              <div class="review-line"><span>Amount</span><strong>₦{{ (+loanAmount).toLocaleString() }}</strong></div>
+              <div class="review-line"><span>Tenor</span><strong>{{ loanTenor }} month(s)</strong></div>
+              <div class="review-line"><span>Purpose</span><strong>{{ loanPurpose || '—' }}</strong></div>
+            </div>
+            <div class="review-card">
+              <div class="review-card-title">Personal</div>
+              <div class="review-line"><span>Name</span><strong>{{ firstName }} {{ lastName }}</strong></div>
+              <div class="review-line"><span>DOB</span><strong>{{ dob || '—' }}</strong></div>
+              <div class="review-line"><span>Gender</span><strong>{{ gender || '—' }}</strong></div>
+            </div>
+            <div class="review-card">
+              <div class="review-card-title">Contact</div>
+              <div class="review-line"><span>Phone</span><strong>+234{{ phone }}</strong></div>
+              <div class="review-line"><span>Email</span><strong>{{ email || '—' }}</strong></div>
+            </div>
+            <div class="review-card">
+              <div class="review-card-title">Employment</div>
+              <div class="review-line"><span>Employer</span><strong>{{ employerName || '—' }}</strong></div>
+              <div class="review-line"><span>Type</span><strong>{{ employmentType || '—' }}</strong></div>
+              <div class="review-line"><span>Income</span><strong>₦{{ (+monthlyIncome || 0).toLocaleString() }}/mo</strong></div>
+            </div>
           </div>
-
-          <div class="review-block">
-            <div class="review-block-title">Personal</div>
-            <div class="review-row"><span class="rr-label">Name</span><span class="rr-val">{{ firstName }} {{ lastName }}</span></div>
-            <div class="review-row"><span class="rr-label">DOB</span><span class="rr-val">{{ dob || '—' }}</span></div>
-            <div class="review-row"><span class="rr-label">Gender</span><span class="rr-val">{{ gender || '—' }}</span></div>
-          </div>
-
-          <div class="review-block">
-            <div class="review-block-title">Contact</div>
-            <div class="review-row"><span class="rr-label">Phone</span><span class="rr-val">+234{{ phone }}</span></div>
-            <div class="review-row"><span class="rr-label">Email</span><span class="rr-val">{{ email || '—' }}</span></div>
-          </div>
-
-          <div class="review-block">
-            <div class="review-block-title">Employment</div>
-            <div class="review-row"><span class="rr-label">Employer</span><span class="rr-val">{{ employerName || '—' }}</span></div>
-            <div class="review-row"><span class="rr-label">Type</span><span class="rr-val">{{ employmentType || '—' }}</span></div>
-            <div class="review-row"><span class="rr-label">Income</span><span class="rr-val">₦{{ (+monthlyIncome).toLocaleString() }}/mo</span></div>
-          </div>
-
-          <div class="consent-box">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#6941C6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <p>By submitting this application, I confirm that all information provided is accurate and I consent to credit checks and data processing as described in the <a href="#">Privacy Policy</a>.</p>
-          </div>
+          <p class="consent-note">By submitting, I confirm all information is accurate and I consent to credit checks and data processing per the <a href="#">Privacy Policy</a>.</p>
         </div>
       }
 
     </main>
 
-    <!-- Sticky footer nav -->
+    <!-- ── FOOTER NAV ──────────────────────────────────────────────────────── -->
     <div class="apply-footer">
       @if (!isFirst) {
-        <button class="footer-back-btn" (click)="back()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Back
+        <button class="back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
-      } @else {
-        <div></div>
       }
 
       @if (isLast) {
-        <button class="footer-submit-btn" (click)="submit()">
-          Submit Application
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        <button class="cta-btn submit-btn" (click)="submit()">Submit Application</button>
       } @else {
-        <button class="footer-next-btn" (click)="next()">
-          Continue
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <button class="cta-btn" (click)="next()">
+          {{ currentStep.id === 'welcome' ? 'Get Started' : 'Continue' }}
         </button>
       }
     </div>
