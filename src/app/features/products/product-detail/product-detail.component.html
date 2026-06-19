@@ -30,155 +30,120 @@
 
     <div class="content">
 
-      <!-- Back -->
-      <a routerLink="/products" class="back-link">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to products
-      </a>
+      <!-- ── PRODUCT HERO ── -->
+      <div class="product-hero">
 
-      <!-- Product header -->
-      <div class="product-header">
-        <div>
-          <div class="product-name-row">
+        <!-- breadcrumb -->
+        <a routerLink="/products" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Products
+        </a>
+
+        <!-- name row -->
+        <div class="hero-name-row">
+          <div class="hero-name-group">
             <h1 class="product-name">{{ product.name }}</h1>
             <span class="status-pill" [class]="product.status">
-              <span class="dot"></span>{{ product.status === 'live' ? 'Live' : 'Deactivated' }}
+              <span class="status-dot"></span>{{ product.status === 'live' ? 'Live' : 'Deactivated' }}
             </span>
           </div>
-          <p class="product-meta">
-            <span>Product ID: <strong>{{ product.productId }}</strong></span>
-            <span class="meta-sep">·</span>
-            <span>Created {{ product.createdAt }}</span>
-          </p>
+          <div class="header-actions">
+            <button class="more-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+            </button>
+            <button class="edit-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Edit product
+            </button>
+          </div>
         </div>
-        <div class="header-actions">
-          <button class="more-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+
+        <!-- desc + meta -->
+        <p class="hero-desc">{{ product.description }}</p>
+        <p class="product-meta">
+          <span>ID: <strong>{{ product.productId }}</strong></span>
+          <span class="meta-sep">·</span>
+          <span>Created {{ product.createdAt }}</span>
+        </p>
+
+        <!-- hero metric strip -->
+        <div class="hero-metrics">
+          <app-kpi-card
+            label="Loan amount"
+            [value]="'₦' + product.minAmount + ' – ₦' + product.maxAmount" />
+          <app-kpi-card
+            label="Tenor range"
+            [value]="product.minTenor + ' – ' + product.maxTenor + ' ' + product.tenorUnit" />
+          <app-kpi-card
+            label="Interest rate"
+            [value]="product.interestRate + '% / ' + product.interestFrequency" />
+          <app-kpi-card label="Total customers" value="12,000" />
+          <app-kpi-card label="Repayment rate" value="91.4%" />
+        </div>
+
+        <!-- setup incomplete banner -->
+        @if (!isFullySetup) {
+          <div class="setup-banner">
+            <div class="setup-banner-left">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span>
+                <strong>{{ checklist.length - completedCount }} step{{ checklist.length - completedCount !== 1 ? 's' : '' }} incomplete</strong>
+                — {{ pendingLabels }}
+              </span>
+            </div>
+            <div class="setup-banner-actions">
+              @for (item of pendingItems; track item.id) {
+                <button class="setup-action-btn" (click)="goToTab(item.tab)">Set up {{ item.label }}</button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- tabs -->
+        <div class="tabs-bar">
+          <button class="tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
+          <button class="tab" [class.active]="activeTab === 'eligibility'" (click)="setTab('eligibility')">
+            Eligibility & KYC
+            @if (!checklist[1].done) { <span class="tab-dot"></span> }
           </button>
-          <button class="edit-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Edit product details
+          <button class="tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees & Penalties</button>
+          <button class="tab" [class.active]="activeTab === 'disbursement'" (click)="setTab('disbursement')">
+            Disbursement & Repayment
+            @if (!checklist[3].done) { <span class="tab-dot"></span> }
           </button>
+          <button class="tab" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal</button>
+          <button class="tab" [class.active]="activeTab === 'activity'" (click)="setTab('activity')">Activity</button>
         </div>
-      </div>
-
-      <!-- Info cards -->
-      <div class="info-cards">
-        <div class="info-card">
-          <p class="info-label">BRIEF DESCRIPTION</p>
-          <p class="info-value">{{ product.description }}</p>
-        </div>
-        <div class="info-card">
-          <p class="info-label">PRODUCT WEBSITE LINK</p>
-          <div class="link-row">
-            <a class="link-text" [href]="product.websiteLink" target="_blank">{{ product.websiteLink }}</a>
-            <div class="link-btns">
-              <button class="link-pill" (click)="copyLink()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
-                copy link
-              </button>
-              <button class="link-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Setup checklist -->
-      @if (!isFullySetup) {
-        <div class="checklist-card">
-          <div class="checklist-head">
-            <div>
-              <h3 class="checklist-title">Finish setting up this product</h3>
-              <p class="checklist-sub">{{ completedCount }} of {{ checklist.length }} steps complete</p>
-            </div>
-            <div class="progress-group">
-              <div class="progress-track"><div class="progress-fill" [style.width.%]="(completedCount / checklist.length) * 100"></div></div>
-              <span class="progress-pct">{{ ((completedCount / checklist.length) * 100).toFixed(0) }}%</span>
-            </div>
-          </div>
-          <div class="checklist-rows">
-            @for (item of checklist; track item.id) {
-              <div class="checklist-row" [class.done]="item.done">
-                <div class="check-circle" [class.done]="item.done">
-                  @if (item.done) {
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  }
-                </div>
-                <div class="checklist-row-info">
-                  <p class="checklist-row-label">{{ item.label }}</p>
-                  <p class="checklist-row-desc">{{ item.description }}</p>
-                </div>
-                @if (!item.done) {
-                  <button class="setup-btn" (click)="goToTab(item.tab)">Set up</button>
-                }
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- Tabs -->
-      <div class="tabs-bar">
-        <button class="tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
-        <button class="tab" [class.active]="activeTab === 'eligibility'" (click)="setTab('eligibility')">
-          Eligibility & KYC
-          @if (!checklist[1].done) { <span class="tab-dot"></span> }
-        </button>
-        <button class="tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees & Penalties</button>
-        <button class="tab" [class.active]="activeTab === 'disbursement'" (click)="setTab('disbursement')">
-          Disbursement & Repayment
-          @if (!checklist[3].done) { <span class="tab-dot"></span> }
-        </button>
-        <button class="tab" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal</button>
-        <button class="tab" [class.active]="activeTab === 'activity'" (click)="setTab('activity')">Activity</button>
       </div>
 
       <!-- ═══ OVERVIEW ═══ -->
       @if (activeTab === 'overview') {
-        <!-- Key stats strip -->
-        <div class="stats-strip">
-          <div class="strip-item">
-            <app-tooltip text="The minimum and maximum loan amounts a borrower can request for this product.">
-              <p class="strip-label">Loan amount range <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></p>
-            </app-tooltip>
-            <p class="strip-value">₦{{ product.minAmount }} – ₦{{ product.maxAmount }}</p>
+
+        <!-- portal link row -->
+        <div class="portal-row">
+          <div class="portal-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <p class="portal-label">Borrower application portal</p>
+              <a class="portal-link" [href]="product.websiteLink" target="_blank">{{ product.websiteLink }}</a>
+            </div>
           </div>
-          <div class="strip-divider"></div>
-          <div class="strip-item">
-            <app-tooltip text="How long a borrower can take to repay this loan product.">
-              <p class="strip-label">Tenor range <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></p>
-            </app-tooltip>
-            <p class="strip-value">{{ product.minTenor }} – {{ product.maxTenor }} {{ product.tenorUnit }}</p>
-          </div>
-          <div class="strip-divider"></div>
-          <div class="strip-item">
-            <app-tooltip text="Interest is charged {{ product.interestFrequency }} as a {{ product.interestType }}. The floor and ceiling amounts prevent rounding anomalies.">
-              <p class="strip-label">Interest rate <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></p>
-            </app-tooltip>
-            <p class="strip-value">{{ product.interestRate }}% {{ product.interestFrequency }}</p>
-          </div>
-          <div class="strip-divider"></div>
-          <div class="strip-item">
-            <app-tooltip text="Minimum interest charged regardless of loan size.">
-              <p class="strip-label">Min interest <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></p>
-            </app-tooltip>
-            <p class="strip-value">₦{{ product.minInterest }}</p>
-          </div>
-          <div class="strip-divider"></div>
-          <div class="strip-item">
-            <app-tooltip text="Maximum interest charged regardless of loan size.">
-              <p class="strip-label">Max interest <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></p>
-            </app-tooltip>
-            <p class="strip-value">₦{{ product.maxInterest }}</p>
+          <div class="portal-actions">
+            <button class="link-pill" (click)="copyLink()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+              Copy link
+            </button>
+            <a class="link-icon" [href]="product.websiteLink" target="_blank">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
           </div>
         </div>
 
-        <!-- Detail grid -->
-        <div class="detail-grid">
-          <!-- Product configuration -->
-          <div class="detail-card full-width">
+        <!-- 2-col overview grid -->
+        <div class="overview-grid">
+
+          <!-- left: product configuration -->
+          <div class="detail-card">
             <div class="card-header">
               <p class="card-title">Product configuration</p>
               <button class="card-edit">Edit</button>
@@ -197,11 +162,21 @@
                 <span class="config-value">{{ product.repaymentFrequency }}</span>
               </div>
               <div class="config-row">
-                <span class="config-label">Repayments range</span>
+                <span class="config-label">
+                  Repayments range
+                  <app-tooltip text="Minimum and maximum number of repayment instalments a borrower can choose for this product." position="right">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </app-tooltip>
+                </span>
                 <span class="config-value">{{ product.minRepayments }} – {{ product.maxRepayments }}</span>
               </div>
               <div class="config-row">
-                <span class="config-label">First payment offset</span>
+                <span class="config-label">
+                  First payment offset
+                  <app-tooltip text="How many days after disbursement the borrower's first repayment is due." position="right">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </app-tooltip>
+                </span>
                 <span class="config-value">{{ product.firstPaymentOffset }}</span>
               </div>
               <div class="config-row">
@@ -209,11 +184,10 @@
                 <span class="config-value">{{ product.activateImmediately ? 'Yes' : 'No' }}</span>
               </div>
             </div>
-            <!-- Repayment order -->
             <div class="repayment-order">
               <p class="order-label">
                 Repayment deduction order
-                <app-tooltip text="When a repayment is received, funds are applied in this order: first Fees, then Interest, then Penalty, then Principal.">
+                <app-tooltip text="When a repayment is received, funds settle in this priority — Fees first so the lender's costs are covered, then Interest earned, then any outstanding Penalty, and finally the Principal balance." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </p>
@@ -227,13 +201,50 @@
               </div>
             </div>
           </div>
+
+          <!-- right: performance + about -->
+          <div class="overview-right">
+            <div class="detail-card">
+              <div class="card-header">
+                <p class="card-title">Performance this month</p>
+                <button class="period-btn">Jun 2026 <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+              <div class="perf-grid">
+                <div class="perf-item">
+                  <p class="perf-label">Disbursed (MTD)</p>
+                  <p class="perf-value">₦42.3M</p>
+                  <p class="perf-trend positive">↑ 12% vs last month</p>
+                </div>
+                <div class="perf-item">
+                  <p class="perf-label">Active loans</p>
+                  <p class="perf-value">7,841</p>
+                  <p class="perf-trend positive">↑ 8% this month</p>
+                </div>
+                <div class="perf-item">
+                  <p class="perf-label">Applications</p>
+                  <p class="perf-value">1,203</p>
+                  <p class="perf-trend neutral">Same as last month</p>
+                </div>
+                <div class="perf-item">
+                  <p class="perf-label">Overdue loans</p>
+                  <p class="perf-value danger">284</p>
+                  <p class="perf-trend negative">↑ 3% — monitor closely</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-card">
+              <p class="card-title" style="margin-bottom: 10px;">About this product</p>
+              <p class="about-text">{{ product.description }}</p>
+            </div>
+          </div>
         </div>
 
-        <!-- Performance charts -->
+        <!-- charts row -->
         <div class="charts-row">
           <div class="chart-card">
             <div class="chart-head">
-              <p class="chart-title">Total customers</p>
+              <p class="chart-title">Customer breakdown</p>
               <button class="period-btn">Today <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
             <div class="donut-wrap">
@@ -249,9 +260,9 @@
               </div>
             </div>
             <div class="donut-legend">
-              <div class="legend-row"><span class="dot" style="background:#22c55e"></span>Active<strong>7,000</strong></div>
-              <div class="legend-row"><span class="dot" style="background:#0053a6"></span>New<strong>3,000</strong></div>
-              <div class="legend-row"><span class="dot" style="background:#f59e0b"></span>Pending<strong>2,000</strong></div>
+              <div class="legend-row"><span class="legend-dot" style="background:#22c55e"></span>Active<strong>7,000</strong></div>
+              <div class="legend-row"><span class="legend-dot" style="background:#0053a6"></span>New<strong>3,000</strong></div>
+              <div class="legend-row"><span class="legend-dot" style="background:#f59e0b"></span>Pending<strong>2,000</strong></div>
             </div>
           </div>
 
@@ -299,7 +310,7 @@
             </div>
             <p class="field-label">
               Qualifying criteria
-              <app-tooltip text="Borrowers must meet at least one of these criteria to be eligible for this product." position="right">
+              <app-tooltip text="Borrowers must meet at least one of these criteria to be eligible for this product. Applications not matching any criteria are automatically declined." position="right">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               </app-tooltip>
             </p>
@@ -309,7 +320,12 @@
               }
             </div>
             <div class="field-row mt">
-              <span class="field-label">Active loan policy</span>
+              <p class="field-label">
+                Active loan policy
+                <app-tooltip text="Controls whether borrowers who already have an active loan on this product can apply again." position="right">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </app-tooltip>
+              </p>
               <p class="field-value policy">{{ product.activeLoanPolicy }}</p>
             </div>
           </div>
@@ -321,7 +337,7 @@
             </div>
             <p class="field-label">
               Borrowers must provide the following
-              <app-tooltip text="These documents are verified before loan disbursement. Missing docs will block the application." position="right">
+              <app-tooltip text="These documents are verified before loan disbursement. A missing or unverified document will block the application from proceeding." position="right">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               </app-tooltip>
             </p>
@@ -348,7 +364,7 @@
             <div class="config-row">
               <span class="config-label">
                 Status
-                <app-tooltip text="When enabled, this fee is automatically charged on every disbursed loan." position="right">
+                <app-tooltip text="When enabled, this fee is automatically charged on every disbursed loan before funds reach the borrower." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </span>
@@ -357,7 +373,7 @@
             <div class="config-row">
               <span class="config-label">
                 Method
-                <app-tooltip text="Percentage fees are calculated against the loan amount. Flat fees are a fixed naira value." position="right">
+                <app-tooltip text="Percentage fees scale with the loan amount. Flat fees are a fixed naira value regardless of loan size." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </span>
@@ -370,7 +386,7 @@
             <div class="config-row">
               <span class="config-label">
                 Apply to
-                <app-tooltip text="Whether the percentage is calculated against the loan amount or only the interest." position="right">
+                <app-tooltip text="Whether the percentage is calculated against the total loan amount or only the interest portion." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </span>
@@ -379,7 +395,7 @@
             <div class="config-row">
               <span class="config-label">
                 Minimum fee
-                <app-tooltip text="The lowest fee amount charged regardless of the percentage result." position="right">
+                <app-tooltip text="The lowest processing fee charged regardless of what the percentage calculation produces." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </span>
@@ -388,7 +404,7 @@
             <div class="config-row">
               <span class="config-label">
                 Maximum fee
-                <app-tooltip text="The highest fee amount charged regardless of the percentage result." position="right">
+                <app-tooltip text="The highest processing fee charged regardless of what the percentage calculation produces." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </span>
@@ -418,7 +434,7 @@
           <div class="card-header">
             <p class="card-title">
               Late payment penalty
-              <app-tooltip text="Charged daily on the outstanding balance once the borrower enters the grace period." position="right">
+              <app-tooltip text="Charged on the outstanding balance once the borrower misses a due date and the grace period expires." position="right">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               </app-tooltip>
             </p>
@@ -432,7 +448,7 @@
             <div class="config-row">
               <span class="config-label">
                 Grace period
-                <app-tooltip text="Number of days after the due date before the penalty starts accruing." position="right">
+                <app-tooltip text="Number of days after the due date before the penalty starts accruing. Giving borrowers a grace period reduces unnecessary defaults." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </span>
@@ -454,7 +470,7 @@
               <div class="config-row">
                 <span class="config-label">
                   Offer letter
-                  <app-tooltip text="Whether borrowers must sign an offer letter before the loan is disbursed." position="right">
+                  <app-tooltip text="When required, borrowers must sign a digital offer letter before the loan funds are released." position="right">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                   </app-tooltip>
                 </span>
@@ -463,7 +479,7 @@
               <div class="config-row">
                 <span class="config-label">
                   Disburse to salary account
-                  <app-tooltip text="When enabled, loan funds are sent directly to the borrower's verified salary account." position="right">
+                  <app-tooltip text="When enabled, loan funds are sent directly to the borrower's verified salary account instead of a nominated account." position="right">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                   </app-tooltip>
                 </span>
@@ -472,7 +488,7 @@
               <div class="config-row">
                 <span class="config-label">
                   Auto repayment deductions
-                  <app-tooltip text="Automatically deduct repayments from the salary account on the due date without manual action." position="right">
+                  <app-tooltip text="Automatically deduct monthly repayments from the salary account on the due date without the borrower initiating a transfer." position="right">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                   </app-tooltip>
                 </span>
@@ -481,7 +497,7 @@
               <div class="config-row">
                 <span class="config-label">
                   Video confirmation
-                  <app-tooltip text="Requires the borrower to record a short video confirming loan terms before disbursement." position="right">
+                  <app-tooltip text="Requires the borrower to record a short video stating their name and confirming they understand the loan terms before disbursement." position="right">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                   </app-tooltip>
                 </span>
@@ -500,7 +516,7 @@
               <div class="config-row">
                 <span class="config-label">
                   Repayment range
-                  <app-tooltip text="Minimum and maximum number of repayment instalments for this product." position="right">
+                  <app-tooltip text="The minimum and maximum number of repayment instalments a borrower can select when applying." position="right">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                   </app-tooltip>
                 </span>
@@ -509,7 +525,7 @@
               <div class="config-row">
                 <span class="config-label">
                   First payment offset
-                  <app-tooltip text="How many days after disbursement the first repayment is due." position="right">
+                  <app-tooltip text="How many days after disbursement the borrower's first repayment is due. A longer offset eases cash flow pressure on new borrowers." position="right">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                   </app-tooltip>
                 </span>
@@ -520,7 +536,7 @@
             <div class="repayment-order mt">
               <p class="order-label">
                 Deduction order
-                <app-tooltip text="When a repayment comes in, funds settle in this priority: Fees first, then Interest, then any Penalty, finally the Principal balance." position="right">
+                <app-tooltip text="When a repayment comes in, funds settle in this priority: Fees first, then Interest, then any accrued Penalty, finally the Principal balance." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
               </p>
@@ -543,7 +559,7 @@
           <div class="card-header">
             <p class="card-title">
               Loan policy & consent text
-              <app-tooltip text="This text is shown to borrowers during their application. They must explicitly accept before proceeding." position="right">
+              <app-tooltip text="This text is displayed to borrowers during their application. They must explicitly tick a consent checkbox before submitting — this creates an auditable record of informed consent." position="right">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               </app-tooltip>
             </p>

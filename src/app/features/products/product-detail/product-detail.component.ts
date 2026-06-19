@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SidebarComponent, TooltipComponent } from '../../../shared/components';
+import { SidebarComponent, TooltipComponent, KpiCardComponent } from '../../../shared/components';
 
 type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity';
 
@@ -15,7 +15,7 @@ interface ChecklistItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, TooltipComponent],
+  imports: [RouterLink, SidebarComponent, TooltipComponent, KpiCardComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
@@ -85,6 +85,8 @@ export class ProductDetailComponent {
 
   get completedCount() { return this.checklist.filter(c => c.done).length; }
   get isFullySetup() { return this.completedCount === this.checklist.length; }
+  get pendingItems() { return this.checklist.filter(c => !c.done); }
+  get pendingLabels() { return this.pendingItems.map(i => i.label).join(' · '); }
 
   setTab(tab: DetailTab) { this.activeTab = tab; }
 
