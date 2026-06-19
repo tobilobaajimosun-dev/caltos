@@ -86,8 +86,11 @@ export class ProductDetailComponent {
     { id: 'portal',       label: 'Borrower portal live',       description: 'Product is visible on the public application portal',             done: true,  tab: 'overview'     },
   ];
 
+  setupExpanded = true;
+
   get completedCount() { return this.checklist.filter(c => c.done).length; }
   get isFullySetup() { return this.completedCount === this.checklist.length; }
+  get setupPct() { return Math.round((this.completedCount / this.checklist.length) * 100); }
   get pendingItems() { return this.checklist.filter(c => !c.done); }
   get pendingLabels() { return this.pendingItems.map(i => i.label).join(' · '); }
 

@@ -66,23 +66,53 @@
           <span>Created {{ product.createdAt }}</span>
         </p>
 
-        <!-- setup incomplete banner -->
-        @if (!isFullySetup) {
-          <div class="setup-banner">
-            <div class="setup-banner-left">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <span>
-                <strong>{{ checklist.length - completedCount }} step{{ checklist.length - completedCount !== 1 ? 's' : '' }} incomplete</strong>
-                — {{ pendingLabels }}
-              </span>
+        <!-- setup checklist accordion -->
+        <div class="setup-checklist" [class.expanded]="setupExpanded">
+          <div class="setup-ch-header" (click)="setupExpanded = !setupExpanded">
+            <div class="setup-ch-left">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span class="setup-ch-title">Product setup</span>
+              <span class="setup-ch-badge">{{ completedCount }} / {{ checklist.length }}</span>
             </div>
-            <div class="setup-banner-actions">
-              @for (item of pendingItems; track item.id) {
-                <button class="setup-action-btn" (click)="goToTab(item.tab)">Set up {{ item.label }}</button>
-              }
+            <div class="setup-ch-right">
+              <span class="setup-ch-pct">{{ setupPct }}% done</span>
+              <svg width="22" height="22" viewBox="0 0 22 22" style="transform: rotate(-90deg)">
+                <circle cx="11" cy="11" r="8" fill="none" stroke="#e5e7eb" stroke-width="2.5"/>
+                <circle cx="11" cy="11" r="8" fill="none" stroke="#0053a6" stroke-width="2.5"
+                  [attr.stroke-dasharray]="(setupPct / 100 * 50.27) + ' 50.27'"
+                  stroke-linecap="round"/>
+              </svg>
+              <svg class="setup-ch-chevron" [class.open]="setupExpanded" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
           </div>
-        }
+          @if (setupExpanded) {
+            <div class="setup-ch-items">
+              @for (item of checklist; track item.id) {
+                <div class="setup-ch-item" [class.done]="item.done" (click)="!item.done && goToTab(item.tab)">
+                  @if (item.done) {
+                    <svg class="check-icon" width="22" height="22" viewBox="0 0 22 22">
+                      <circle cx="11" cy="11" r="11" fill="#0053a6"/>
+                      <path d="M6.5 11l3 3 6-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                  } @else {
+                    <svg class="check-icon" width="22" height="22" viewBox="0 0 22 22">
+                      <circle cx="11" cy="11" r="9.5" fill="none" stroke="#c0c9d1" stroke-width="1.5" stroke-dasharray="4.5 3.5"/>
+                    </svg>
+                  }
+                  <span class="setup-ch-item-label">{{ item.label }}</span>
+                  @if (!item.done) {
+                    <span class="setup-ch-item-cta">Set up →</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
 
         <!-- tabs -->
         <div class="tabs-bar">
