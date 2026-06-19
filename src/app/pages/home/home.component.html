@@ -26,107 +26,323 @@
 
     <div class="content">
 
-      <!-- Page header -->
-      <div class="page-header">
+      <!-- Wallet Balance Card -->
+      <div class="wallet-card">
+        <div class="wallet-left">
+          <div class="wallet-label-row">
+            <span class="section-label">Wallet Balance</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="wallet-amount-row">
+            <span class="wallet-amount">₦100,756,352.10</span>
+            <button class="icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
+          </div>
+          <div class="wallet-actions">
+            <button class="topup-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Top up wallet
+            </button>
+            <button class="txn-link-btn">
+              View all transactions
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="wallet-divider"></div>
+
+        <div class="wallet-right">
+          <div class="wallet-label-row">
+            <span class="section-label">Virtual Account Details</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="va-number-row">
+            <div>
+              <p class="va-number">0162989824</p>
+              <div class="va-bank">
+                <span class="gtb-dot"></span>
+                <span class="va-bank-name">Guaranty Trust Bank</span>
+              </div>
+            </div>
+            <button class="icon-circle">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
+          </div>
+          <div class="va-meta">
+            <div class="va-meta-item">
+              <span class="va-meta-label">Last funded Amount</span>
+              <span class="va-meta-value">₦182,756,352.10</span>
+            </div>
+            <div class="va-meta-divider"></div>
+            <div class="va-meta-item">
+              <span class="va-meta-label">Date last funded</span>
+              <span class="va-meta-value">03-Mar-2025</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section header + period tabs -->
+      <div class="section-header">
         <div>
-          <h1 class="page-title">{{ greeting }}, {{ userName }}</h1>
-          <p class="page-sub">Here's what's happening at {{ orgName }} today.</p>
+          <p class="section-title">Here's how things are going today.</p>
+          <p class="section-sub">Your latest loans, repayments, and customer activity—updated in real time.</p>
         </div>
         <div class="period-tabs">
-          <button class="period-tab" [class.active]="homePeriod === 'today'" (click)="homePeriod = 'today'">Today</button>
-          <button class="period-tab" [class.active]="homePeriod === 'week'" (click)="homePeriod = 'week'">This week</button>
-          <button class="period-tab" [class.active]="homePeriod === 'month'" (click)="homePeriod = 'month'">This month</button>
+          @for (tab of periodTabs; track tab.id) {
+            <button class="period-tab" [class.active]="activePeriod === tab.id" (click)="activePeriod = tab.id">{{ tab.label }}</button>
+          }
         </div>
       </div>
 
-      <!-- KPI row -->
-      <div class="kpi-row">
-        <app-kpi-card label="Total disbursed" value="₦4.2M" />
-        <app-kpi-card label="Active loans" value="128" />
-        <app-kpi-card label="Repayments due" value="₦1.8M" />
-        <app-kpi-card label="Overdue loans" value="14" />
+      <!-- KPI metrics row -->
+      <div class="metrics-row">
+        @for (m of metrics; track m.label) {
+          <div class="metric-card">
+            <div class="metric-head">
+              <span class="metric-label">{{ m.label }}</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <p class="metric-amount">{{ m.amount }}</p>
+            @if (m.trend) {
+              <div class="metric-trend-row">
+                <span class="trend-chip" [class.up]="m.trend.dir === 'up'" [class.down]="m.trend.dir === 'down'">
+                  @if (m.trend.dir === 'up') {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  } @else {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  }
+                  {{ m.trend.value }}% vs yesterday
+                </span>
+                <svg width="72" height="36" viewBox="0 0 72 36" fill="none">
+                  <polyline [attr.points]="m.sparkPoints" [attr.stroke]="m.trendColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+              </div>
+            }
+            <div class="metric-count-block">
+              <span class="metric-count-label">In Count</span>
+              <span class="metric-count-val">{{ m.count }}</span>
+            </div>
+          </div>
+        }
       </div>
 
-      <!-- Charts + collection -->
+      <!-- Charts row: area chart + payout activity -->
       <div class="charts-row">
 
-        <!-- Disbursement trend -->
-        <div class="chart-card wide">
-          <div class="chart-head">
-            <p class="chart-title">Loan disbursements</p>
-            <button class="chart-period">Jun 2026 <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+        <!-- Area chart -->
+        <div class="panel wide-panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-title">Daily Disbursement Trend</p>
+              <div class="area-hero">
+                <span class="area-val">₦3,934,199.13</span>
+                <span class="trend-chip up">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  40% vs yesterday
+                </span>
+              </div>
+            </div>
           </div>
-          <div class="bar-chart">
-            @for (bar of [55,72,38,88,64,91,47,76,83,59,68,95]; track bar) {
-              <div class="bar-wrap">
-                <div class="bar" [style.height.%]="bar"></div>
+          <div class="area-chart-wrap">
+            <div class="y-axis">
+              <span>₦45M</span><span>₦35M</span><span>₦25M</span><span>₦15M</span><span>₦10M</span><span>₦1M</span><span>₦0</span>
+            </div>
+            <div class="area-chart-inner">
+              <svg width="100%" height="210" viewBox="0 0 650 210" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#059669" stop-opacity="0.18"/>
+                    <stop offset="100%" stop-color="#059669" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0 200 C60 196 100 190 150 178 C200 163 230 148 280 128 C320 112 360 100 410 84 C450 70 490 54 540 36 C580 22 615 12 650 4 L650 210 L0 210 Z" fill="url(#areaGrad)"/>
+                <path d="M0 200 C60 196 100 190 150 178 C200 163 230 148 280 128 C320 112 360 100 410 84 C450 70 490 54 540 36 C580 22 615 12 650 4" stroke="#059669" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+              <p class="chart-x-label">July 15, 2024</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payout Activity -->
+        <div class="panel narrow-panel">
+          <div class="panel-head space-between">
+            <p class="panel-title">Payout Activity</p>
+            <button class="see-all-btn">See all <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+          <div class="person-list">
+            @for (row of payoutActivity; track row.id) {
+              <div class="person-row">
+                <span class="p-avatar">{{ row.initials }}</span>
+                <div class="p-info">
+                  <span class="p-name">{{ row.name }}</span>
+                  <span class="p-id">{{ row.id }}</span>
+                </div>
+                <div class="p-right">
+                  <span class="p-amount">{{ row.amount }}</span>
+                  <app-status-badge [status]="row.status" [label]="row.statusLabel" />
+                </div>
               </div>
             }
           </div>
-          <div class="bar-labels">
-            @for (label of ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; track label) {
-              <span class="bar-label">{{ label }}</span>
+        </div>
+
+      </div>
+
+      <!-- 3-col row -->
+      <div class="tri-row">
+
+        <!-- Customers by Product -->
+        <div class="panel tri-panel">
+          <div class="panel-head">
+            <p class="panel-title">Customers by Product</p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="donut-container">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="58" fill="none" stroke="#f3f4f6" stroke-width="24"/>
+              <circle cx="80" cy="80" r="58" fill="none" stroke="#0053a6" stroke-width="24" stroke-dasharray="136 228" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
+              <circle cx="80" cy="80" r="58" fill="none" stroke="#e03e3e" stroke-width="24" stroke-dasharray="91 273" stroke-dashoffset="-136" transform="rotate(-90 80 80)"/>
+              <circle cx="80" cy="80" r="58" fill="none" stroke="#f59e0b" stroke-width="24" stroke-dasharray="54 310" stroke-dashoffset="-227" transform="rotate(-90 80 80)"/>
+              <circle cx="80" cy="80" r="58" fill="none" stroke="#8b5cf6" stroke-width="24" stroke-dasharray="83 281" stroke-dashoffset="-281" transform="rotate(-90 80 80)"/>
+              <circle cx="80" cy="80" r="22" fill="#fff"/>
+            </svg>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#0053a6"></span><span>Credit Lite</span>
+              <span class="legend-dot" style="background:#e03e3e"></span><span>Credit Wallet</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#f59e0b"></span><span>Corper Wallet</span>
+              <span class="legend-dot" style="background:#8b5cf6"></span><span>Credit Something</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Application Site Visits -->
+        <div class="panel tri-panel">
+          <div class="panel-head">
+            <p class="panel-title">Application Site Visits</p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="visit-list">
+            @for (v of siteVisits; track $index) {
+              <div class="visit-row">
+                <div class="visit-info">
+                  <span class="visit-product">{{ v.product }}</span>
+                  <span class="visit-updated">{{ v.updated }}</span>
+                </div>
+                <svg width="80" height="28" viewBox="0 0 80 28" fill="none">
+                  <polyline [attr.points]="v.sparkPoints" [attr.stroke]="v.trend === 'up' ? '#059669' : '#e03e3e'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="visit-count-row">
+                  <span class="visit-count">{{ v.count }}</span>
+                  @if (v.trend === 'up') {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="#e03e3e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  }
+                </div>
+              </div>
             }
           </div>
         </div>
 
-        <!-- Collection rate donut -->
-        <div class="chart-card narrow">
-          <div class="chart-head">
-            <p class="chart-title">Collection rate</p>
+        <!-- Amount Disbursed by Product -->
+        <div class="panel tri-panel">
+          <div class="panel-head">
+            <p class="panel-title">Amount Disbursed by Product</p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           </div>
-          <div class="donut-wrap">
-            <svg width="120" height="120" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#f3f4f6" stroke-width="16"/>
-              <circle cx="60" cy="60" r="44" fill="none" stroke="var(--color-blue)" stroke-width="16"
-                stroke-dasharray="252 45" stroke-dashoffset="35" transform="rotate(-90 60 60)"/>
-            </svg>
-            <div class="donut-center">
-              <p class="donut-pct">91%</p>
-              <p class="donut-sub">collected</p>
-            </div>
-          </div>
-          <div class="collection-legend">
-            <div class="cleg-row"><span class="cleg-dot blue"></span><span>Collected</span><strong>₦38.2M</strong></div>
-            <div class="cleg-row"><span class="cleg-dot light"></span><span>Outstanding</span><strong>₦3.8M</strong></div>
+          <div class="disbursed-list">
+            @for (d of disbursedByProduct; track $index) {
+              <div class="disbursed-item">
+                <div class="disbursed-meta-row">
+                  <div class="disbursed-name-wrap">
+                    <span class="disbursed-name">{{ d.name }}</span>
+                    @if (d.trend) {
+                      <span class="trend-tag" [class.up]="d.trend.dir === 'up'" [class.down]="d.trend.dir === 'down'">
+                        {{ d.trend.dir === 'up' ? '↑' : '↓' }} {{ d.trend.value }}% vs yesterday
+                      </span>
+                    }
+                  </div>
+                  <span class="disbursed-amount">{{ d.amount }}</span>
+                </div>
+                <div class="bar-track">
+                  <div class="bar-fill" [style.width.%]="d.pct" [style.background]="d.color"></div>
+                </div>
+              </div>
+            }
+            <p class="last-updated">Last Updated: 2:38PM</p>
           </div>
         </div>
 
       </div>
 
-      <!-- Recent loan applications -->
-      <div class="detail-card">
-        <div class="card-header">
-          <p class="card-title">Recent loan applications</p>
-          <a class="view-all" routerLink="/loans">View all
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
+      <!-- Bottom row -->
+      <div class="tri-row">
+
+        <!-- Repayments Due Today -->
+        <div class="panel tri-panel">
+          <div class="panel-head">
+            <p class="panel-title">Repayments Due Today</p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="repay-body">
+            <p class="repay-count">100</p>
+            <div class="repay-amount-block">
+              <span class="repay-label">In Amount</span>
+              <span class="repay-val">₦182,756,352.10</span>
+            </div>
+          </div>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Loan product</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (loan of recentLoans; track loan.name) {
-              <tr>
-                <td class="cell-user">
-                  <span class="user-avatar">{{ loan.initials }}</span>
-                  {{ loan.name }}
-                </td>
-                <td class="cell-muted">{{ loan.product }}</td>
-                <td class="cell-amount">{{ loan.amount }}</td>
-                <td><app-status-badge [status]="loan.status" /></td>
-                <td class="cell-muted">{{ loan.date }}</td>
-              </tr>
+
+        <!-- Logged Repayments by Product -->
+        <div class="panel tri-panel">
+          <div class="panel-head">
+            <p class="panel-title">Logged repayments by Product</p>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="logged-list">
+            @for (item of loggedRepayments; track item.product) {
+              <div class="logged-row">
+                <span class="logged-dot" [style.background]="item.color"></span>
+                <div class="logged-info">
+                  <span class="logged-product">{{ item.product }}</span>
+                  <span class="logged-updated">{{ item.updated }}</span>
+                </div>
+                <span class="logged-count">{{ item.count }}</span>
+              </div>
             }
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        <!-- Repayment History -->
+        <div class="panel tri-panel">
+          <div class="panel-head space-between">
+            <p class="panel-title">Repayment History</p>
+            <button class="see-all-btn">See all <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+          <div class="person-list">
+            @for (row of repaymentHistory; track row.id) {
+              <div class="person-row">
+                <span class="p-avatar">{{ row.initials }}</span>
+                <div class="p-info">
+                  <span class="p-name">{{ row.name }}</span>
+                  <span class="p-id">{{ row.id }}</span>
+                </div>
+                <div class="p-right">
+                  <span class="p-amount">{{ row.amount }}</span>
+                  <span class="p-time">{{ row.time }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
       </div>
 
     </div>
