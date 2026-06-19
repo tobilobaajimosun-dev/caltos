@@ -1,0 +1,220 @@
+<div class="page">
+  <app-sidebar activeItemId="quick-action" />
+
+  <div class="main">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input class="search-input" placeholder="Search customer details" />
+        <span class="search-kbd"><kbd>⌘</kbd><kbd>/Ctrl K</kbd></span>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="avatar">JA</button>
+      </div>
+    </div>
+
+    <!-- PRE-KYC STATE -->
+    @if (!kycComplete) {
+      <div class="content">
+
+        <!-- Welcome hero -->
+        <div class="hero">
+          <div class="org-avatar" [style.background]="orgAvatarColor">{{ orgInitial }}</div>
+          <h1 class="hero-title">{{ orgName }}, Welcome to Caltos!</h1>
+          <p class="hero-sub">Easy loan operations begins here; pick somewhere to get started.</p>
+        </div>
+
+        <!-- KYC activation card -->
+        <div class="kyc-card">
+          <div class="kyc-left">
+            <div class="kyc-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="kyc-info">
+              <div class="kyc-title-row">
+                <span class="kyc-heading">Activate Your Wallet</span>
+                <span class="required-badge">Required</span>
+              </div>
+              <p class="kyc-desc">Complete your company KYC to unlock and start using your wallet for disbursements and repayments.</p>
+            </div>
+          </div>
+          <button class="kyc-cta" (click)="completeKyc()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5"/><path d="M16 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Complete KYC
+          </button>
+        </div>
+
+        <!-- Setup cards -->
+        <div class="setup-cards">
+          <div class="setup-card">
+            <div class="setup-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="setup-title">Set up your organisation details</h3>
+            <p class="setup-desc">Update your company's logo, colours and assets to make this your own.</p>
+            <a class="setup-link" routerLink="/settings">Set up now <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <span class="deco-plus">+</span>
+          </div>
+
+          <div class="setup-card">
+            <div class="setup-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="setup-title">Add your team members</h3>
+            <p class="setup-desc">Get the work started; invite your team members to make it seamless.</p>
+            <a class="setup-link" routerLink="/teams">Set up now <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <span class="deco-plus">+</span>
+          </div>
+
+          <div class="setup-card">
+            <div class="setup-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="setup-title">Read the docs</h3>
+            <p class="setup-desc">Learn how to use Caltos effectively with our comprehensive documentation.</p>
+            <a class="setup-link" href="#" target="_blank">Set up now <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <span class="deco-plus">+</span>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- POST-KYC STATE -->
+    @if (kycComplete) {
+      <div class="content content-kyc-done">
+
+        <div class="qa-header">
+          <div>
+            <h1 class="qa-title">Quick Actions</h1>
+            <p class="qa-sub">Jump straight to what you need. Select an action to get started.</p>
+          </div>
+          <div class="org-pill">
+            <span class="org-dot" [style.background]="orgAvatarColor">{{ orgInitial }}</span>
+            <span class="org-name">{{ orgName }}</span>
+            <span class="kyc-done-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              KYC verified
+            </span>
+          </div>
+        </div>
+
+        <div class="action-grid">
+
+          <a class="action-card" routerLink="/products/create">
+            <div class="action-icon blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <h3 class="action-title">Create a loan product</h3>
+            <p class="action-desc">Define terms, fees, and eligibility rules for a new loan offering.</p>
+            <span class="action-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+
+          <a class="action-card" routerLink="/customers">
+            <div class="action-icon green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M19 8v6M22 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="action-title">Add a customer</h3>
+            <p class="action-desc">Onboard a new borrower and verify their KYC documents.</p>
+            <span class="action-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+
+          <a class="action-card" routerLink="/loans">
+            <div class="action-icon orange">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="action-title">Disburse a loan</h3>
+            <p class="action-desc">Review and release funds to an approved loan application.</p>
+            <span class="action-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+
+          <a class="action-card" routerLink="/reports">
+            <div class="action-icon purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="action-title">Generate a report</h3>
+            <p class="action-desc">Export loan performance, repayment, and collection analytics.</p>
+            <span class="action-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+
+          <a class="action-card" routerLink="/teams">
+            <div class="action-icon teal">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3 class="action-title">Manage team</h3>
+            <p class="action-desc">Invite colleagues and configure their roles and permissions.</p>
+            <span class="action-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+
+          <a class="action-card" routerLink="/settings">
+            <div class="action-icon gray">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <h3 class="action-title">Configure settings</h3>
+            <p class="action-desc">Customise your account, branding, and integrations.</p>
+            <span class="action-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </a>
+
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>
