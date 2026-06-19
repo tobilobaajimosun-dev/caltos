@@ -26,7 +26,7 @@ export class SidebarComponent {
 
   navItems: SideNavItem[] = [
     { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/' },
-    { id: 'home',          label: 'Home',                icon: 'home',      route: '/' },
+    { id: 'home',          label: 'Home',                icon: 'home',      route: '/home' },
     { id: 'customers',     label: 'Customers',           icon: 'customers' },
     { id: 'wallet',        label: 'Wallet',              icon: 'wallet' },
     { id: 'products',      label: 'Products',            icon: 'products',  route: '/products' },
