@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SidebarComponent, TooltipComponent, KpiCardComponent } from '../../../shared/components';
+import { SidebarComponent, TooltipComponent } from '../../../shared/components';
 
 type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity';
 
@@ -15,12 +15,13 @@ interface ChecklistItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, TooltipComponent, KpiCardComponent],
+  imports: [RouterLink, SidebarComponent, TooltipComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
 export class ProductDetailComponent {
   activeTab: DetailTab = 'overview';
+  statPeriod: 'today' | 'week' | 'month' | 'all' = 'month';
 
   readonly product = {
     name: 'Corper Wallet',
