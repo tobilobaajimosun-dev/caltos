@@ -76,12 +76,14 @@ export class ProductDetailComponent {
   };
 
   checklist: ChecklistItem[] = [
-    { id: 'details', label: 'Product details', description: 'Name, amounts, tenor, and interest rate configured', done: true, tab: 'overview' },
-    { id: 'eligibility', label: 'Eligibility & KYC', description: 'Borrower requirements and documents defined', done: false, tab: 'eligibility' },
-    { id: 'fees', label: 'Fees & penalties', description: 'Processing fee and penalty rules set up', done: true, tab: 'fees' },
-    { id: 'disbursement', label: 'Disbursement & repayment', description: 'Disbursement method and repayment schedule configured', done: false, tab: 'disbursement' },
-    { id: 'legal', label: 'Legal documentation', description: 'Policy text and consent language added', done: true, tab: 'legal' },
-    { id: 'portal', label: 'Borrower portal live', description: 'Product is visible on the public application portal', done: true, tab: 'overview' },
+    { id: 'details',      label: 'Product details',            description: 'Name, amounts, tenor, and interest rate configured',              done: true,  tab: 'overview'     },
+    { id: 'eligibility',  label: 'Eligibility & KYC',          description: 'Borrower requirements and required documents defined',             done: false, tab: 'eligibility'  },
+    { id: 'fees',         label: 'Fees & penalties',           description: 'Processing fee and late penalty rules set up',                    done: true,  tab: 'fees'         },
+    { id: 'disbursement', label: 'Disbursement & repayment',   description: 'Disbursement method and repayment schedule configured',           done: false, tab: 'disbursement' },
+    { id: 'integration',  label: 'Integration connection',     description: 'Payment gateway (Remita / NIBSS) linked for auto-deductions',     done: false, tab: 'disbursement' },
+    { id: 'target',       label: 'Loan product target',        description: 'Disbursement goal and portfolio cap set for this product',        done: false, tab: 'overview'     },
+    { id: 'legal',        label: 'Legal documentation',        description: 'Policy text and borrower consent language added',                 done: true,  tab: 'legal'        },
+    { id: 'portal',       label: 'Borrower portal live',       description: 'Product is visible on the public application portal',             done: true,  tab: 'overview'     },
   ];
 
   get completedCount() { return this.checklist.filter(c => c.done).length; }
