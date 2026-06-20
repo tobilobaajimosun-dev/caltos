@@ -117,11 +117,12 @@
 
 .edit-btn {
   display: inline-flex; align-items: center; gap: 7px;
-  background: var(--color-blue); color: #fff; border: none;
+  background: #fff; color: var(--color-body);
+  border: 1px solid var(--color-stroke);
   border-radius: 8px; padding: 8px 14px;
   font-family: var(--font-body); font-size: 13px; font-weight: 500;
   cursor: pointer;
-  &:hover { background: #0046a0; }
+  &:hover { background: #f7f8fa; }
 }
 
 /* ── Link bar ── */

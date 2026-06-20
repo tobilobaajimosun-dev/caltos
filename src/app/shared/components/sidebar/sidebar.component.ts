@@ -24,6 +24,8 @@ export class SidebarComponent {
   @Input() activeItemId = 'quick-actions';
   @Output() navChange = new EventEmitter<string>();
 
+  collapsed = false;
+
   navItems: SideNavItem[] = [
     { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/' },
     { id: 'home',          label: 'Home',                icon: 'home',      route: '/home' },

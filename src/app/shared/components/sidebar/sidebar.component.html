@@ -1,11 +1,18 @@
-<nav class="sidebar">
+<nav class="sidebar" [class.collapsed]="collapsed">
+
   <div class="sidebar-top">
     <app-org-profile
       [orgName]="orgName"
       avatarLetter="P"
       avatarColor="#E55A2B"
       role="ADMIN"
+      [iconOnly]="collapsed"
     />
+    <button class="collapse-btn" (click)="collapsed = !collapsed" [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" [class.flipped]="collapsed">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </div>
 
   <div class="nav-list">
@@ -15,12 +22,16 @@
         [icon]="item.icon"
         [active]="activeItemId === item.id"
         [hasDropdown]="item.hasDropdown ?? false"
+        [iconOnly]="collapsed"
         (clicked)="navigate(item)"
       />
     }
   </div>
 
-  <div class="sidebar-bottom">
-    <app-badge-card />
-  </div>
+  @if (!collapsed) {
+    <div class="sidebar-bottom">
+      <app-badge-card />
+    </div>
+  }
+
 </nav>

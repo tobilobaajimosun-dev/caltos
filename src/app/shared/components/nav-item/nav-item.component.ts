@@ -33,6 +33,7 @@ export class NavItemComponent {
   @Input() hasDropdown = false;
   @Input() expanded = false;
   @Input() variant: 'default' | 'primary-text' = 'default';
+  @Input() iconOnly = false;
   @Output() clicked = new EventEmitter<void>();
   @Output() expandedChange = new EventEmitter<boolean>();
 

@@ -1,6 +1,7 @@
 <button
   class="nav-item"
   [class.active]="active"
+  [class.icon-only]="iconOnly"
   [class.primary-text]="variant === 'primary-text'"
   (click)="onClick()">
 
@@ -10,9 +11,11 @@
     </span>
   }
 
-  <span class="label-text">{{ label }}</span>
+  @if (!iconOnly) {
+    <span class="label-text">{{ label }}</span>
+  }
 
-  @if (hasDropdown) {
+  @if (hasDropdown && !iconOnly) {
     <hi-icon
       class="chevron"
       [class.open]="expanded"

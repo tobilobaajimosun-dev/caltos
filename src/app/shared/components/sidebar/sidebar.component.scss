@@ -1,4 +1,4 @@
-:host { display: block; }
+:host { display: block; flex-shrink: 0; }
 
 .sidebar {
   display: flex;
@@ -11,12 +11,50 @@
   box-sizing: border-box;
   position: sticky;
   top: 0;
-  flex-shrink: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.2s ease;
+
+  &.collapsed {
+    width: 60px;
+  }
 }
 
 .sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 8px;
+  gap: 4px;
+  min-width: 0;
+
+  .collapsed & {
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+}
+
+.collapse-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--color-stroke);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-grey-header);
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: #f5f5f5; color: var(--color-body); }
+
+  svg {
+    transition: transform 0.2s ease;
+    &.flipped { transform: rotate(180deg); }
+  }
 }
 
 .nav-list {
