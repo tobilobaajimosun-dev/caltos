@@ -1,5 +1,5 @@
 import { Component, HostListener } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
@@ -99,5 +99,11 @@ export class ProductListComponent {
     return this.showProductTable && this.filteredProducts.length === 0;
   }
 
+  constructor(private router: Router) {}
+
   setTab(tab: ActiveTab) { this.activeTab = tab; }
+
+  navigateTo(productId: string) {
+    this.router.navigate(['/products', productId]);
+  }
 }

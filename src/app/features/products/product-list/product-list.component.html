@@ -61,6 +61,7 @@
           </app-tooltip>
         </div>
         <div class="stat-value">{{ stats.all }}</div>
+        <p class="stat-sub">across all statuses</p>
       </div>
       <div class="stat-card">
         <div class="stat-label">
@@ -70,6 +71,7 @@
           </app-tooltip>
         </div>
         <div class="stat-value">{{ stats.live }}</div>
+        <p class="stat-sub">accepting applications</p>
       </div>
       <div class="stat-card">
         <div class="stat-label">
@@ -79,15 +81,16 @@
           </app-tooltip>
         </div>
         <div class="stat-value">{{ stats.deactivated }}</div>
+        <p class="stat-sub">hidden from portal</p>
       </div>
     </div>
 
     <!-- Tabs + filter -->
     <div class="tabs-row">
       <div class="tabs">
-        <button class="tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">All Products</button>
-        <button class="tab" [class.active]="activeTab === 'live'" (click)="setTab('live')">Live</button>
-        <button class="tab" [class.active]="activeTab === 'deactivated'" (click)="setTab('deactivated')">Deactivated</button>
+        <button class="tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">All Products <span class="tab-count">{{ stats.all }}</span></button>
+        <button class="tab" [class.active]="activeTab === 'live'" (click)="setTab('live')">Live <span class="tab-count">{{ stats.live }}</span></button>
+        <button class="tab" [class.active]="activeTab === 'deactivated'" (click)="setTab('deactivated')">Deactivated <span class="tab-count">{{ stats.deactivated }}</span></button>
         <button class="tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees</button>
       </div>
       @if (activeTab === 'fees') {
@@ -122,7 +125,7 @@
           @if (!isEmpty) {
             <tbody>
               @for (product of filteredProducts; track product.productId; let i = $index) {
-                <tr>
+                <tr class="clickable-row" (click)="navigateTo(product.productId)">
                   <td class="col-name">
                     <div class="pname-cell">
                       <div class="pname-avatar" [attr.data-color]="i % 4">
