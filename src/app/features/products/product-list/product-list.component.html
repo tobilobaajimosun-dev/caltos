@@ -96,7 +96,7 @@
           Add custom new fee
         </button>
       } @else {
-        <button class="filter-btn">
+        <button class="filter-btn" style="margin-bottom: 10px;">
           <hi-icon [icon]="filterIcon" size="14" color="var(--color-body)" />
           Filter
         </button>
@@ -121,9 +121,16 @@
           </thead>
           @if (!isEmpty) {
             <tbody>
-              @for (product of filteredProducts; track product.productId) {
+              @for (product of filteredProducts; track product.productId; let i = $index) {
                 <tr>
-                  <td class="col-name">{{ product.name }}</td>
+                  <td class="col-name">
+                    <div class="pname-cell">
+                      <div class="pname-avatar" [attr.data-color]="i % 4">
+                        {{ product.name[0] }}{{ product.name.split(' ')[1]?.[0] ?? '' }}
+                      </div>
+                      {{ product.name }}
+                    </div>
+                  </td>
                   <td class="col-id">{{ product.productId }}</td>
                   <td>₦{{ product.minAmount }} - ₦{{ product.maxAmount }}</td>
                   <td>{{ product.minTenor }}-{{ product.maxTenor }} months</td>

@@ -50,7 +50,7 @@
    PRODUCT HEADER (Stripe-style)
 ══════════════════════════════════════ */
 .product-header {
-  background: #fff;
+  background: #fafbfd;
   border-bottom: 1px solid var(--color-stroke);
   padding: 20px 32px 0;
 }
@@ -200,9 +200,9 @@
 ══════════════════════════════════════ */
 .overview-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 20px;
-  padding: 24px 32px;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  padding: 28px 32px;
   align-items: start;
 }
 
@@ -244,20 +244,43 @@
   &.open { transform: rotate(180deg); }
 }
 
+.setup-progress-bar {
+  height: 3px;
+  background: var(--color-stroke);
+  width: 100%;
+}
+
+.setup-progress-fill {
+  height: 100%;
+  background: var(--color-blue);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.4s ease;
+}
+
 .setup-ch-items { border-top: 1px solid var(--color-stroke); }
 
 .setup-ch-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; border-bottom: 1px solid var(--color-stroke);
+  padding: 12px 16px 13px; border-bottom: 1px solid var(--color-stroke);
   &:last-child { border-bottom: none; }
   &:not(.done) { cursor: pointer; &:hover { background: rgba(0,83,166,0.02); } }
   &.done .setup-ch-item-label { text-decoration: line-through; color: var(--color-grey-header); }
+  &.done .setup-ch-item-desc { color: #d0d5dd; }
 }
 
 .check-icon { flex-shrink: 0; }
 
+.setup-ch-item-content {
+  flex: 1; min-width: 0;
+}
+
 .setup-ch-item-label {
-  flex: 1; font-family: var(--font-body); font-size: 13.5px; color: var(--color-body);
+  display: block; font-family: var(--font-body); font-size: 13.5px; color: var(--color-body);
+}
+
+.setup-ch-item-desc {
+  display: block; font-family: var(--font-body); font-size: 11.5px;
+  color: var(--color-grey-header); margin-top: 2px; line-height: 1.4;
 }
 
 .setup-ch-item-cta {
@@ -416,7 +439,7 @@
 .ss-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
 
 .ss-val {
-  font-family: var(--font-heading); font-size: 20px; font-weight: 700;
+  font-family: var(--font-heading); font-size: 24px; font-weight: 700;
   color: var(--color-header);
   &.danger { color: #dc2626; }
 }

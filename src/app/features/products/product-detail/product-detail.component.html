@@ -129,6 +129,9 @@
                   </svg>
                 </div>
               </div>
+              <div class="setup-progress-bar">
+                <div class="setup-progress-fill" [style.width]="setupPct + '%'"></div>
+              </div>
               @if (setupExpanded) {
                 <div class="setup-ch-items">
                   @for (item of checklist; track item.id) {
@@ -143,7 +146,10 @@
                           <circle cx="11" cy="11" r="9.5" fill="none" stroke="#c0c9d1" stroke-width="1.5" stroke-dasharray="4.5 3.5"/>
                         </svg>
                       }
-                      <span class="setup-ch-item-label">{{ item.label }}</span>
+                      <div class="setup-ch-item-content">
+                        <span class="setup-ch-item-label">{{ item.label }}</span>
+                        <span class="setup-ch-item-desc">{{ item.description }}</span>
+                      </div>
                       @if (!item.done) {
                         <span class="setup-ch-item-cta">Complete →</span>
                       }
