@@ -355,6 +355,48 @@ $blue-border: #B2DDFF;
 
 .aud-icon { color: var(--color-grey-header); line-height: 0; }
 
+// Audience pills
+.audience-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.audience-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--color-stroke);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-body);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  &:hover:not(.selected) { border-color: $blue; color: $blue; background: $blue-light; }
+  &.selected { border-color: $blue; background: $blue-light; color: $blue; }
+}
+
+.field-sub {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin: -2px 0 6px;
+}
+
+.audience-selected-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--color-grey-header);
+  svg { flex-shrink: 0; }
+}
+
 // Field layout
 .field-row {
   display: flex;

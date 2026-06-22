@@ -81,6 +81,36 @@
               </div>
             </div>
 
+            <!-- Target Audience -->
+            <div class="form-card">
+              <div class="form-card-title">Who is this for?</div>
+              <div class="field-group">
+                <label class="field-label">Target audience <span class="req">*</span></label>
+                <p class="field-sub">Select all groups eligible to apply for this product.</p>
+                <div class="audience-pills">
+                  @for (aud of audiences; track aud) {
+                    <button
+                      class="audience-pill"
+                      [class.selected]="config.targetAudiences.includes(aud)"
+                      (click)="toggleAudience(aud)">
+                      @if (config.targetAudiences.includes(aud)) {
+                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                          <path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      }
+                      {{ aud }}
+                    </button>
+                  }
+                </div>
+                @if (config.targetAudiences.length) {
+                  <div class="audience-selected-note">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                    {{ config.targetAudiences.join(' · ') }}
+                  </div>
+                }
+              </div>
+            </div>
+
             <!-- Amount Range -->
             <div class="form-card">
               <div class="form-card-title">Loan Amount Range</div>

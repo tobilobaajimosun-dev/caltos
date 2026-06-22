@@ -28,7 +28,8 @@ export class ProductDetailComponent {
     status: 'live' as const,
     createdAt: 'Aug 29, 2024, 3:52:12 PM GMT',
     description: 'Quick, flexible financing for corps members. Set your terms, define who qualifies, and start disbursing — all from one place.',
-    websiteLink: 'https://saas.product.com/7pzY',
+    websiteLink: 'caltos.app/apply/corper-wallet',
+    applyRoute: '/apply',
 
     // Step 1 – Product Details
     productId: 'CW001',
