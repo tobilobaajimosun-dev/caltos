@@ -27,7 +27,7 @@ export class ProductDetailComponent {
     name: 'Corper Wallet',
     status: 'live' as const,
     createdAt: 'Aug 29, 2024, 3:52:12 PM GMT',
-    description: 'This loan is for National Youth Service Corps members seeking quick access to personal finance during their service year.',
+    description: 'Quick, flexible financing for corps members. Set your terms, define who qualifies, and start disbursing — all from one place.',
     websiteLink: 'https://saas.product.com/7pzY',
 
     // Step 1 – Product Details
@@ -45,7 +45,7 @@ export class ProductDetailComponent {
 
     // Step 2 – Eligibility
     eligibility: ['Remita', 'IPPIS', 'Salary Earner'],
-    activeLoanPolicy: 'Restrict — borrowers with active loans cannot apply',
+    activeLoanPolicy: 'Restricted — borrowers must repay their active loan before reapplying.',
     kycDocs: ['National ID (NIN)', 'Utility Bill', 'Last 3 months payslip', 'Bank statement (6 months)'],
 
     // Step 3 – Fees
@@ -72,18 +72,18 @@ export class ProductDetailComponent {
     latePenalty: { enabled: true, type: 'Percentage', value: '2%', frequency: 'Daily', gracePeriod: '3 days' },
 
     // Step 7 – Legal
-    policyText: `By submitting your loan application, you acknowledge and agree to the following terms: Princeps Finance may verify information about your employment, salary, loans, and other relevant data from third-party sources to assess your loan eligibility. If your application is approved, loan instalments will be automatically deducted from your salary source before being credited to your account. In case of default, any outstanding balance may be recovered from other linked accounts you own.\n\nYou confirm your acknowledgment and acceptance of our Privacy Policy and Loan Terms and Conditions.`,
+    policyText: `By applying, you agree that Princeps Finance may verify your employment, salary, and credit history from third-party sources to assess your eligibility. If approved, your monthly repayments will be automatically deducted from your salary before funds are credited to your account. Any outstanding balance in the event of default may be recovered from your other linked accounts.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
   };
 
   checklist: ChecklistItem[] = [
-    { id: 'details',      label: 'Product details',            description: 'Name, amounts, tenor, and interest rate configured',              done: true,  tab: 'overview'     },
-    { id: 'eligibility',  label: 'Eligibility & KYC',          description: 'Borrower requirements and required documents defined',             done: false, tab: 'eligibility'  },
-    { id: 'fees',         label: 'Fees & penalties',           description: 'Processing fee and late penalty rules set up',                    done: true,  tab: 'fees'         },
-    { id: 'disbursement', label: 'Disbursement & repayment',   description: 'Disbursement method and repayment schedule configured',           done: false, tab: 'disbursement' },
-    { id: 'integration',  label: 'Integration connection',     description: 'Payment gateway (Remita / NIBSS) linked for auto-deductions',     done: false, tab: 'disbursement' },
-    { id: 'target',       label: 'Loan product target',        description: 'Disbursement goal and portfolio cap set for this product',        done: false, tab: 'overview'     },
-    { id: 'legal',        label: 'Legal documentation',        description: 'Policy text and borrower consent language added',                 done: true,  tab: 'legal'        },
-    { id: 'portal',       label: 'Borrower portal live',       description: 'Product is visible on the public application portal',             done: true,  tab: 'overview'     },
+    { id: 'details',      label: 'Set loan terms',              description: 'Set your loan name, amount limits, tenor range, and interest structure.',       done: true,  tab: 'overview'     },
+    { id: 'eligibility',  label: 'Define who qualifies',        description: 'Define who qualifies and the documents they need to provide.',                  done: false, tab: 'eligibility'  },
+    { id: 'fees',         label: 'Set your pricing',           description: 'Add processing fees, custom charges, and late payment penalties.',               done: true,  tab: 'fees'         },
+    { id: 'disbursement', label: 'Configure payouts',          description: 'Configure how funds go out and repayments come in.',                             done: false, tab: 'disbursement' },
+    { id: 'integration',  label: 'Connect your channels',      description: 'Connect Remita or NIBSS to enable automated salary deductions.',                 done: false, tab: 'disbursement' },
+    { id: 'target',       label: 'Set a disbursement goal',    description: 'Set a disbursement target and track your portfolio performance.',                 done: false, tab: 'overview'     },
+    { id: 'legal',        label: 'Add consent text',           description: 'Add consent language so borrowers know exactly what they\'re agreeing to.',       done: true,  tab: 'legal'        },
+    { id: 'portal',       label: 'Go live',                    description: 'Your product is live and accepting applications.',                                done: true,  tab: 'overview'     },
   ];
 
   setupExpanded = true;

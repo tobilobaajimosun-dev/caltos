@@ -73,7 +73,7 @@
             </button>
             <a class="ph-link-btn" [href]="product.websiteLink" target="_blank">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Open link
+              Preview portal
             </a>
             <button class="ph-link-btn ph-link-more">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
@@ -84,15 +84,15 @@
         <div class="ph-tabs">
           <button class="ph-tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
           <button class="ph-tab" [class.active]="activeTab === 'eligibility'" (click)="setTab('eligibility')">
-            Eligibility & KYC
+            Who can apply
             @if (!checklist[1].done) { <span class="tab-dot"></span> }
           </button>
-          <button class="ph-tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees & Penalties</button>
+          <button class="ph-tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Pricing & Fees</button>
           <button class="ph-tab" [class.active]="activeTab === 'disbursement'" (click)="setTab('disbursement')">
-            Disbursement & Repayment
+            Payouts & Repayments
             @if (!checklist[3].done) { <span class="tab-dot"></span> }
           </button>
-          <button class="ph-tab" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal</button>
+          <button class="ph-tab" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal & Consent</button>
           <button class="ph-tab" [class.active]="activeTab === 'activity'" (click)="setTab('activity')">Activity</button>
         </div>
 
@@ -113,11 +113,11 @@
                     <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
                   </svg>
-                  <span class="setup-ch-title">Product setup</span>
-                  <span class="setup-ch-badge">{{ completedCount }} / {{ checklist.length }}</span>
+                  <span class="setup-ch-title">Get this product live</span>
+                  <span class="setup-ch-badge">{{ completedCount }} of {{ checklist.length }} done</span>
                 </div>
                 <div class="setup-ch-right">
-                  <span class="setup-ch-pct">{{ setupPct }}% done</span>
+                  <span class="setup-ch-pct">{{ setupPct }}% complete</span>
                   <svg width="22" height="22" viewBox="0 0 22 22" style="transform: rotate(-90deg)">
                     <circle cx="11" cy="11" r="8" fill="none" stroke="#e5e7eb" stroke-width="2.5"/>
                     <circle cx="11" cy="11" r="8" fill="none" stroke="#0053a6" stroke-width="2.5"
@@ -145,7 +145,7 @@
                       }
                       <span class="setup-ch-item-label">{{ item.label }}</span>
                       @if (!item.done) {
-                        <span class="setup-ch-item-cta">Set up →</span>
+                        <span class="setup-ch-item-cta">Complete →</span>
                       }
                     </div>
                   }
@@ -156,15 +156,15 @@
             <!-- Products section (like Stripe) -->
             <div class="ov-section">
               <div class="ov-section-hd">
-                <h3 class="ov-section-title">Products</h3>
+                <h3 class="ov-section-title">Your loan offering</h3>
                 <button class="ov-section-edit">Edit</button>
               </div>
               <table class="ov-table">
                 <thead>
                   <tr>
-                    <th>NAME</th>
-                    <th>MIN AMOUNT</th>
-                    <th>MAX AMOUNT</th>
+                    <th>PRODUCT</th>
+                    <th>FROM</th>
+                    <th>UP TO</th>
                     <th>INTEREST RATE</th>
                   </tr>
                 </thead>
@@ -175,7 +175,7 @@
                         <div class="ov-product-icon">CW</div>
                         <div>
                           <p class="ov-product-name">{{ product.name }}</p>
-                          <p class="ov-product-sub">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }} · {{ product.interestType }}</p>
+                          <p class="ov-product-sub">{{ product.minTenor }}–{{ product.maxTenor }}-month terms · percentage interest</p>
                         </div>
                       </div>
                     </td>
@@ -190,18 +190,18 @@
             <!-- Eligibility & disbursement section (like Stripe Payment methods) -->
             <div class="ov-section">
               <div class="ov-section-hd">
-                <h3 class="ov-section-title">Eligibility & disbursement</h3>
-                <button class="ov-section-edit" (click)="goToTab('eligibility')">Manage</button>
+                <h3 class="ov-section-title">Who can apply</h3>
+                <button class="ov-section-edit" (click)="goToTab('eligibility')">Edit requirements</button>
               </div>
-              <p class="ov-section-note">Borrowers must meet at least one qualifying criterion before disbursement.</p>
-              <p class="ov-section-note muted">If an application qualifies, the following eligibility methods apply:</p>
+              <p class="ov-section-note">Borrowers must qualify through at least one of the following channels.</p>
+              <p class="ov-section-note muted">Qualifying channels:</p>
               <div class="ov-method-row">
                 @for (e of product.eligibility; track e) {
                   <div class="ov-method-chip">{{ e }}</div>
                 }
               </div>
               <div class="ov-method-divider"></div>
-              <p class="ov-section-note muted" style="padding: 0 16px 8px;">KYC documents required before disbursement:</p>
+              <p class="ov-section-note muted" style="padding: 0 16px 8px;">Required documents from applicants:</p>
               <div class="ov-method-row">
                 @for (doc of product.kycDocs; track doc) {
                   <div class="ov-method-chip doc">
@@ -225,7 +225,7 @@
                   </span>
                 </div>
                 <div class="ov-detail-row">
-                  <span class="ov-detail-label">Date created</span>
+                  <span class="ov-detail-label">Created</span>
                   <span class="ov-detail-val">{{ product.createdAt }}</span>
                 </div>
                 <div class="ov-detail-row">
@@ -237,19 +237,19 @@
                   <span class="ov-detail-val">{{ product.interestType }}</span>
                 </div>
                 <div class="ov-detail-row">
-                  <span class="ov-detail-label">Interest frequency</span>
+                  <span class="ov-detail-label">Charged</span>
                   <span class="ov-detail-val">{{ product.interestFrequency }}</span>
                 </div>
                 <div class="ov-detail-row">
-                  <span class="ov-detail-label">Repayment frequency</span>
+                  <span class="ov-detail-label">Repayment schedule</span>
                   <span class="ov-detail-val">{{ product.repaymentFrequency }}</span>
                 </div>
                 <div class="ov-detail-row">
-                  <span class="ov-detail-label">First payment offset</span>
+                  <span class="ov-detail-label">First payment due</span>
                   <span class="ov-detail-val">{{ product.firstPaymentOffset }}</span>
                 </div>
                 <div class="ov-detail-row">
-                  <span class="ov-detail-label">Active loan policy</span>
+                  <span class="ov-detail-label">Re-apply rule</span>
                   <span class="ov-detail-val">Restricted</span>
                 </div>
                 <div class="ov-detail-row">
@@ -257,7 +257,7 @@
                   <span class="ov-detail-val">{{ product.offerLetter }}</span>
                 </div>
                 <div class="ov-detail-row">
-                  <span class="ov-detail-label">Video confirmation</span>
+                  <span class="ov-detail-label">Video verification</span>
                   <span class="ov-detail-val">{{ product.videoConfirmation }}</span>
                 </div>
               </div>
@@ -278,7 +278,7 @@
               </div>
               <div class="sidebar-stat-list">
                 <div class="sidebar-stat">
-                  <p class="ss-label">Disbursed (MTD)</p>
+                  <p class="ss-label">Disbursed this month</p>
                   <div class="ss-row">
                     <span class="ss-val">₦42.3M</span>
                     <span class="trend-pill up">↑ 12%</span>
@@ -302,12 +302,12 @@
                   <p class="ss-sub">same as last month</p>
                 </div>
                 <div class="sidebar-stat">
-                  <p class="ss-label">Overdue loans</p>
+                  <p class="ss-label">Overdue</p>
                   <div class="ss-row">
                     <span class="ss-val danger">284</span>
                     <span class="trend-pill down">↑ 3%</span>
                   </div>
-                  <p class="ss-sub">monitor closely</p>
+                  <p class="ss-sub">needs attention</p>
                 </div>
               </div>
             </div>
@@ -315,7 +315,7 @@
             <!-- Customer breakdown -->
             <div class="sidebar-card">
               <div class="sc-hd">
-                <p class="sc-title">Customer breakdown</p>
+                <p class="sc-title">Your borrowers</p>
                 <button class="period-btn">Today <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
               </div>
               <div class="donut-wrap">
@@ -326,7 +326,7 @@
                   <circle cx="65" cy="65" r="46" fill="none" stroke="#f59e0b" stroke-width="18" stroke-dasharray="29 260" transform="rotate(-90 65 65)" stroke-dashoffset="-167"/>
                 </svg>
                 <div class="donut-center">
-                  <p class="donut-sub">All Customers</p>
+                  <p class="donut-sub">Total borrowers</p>
                   <p class="donut-val">12,000</p>
                 </div>
               </div>
@@ -340,7 +340,7 @@
             <!-- Key parameters -->
             <div class="sidebar-card">
               <div class="sc-hd">
-                <p class="sc-title">Key parameters</p>
+                <p class="sc-title">At a glance</p>
               </div>
               <div class="sc-params">
                 <div class="sc-param-row">
@@ -348,7 +348,7 @@
                   <span class="sc-param-val">₦{{ product.minAmount }} – ₦{{ product.maxAmount }}</span>
                 </div>
                 <div class="sc-param-row">
-                  <span class="sc-param-label">Tenor range</span>
+                  <span class="sc-param-label">Loan term</span>
                   <span class="sc-param-val">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }}</span>
                 </div>
                 <div class="sc-param-row">
@@ -360,7 +360,7 @@
                   <span class="sc-param-val good">91.4%</span>
                 </div>
                 <div class="sc-param-row">
-                  <span class="sc-param-label">Total customers</span>
+                  <span class="sc-param-label">Total borrowers</span>
                   <span class="sc-param-val">12,000</span>
                 </div>
               </div>
@@ -376,11 +376,11 @@
           <div class="section-grid">
             <div class="detail-card">
               <div class="card-header">
-                <p class="card-title">Eligibility requirements</p>
+                <p class="card-title">Qualifying criteria</p>
                 <button class="card-edit">Edit</button>
               </div>
               <p class="field-label">
-                Qualifying criteria
+                Who qualifies
                 <app-tooltip text="Borrowers must meet at least one of these criteria to be eligible for this product." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
@@ -403,11 +403,11 @@
 
             <div class="detail-card">
               <div class="card-header">
-                <p class="card-title">KYC documents required</p>
+                <p class="card-title">Required documents</p>
                 <button class="card-edit">Edit</button>
               </div>
               <p class="field-label">
-                Borrowers must provide the following
+                Applicants must submit these before receiving funds
                 <app-tooltip text="These documents are verified before loan disbursement." position="right">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </app-tooltip>
@@ -555,13 +555,13 @@
         <div class="tab-body">
           <div class="detail-card">
             <div class="card-header">
-              <p class="card-title">Loan policy & consent text</p>
+              <p class="card-title">Borrower consent & policy</p>
               <button class="card-edit">Edit</button>
             </div>
             <div class="policy-box">{{ product.policyText }}</div>
             <div class="policy-footer">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Borrowers must explicitly check a consent box before their application is submitted.
+              Applicants check this box when they submit their application.
             </div>
           </div>
         </div>
