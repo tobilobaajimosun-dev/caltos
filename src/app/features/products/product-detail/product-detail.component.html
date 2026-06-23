@@ -83,6 +83,13 @@
 
         <div class="ph-tabs">
           <button class="ph-tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
+          @if (isBnpl) {
+            <button class="ph-tab bnpl-tab" [class.active]="activeTab === 'vendors'" (click)="setTab('vendors')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+              Vendors
+              <span class="vendor-count-badge">{{ vendors.length }}</span>
+            </button>
+          }
           <button class="ph-tab" [class.active]="activeTab === 'eligibility'" (click)="setTab('eligibility')">
             Who can apply
             @if (!checklist[1].done) { <span class="tab-dot"></span> }
@@ -582,6 +589,303 @@
         </div>
       }
 
+      <!-- ═══ VENDORS ═══ -->
+      @if (activeTab === 'vendors') {
+        <div class="tab-body">
+
+          <div class="vendors-header">
+            <div>
+              <h2 class="vendors-title">Vendors</h2>
+              <p class="vendors-sub">Each vendor gets a unique purchase link. Approved funds go directly to their settlement account.</p>
+            </div>
+            <button class="onboard-btn" (click)="openOnboardModal()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+              Onboard a Vendor
+            </button>
+          </div>
+
+          @if (vendors.length > 0) {
+            <div class="vendor-table">
+              <div class="vendor-table-head">
+                <span>Business</span>
+                <span>Category</span>
+                <span>Status</span>
+                <span>Settlement Account</span>
+                <span>Date Added</span>
+                <span></span>
+              </div>
+              @for (vendor of vendors; track vendor.id) {
+                <div class="vendor-row" [class.suspended]="vendor.status === 'suspended'">
+                  <div class="vendor-biz">
+                    <div class="vendor-avatar">{{ vendor.businessName[0] }}</div>
+                    <div>
+                      <div class="vendor-biz-name">{{ vendor.businessName }}</div>
+                      <div class="vendor-biz-link">{{ vendorLink(vendor) }}</div>
+                    </div>
+                  </div>
+                  <span class="vendor-cat">{{ vendor.category }}</span>
+                  <span>
+                    @if (vendor.status === 'active') {
+                      <span class="vstatus active"><span class="vstatus-dot"></span>Active</span>
+                    }
+                    @if (vendor.status === 'suspended') {
+                      <span class="vstatus suspended"><span class="vstatus-dot"></span>Suspended</span>
+                    }
+                    @if (vendor.status === 'pending') {
+                      <span class="vstatus pending"><span class="vstatus-dot"></span>Pending</span>
+                    }
+                  </span>
+                  <span class="vendor-bank">{{ vendor.settlementBank }} · ••••{{ vendor.settlementAccount.slice(-4) }}</span>
+                  <span class="vendor-date">{{ vendor.dateAdded }}</span>
+                  <div class="vendor-actions">
+                    <button class="va-btn" title="Copy vendor link" (click)="copyVendorLink(vendor)">
+                      @if (copiedVendorId === vendor.id) {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      } @else {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+                      }
+                    </button>
+                    <button class="va-btn" [title]="vendor.status === 'suspended' ? 'Re-activate' : 'Suspend'" (click)="suspendVendor(vendor)">
+                      @if (vendor.status === 'suspended') {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#027A48" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#027A48" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      } @else {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v6M14 9v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      }
+                    </button>
+                    <button class="va-btn danger" title="Remove vendor" (click)="removeVendor(vendor.id)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="vendors-empty">
+              <div class="vendors-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+              </div>
+              <div class="vendors-empty-title">No vendors yet</div>
+              <p class="vendors-empty-sub">Onboard your first vendor to generate a unique purchase link.</p>
+              <button class="onboard-btn" (click)="openOnboardModal()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+                Onboard a Vendor
+              </button>
+            </div>
+          }
+
+        </div>
+      }
+
     </div>
   </div>
 </div>
+
+<!-- ═══ ONBOARD VENDOR MODAL ═══ -->
+@if (showOnboardModal) {
+  <div class="modal-overlay" (click)="showOnboardModal = false">
+    <div class="onboard-modal" (click)="$event.stopPropagation()">
+
+      <div class="onboard-modal-header">
+        <div>
+          <div class="onboard-modal-title">Onboard a Vendor</div>
+          <div class="onboard-modal-sub">Step {{ onboardStep + 1 }} of 4 — {{ ['Business Details', 'Director / Owner KYC', 'Settlement Account', 'Review & Confirm'][onboardStep] }}</div>
+        </div>
+        <button class="modal-close-btn" (click)="showOnboardModal = false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="onboard-steps-bar">
+        @for (label of ['Business', 'Director', 'Settlement', 'Review']; track label; let i = $index) {
+          @if (i > 0) { <div class="onboard-connector" [class.done]="i <= onboardStep"></div> }
+          <div class="onboard-step-dot" [class.active]="i === onboardStep" [class.done]="i < onboardStep">
+            @if (i < onboardStep) {
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            } @else { {{ i + 1 }} }
+          </div>
+        }
+      </div>
+
+      <div class="onboard-modal-body">
+
+        @if (onboardStep === 0) {
+          <div class="ob-field-group">
+            <label class="ob-label">Business name <span class="ob-req">*</span></label>
+            <input class="ob-input" type="text" placeholder="e.g. TechHub Electronics Ltd" [(ngModel)]="newVendor.businessName" />
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">CAC registration number <span class="ob-req">*</span></label>
+            <input class="ob-input" type="text" placeholder="e.g. RC-123456" [(ngModel)]="newVendor.cac" />
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Business category <span class="ob-req">*</span></label>
+            <select class="ob-input" [(ngModel)]="newVendor.category">
+              <option value="">Select category…</option>
+              @for (cat of bnplCategories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Business address <span class="ob-req">*</span></label>
+            <input class="ob-input" type="text" placeholder="e.g. 12 Lagos Road, Ikeja" [(ngModel)]="newVendor.address" />
+          </div>
+          <div class="ob-two-col">
+            <div class="ob-field-group">
+              <label class="ob-label">Business phone <span class="ob-req">*</span></label>
+              <input class="ob-input" type="tel" placeholder="0800 000 0000" [(ngModel)]="newVendor.phone" />
+            </div>
+            <div class="ob-field-group">
+              <label class="ob-label">Business email <span class="ob-req">*</span></label>
+              <input class="ob-input" type="email" placeholder="info@business.ng" [(ngModel)]="newVendor.email" />
+            </div>
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Business website <span class="ob-optional">(optional)</span></label>
+            <input class="ob-input" type="url" placeholder="https://yourbusiness.com" [(ngModel)]="newVendor.website" />
+          </div>
+        }
+
+        @if (onboardStep === 1) {
+          <div class="ob-field-group">
+            <label class="ob-label">Director full name <span class="ob-req">*</span></label>
+            <input class="ob-input" type="text" placeholder="e.g. Adeola Okonkwo" [(ngModel)]="newVendor.directorName" />
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Director phone <span class="ob-req">*</span></label>
+            <input class="ob-input" type="tel" placeholder="0800 000 0000" [(ngModel)]="newVendor.directorPhone" />
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Government ID type <span class="ob-req">*</span></label>
+            <select class="ob-input" [(ngModel)]="newVendor.directorIdType">
+              <option>Passport</option>
+              <option>Driver's Licence</option>
+              <option>NIN</option>
+              <option>Voter's Card</option>
+            </select>
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">{{ newVendor.directorIdType }} upload <span class="ob-req">*</span></label>
+            <div class="ob-upload-zone">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Click to upload or drag & drop</span>
+              <span class="ob-upload-hint">PDF, PNG, JPG — max 5MB</span>
+            </div>
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Director BVN <span class="ob-req">*</span></label>
+            <input class="ob-input" type="text" placeholder="Enter 11-digit BVN" maxlength="11" [(ngModel)]="newVendor.directorBvn" />
+          </div>
+        }
+
+        @if (onboardStep === 2) {
+          <div class="ob-info-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+            Approved BNPL funds will be disbursed to this account. The account name must match the registered business name.
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Bank <span class="ob-req">*</span></label>
+            <select class="ob-input" [(ngModel)]="newVendor.bankName">
+              <option value="">Select bank…</option>
+              @for (bank of nigerianBanks; track bank) {
+                <option [value]="bank">{{ bank }}</option>
+              }
+            </select>
+          </div>
+          <div class="ob-field-group">
+            <label class="ob-label">Account number <span class="ob-req">*</span></label>
+            <div class="ob-verify-row">
+              <input class="ob-input" type="text" placeholder="10-digit account number" maxlength="10"
+                [(ngModel)]="newVendor.accountNumber"
+                (input)="newVendor.accountName = ''; newVendor.accountNameVerified = false; newVendor.accountNameError = ''" />
+              <button class="ob-verify-btn" (click)="verifyAccountName()" [disabled]="newVendor.accountNumber.length < 10 || accountNameVerifying">
+                {{ accountNameVerifying ? 'Verifying…' : 'Verify' }}
+              </button>
+            </div>
+          </div>
+          @if (accountNameVerifying) {
+            <div class="ob-verifying">
+              <span class="ob-spinner"></span>Verifying account name via Monnify…
+            </div>
+          }
+          @if (newVendor.accountName && newVendor.accountNameVerified) {
+            <div class="ob-account-verified">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#D1FAE5"/><path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div>
+                <div class="ob-account-name">{{ newVendor.accountName }}</div>
+                <div class="ob-account-match">Account verified — name matches business name</div>
+              </div>
+            </div>
+          }
+          @if (newVendor.accountNameError) {
+            <div class="ob-account-error">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#F04438" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="#F04438" stroke-width="1.8" stroke-linecap="round"/></svg>
+              {{ newVendor.accountNameError }}
+            </div>
+          }
+        }
+
+        @if (onboardStep === 3) {
+          <div class="ob-review-section">
+            <div class="ob-review-title">Business Details</div>
+            <div class="ob-review-grid">
+              <div class="ob-rv"><span class="ob-rv-l">Business Name</span><span class="ob-rv-v">{{ newVendor.businessName || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">CAC Number</span><span class="ob-rv-v">{{ newVendor.cac || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Category</span><span class="ob-rv-v">{{ newVendor.category || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Address</span><span class="ob-rv-v">{{ newVendor.address || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Phone</span><span class="ob-rv-v">{{ newVendor.phone || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Email</span><span class="ob-rv-v">{{ newVendor.email || '—' }}</span></div>
+            </div>
+          </div>
+          <div class="ob-review-section">
+            <div class="ob-review-title">Director / Owner</div>
+            <div class="ob-review-grid">
+              <div class="ob-rv"><span class="ob-rv-l">Director Name</span><span class="ob-rv-v">{{ newVendor.directorName || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Director Phone</span><span class="ob-rv-v">{{ newVendor.directorPhone || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">ID Type</span><span class="ob-rv-v">{{ newVendor.directorIdType }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">BVN</span><span class="ob-rv-v">{{ newVendor.directorBvn ? '••••••' + newVendor.directorBvn.slice(-5) : '—' }}</span></div>
+            </div>
+          </div>
+          <div class="ob-review-section">
+            <div class="ob-review-title">Settlement Account</div>
+            <div class="ob-review-grid">
+              <div class="ob-rv"><span class="ob-rv-l">Bank</span><span class="ob-rv-v">{{ newVendor.bankName || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Account Number</span><span class="ob-rv-v">{{ newVendor.accountNumber || '—' }}</span></div>
+              <div class="ob-rv">
+                <span class="ob-rv-l">Account Name</span>
+                <span class="ob-rv-v">
+                  {{ newVendor.accountName || '—' }}
+                  @if (newVendor.accountNameVerified) { <span class="ob-verified-tag">Verified</span> }
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <div class="onboard-modal-footer">
+        @if (onboardStep > 0) {
+          <button class="ob-back-btn" (click)="onboardBack()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
+        } @else {
+          <button class="ob-back-btn" (click)="showOnboardModal = false">Cancel</button>
+        }
+        @if (onboardStep < 3) {
+          <button class="ob-next-btn" (click)="onboardNext()">
+            Continue
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        } @else {
+          <button class="ob-confirm-btn" (click)="confirmOnboard()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Onboard Vendor
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+}

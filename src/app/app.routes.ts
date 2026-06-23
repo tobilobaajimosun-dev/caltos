@@ -5,6 +5,7 @@ import { HomeComponent } from './pages/home/home.component';
 import { ProductListComponent } from './features/products/product-list/product-list.component';
 import { ProductDetailComponent } from './features/products/product-detail/product-detail.component';
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
+import { CreateBnplComponent } from './features/products/create-bnpl/create-bnpl.component';
 import { ApplyComponent } from './features/apply/apply.component';
 
 export const routes: Routes = [
@@ -12,6 +13,7 @@ export const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'products', component: ProductListComponent },
   { path: 'products/create', component: CreateLoanComponent },
+  { path: 'products/create-bnpl', component: CreateBnplComponent },
   { path: 'products/:id', component: ProductDetailComponent },
   { path: 'apply', component: ApplyComponent },
   { path: 'showcase', component: ShowcaseComponent },

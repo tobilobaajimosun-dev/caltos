@@ -106,7 +106,11 @@ export class LoanTypeModalComponent {
   continue() {
     if (!this.selectedId) return;
     this.typeSelected.emit(this.selectedId);
-    this.router.navigate(['/products/create'], { queryParams: { type: this.selectedId } });
+    if (this.selectedId === 'bnpl') {
+      this.router.navigate(['/products/create-bnpl']);
+    } else {
+      this.router.navigate(['/products/create'], { queryParams: { type: this.selectedId } });
+    }
   }
 
   close() {

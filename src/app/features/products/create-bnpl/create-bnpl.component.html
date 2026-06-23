@@ -1,0 +1,970 @@
+<div class="page">
+  <app-sidebar activeItemId="products" />
+
+  <div class="main">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <a routerLink="/products" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Products
+      </a>
+      <div class="loan-name-wrap">
+        <span class="bnpl-badge">BNPL</span>
+        <input
+          class="loan-name-input"
+          placeholder="New BNPL Product"
+          [value]="config.name"
+          (input)="onNameChange($any($event.target).value)" />
+        @if (isDraft) { <span class="draft-badge">Draft</span> }
+        @if (config.name.length > 2 && nameAvailable) { <span class="available-badge">Available</span> }
+      </div>
+      <div class="top-actions">
+        <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
+        <a routerLink="/apply" target="_blank" class="btn-preview-product">
+          <hi-icon [icon]="eyeIcon" size="14" color="currentColor" />
+          Preview Product
+        </a>
+        <button class="btn-next-step" (click)="next()" [disabled]="isLast">
+          Next Step
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper-bar">
+      <div class="stepper-inner">
+        @for (step of steps; track step.id; let i = $index) {
+          @if (i > 0) {
+            <div class="step-connector" [class.done]="i <= currentStep"></div>
+          }
+          <button class="step-item" [class.active]="stepStatus(i) === 'active'" [class.done]="stepStatus(i) === 'done'" (click)="goToStep(i)">
+            <div class="step-circle">
+              @if (stepStatus(i) === 'done') {
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+                  <path d="M2.5 7l3 3 6-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              } @else {
+                {{ i + 1 }}
+              }
+            </div>
+            <span class="step-label">{{ step.shortLabel }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <div class="content">
+
+        <!-- ── STEP: about ── -->
+        @if (stepId === 'about') {
+          <div class="content-header">
+            <h1 class="content-title">About this BNPL Product</h1>
+            <p class="content-sub">Define the basics of your Buy Now Pay Later product — name, purchase limits, and interest structure.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Product Identity</div>
+              <div class="field-group">
+                <label class="field-label">Product name <span class="req">*</span></label>
+                <div class="name-input-wrap">
+                  <input class="text-input" type="text" placeholder="e.g. Quick Buy BNPL"
+                    [value]="config.name" (input)="onNameChange($any($event.target).value)" />
+                  @if (config.name.length > 2 && nameAvailable) {
+                    <span class="name-available">
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                        <circle cx="7" cy="7" r="7" fill="#12B76A"/>
+                        <path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      Available
+                    </span>
+                  }
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Description <span class="req">*</span></label>
+                <app-textarea
+                  [value]="config.description"
+                  placeholder="A short description of this BNPL product (max 160 characters)"
+                  [rows]="3"
+                  (valueChange)="config.description = $event" />
+                <div class="char-count" [class.over]="descLength > 160">{{ descLength }}/160</div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Purchase Limits</div>
+              <p class="form-card-sub">Set the minimum and maximum purchase amount a customer can finance through this product.</p>
+              <div class="two-col">
+                <div class="field-group">
+                  <label class="field-label">Minimum purchase amount <span class="req">*</span></label>
+                  <div class="input-prefix-wrap">
+                    <span class="input-prefix">₦</span>
+                    <input class="text-input" type="text" placeholder="e.g. 5,000" [(ngModel)]="config.minPurchaseAmount" />
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Maximum purchase amount <span class="req">*</span></label>
+                  <div class="input-prefix-wrap">
+                    <span class="input-prefix">₦</span>
+                    <input class="text-input" type="text" placeholder="e.g. 500,000" [(ngModel)]="config.maxPurchaseAmount" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Interest</div>
+              <div class="field-group">
+                <label class="field-label">Interest model</label>
+                <div class="seg-group">
+                  @for (m of interestModels; track m) {
+                    <button class="seg-btn" [class.active]="config.interestModel === m" (click)="config.interestModel = m">{{ m }}</button>
+                  }
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="field-group">
+                  <label class="field-label">Interest rate <span class="req">*</span></label>
+                  <div class="input-suffix-wrap">
+                    <input class="text-input" type="text" placeholder="e.g. 5" [(ngModel)]="config.interestRate" />
+                    <span class="input-suffix">% per cycle</span>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Charged</label>
+                  <select class="text-input" [(ngModel)]="config.interestFrequency">
+                    @for (f of interestFrequencies; track f) {
+                      <option [value]="f">{{ f }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Eligibility Basics</div>
+              <div class="two-col">
+                <div class="field-group">
+                  <label class="field-label">Minimum age <span class="req">*</span></label>
+                  <div class="input-suffix-wrap">
+                    <input class="text-input" type="number" placeholder="18" [(ngModel)]="config.minAge" />
+                    <span class="input-suffix">years</span>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Maximum age <span class="optional">(optional)</span></label>
+                  <div class="input-suffix-wrap">
+                    <input class="text-input" type="number" placeholder="No limit" [(ngModel)]="config.maxAge" />
+                    <span class="input-suffix">years</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: categories ── -->
+        @if (stepId === 'categories') {
+          <div class="content-header">
+            <h1 class="content-title">Eligible Categories & Limits</h1>
+            <p class="content-sub">Choose which product categories vendors can use this BNPL product for, and set default spending limits.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Product Categories</div>
+              <p class="form-card-sub">Select every category this BNPL product covers. Vendors can only onboard under categories you enable here.</p>
+              <div class="cat-grid">
+                @for (cat of categories; track cat) {
+                  <button class="cat-card" [class.selected]="config.eligibleCategories.includes(cat)" (click)="toggleCategory(cat)">
+                    <div class="cat-check" [class.active]="config.eligibleCategories.includes(cat)"></div>
+                    <span class="cat-name">{{ cat }}</span>
+                  </button>
+                }
+              </div>
+              <div class="field-group" style="margin-top:4px">
+                <label class="field-label">Custom category <span class="optional">(optional)</span></label>
+                <p class="field-sub">Add a category not listed above. It will appear as-is on vendor onboarding links.</p>
+                <input class="text-input" type="text" placeholder="e.g. Solar Energy Equipment" [(ngModel)]="config.customCategory" />
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Default Vendor Limit</div>
+              <p class="form-card-sub">Set the default maximum purchase amount a single vendor can process per customer per transaction. You can override this per-vendor after onboarding.</p>
+              <div class="field-group">
+                <label class="field-label">Default limit <span class="req">*</span></label>
+                <div class="input-prefix-wrap">
+                  <span class="input-prefix">₦</span>
+                  <input class="text-input" type="text" placeholder="e.g. 200,000" [(ngModel)]="config.defaultVendorLimit" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Purchase Mode</div>
+              <p class="form-card-sub">Choose how customers initiate a BNPL purchase at the vendor.</p>
+              <div class="radio-option-list">
+                <label class="radio-option" (click)="config.purchaseMode = 'amount'">
+                  <input type="radio" name="purchaseMode" [checked]="config.purchaseMode === 'amount'" />
+                  <div>
+                    <div class="radio-label">Customer enters purchase amount</div>
+                    <div class="radio-sub">The customer types in how much they want to finance. Best for open-ticket vendors.</div>
+                  </div>
+                </label>
+                <label class="radio-option" (click)="config.purchaseMode = 'invoice'">
+                  <input type="radio" name="purchaseMode" [checked]="config.purchaseMode === 'invoice'" />
+                  <div>
+                    <div class="radio-label">Vendor sends invoice / purchase order</div>
+                    <div class="radio-sub">The vendor pre-fills the amount via their unique link. Best for controlled checkouts.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: verification ── -->
+        @if (stepId === 'verification') {
+          <div class="content-header">
+            <h1 class="content-title">Verification</h1>
+            <p class="content-sub">Configure how you verify borrower identity, affordability, and required documents.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Identity Verification</div>
+              <p class="form-card-sub">Select the methods you want to use to confirm who the applicant is.</p>
+              <div class="verify-grid">
+                <button class="verify-card" [class.selected]="config.identityBvn" (click)="config.identityBvn = !config.identityBvn">
+                  <div class="verify-check" [class.active]="config.identityBvn"></div>
+                  <div class="verify-title">BVN Lookup</div>
+                  <div class="verify-sub">Verify name, date of birth and phone via BVN</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.identityNin" (click)="config.identityNin = !config.identityNin">
+                  <div class="verify-check" [class.active]="config.identityNin"></div>
+                  <div class="verify-title">NIN Lookup</div>
+                  <div class="verify-sub">Cross-check identity using National ID Number</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.identityPhoneOtp" (click)="config.identityPhoneOtp = !config.identityPhoneOtp">
+                  <div class="verify-check" [class.active]="config.identityPhoneOtp"></div>
+                  <div class="verify-title">Phone OTP</div>
+                  <div class="verify-sub">Send a one-time code to the applicant's phone</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.identityEmailOtp" (click)="config.identityEmailOtp = !config.identityEmailOtp">
+                  <div class="verify-check" [class.active]="config.identityEmailOtp"></div>
+                  <div class="verify-title">Email OTP</div>
+                  <div class="verify-sub">Send a one-time code to the applicant's email</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Affordability Check</div>
+              <p class="form-card-sub">Choose how you'll assess whether the applicant can repay. At least one method is recommended.</p>
+              <div class="verify-grid">
+                <button class="verify-card" [class.selected]="config.affordabilityBankStatement" (click)="config.affordabilityBankStatement = !config.affordabilityBankStatement">
+                  <div class="verify-check" [class.active]="config.affordabilityBankStatement"></div>
+                  <div class="verify-title">Bank Statement</div>
+                  <div class="verify-sub">Analyse income and spending via bank statement</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.affordabilityRemita" (click)="config.affordabilityRemita = !config.affordabilityRemita">
+                  <div class="verify-check" [class.active]="config.affordabilityRemita"></div>
+                  <div class="verify-title">Remita</div>
+                  <div class="verify-sub">Check salary and deductions via Remita</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.affordabilityIppis" (click)="config.affordabilityIppis = !config.affordabilityIppis">
+                  <div class="verify-check" [class.active]="config.affordabilityIppis"></div>
+                  <div class="verify-title">IPPIS</div>
+                  <div class="verify-sub">Verify government payroll via IPPIS</div>
+                </button>
+                <button class="verify-card" [class.selected]="config.affordabilitySelfDeclared" (click)="config.affordabilitySelfDeclared = !config.affordabilitySelfDeclared">
+                  <div class="verify-check" [class.active]="config.affordabilitySelfDeclared"></div>
+                  <div class="verify-title">Self-declared Income</div>
+                  <div class="verify-sub">Applicant declares income without third-party check</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Document Requirements</div>
+              <p class="form-card-sub">Set whether each document is required, optional, or not collected.</p>
+              <div class="doc-list">
+                @for (doc of docRows; track doc.key) {
+                  <div class="doc-row">
+                    <span class="doc-name">{{ doc.label }}</span>
+                    <div class="doc-btn-group">
+                      <button class="doc-btn" [class.selected]="getDocReq(doc.key) === 'required'" (click)="setDocReq(doc.key, 'required')">Required</button>
+                      <button class="doc-btn" [class.selected]="getDocReq(doc.key) === 'optional'" (click)="setDocReq(doc.key, 'optional')">Optional</button>
+                      <button class="doc-btn" [class.selected]="getDocReq(doc.key) === 'none'" (click)="setDocReq(doc.key, 'none')">None</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: pricing ── -->
+        @if (stepId === 'pricing') {
+          <div class="content-header">
+            <h1 class="content-title">Pricing & Fees</h1>
+            <p class="content-sub">Configure fees charged to the borrower and penalties for late repayments.</p>
+          </div>
+
+          <div class="tab-row" style="margin-bottom:16px">
+            <button class="tab-btn" [class.active]="pricingTab === 'fees'" (click)="pricingTab = 'fees'">Fees</button>
+            <button class="tab-btn" [class.active]="pricingTab === 'penalties'" (click)="pricingTab = 'penalties'">Penalties</button>
+          </div>
+
+          @if (pricingTab === 'fees') {
+            <div class="form-sections">
+
+              <div class="form-card">
+                <div class="form-card-title">Processing Fee</div>
+                <div class="field-group">
+                  <label class="field-label">Fee type</label>
+                  <div class="seg-group">
+                    <button class="seg-btn" [class.active]="config.processingFeeType === 'Percentage'" (click)="config.processingFeeType = 'Percentage'">Percentage</button>
+                    <button class="seg-btn" [class.active]="config.processingFeeType === 'Flat Fee'" (click)="config.processingFeeType = 'Flat Fee'">Flat Fee</button>
+                  </div>
+                </div>
+                <div class="two-col">
+                  <div class="field-group">
+                    <label class="field-label">Rate <span class="req">*</span></label>
+                    <div class="input-suffix-wrap">
+                      <input class="text-input" type="text" placeholder="e.g. 1.5" [(ngModel)]="config.processingFeeRate" />
+                      <span class="input-suffix">{{ config.processingFeeType === 'Percentage' ? '%' : '₦' }}</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Applies to</label>
+                    <select class="text-input" [(ngModel)]="config.processingFeeApplicableTo">
+                      <option>Purchase Amount</option>
+                      <option>Disbursement Amount</option>
+                    </select>
+                  </div>
+                </div>
+                @if (config.processingFeeType === 'Percentage') {
+                  <div class="two-col">
+                    <div class="field-group">
+                      <label class="field-label">Minimum fee <span class="optional">(optional)</span></label>
+                      <div class="input-prefix-wrap">
+                        <span class="input-prefix">₦</span>
+                        <input class="text-input" type="text" placeholder="0" [(ngModel)]="config.processingFeeMin" />
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Maximum fee <span class="optional">(optional)</span></label>
+                      <div class="input-prefix-wrap">
+                        <span class="input-prefix">₦</span>
+                        <input class="text-input" type="text" placeholder="No cap" [(ngModel)]="config.processingFeeMax" />
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="form-card">
+                <div class="form-card-title">Additional Fees</div>
+                <div class="toggle-option-list">
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Insurance Fee</div>
+                      <div class="toggle-option-sub">Charge a premium to cover the purchase in case of default or loss</div>
+                    </div>
+                    <app-toggle [checked]="config.showInsuranceFee" (checkedChange)="config.showInsuranceFee = $event" />
+                  </div>
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Admin Fee</div>
+                      <div class="toggle-option-sub">Flat administrative charge per transaction</div>
+                    </div>
+                    <app-toggle [checked]="config.showAdminFee" (checkedChange)="config.showAdminFee = $event" />
+                  </div>
+                </div>
+
+                @if (customFees.length > 0) {
+                  @for (fee of customFees; track $index) {
+                    <div class="mini-fee-row">
+                      <span class="mini-fee-name">{{ fee.name }}</span>
+                      <span style="font-size:12px;color:var(--color-grey-header)">{{ fee.type }} · {{ fee.rate }}</span>
+                      <button class="remove-fee-btn" (click)="removeCustomFee($index)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      </button>
+                    </div>
+                  }
+                }
+                <button class="add-field-btn" (click)="showCustomFeeModal = true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  Add custom fee
+                </button>
+              </div>
+
+            </div>
+          }
+
+          @if (pricingTab === 'penalties') {
+            <div class="form-sections">
+
+              <div class="form-card">
+                <div class="form-card-title">Late Payment Penalty</div>
+                <p class="form-card-sub">Charged when a borrower misses a repayment after the grace period.</p>
+                <div class="field-group">
+                  <label class="field-label">Method</label>
+                  <div class="seg-group">
+                    <button class="seg-btn" [class.active]="config.latePenaltyMethod === 'Percentage'" (click)="config.latePenaltyMethod = 'Percentage'">Percentage</button>
+                    <button class="seg-btn" [class.active]="config.latePenaltyMethod === 'Flat Fee'" (click)="config.latePenaltyMethod = 'Flat Fee'">Flat Fee</button>
+                  </div>
+                </div>
+                <div class="two-col">
+                  <div class="field-group">
+                    <label class="field-label">Rate <span class="req">*</span></label>
+                    <div class="input-suffix-wrap">
+                      <input class="text-input" type="text" placeholder="e.g. 2" [(ngModel)]="config.latePenaltyRate" />
+                      <span class="input-suffix">{{ config.latePenaltyMethod === 'Percentage' ? '% daily' : '₦' }}</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Applies to</label>
+                    <select class="text-input" [(ngModel)]="config.latePenaltyApplyTo">
+                      <option>Outstanding Balance</option>
+                      <option>Overdue Instalment</option>
+                      <option>Original Purchase Amount</option>
+                    </select>
+                  </div>
+                </div>
+                @if (config.latePenaltyMethod === 'Percentage') {
+                  <div class="two-col">
+                    <div class="field-group">
+                      <label class="field-label">Minimum penalty <span class="optional">(optional)</span></label>
+                      <div class="input-prefix-wrap">
+                        <span class="input-prefix">₦</span>
+                        <input class="text-input" type="text" placeholder="0" [(ngModel)]="config.latePenaltyMin" />
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Maximum penalty <span class="optional">(optional)</span></label>
+                      <div class="input-prefix-wrap">
+                        <span class="input-prefix">₦</span>
+                        <input class="text-input" type="text" placeholder="No cap" [(ngModel)]="config.latePenaltyMax" />
+                      </div>
+                    </div>
+                  </div>
+                }
+                <div class="field-group">
+                  <label class="field-label">Grace period</label>
+                  <div class="input-suffix-wrap" style="max-width:180px">
+                    <input class="text-input" type="number" placeholder="3" [(ngModel)]="config.latePenaltyGraceDays" />
+                    <span class="input-suffix">days after due date</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          }
+        }
+
+        <!-- ── STEP: repayment ── -->
+        @if (stepId === 'repayment') {
+          <div class="content-header">
+            <h1 class="content-title">Repayment</h1>
+            <p class="content-sub">Define how and when customers repay their BNPL purchases.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Repayment Frequency</div>
+              <p class="form-card-sub">How often will the borrower make payments?</p>
+              <div class="freq-row">
+                @for (freq of repayFreqs; track freq) {
+                  <button class="freq-btn" [class.selected]="config.repaymentFrequency === freq" (click)="config.repaymentFrequency = freq">{{ freq }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Repayment Duration</div>
+              <p class="form-card-sub">Set the allowed range of repayment periods for this product.</p>
+              <div class="two-col">
+                <div class="field-group">
+                  <label class="field-label">Minimum period <span class="req">*</span></label>
+                  <div class="inline-days">
+                    <input class="text-input" type="number" placeholder="1" style="max-width:80px" [(ngModel)]="config.minRepaymentPeriod" />
+                    <select class="text-input" style="max-width:110px" [(ngModel)]="config.minRepaymentUnit">
+                      @for (u of periodUnits; track u) { <option [value]="u">{{ u }}</option> }
+                    </select>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Maximum period <span class="req">*</span></label>
+                  <div class="inline-days">
+                    <input class="text-input" type="number" placeholder="12" style="max-width:80px" [(ngModel)]="config.maxRepaymentPeriod" />
+                    <select class="text-input" style="max-width:110px" [(ngModel)]="config.maxRepaymentUnit">
+                      @for (u of periodUnits; track u) { <option [value]="u">{{ u }}</option> }
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">First Repayment</div>
+              <div class="field-group">
+                <label class="field-label">Days after disbursement</label>
+                <div class="input-suffix-wrap" style="max-width:220px">
+                  <input class="text-input" type="number" placeholder="30" [(ngModel)]="config.firstRepaymentDays" />
+                  <span class="input-suffix">days after purchase</span>
+                </div>
+              </div>
+              @if (showRepaymentDay) {
+                <div class="field-group">
+                  <label class="field-label">Repayment day</label>
+                  <select class="text-input" style="max-width:180px" [(ngModel)]="config.repaymentDay">
+                    @for (d of repaymentDayOptions; track d) { <option [value]="d">{{ d }}</option> }
+                  </select>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: disbursement ── -->
+        @if (stepId === 'disbursement') {
+          <div class="content-header">
+            <h1 class="content-title">Disbursement</h1>
+            <p class="content-sub">Configure how funds flow to the vendor and what rules apply before and after disbursement.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Disbursement Timing</div>
+              <p class="form-card-sub">When should funds be released to the vendor after a purchase is approved?</p>
+              <div class="radio-option-list">
+                <label class="radio-option" (click)="config.disbursementTiming = 'instant'">
+                  <input type="radio" name="disburseTiming" [checked]="config.disbursementTiming === 'instant'" />
+                  <div>
+                    <div class="radio-label">Instant — disburse immediately after approval</div>
+                    <div class="radio-sub">Best for checkout flows where speed is critical. Funds hit the vendor's account within minutes.</div>
+                  </div>
+                </label>
+                <label class="radio-option" (click)="config.disbursementTiming = 'after_verification'">
+                  <input type="radio" name="disburseTiming" [checked]="config.disbursementTiming === 'after_verification'" />
+                  <div>
+                    <div class="radio-label">After manual verification</div>
+                    <div class="radio-sub">A team member reviews the application before funds are released. Adds latency but reduces fraud risk.</div>
+                  </div>
+                </label>
+              </div>
+              <div class="info-note">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                Funds always settle to the vendor's registered settlement account — never directly to the borrower.
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Disbursement Rules</div>
+              <div class="toggle-option-list">
+                <div class="toggle-option">
+                  <div class="toggle-option-text">
+                    <div class="toggle-option-title">Require digital offer letter</div>
+                    <div class="toggle-option-sub">Borrower must accept a digital offer letter before funds are released to the vendor</div>
+                  </div>
+                  <app-toggle [checked]="config.offerLetter" (checkedChange)="config.offerLetter = $event" />
+                </div>
+                <div class="toggle-option">
+                  <div class="toggle-option-text">
+                    <div class="toggle-option-title">Deduct first instalment from disbursement</div>
+                    <div class="toggle-option-sub">Collect the first repayment upfront — vendor receives the net amount</div>
+                  </div>
+                  <app-toggle [checked]="config.repaymentDeductionFirst" (checkedChange)="config.repaymentDeductionFirst = $event" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: legal ── -->
+        @if (stepId === 'legal') {
+          <div class="content-header">
+            <h1 class="content-title">Legal</h1>
+            <p class="content-sub">Upload policy documents and configure the borrower consent text shown at checkout.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Policy Documents</div>
+              <p class="form-card-sub">Upload your legal documents. These will be linked in the borrower experience and vendor onboarding flow.</p>
+              <div class="legal-uploads">
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">Terms of Use</div>
+                  <app-file-upload label="Upload Terms of Use (PDF)" />
+                </div>
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">Privacy Policy</div>
+                  <app-file-upload label="Upload Privacy Policy (PDF)" />
+                </div>
+                <div class="legal-upload-row">
+                  <div class="legal-upload-label">Merchant Agreement</div>
+                  <div style="font-size:12px;color:var(--color-grey-header);margin-bottom:6px">Agreement signed by vendors during onboarding, covering settlement terms and responsibilities.</div>
+                  <app-file-upload label="Upload Merchant Agreement (PDF)" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Borrower Consent Text</div>
+              <div class="consent-header" (click)="showConsentText = !showConsentText">
+                <div>
+                  <div class="toggle-option-title">Use default consent language</div>
+                  <div class="toggle-option-sub">Caltos-provided consent text that covers BNPL repayment terms and data usage</div>
+                </div>
+                <app-toggle [checked]="config.useDefaultConsent" (checkedChange)="config.useDefaultConsent = $event" />
+              </div>
+              @if (config.useDefaultConsent) {
+                <button class="add-field-btn" style="margin-top:4px" (click)="showConsentText = !showConsentText">
+                  {{ showConsentText ? 'Hide' : 'Preview' }} default consent text
+                </button>
+                @if (showConsentText) {
+                  <div class="consent-body">
+                    <textarea class="consent-textarea" [rows]="6" readonly>By proceeding, you confirm that you have read and agree to the repayment schedule associated with your purchase. You authorise [Lender Name] to deduct instalments from your linked account on the agreed dates. In the event of a missed payment, a late fee may apply after the grace period. Your personal data will be processed in accordance with our Privacy Policy. This agreement is governed by the laws of the Federal Republic of Nigeria.</textarea>
+                    <p class="consent-note">This text will appear on the borrower application screen before submission. You can customise it by turning off this toggle and entering your own text below.</p>
+                  </div>
+                }
+              }
+              @if (!config.useDefaultConsent) {
+                <div class="field-group" style="margin-top:4px">
+                  <label class="field-label">Custom consent text</label>
+                  <textarea class="consent-textarea" [rows]="6" placeholder="Enter the consent language your borrowers will see before submitting their application..." [(ngModel)]="config.welcomeMessage"></textarea>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: customisation ── -->
+        @if (stepId === 'customisation') {
+          <div class="content-header">
+            <h1 class="content-title">Customisation</h1>
+            <p class="content-sub">Personalise the borrower experience with your brand, messaging, and support contacts.</p>
+          </div>
+          <div class="form-sections">
+
+            <div class="form-card">
+              <div class="form-card-title">Borrower Messaging</div>
+              <div class="field-group">
+                <label class="field-label">Welcome message <span class="optional">(optional)</span></label>
+                <app-textarea
+                  [value]="config.welcomeMessage"
+                  placeholder="e.g. Shop now and pay over time — no hidden fees."
+                  [rows]="2"
+                  (valueChange)="config.welcomeMessage = $event" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Thank you / approval message <span class="optional">(optional)</span></label>
+                <app-textarea
+                  [value]="config.thankYouMessage"
+                  placeholder="e.g. Your purchase is confirmed! Your first repayment is due in 30 days."
+                  [rows]="2"
+                  (valueChange)="config.thankYouMessage = $event" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Not eligible message <span class="optional">(optional)</span></label>
+                <app-textarea
+                  [value]="config.notEligibleMessage"
+                  placeholder="e.g. Sorry, you don't currently qualify for this product. Please try again in 3 months."
+                  [rows]="2"
+                  (valueChange)="config.notEligibleMessage = $event" />
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="form-card-title">Support Contacts</div>
+              <p class="form-card-sub">These appear on the borrower portal so customers can reach you if they have questions.</p>
+              <div class="field-group">
+                <label class="field-label">Support email</label>
+                <input class="text-input" type="email" placeholder="e.g. support@yourcompany.ng" [(ngModel)]="config.supportEmail" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Support phone <span class="optional">(optional)</span></label>
+                <input class="text-input" type="tel" placeholder="e.g. 0800 000 0000" [(ngModel)]="config.supportPhone" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">WhatsApp contact <span class="optional">(optional)</span></label>
+                <input class="text-input" type="tel" placeholder="e.g. +2348000000000" [(ngModel)]="config.whatsappContact" />
+              </div>
+            </div>
+
+            <div class="form-card brand-readonly-card">
+              <div class="form-card-title">Brand Identity</div>
+              <p class="form-card-sub">Brand settings are shared across all your products. Update them in Settings → Brand.</p>
+              <div class="brand-preview-row">
+                <div class="brand-color-swatch" [style.background]="config.brandColor"></div>
+                <div class="brand-info">
+                  <div class="brand-name">{{ config.brandName || 'Your Company' }}</div>
+                  <div class="brand-color-hex">{{ config.brandColor }}</div>
+                </div>
+                <div class="brand-logo-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                </div>
+              </div>
+              <a routerLink="/settings" class="edit-brand-link">Edit brand settings →</a>
+            </div>
+
+          </div>
+        }
+
+        <!-- ── STEP: review ── -->
+        @if (stepId === 'review') {
+          <div class="content-header">
+            <h1 class="content-title">Review & Publish</h1>
+            <p class="content-sub">Check everything looks right before going live. You can still edit any section after publishing.</p>
+          </div>
+
+          @if (isPublished) {
+            <div class="publish-success">
+              <div class="publish-success-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="11" fill="#D1FAE5"/>
+                  <path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="publish-success-title">{{ config.name }} is now live</div>
+                <div class="publish-success-sub">Your BNPL product is published. Start onboarding vendors to generate unique purchase links.</div>
+              </div>
+            </div>
+          }
+
+          <div class="form-sections">
+
+            <!-- Borrower link preview -->
+            <div class="form-card">
+              <div class="form-card-title">Borrower Link Format</div>
+              <p class="form-card-sub">Each vendor gets a unique link. Customers use it to apply for BNPL at that specific vendor.</p>
+              <div class="url-preview">
+                <span class="url-text">{{ publishUrl }}</span>
+              </div>
+              <div class="info-note" style="margin-top:8px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                The <strong>[vendor-slug]</strong> segment is replaced with each vendor's unique ID after onboarding.
+              </div>
+            </div>
+
+            <!-- Summary sections -->
+            @for (section of reviewSections; track section.title; let i = $index) {
+              <div class="review-section" [class.open]="reviewExpanded[i]">
+                <div class="review-section-header" (click)="toggleReview(i)">
+                  <div class="review-section-left">
+                    <div class="review-num">{{ i + 1 }}</div>
+                    <div>
+                      <div class="review-section-title">{{ section.title }}</div>
+                      <div class="review-section-sub">{{ section.subtitle }}</div>
+                    </div>
+                  </div>
+                  <div class="review-section-actions">
+                    <button class="review-edit-btn" (click)="$event.stopPropagation(); goToStep(i)">Edit</button>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="transition:transform 0.2s" [style.transform]="reviewExpanded[i] ? 'rotate(180deg)' : 'none'">
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                @if (reviewExpanded[i]) {
+                  <div class="review-section-body">
+                    @if (i === 0) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Name</div><div class="r-val">{{ config.name || '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Interest Model</div><div class="r-val">{{ config.interestModel }}</div></div>
+                        <div class="review-item"><div class="r-label">Min Purchase</div><div class="r-val">{{ config.minPurchaseAmount ? '₦' + config.minPurchaseAmount : '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Max Purchase</div><div class="r-val">{{ config.maxPurchaseAmount ? '₦' + config.maxPurchaseAmount : '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Interest Rate</div><div class="r-val">{{ config.interestRate ? config.interestRate + '% ' + config.interestFrequency : '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Age Range</div><div class="r-val">{{ config.minAge }}{{ config.maxAge ? ' – ' + config.maxAge : '+'  }} years</div></div>
+                      </div>
+                    }
+                    @if (i === 1) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Categories</div><div class="r-val">{{ compact(config.eligibleCategories) }}</div></div>
+                        <div class="review-item"><div class="r-label">Vendor Limit</div><div class="r-val">{{ config.defaultVendorLimit ? '₦' + config.defaultVendorLimit : '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Purchase Mode</div><div class="r-val">{{ config.purchaseMode === 'amount' ? 'Customer enters amount' : 'Vendor sends invoice' }}</div></div>
+                      </div>
+                    }
+                    @if (i === 2) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Identity</div><div class="r-val">{{ compact([config.identityBvn ? 'BVN' : '', config.identityNin ? 'NIN' : '', config.identityPhoneOtp ? 'Phone OTP' : '', config.identityEmailOtp ? 'Email OTP' : '']) }}</div></div>
+                        <div class="review-item"><div class="r-label">Gov ID</div><div class="r-val">{{ config.docGovId | titlecase }}</div></div>
+                      </div>
+                    }
+                    @if (i === 3) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Processing Fee</div><div class="r-val">{{ config.processingFeeRate ? config.processingFeeRate + (config.processingFeeType === 'Percentage' ? '%' : '₦') : '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Late Penalty</div><div class="r-val">{{ config.latePenaltyRate ? config.latePenaltyRate + (config.latePenaltyMethod === 'Percentage' ? '%' : '₦') + ' / Grace: ' + config.latePenaltyGraceDays + 'd' : '—' }}</div></div>
+                      </div>
+                    }
+                    @if (i === 4) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Frequency</div><div class="r-val">{{ config.repaymentFrequency }}</div></div>
+                        <div class="review-item"><div class="r-label">Duration</div><div class="r-val">{{ config.minRepaymentPeriod || '—' }} – {{ config.maxRepaymentPeriod || '—' }} {{ config.maxRepaymentUnit }}</div></div>
+                        <div class="review-item"><div class="r-label">First Payment</div><div class="r-val">{{ config.firstRepaymentDays }} days after purchase</div></div>
+                      </div>
+                    }
+                    @if (i === 5) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Timing</div><div class="r-val">{{ config.disbursementTiming === 'instant' ? 'Instant' : 'After manual verification' }}</div></div>
+                        <div class="review-item"><div class="r-label">Offer Letter</div><div class="r-val">{{ config.offerLetter ? 'Required' : 'Not required' }}</div></div>
+                        <div class="review-item"><div class="r-label">Deduct First Instalment</div><div class="r-val">{{ config.repaymentDeductionFirst ? 'Yes' : 'No' }}</div></div>
+                      </div>
+                    }
+                    @if (i === 6) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Consent</div><div class="r-val">{{ config.useDefaultConsent ? 'Default (Caltos)' : 'Custom' }}</div></div>
+                      </div>
+                    }
+                    @if (i === 7) {
+                      <div class="review-grid">
+                        <div class="review-item"><div class="r-label">Support Email</div><div class="r-val">{{ config.supportEmail || '—' }}</div></div>
+                        <div class="review-item"><div class="r-label">Welcome Message</div><div class="r-val">{{ config.welcomeMessage ? 'Set' : 'Not set' }}</div></div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+        }
+
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="bnpl-badge-sm">BNPL</span>
+            <span class="panel-title">Setup Guide</span>
+          </div>
+          <p class="panel-sub">Complete each step to launch your BNPL product. You can return to any step at any time.</p>
+
+          <div class="guide-steps">
+            @for (step of steps; track step.id; let i = $index) {
+              <button class="guide-step" [class.active]="i === currentStep" [class.done]="i < currentStep" (click)="goToStep(i)">
+                <div class="guide-step-dot" [class.done]="i < currentStep" [class.active]="i === currentStep">
+                  @if (i < currentStep) {
+                    <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  }
+                </div>
+                <span class="guide-step-label">{{ step.shortLabel }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="guide-progress">
+            <div class="guide-progress-bar">
+              <div class="guide-progress-fill" [style.width.%]="(currentStep / (steps.length - 1)) * 100"></div>
+            </div>
+            <span class="guide-progress-label">Step {{ currentStep + 1 }} of {{ steps.length }}</span>
+          </div>
+        </div>
+
+        @if (stepId === 'categories') {
+          <div class="panel-card" style="margin-top:12px">
+            <div class="panel-title" style="font-size:12px;font-weight:700;color:var(--color-body)">About Vendor Links</div>
+            <p class="panel-sub">Each vendor you onboard gets a unique link in the format:<br><code class="url-mini">…/bnpl/[product]/[vendor]</code><br><br>Customers click that link, apply, and the funds go directly to the vendor's settlement account.</p>
+          </div>
+        }
+
+        @if (stepId === 'disbursement') {
+          <div class="panel-card" style="margin-top:12px">
+            <div class="panel-title" style="font-size:12px;font-weight:700;color:var(--color-body)">Settlement Note</div>
+            <p class="panel-sub">Funds are always disbursed to the vendor's registered bank account (verified during onboarding via account name lookup). The borrower never receives cash — only the merchant gets paid.</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="wizard-footer">
+      <button class="footer-back-btn" (click)="back()" [disabled]="isFirst">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back
+      </button>
+      <div class="footer-center">
+        <span class="footer-step-label">{{ steps[currentStep].label }}</span>
+      </div>
+      @if (stepId !== 'review') {
+        <button class="footer-next-btn" (click)="next()">
+          Continue
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      } @else {
+        <button class="footer-publish-btn" (click)="publish()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Publish BNPL Product
+        </button>
+      }
+    </div>
+
+  </div>
+</div>
+
+<!-- Custom Fee Modal -->
+@if (showCustomFeeModal) {
+  <div class="modal-overlay" (click)="showCustomFeeModal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header-row">
+        <span class="modal-title">Add Custom Fee</span>
+        <button class="modal-close" (click)="showCustomFeeModal = false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="field-group">
+          <label class="field-label">Fee name <span class="req">*</span></label>
+          <input class="text-input" type="text" placeholder="e.g. Service Charge" [(ngModel)]="customFeeName" />
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label class="field-label">Type</label>
+            <select class="text-input" [(ngModel)]="customFeeType">
+              <option>Percentage</option>
+              <option>Flat Fee</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Rate</label>
+            <div class="input-suffix-wrap">
+              <input class="text-input" type="text" placeholder="e.g. 1.5" [(ngModel)]="customFeeRate" />
+              <span class="input-suffix">{{ customFeeType === 'Percentage' ? '%' : '₦' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-save-draft" (click)="showCustomFeeModal = false">Cancel</button>
+        <button class="btn-next-step" (click)="addCustomFee()">Add Fee</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,8 +1,39 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SidebarComponent, TooltipComponent } from '../../../shared/components';
 
-type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity';
+type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity' | 'vendors';
+
+interface Vendor {
+  id: string;
+  businessName: string;
+  category: string;
+  status: 'active' | 'pending' | 'suspended';
+  settlementBank: string;
+  settlementAccount: string;
+  dateAdded: string;
+  slug: string;
+}
+
+interface NewVendorDraft {
+  businessName: string;
+  cac: string;
+  category: string;
+  address: string;
+  phone: string;
+  email: string;
+  website: string;
+  directorName: string;
+  directorPhone: string;
+  directorIdType: string;
+  directorBvn: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  accountNameVerified: boolean;
+  accountNameError: string;
+}
 
 interface ChecklistItem {
   id: string;
@@ -15,7 +46,7 @@ interface ChecklistItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, TooltipComponent],
+  imports: [RouterLink, FormsModule, SidebarComponent, TooltipComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
@@ -23,12 +54,74 @@ export class ProductDetailComponent {
   activeTab: DetailTab = 'overview';
   statPeriod: 'today' | 'week' | 'month' | 'all' = 'month';
 
+  // Vendor management state
+  showOnboardModal = false;
+  onboardStep = 0;
+  accountNameVerifying = false;
+  copiedVendorId: string | null = null;
+
+  vendors: Vendor[] = [
+    {
+      id: 'v1',
+      businessName: 'TechHub Electronics',
+      category: 'Electronics & Gadgets',
+      status: 'active',
+      settlementBank: 'Access Bank',
+      settlementAccount: '0123456789',
+      dateAdded: 'Jun 12, 2025',
+      slug: 'techhub-electronics',
+    },
+    {
+      id: 'v2',
+      businessName: 'FashionKloth Ltd',
+      category: 'Fashion & Clothing',
+      status: 'active',
+      settlementBank: 'GTBank',
+      settlementAccount: '0987654321',
+      dateAdded: 'Jun 18, 2025',
+      slug: 'fashionkloth-ltd',
+    },
+  ];
+
+  newVendor: NewVendorDraft = {
+    businessName: '',
+    cac: '',
+    category: '',
+    address: '',
+    phone: '',
+    email: '',
+    website: '',
+    directorName: '',
+    directorPhone: '',
+    directorIdType: 'Passport',
+    directorBvn: '',
+    bankName: '',
+    accountNumber: '',
+    accountName: '',
+    accountNameVerified: false,
+    accountNameError: '',
+  };
+
+  readonly nigerianBanks = [
+    'Access Bank', 'Citibank', 'Ecobank', 'FCMB', 'Fidelity Bank',
+    'First Bank', 'GTBank', 'Heritage Bank', 'Keystone Bank', 'Polaris Bank',
+    'Stanbic IBTC', 'Standard Chartered', 'Sterling Bank', 'UBA', 'Union Bank',
+    'Unity Bank', 'Wema Bank', 'Zenith Bank',
+  ];
+
+  readonly bnplCategories = [
+    'Electronics & Gadgets', 'Fashion & Clothing', 'Food & Groceries',
+    'Education & School Supplies', 'Health & Wellness', 'Home & Furniture',
+    'Travel & Experiences', 'Agricultural Inputs', 'Building Materials', 'Automotive Parts',
+  ];
+
   readonly product = {
-    name: 'Corper Wallet',
+    name: 'Quick Buy BNPL',
+    type: 'bnpl' as const,
     status: 'live' as const,
     createdAt: 'Aug 29, 2024, 3:52:12 PM GMT',
-    description: 'Quick, flexible financing for corps members. Set your terms, define who qualifies, and start disbursing — all from one place.',
-    websiteLink: 'caltos.app/apply/corper-wallet',
+    description: 'Instant purchase financing for goods and services. Customers shop now and repay in instalments. Funds go directly to vendor settlement accounts.',
+    websiteLink: 'apply.caltos.co/princeps/bnpl/quick-buy/[vendor-slug]',
     applyRoute: '/apply',
 
     // Step 1 – Product Details
@@ -104,5 +197,75 @@ export class ProductDetailComponent {
 
   copyLink() {
     navigator.clipboard.writeText(this.product.websiteLink).catch(() => {});
+  }
+
+  get isBnpl(): boolean { return this.product.type === 'bnpl'; }
+
+  openOnboardModal() {
+    this.onboardStep = 0;
+    this.newVendor = {
+      businessName: '', cac: '', category: '', address: '', phone: '', email: '', website: '',
+      directorName: '', directorPhone: '', directorIdType: 'Passport', directorBvn: '',
+      bankName: '', accountNumber: '', accountName: '', accountNameVerified: false, accountNameError: '',
+    };
+    this.showOnboardModal = true;
+  }
+
+  onboardNext() { if (this.onboardStep < 3) this.onboardStep++; }
+  onboardBack() { if (this.onboardStep > 0) this.onboardStep--; }
+
+  verifyAccountName() {
+    this.newVendor.accountName = '';
+    this.newVendor.accountNameVerified = false;
+    this.newVendor.accountNameError = '';
+    if (this.newVendor.accountNumber.length < 10) return;
+    this.accountNameVerifying = true;
+    setTimeout(() => {
+      this.accountNameVerifying = false;
+      const normalized = (name: string) => name.toLowerCase().replace(/[^a-z]/g, '');
+      const fetched = 'TECHHUB ELECTRONICS LIMITED';
+      this.newVendor.accountName = fetched;
+      const match = normalized(fetched).includes(normalized(this.newVendor.businessName)) ||
+                    normalized(this.newVendor.businessName).includes(normalized(fetched).slice(0, 6));
+      if (match) {
+        this.newVendor.accountNameVerified = true;
+      } else {
+        this.newVendor.accountNameError = `Settlement account name ("${fetched}") does not match the business name provided. Please check and try again.`;
+      }
+    }, 1200);
+  }
+
+  confirmOnboard() {
+    const slug = this.newVendor.businessName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    this.vendors.push({
+      id: 'v' + Date.now(),
+      businessName: this.newVendor.businessName,
+      category: this.newVendor.category,
+      status: 'active',
+      settlementBank: this.newVendor.bankName,
+      settlementAccount: this.newVendor.accountNumber,
+      dateAdded: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      slug,
+    });
+    this.showOnboardModal = false;
+    this.activeTab = 'vendors';
+  }
+
+  vendorLink(vendor: Vendor): string {
+    return `https://apply.caltos.co/princeps/bnpl/quick-buy/${vendor.slug}`;
+  }
+
+  copyVendorLink(vendor: Vendor) {
+    navigator.clipboard.writeText(this.vendorLink(vendor)).catch(() => {});
+    this.copiedVendorId = vendor.id;
+    setTimeout(() => { this.copiedVendorId = null; }, 2000);
+  }
+
+  suspendVendor(vendor: Vendor) {
+    vendor.status = vendor.status === 'suspended' ? 'active' : 'suspended';
+  }
+
+  removeVendor(id: string) {
+    this.vendors = this.vendors.filter(v => v.id !== id);
   }
 }
