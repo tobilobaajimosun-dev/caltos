@@ -131,7 +131,10 @@
                       <div class="pname-avatar" [attr.data-color]="i % 4">
                         {{ product.name[0] }}{{ product.name.split(' ')[1]?.[0] ?? '' }}
                       </div>
-                      {{ product.name }}
+                      <span class="pname-text">{{ product.name }}</span>
+                      @if (product.type === 'bnpl') {
+                        <span class="ptype-badge bnpl">BNPL</span>
+                      }
                     </div>
                   </td>
                   <td class="col-id">{{ product.productId }}</td>

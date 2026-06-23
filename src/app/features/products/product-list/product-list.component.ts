@@ -19,6 +19,7 @@ type ActiveTab = 'all' | 'live' | 'deactivated' | 'fees';
 interface Product {
   name: string;
   productId: string;
+  type?: 'loan' | 'bnpl';
   minAmount: string;
   maxAmount: string;
   minTenor: string;
@@ -66,10 +67,11 @@ export class ProductListComponent {
   }
 
   readonly products: Product[] = [
-    { name: 'Corper Wallet', productId: 'CW001', minAmount: '30,000', maxAmount: '100,000', minTenor: '3', maxTenor: '9', interestRate: '7.5% MoM', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
-    { name: 'Credit Wallet', productId: 'CRI02', minAmount: '30,000', maxAmount: '100,000', minTenor: '6', maxTenor: '12', interestRate: '7.5% MoM', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
-    { name: 'Credit Alert', productId: 'CA100', minAmount: '30,000', maxAmount: '100,000', minTenor: '12', maxTenor: '24', interestRate: '7.5% DoD', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
-    { name: 'WACS', productId: 'WCR03', minAmount: '30,000', maxAmount: '100,000', minTenor: '24', maxTenor: '52', interestRate: '7.5% MoM', status: 'deactivated', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
+    { name: 'Corper Wallet', productId: 'CW001', type: 'loan', minAmount: '30,000', maxAmount: '100,000', minTenor: '3', maxTenor: '9', interestRate: '7.5% MoM', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
+    { name: 'Credit Wallet', productId: 'CRI02', type: 'loan', minAmount: '30,000', maxAmount: '100,000', minTenor: '6', maxTenor: '12', interestRate: '7.5% MoM', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
+    { name: 'Credit Alert', productId: 'CA100', type: 'loan', minAmount: '30,000', maxAmount: '100,000', minTenor: '12', maxTenor: '24', interestRate: '7.5% DoD', status: 'live', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
+    { name: 'WACS', productId: 'WCR03', type: 'loan', minAmount: '30,000', maxAmount: '100,000', minTenor: '24', maxTenor: '52', interestRate: '7.5% MoM', status: 'deactivated', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
+    { name: 'Quick Buy BNPL', productId: 'QB001', type: 'bnpl', minAmount: '20,000', maxAmount: '500,000', minTenor: '1', maxTenor: '12', interestRate: '5.0% MoM', status: 'live', createdAt: 'Jun 12, 2025, 10:14:22 AM GMT' },
   ];
 
   readonly fees: Fee[] = [
