@@ -962,19 +962,56 @@ $bnpl-red-light: #FEE4E2;
   margin: 0;
 }
 
-// Guide steps list
-.guide-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+// ── Setup Guide panel ─────────────────────────────────────────────────────────
+.setup-guide {
+  padding: 0;
+  overflow: hidden;
 }
 
-.guide-step {
+.setup-guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+}
+
+.setup-guide-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-header);
+}
+
+.setup-guide-count {
+  font-size: 11px;
+  color: var(--color-grey-header);
+}
+
+.setup-progress-bar {
+  height: 4px;
+  background: var(--color-stroke);
+  margin: 0 18px 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.setup-progress-fill {
+  height: 100%;
+  background: $blue;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.setup-step-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.setup-step-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 8px;
-  border-radius: 8px;
+  padding: 9px 18px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -982,9 +1019,47 @@ $bnpl-red-light: #FEE4E2;
   transition: background 0.1s;
   &:hover { background: #f9fafb; }
   &.active { background: $blue-light; }
-  &.active .guide-step-label { color: $blue; font-weight: 600; }
 }
 
+.setup-step-icon {
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.setup-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  &.active-dot   { background: $blue; }
+  &.upcoming-dot { background: var(--color-stroke); border: 1.5px solid var(--color-grey-header); width: 7px; height: 7px; }
+}
+
+.setup-step-label {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-body);
+  .active & { color: $blue; font-weight: 600; }
+  .done &   { color: var(--color-grey-header); }
+}
+
+.setup-step-arrow {
+  color: $blue;
+  flex-shrink: 0;
+}
+
+.setup-guide-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--color-stroke);
+  font-size: 11px;
+  color: var(--color-grey-header);
+  line-height: 1.5;
+}
+
+// Legacy guide dot — kept for any remaining references
 .guide-step-dot {
   width: 14px;
   height: 14px;
@@ -1039,18 +1114,16 @@ $bnpl-red-light: #FEE4E2;
   bottom: 0;
   left: 240px;
   right: 0;
-  z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 32px;
+  gap: 12px;
+  padding: 14px 32px;
   background: #fff;
   border-top: 1px solid var(--color-stroke);
-  box-shadow: 0 -2px 8px rgba(0,0,0,.05);
+  z-index: 20;
 }
 
-.footer-back-btn {
+.btn-back {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1064,25 +1137,22 @@ $bnpl-red-light: #FEE4E2;
   font-weight: 500;
   color: var(--color-body);
   cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
   &:hover { background: #f9fafb; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
-.footer-center {
+.footer-hint {
   flex: 1;
+  font-size: 12px;
+  color: var(--color-grey-header);
   text-align: center;
 }
 
-.footer-step-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-header);
-}
-
-.footer-next-btn {
+.btn-continue {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   height: 40px;
   padding: 0 22px;
   border-radius: 8px;
@@ -1093,15 +1163,16 @@ $bnpl-red-light: #FEE4E2;
   font-weight: 600;
   color: white;
   cursor: pointer;
+  flex-shrink: 0;
   &:hover { background: #003d7a; }
 }
 
-.footer-publish-btn {
+.btn-publish {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   height: 40px;
-  padding: 0 24px;
+  padding: 0 22px;
   border-radius: 8px;
   border: none;
   background: #027A48;
@@ -1110,71 +1181,162 @@ $bnpl-red-light: #FEE4E2;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  &:hover { background: #015c38; }
+  flex-shrink: 0;
+  &:hover { background: #015c37; }
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
-.modal-overlay {
+.select-input {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--color-input-stroke);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-header);
+  background: #fff;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+  &:focus { border-color: $blue; }
+}
+
+// ── Dialogs ───────────────────────────────────────────────────────────────────
+.dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(16,24,40,.5);
-  z-index: 100;
+  background: rgba(0,0,0,.45);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 300;
 }
 
-.modal-box {
+.dialog {
   background: #fff;
-  border-radius: 16px;
-  padding: 0;
-  width: 440px;
-  max-width: calc(100vw - 32px);
-  box-shadow: 0 20px 60px rgba(0,0,0,.18);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0,0,0,.18);
 }
 
-.modal-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--color-stroke);
-}
-
-.modal-title {
-  font-size: 15px;
+.dialog-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-header);
+  margin: 0 0 8px;
 }
 
-.modal-close {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.dialog-body {
+  font-size: 13px;
   color: var(--color-grey-header);
-  border-radius: 6px;
-  &:hover { background: #f2f4f7; }
+  margin: 0 0 20px;
 }
 
-.modal-body {
-  padding: 18px 20px;
+.dialog-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-bottom: 20px;
 }
 
-.modal-footer {
+.dialog-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 8px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--color-stroke);
+}
+
+.dialog-btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  &.primary   { background: $blue; color: white; &:hover { background: #003d7a; } &:disabled { opacity: 0.4; cursor: not-allowed; } }
+  &.danger    { background: #FEE4E2; color: #D92D20; &:hover { background: #FECDCA; } }
+  &.secondary { background: #f2f4f7; color: var(--color-body); &:hover { background: #e8eaed; } }
+}
+
+// ── Publish overlay ───────────────────────────────────────────────────────────
+.publish-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+
+.publish-success-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 36px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,.2);
+}
+
+.publish-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.publish-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-header);
+  margin: 0 0 8px;
+}
+
+.publish-sub {
+  font-size: 13px;
+  color: var(--color-grey-header);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.publish-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.publish-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 42px;
+  border-radius: 10px;
+  background: $blue;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  &:hover { background: #003d7a; }
+}
+
+.publish-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--color-stroke);
+  background: #fff;
+  color: var(--color-body);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  &:hover { background: #f9fafb; }
 }

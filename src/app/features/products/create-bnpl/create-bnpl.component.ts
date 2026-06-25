@@ -1,6 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import {
   SidebarComponent, ToggleComponent, TextareaComponent, FileUploadComponent,
@@ -198,7 +198,7 @@ export class CreateBnplComponent {
     brandName: '',
   };
 
-  constructor(private router: Router) {}
+  constructor() {}
 
   get stepId() { return this.steps[this.currentStep].id; }
   get isFirst() { return this.currentStep === 0; }
@@ -218,7 +218,6 @@ export class CreateBnplComponent {
   publish() {
     this.isPublished = true;
     this.isDraft = false;
-    this.router.navigate(['/products']);
   }
 
   onNameChange(val: string) {
