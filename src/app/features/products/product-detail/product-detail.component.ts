@@ -71,6 +71,8 @@ interface ProductData {
   disburseToSalary: string;
   autoDeductions: string;
   videoConfirmation: string;
+  incomeChannels: { id: string; label: string; desc: string; status: 'connected' | 'pending' | 'not-configured' }[];
+  deductionChannels: { id: string; label: string; desc: string; coverage: string; status: 'connected' | 'pending' | 'not-configured'; priority: number }[];
   repaymentFrequency: string;
   minRepayments: string;
   maxRepayments: string;
@@ -109,6 +111,16 @@ const LOAN_PRODUCT_BASE: ProductData = {
   disburseToSalary: 'Yes',
   autoDeductions: 'No',
   videoConfirmation: 'No',
+  incomeChannels: [
+    { id: 'remita',   label: 'Remita',        desc: 'Salary verification via Remita',           status: 'connected' },
+    { id: 'ippis',    label: 'IPPIS',          desc: 'Federal payroll verification',             status: 'pending' },
+    { id: 'bank',     label: 'Bank Statement', desc: 'Automated bank statement analysis',        status: 'connected' },
+  ],
+  deductionChannels: [
+    { id: 'ippis',   label: 'IPPIS',        desc: 'At-source payroll deduction',       coverage: 'Federal MDAs only',    status: 'pending',       priority: 1 },
+    { id: 'remita',  label: 'Remita',       desc: 'Standing order / salary mandate',   coverage: 'Federal + some states', status: 'connected',     priority: 2 },
+    { id: 'direct',  label: 'Direct Debit', desc: 'Bank account debit on due date',    coverage: 'Any bank',             status: 'not-configured', priority: 3 },
+  ],
   repaymentFrequency: 'Monthly',
   minRepayments: '3',
   maxRepayments: '9',
@@ -152,6 +164,12 @@ const MOCK_PRODUCTS: Record<string, ProductData> = {
     disburseToSalary: 'No — funds go to vendor settlement account',
     autoDeductions: 'No',
     videoConfirmation: 'No',
+    incomeChannels: [
+      { id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'connected' },
+    ],
+    deductionChannels: [
+      { id: 'direct', label: 'Direct Debit', desc: 'Bank account debit on due date', coverage: 'Any bank', status: 'connected', priority: 1 },
+    ],
     repaymentFrequency: 'Monthly',
     minRepayments: '1',
     maxRepayments: '12',

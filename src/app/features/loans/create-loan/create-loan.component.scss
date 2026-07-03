@@ -1827,6 +1827,93 @@ $blue-border: #B2DDFF;
   }
 }
 
+// ── Deduction channel cards ───────────────────────────────────────────────────
+.deduct-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.deduct-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-stroke);
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+  &:hover:not(.selected) { border-color: $blue-border; }
+  &.selected { border-color: $blue; background: $blue-light; }
+}
+
+.deduct-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--color-stroke);
+  background: #fff;
+  transition: background 0.12s, border-color 0.12s;
+  &.active {
+    background: $blue;
+    border-color: $blue;
+    &::after {
+      content: '';
+      display: block;
+      width: 8px;
+      height: 6px;
+      border-left: 2px solid white;
+      border-bottom: 2px solid white;
+      transform: rotate(-45deg) translate(1px, -1px);
+      margin: 3px auto 0;
+    }
+  }
+}
+
+.deduct-body { display: flex; flex-direction: column; gap: 3px; }
+.deduct-title { font-size: 13px; font-weight: 600; color: var(--color-header); }
+.deduct-sub   { font-size: 11px; color: var(--color-grey-header); }
+
+.deduct-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.deduct-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 100px;
+  background: #F2F4F7;
+  color: var(--color-grey-header);
+  border: 1px solid var(--color-stroke);
+
+  &.green {
+    background: #ECFDF3;
+    color: #027A48;
+    border-color: #ABEFC6;
+  }
+
+  &.blue {
+    background: $blue-light;
+    color: $blue;
+    border-color: $blue-border;
+  }
+}
+
+// ── Review grid full-width item ───────────────────────────────────────────────
+.review-item--full {
+  grid-column: 1 / -1;
+}
+
 // ── Drag-over state on repayment order items ──────────────────────────────────
 .repayment-order-item {
   &.drag-over {

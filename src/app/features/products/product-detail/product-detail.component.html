@@ -199,6 +199,52 @@
               </table>
             </div>
 
+            <!-- Channels section -->
+            <div class="ov-section">
+              <div class="ov-section-hd">
+                <h3 class="ov-section-title">Repayment channels</h3>
+                <button class="ov-section-edit" (click)="goToTab('disbursement')">Configure</button>
+              </div>
+              <p class="ov-section-note">How repayments are collected — ordered by priority.</p>
+              <div class="channel-list">
+                @for (ch of product.deductionChannels; track ch.id) {
+                  <div class="channel-row">
+                    <div class="channel-priority">{{ ch.priority }}</div>
+                    <div class="channel-info">
+                      <span class="channel-name">{{ ch.label }}</span>
+                      <span class="channel-desc">{{ ch.desc }} · <em>{{ ch.coverage }}</em></span>
+                    </div>
+                    <span class="channel-status-pill"
+                      [class.connected]="ch.status === 'connected'"
+                      [class.pending]="ch.status === 'pending'"
+                      [class.not-configured]="ch.status === 'not-configured'">
+                      {{ ch.status === 'connected' ? 'Connected' : ch.status === 'pending' ? 'Pending' : 'Not set up' }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <div class="channel-divider"></div>
+
+              <p class="ov-section-note muted">Income verification channels:</p>
+              <div class="channel-list slim">
+                @for (ch of product.incomeChannels; track ch.id) {
+                  <div class="channel-row">
+                    <div class="channel-info">
+                      <span class="channel-name">{{ ch.label }}</span>
+                      <span class="channel-desc">{{ ch.desc }}</span>
+                    </div>
+                    <span class="channel-status-pill"
+                      [class.connected]="ch.status === 'connected'"
+                      [class.pending]="ch.status === 'pending'"
+                      [class.not-configured]="ch.status === 'not-configured'">
+                      {{ ch.status === 'connected' ? 'Connected' : ch.status === 'pending' ? 'Pending' : 'Not set up' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+
             <!-- Eligibility & disbursement section (like Stripe Payment methods) -->
             <div class="ov-section">
               <div class="ov-section-hd">

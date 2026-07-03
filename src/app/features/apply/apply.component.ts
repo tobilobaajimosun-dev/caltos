@@ -20,6 +20,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   allowContinue: true, recogniseExisting: true,
   identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
   incomeRemita: true, incomeIppis: false, incomeBankStatement: true,
+  deductIppis: false, deductRemita: true, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
   docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
   docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
   docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
