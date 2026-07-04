@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe, LowerCasePipe } from '@angular/common';
 import {
-  SidebarComponent, CheckboxComponent, RadioButtonComponent,
+  CheckboxComponent, RadioButtonComponent,
   ToggleComponent, TextareaComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
   FileUploadComponent,
@@ -235,7 +235,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
   standalone: true,
   imports: [
     FormsModule, RouterLink, TitleCasePipe, LowerCasePipe,
-    SidebarComponent, HiIconComponent,
+    HiIconComponent,
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
     TextareaComponent, CollapsibleSectionComponent,
     CopyUrlFieldComponent, QrCodeComponent,

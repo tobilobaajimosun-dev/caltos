@@ -24,15 +24,32 @@
       <app-nav-item
         [label]="item.label"
         [icon]="item.icon"
-        [active]="activeItemId === item.id"
+        [active]="isActive(item)"
         [hasDropdown]="item.hasDropdown ?? false"
+        [expanded]="isExpanded(item.id)"
         [iconOnly]="collapsed"
         (clicked)="navigate(item)"
       />
+      @if (item.hasDropdown && item.children && isExpanded(item.id) && !collapsed) {
+        <div class="nav-children">
+          @for (child of item.children; track child.label) {
+            <button class="nav-child" type="button" (click)="navigateChild(child)">{{ child.label }}</button>
+          }
+        </div>
+      }
     }
   </div>
 
   <div class="sidebar-bottom">
+    @if (!collapsed) {
+      <div class="wallet-indicator" [class.low]="isLowBalance()">
+        <span class="wallet-label">Wallet balance</span>
+        <span class="wallet-value">₦{{ walletBalance | number:'1.0-0' }}</span>
+        @if (isLowBalance()) {
+          <span class="wallet-warning">Low balance — top up soon</span>
+        }
+      </div>
+    }
     <div class="theme-toggle">
       <span>Dark mode</span>
       <app-toggle [checked]="theme.isDark()" (checkedChange)="theme.set($event)" />

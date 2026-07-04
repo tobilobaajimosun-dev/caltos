@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
-  SidebarComponent,
   CheckboxComponent,
   RadioButtonComponent,
   ToggleComponent,
@@ -42,7 +41,7 @@ const STEPS = [
   standalone: true,
   imports: [
     FormsModule, RouterLink,
-    SidebarComponent, CheckboxComponent, RadioButtonComponent, ToggleComponent,
+    CheckboxComponent, RadioButtonComponent, ToggleComponent,
     AddPenaltyModalComponent, AddCustomFeeModalComponent,
   ],
   templateUrl: './create-product.component.html',

@@ -1,22 +1,11 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { SidebarComponent, ComingSoonComponent } from '../../../shared/components';
+import { ComingSoonComponent } from '../../../shared/components';
 
 @Component({
   selector: 'app-escalations',
   standalone: true,
-  imports: [SidebarComponent, ComingSoonComponent],
+  imports: [ComingSoonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="page">
-      <app-sidebar activeItemId="risk" />
-      <div class="main">
-        <app-coming-soon title="Escalation Workflows" subtitle="Track and route escalated collections cases." />
-      </div>
-    </div>
-  `,
-  styles: [`
-    .page { display: flex; min-height: 100vh; background: #f7f8fa; }
-    .main { flex: 1; overflow-y: auto; }
-  `],
+  template: `<app-coming-soon title="Escalation Workflows" subtitle="Track and route escalated collections cases." />`,
 })
 export class EscalationsComponent {}

@@ -1,7 +1,9 @@
 import { Routes } from '@angular/router';
+import { AppShellComponent } from './shared/components';
 import { ShowcaseComponent } from './pages/showcase/showcase.component';
 import { QuickActionsComponent } from './pages/quick-actions/quick-actions.component';
 import { HomeComponent } from './pages/home/home.component';
+import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { ProductListComponent } from './features/products/product-list/product-list.component';
 import { ProductDetailComponent } from './features/products/product-detail/product-detail.component';
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
@@ -20,23 +22,34 @@ import { EmployerPortalComponent } from './features/employers/employer-portal/em
 import { AlertSettingsComponent } from './features/settings/alert-settings/alert-settings.component';
 
 export const routes: Routes = [
-  { path: '', component: QuickActionsComponent },
-  { path: 'home', component: HomeComponent },
-  { path: 'products', component: ProductListComponent },
-  { path: 'products/create', component: CreateLoanComponent },
-  { path: 'products/create-bnpl', component: CreateBnplComponent },
-  { path: 'products/:id', component: ProductDetailComponent },
+  // Public, unauthenticated borrower-facing flow — no shell chrome
   { path: 'apply', component: ApplyComponent },
+  // Self-contained component-library demo (renders its own sidebar) — no shell chrome
   { path: 'showcase', component: ShowcaseComponent },
-  { path: 'loans', component: LoanListComponent },
-  { path: 'loans/:id', component: LoanDetailComponent },
-  { path: 'mandates/bulk', component: BulkMandatesComponent },
-  { path: 'collections', component: CollectionsDashboardComponent },
-  { path: 'collections/reconciliation', component: ReconciliationComponent },
-  { path: 'collections/exceptions', component: ExceptionsComponent },
-  { path: 'collections/escalations', component: EscalationsComponent },
-  { path: 'recovery', component: RecoveryPortalComponent },
-  { path: 'reports', component: ReportsComponent },
-  { path: 'employers', component: EmployerPortalComponent },
-  { path: 'settings/alerts', component: AlertSettingsComponent },
+
+  {
+    path: '',
+    component: AppShellComponent,
+    children: [
+      { path: '', component: QuickActionsComponent },
+      { path: 'home', component: HomeComponent },
+      { path: 'products', component: ProductListComponent },
+      { path: 'products/create', component: CreateLoanComponent },
+      { path: 'products/create-bnpl', component: CreateBnplComponent },
+      { path: 'products/:id', component: ProductDetailComponent },
+      { path: 'loans', component: LoanListComponent },
+      { path: 'loans/:id', component: LoanDetailComponent },
+      { path: 'mandates/bulk', component: BulkMandatesComponent },
+      { path: 'collections', component: CollectionsDashboardComponent },
+      { path: 'collections/reconciliation', component: ReconciliationComponent },
+      { path: 'collections/exceptions', component: ExceptionsComponent },
+      { path: 'collections/escalations', component: EscalationsComponent },
+      { path: 'recovery', component: RecoveryPortalComponent },
+      { path: 'reports', component: ReportsComponent },
+      { path: 'employers', component: EmployerPortalComponent },
+      { path: 'settings/alerts', component: AlertSettingsComponent },
+    ],
+  },
+
+  { path: '**', component: NotFoundComponent },
 ];

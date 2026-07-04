@@ -71,9 +71,17 @@ All components are exported from the barrel: `import { X } from './shared/compon
 |---|---|---|
 | `NavItemComponent` | `app-nav-item` | `label`, `icon: NavItemIcon`, `active`, `hasDropdown`, `expanded`, `variant: 'default'|'primary-text'` |
 | `OrgProfileComponent` | `app-org-profile` | `orgName`, `avatarLetter`, `avatarColor`, `role` |
-| `SidebarComponent` | `app-sidebar` | `orgName`, `activeItemId` | `navChange` |
+| `SidebarComponent` | `app-sidebar` | `orgName`, `activeItemId` (fallback only — active state is Router-driven), `walletBalance`, `lowBalanceThreshold` | `navChange` |
+| `HeaderComponent` | `app-header` | — (org switcher, ⌘K search → command palette, help/notifications/user menus, dark mode toggle, sign out) | |
+| `AppShellComponent` | `app-shell` | — wraps sidebar + header + breadcrumb + `<router-outlet>`; shows a skeleton during navigation | |
 
-NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|'reports'|'risk'|'teams'|'settings'|'quick-action'|'none'`
+NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|'reports'|'risk'|'teams'|'settings'|'employers'|'quick-action'|'none'`
+
+### App Shell & Routing (#14)
+- `AppShellComponent` (`src/app/shared/components/app-shell/`) is the parent route component in `app.routes.ts` — every authenticated page is nested under it as a child route, so sidebar/header/breadcrumb render once instead of per-page.
+- Excluded from the shell: `/apply` (public borrower-facing flow) and `/showcase` (self-contained component-library demo that renders its own sidebar).
+- Sidebar active-item highlighting is derived from the current Router URL (longest route-prefix match); the `activeItemId` input is only a fallback for nav items without a real route (Customers, Wallet, Teams — pending their own feature issues).
+- Unmatched routes fall through to `NotFoundComponent` (`src/app/pages/not-found/`) via a `**` wildcard route.
 
 ### Data Display
 | Component | Selector | Key Inputs |

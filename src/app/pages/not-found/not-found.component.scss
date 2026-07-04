@@ -1,0 +1,42 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.not-found {
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.code {
+  font-family: var(--font-heading);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--color-stroke);
+  margin: 0;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+  margin: var(--space-2) 0 0;
+}
+
+.desc {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  margin: var(--space-2) 0 var(--space-6);
+}
+
+.back-link {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--color-blue);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}

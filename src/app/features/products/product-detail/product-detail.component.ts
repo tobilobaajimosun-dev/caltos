@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { SidebarComponent, TooltipComponent } from '../../../shared/components';
+import { TooltipComponent } from '../../../shared/components';
 
 type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity' | 'vendors';
 
@@ -189,7 +189,7 @@ const BNPL_SAMPLE_VENDORS: Vendor[] = [
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, SidebarComponent, TooltipComponent],
+  imports: [RouterLink, FormsModule, TooltipComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })

@@ -1,6 +1,5 @@
 import { Component, HostListener } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { SidebarComponent } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
 import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
@@ -42,7 +41,7 @@ interface Fee {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [RouterLink, SidebarComponent, HiIconComponent, LoanTypeModalComponent, ProductSettingsModalComponent, TooltipComponent],
+  imports: [RouterLink, HiIconComponent, LoanTypeModalComponent, ProductSettingsModalComponent, TooltipComponent],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
 })

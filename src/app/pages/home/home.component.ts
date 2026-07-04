@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { SidebarComponent, StatusBadgeComponent } from '../../shared/components';
+import { StatusBadgeComponent } from '../../shared/components';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [SidebarComponent, StatusBadgeComponent],
+  imports: [StatusBadgeComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })

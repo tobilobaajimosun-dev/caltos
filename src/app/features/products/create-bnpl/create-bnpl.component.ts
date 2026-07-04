@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import {
-  SidebarComponent, ToggleComponent, TextareaComponent, FileUploadComponent,
+  ToggleComponent, TextareaComponent, FileUploadComponent,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import {
@@ -86,7 +86,7 @@ interface BnplConfig {
   standalone: true,
   imports: [
     FormsModule, RouterLink, TitleCasePipe,
-    SidebarComponent, HiIconComponent,
+    HiIconComponent,
     ToggleComponent, TextareaComponent, FileUploadComponent,
   ],
   templateUrl: './create-bnpl.component.html',

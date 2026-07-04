@@ -1,0 +1,25 @@
+<div class="shell">
+  <app-sidebar />
+
+  <div class="shell-main">
+    <app-header />
+
+    @if (breadcrumbItems().length) {
+      <div class="shell-breadcrumb">
+        <app-breadcrumb [items]="breadcrumbItems()" />
+      </div>
+    }
+
+    <div class="shell-content">
+      @if (navigating()) {
+        <div class="shell-loading">
+          <app-skeleton height="24px" width="240px" />
+          <app-skeleton height="120px" />
+          <app-skeleton height="120px" />
+        </div>
+      } @else {
+        <router-outlet />
+      }
+    </div>
+  </div>
+</div>

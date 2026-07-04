@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SidebarComponent } from '../../shared/components';
 
 @Component({
   selector: 'app-quick-actions',
   standalone: true,
-  imports: [RouterLink, SidebarComponent],
+  imports: [RouterLink],
   templateUrl: './quick-actions.component.html',
   styleUrls: ['./quick-actions.component.scss'],
 })
