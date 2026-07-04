@@ -4,4 +4,5 @@ import { Injectable, signal } from '@angular/core';
 export class AccountService {
   readonly accountNumber = signal('0162989824');
   readonly bankName = signal('Guaranty Trust Bank');
+  readonly balance = signal('₦100,756,352.10');
 }

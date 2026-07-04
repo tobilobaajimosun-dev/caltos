@@ -11,7 +11,7 @@ export class OrgProfileComponent {
   @Input() avatarLetter = 'P';
   @Input() avatarColor = '#E55A2B';
   @Input() role = 'ADMIN';
-  @Input() accountNumber = '';
+  @Input() balance = '';
   @Input() iconOnly = false;
   @Output() clicked = new EventEmitter<void>();
 }
