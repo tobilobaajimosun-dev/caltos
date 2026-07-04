@@ -11,6 +11,7 @@
       avatarColor="#E55A2B"
       role="ADMIN"
       [iconOnly]="collapsed"
+      (clicked)="switchOrgOpen.set(true)"
     />
     <button class="collapse-btn" (click)="collapsed = !collapsed" [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" [class.flipped]="collapsed">
@@ -42,21 +43,27 @@
 
   <div class="sidebar-bottom">
     @if (!collapsed) {
-      <div class="wallet-indicator" [class.low]="isLowBalance()">
-        <span class="wallet-label">Wallet balance</span>
-        <span class="wallet-value">₦{{ walletBalance | number:'1.0-0' }}</span>
-        @if (isLowBalance()) {
-          <span class="wallet-warning">Low balance — top up soon</span>
-        }
+      <div class="theme-toggle">
+        <span>Dark mode</span>
+        <app-toggle [checked]="theme.isDark()" (checkedChange)="theme.set($event)" />
       </div>
-    }
-    <div class="theme-toggle">
-      <span>Dark mode</span>
-      <app-toggle [checked]="theme.isDark()" (checkedChange)="theme.set($event)" />
-    </div>
-    @if (!collapsed) {
       <app-badge-card />
     }
   </div>
 
 </nav>
+
+<app-modal [isOpen]="switchOrgOpen()" title="Switch organization" (closed)="switchOrgOpen.set(false)">
+  <div class="org-switch-list">
+    @for (org of orgs; track org.id) {
+      <button type="button" class="org-switch-item" [class.active]="org.name === orgName" (click)="selectOrg(org)">
+        <span class="org-switch-avatar" [style.background]="org.color">{{ org.name[0] }}</span>
+        <span class="org-switch-name">{{ org.name }}</span>
+        @if (org.name === orgName) {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="var(--color-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        }
+      </button>
+    }
+    <button type="button" class="org-switch-add">+ Add organization</button>
+  </div>
+</app-modal>

@@ -1,5 +1,12 @@
 :host { display: block; }
 
+.nav-item-tooltip-host {
+  display: block;
+  width: 100%;
+
+  ::ng-deep .tooltip-host { display: block; width: 100%; }
+}
+
 .nav-item {
   display: flex;
   align-items: center;

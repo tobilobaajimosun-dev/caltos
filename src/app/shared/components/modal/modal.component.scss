@@ -10,7 +10,7 @@
 }
 
 .modal-dialog {
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 8px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
@@ -34,7 +34,7 @@
   padding: 0 28px;
   height: 52px;
   flex-shrink: 0;
-  background: #fff;
+  background: var(--surface-base);
   position: sticky;
   top: 0;
   z-index: 1;

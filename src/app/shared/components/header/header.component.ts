@@ -2,20 +2,14 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { Router } from '@angular/router';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { CommandPaletteComponent, CommandGroup } from '../command-palette/command-palette.component';
-import { ToggleComponent } from '../toggle/toggle.component';
 import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { SessionService } from '../../services/session.service';
 
-interface OrgOption {
-  id: string;
-  name: string;
-}
-
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [AvatarComponent, CommandPaletteComponent, ToggleComponent],
+  imports: [AvatarComponent, CommandPaletteComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -29,16 +23,9 @@ export class HeaderComponent {
   readonly sidebarState = inject(SidebarStateService);
   private readonly session = inject(SessionService);
 
-  readonly orgMenuOpen = signal(false);
   readonly helpMenuOpen = signal(false);
   readonly userMenuOpen = signal(false);
   readonly commandPaletteOpen = signal(false);
-
-  readonly currentOrg = signal('Princeps Finance');
-  readonly orgs: OrgOption[] = [
-    { id: 'princeps', name: 'Princeps Finance' },
-    { id: 'northwind', name: 'Northwind SACCO' },
-  ];
 
   readonly userName = 'Jesulademi Ajimosun';
   readonly userEmail = 'jesulademi.ajimosun@princepsfinance.com';
@@ -63,33 +50,19 @@ export class HeaderComponent {
     }
   }
 
-  toggleOrgMenu() {
-    this.orgMenuOpen.update((v) => !v);
-    this.helpMenuOpen.set(false);
-    this.userMenuOpen.set(false);
-  }
-
   toggleHelpMenu() {
     this.helpMenuOpen.update((v) => !v);
-    this.orgMenuOpen.set(false);
     this.userMenuOpen.set(false);
   }
 
   toggleUserMenu() {
     this.userMenuOpen.update((v) => !v);
-    this.orgMenuOpen.set(false);
     this.helpMenuOpen.set(false);
   }
 
   closeMenus() {
-    this.orgMenuOpen.set(false);
     this.helpMenuOpen.set(false);
     this.userMenuOpen.set(false);
-  }
-
-  selectOrg(org: OrgOption) {
-    this.currentOrg.set(org.name);
-    this.orgMenuOpen.set(false);
   }
 
   onCommandSelected(id: string) {

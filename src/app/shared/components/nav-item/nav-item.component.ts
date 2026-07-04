@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
+import { TooltipComponent } from '../tooltip/tooltip.component';
 import {
   DashboardCircleIcon,
   HouseHeartIcon,
@@ -23,7 +24,7 @@ export type NavItemIcon =
 @Component({
   selector: 'app-nav-item',
   standalone: true,
-  imports: [HiIconComponent],
+  imports: [HiIconComponent, TooltipComponent],
   templateUrl: './nav-item.component.html',
   styleUrls: ['./nav-item.component.scss']
 })

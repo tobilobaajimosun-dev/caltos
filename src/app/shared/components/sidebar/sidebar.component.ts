@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, inject, computed, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -7,6 +6,7 @@ import { NavItemComponent, NavItemIcon } from '../nav-item/nav-item.component';
 import { OrgProfileComponent } from '../org-profile/org-profile.component';
 import { BadgeCardComponent } from '../badge-card/badge-card.component';
 import { ToggleComponent } from '../toggle/toggle.component';
+import { ModalComponent } from '../modal/modal.component';
 import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 
@@ -14,6 +14,12 @@ export interface SideNavChild {
   label: string;
   route: string;
   queryParams?: Record<string, string>;
+}
+
+interface OrgOption {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export interface SideNavItem {
@@ -28,7 +34,7 @@ export interface SideNavItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [NavItemComponent, OrgProfileComponent, BadgeCardComponent, ToggleComponent, DecimalPipe],
+  imports: [NavItemComponent, OrgProfileComponent, BadgeCardComponent, ToggleComponent, ModalComponent],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss']
 })
@@ -39,12 +45,16 @@ export class SidebarComponent {
 
   @Input() orgName = 'Princeps Finance';
   @Input() activeItemId = 'quick-actions';
-  @Input() walletBalance = 482_650;
-  @Input() lowBalanceThreshold = 50_000;
   @Output() navChange = new EventEmitter<string>();
 
   collapsed = false;
   private readonly expandedIds = signal<ReadonlySet<string>>(new Set());
+
+  readonly switchOrgOpen = signal(false);
+  readonly orgs: OrgOption[] = [
+    { id: 'princeps', name: 'Princeps Finance', color: '#E55A2B' },
+    { id: 'northwind', name: 'Northwind SACCO', color: '#0053A6' },
+  ];
 
   navItems: SideNavItem[] = [
     { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/' },
@@ -82,8 +92,6 @@ export class SidebarComponent {
     return candidates.reduce((best, cur) => (cur.route!.length > best.route!.length ? cur : best)).id;
   });
 
-  readonly isLowBalance = computed(() => this.walletBalance < this.lowBalanceThreshold);
-
   isExpanded(id: string): boolean {
     return this.expandedIds().has(id);
   }
@@ -112,5 +120,10 @@ export class SidebarComponent {
   navigateChild(child: SideNavChild) {
     this.router.navigate([child.route], { queryParams: child.queryParams ?? {} });
     this.sidebarState.close();
+  }
+
+  selectOrg(org: OrgOption) {
+    this.orgName = org.name;
+    this.switchOrgOpen.set(false);
   }
 }

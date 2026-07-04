@@ -1,26 +1,40 @@
-<button
-  class="nav-item"
-  [class.active]="active"
-  [class.icon-only]="iconOnly"
-  [class.primary-text]="variant === 'primary-text'"
-  (click)="onClick()">
+@if (iconOnly) {
+  <app-tooltip [text]="label" position="right" class="nav-item-tooltip-host">
+    <button
+      class="nav-item"
+      [class.active]="active"
+      [class.icon-only]="iconOnly"
+      [class.primary-text]="variant === 'primary-text'"
+      (click)="onClick()">
+      @if (icon !== 'none') {
+        <span class="icon-slot">
+          <hi-icon [icon]="iconMap[icon]" size="16" color="currentColor" />
+        </span>
+      }
+    </button>
+  </app-tooltip>
+} @else {
+  <button
+    class="nav-item"
+    [class.active]="active"
+    [class.primary-text]="variant === 'primary-text'"
+    (click)="onClick()">
 
-  @if (icon !== 'none') {
-    <span class="icon-slot">
-      <hi-icon [icon]="iconMap[icon]" size="16" color="currentColor" />
-    </span>
-  }
+    @if (icon !== 'none') {
+      <span class="icon-slot">
+        <hi-icon [icon]="iconMap[icon]" size="16" color="currentColor" />
+      </span>
+    }
 
-  @if (!iconOnly) {
     <span class="label-text">{{ label }}</span>
-  }
 
-  @if (hasDropdown && !iconOnly) {
-    <hi-icon
-      class="chevron"
-      [class.open]="expanded"
-      [icon]="chevronIcon"
-      size="14"
-      color="currentColor" />
-  }
-</button>
+    @if (hasDropdown) {
+      <hi-icon
+        class="chevron"
+        [class.open]="expanded"
+        [icon]="chevronIcon"
+        size="14"
+        color="currentColor" />
+    }
+  </button>
+}
