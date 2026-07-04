@@ -64,6 +64,17 @@
   color: #1a9c3a;
   letter-spacing: 0.04em;
   width: fit-content;
+  flex-shrink: 0;
+}
+
+.account-number {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
 .chevrons {

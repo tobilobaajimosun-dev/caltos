@@ -85,6 +85,7 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 - Org identity lives only in the sidebar (`OrgProfileComponent`, single-line name truncated with an ellipsis + role badge below) — the header does not duplicate it. Clicking the org name opens a "Switch organization" dialog (built into `SidebarComponent` with `app-modal`); the header's user menu no longer has its own org switcher.
 - Collapsed (icon-only) sidebar nav items show their label in an `app-tooltip` (`position="right"`) on hover/focus.
 - The header has a direct sun/moon icon button for dark mode in addition to `ThemeService`; there's no separate wallet-balance indicator in the sidebar — wallet info lives on the Home dashboard card only.
+- `AccountService` (`src/app/shared/services/account.service.ts`) is the single source of truth for the org's virtual account number/bank name. `OrgProfileComponent` shows the account number on its own line under the role badge (persistent on every screen via the sidebar), and the Home page's Wallet card reads from the same service — don't hardcode the account number elsewhere.
 
 ### Authentication (#13)
 - Routes (outside the shell, no sidebar/header): `/login`, `/forgot-password`, `/onboarding`, `/invite/:token`.

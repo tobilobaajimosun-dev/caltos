@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem } from '../../shared/components';
+import { AccountService } from '../../shared/services/account.service';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
 
@@ -11,6 +12,7 @@ type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {
+  readonly account = inject(AccountService);
   activePeriod = 'today';
 
   readonly periodTabs: TabItem[] = [

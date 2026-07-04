@@ -9,6 +9,7 @@ import { ToggleComponent } from '../toggle/toggle.component';
 import { ModalComponent } from '../modal/modal.component';
 import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
+import { AccountService } from '../../services/account.service';
 
 export interface SideNavChild {
   label: string;
@@ -42,6 +43,7 @@ export class SidebarComponent {
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly sidebarState = inject(SidebarStateService);
+  readonly account = inject(AccountService);
 
   @Input() orgName = 'Princeps Finance';
   @Input() activeItemId = 'quick-actions';
