@@ -32,11 +32,12 @@ export class SidebarComponent {
     { id: 'customers',     label: 'Customers',           icon: 'customers' },
     { id: 'wallet',        label: 'Wallet',              icon: 'wallet' },
     { id: 'products',      label: 'Products',            icon: 'products',  route: '/products' },
-    { id: 'loans',         label: 'Loans',               icon: 'loans',     hasDropdown: true },
-    { id: 'reports',       label: 'Reports & Performance', icon: 'reports' },
-    { id: 'risk',          label: 'Risk Monitor',        icon: 'risk' },
+    { id: 'loans',         label: 'Loans',               icon: 'loans',     route: '/loans', hasDropdown: true },
+    { id: 'reports',       label: 'Reports & Performance', icon: 'reports', route: '/reports' },
+    { id: 'risk',          label: 'Risk Monitor',        icon: 'risk',      route: '/collections' },
+    { id: 'employers',     label: 'Employers',           icon: 'employers', route: '/employers' },
     { id: 'teams',         label: 'Teams',               icon: 'teams' },
-    { id: 'settings',      label: 'Settings',            icon: 'settings' },
+    { id: 'settings',      label: 'Settings',            icon: 'settings',  route: '/settings/alerts' },
   ];
 
   constructor(private router: Router) {}

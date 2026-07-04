@@ -37,6 +37,7 @@ export { SidebarComponent } from './sidebar/sidebar.component';
 export { TooltipComponent } from './tooltip/tooltip.component';
 export { ColumnTitleComponent } from './column-title/column-title.component';
 export { TableItemComponent } from './table-item/table-item.component';
+export { ComingSoonComponent } from './coming-soon/coming-soon.component';
 
 export type { BadgeStatus } from './status-badge/status-badge.component';
 export type { ButtonVariant } from './button/button.component';

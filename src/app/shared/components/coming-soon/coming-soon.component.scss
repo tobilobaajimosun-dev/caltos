@@ -1,0 +1,50 @@
+:host { display: block; }
+
+.page-header {
+  padding: 32px 40px 0;
+}
+
+.page-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-header);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-grey-header);
+  margin: 4px 0 0;
+}
+
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 40px;
+  padding: 64px 24px;
+  border: 1px dashed var(--color-stroke);
+  border-radius: 12px;
+  color: var(--color-grey-header);
+  text-align: center;
+}
+
+.coming-soon-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-header);
+  margin: 4px 0 0;
+}
+
+.coming-soon-desc {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-grey-header);
+  margin: 0;
+  max-width: 320px;
+}

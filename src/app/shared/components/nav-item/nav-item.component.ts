@@ -12,12 +12,13 @@ import {
   UserGroupIcon,
   CogIcon,
   FlashIcon,
+  BriefcaseBusinessIcon,
   ChevronDownIcon,
 } from '@hugeicons/core-free-icons';
 
 export type NavItemIcon =
   | 'dashboard' | 'home' | 'customers' | 'wallet' | 'products'
-  | 'loans' | 'reports' | 'risk' | 'teams' | 'settings' | 'quick-action' | 'none';
+  | 'loans' | 'reports' | 'risk' | 'teams' | 'settings' | 'employers' | 'quick-action' | 'none';
 
 @Component({
   selector: 'app-nav-item',
@@ -48,6 +49,7 @@ export class NavItemComponent {
     risk: AlertDiamondIcon as IconData,
     teams: UserGroupIcon as IconData,
     settings: CogIcon as IconData,
+    employers: BriefcaseBusinessIcon as IconData,
     'quick-action': FlashIcon as IconData,
   };
 

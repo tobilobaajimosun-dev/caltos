@@ -7,6 +7,17 @@ import { ProductDetailComponent } from './features/products/product-detail/produ
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
 import { CreateBnplComponent } from './features/products/create-bnpl/create-bnpl.component';
 import { ApplyComponent } from './features/apply/apply.component';
+import { LoanListComponent } from './features/loans/loan-list/loan-list.component';
+import { LoanDetailComponent } from './features/loans/loan-detail/loan-detail.component';
+import { BulkMandatesComponent } from './features/loans/bulk-mandates/bulk-mandates.component';
+import { CollectionsDashboardComponent } from './features/collections/collections-dashboard/collections-dashboard.component';
+import { ReconciliationComponent } from './features/collections/reconciliation/reconciliation.component';
+import { ExceptionsComponent } from './features/collections/exceptions/exceptions.component';
+import { EscalationsComponent } from './features/collections/escalations/escalations.component';
+import { RecoveryPortalComponent } from './features/collections/recovery-portal/recovery-portal.component';
+import { ReportsComponent } from './features/reports/reports.component';
+import { EmployerPortalComponent } from './features/employers/employer-portal/employer-portal.component';
+import { AlertSettingsComponent } from './features/settings/alert-settings/alert-settings.component';
 
 export const routes: Routes = [
   { path: '', component: QuickActionsComponent },
@@ -17,4 +28,15 @@ export const routes: Routes = [
   { path: 'products/:id', component: ProductDetailComponent },
   { path: 'apply', component: ApplyComponent },
   { path: 'showcase', component: ShowcaseComponent },
+  { path: 'loans', component: LoanListComponent },
+  { path: 'loans/:id', component: LoanDetailComponent },
+  { path: 'mandates/bulk', component: BulkMandatesComponent },
+  { path: 'collections', component: CollectionsDashboardComponent },
+  { path: 'collections/reconciliation', component: ReconciliationComponent },
+  { path: 'collections/exceptions', component: ExceptionsComponent },
+  { path: 'collections/escalations', component: EscalationsComponent },
+  { path: 'recovery', component: RecoveryPortalComponent },
+  { path: 'reports', component: ReportsComponent },
+  { path: 'employers', component: EmployerPortalComponent },
+  { path: 'settings/alerts', component: AlertSettingsComponent },
 ];
