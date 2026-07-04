@@ -4,7 +4,7 @@
   justify-content: space-between;
   padding: 0 23px;
   height: 88px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid #e1e4ea;
   border-radius: 12px;
   overflow: hidden;
@@ -75,7 +75,7 @@
   gap: 4px;
   height: 32px;
   padding: 0 12px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 46px;
   font-family: var(--font-body);
@@ -87,7 +87,7 @@
   flex-shrink: 0;
 
   &:hover {
-    background: #f7f9fb;
+    background: var(--surface-raised);
     border-color: #d0d5da;
   }
 }

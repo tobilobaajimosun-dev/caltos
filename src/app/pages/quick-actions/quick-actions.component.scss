@@ -414,7 +414,7 @@
   &.orange { background: #fff7ed; color: #ea6c1e; }
   &.purple { background: #f5f3ff; color: #7c3aed; }
   &.teal   { background: #f0fdfa; color: #0d9488; }
-  &.gray   { background: #f3f4f6; color: #6b7280; }
+  &.gray   { background: var(--surface-overlay); color: #6b7280; }
 }
 
 .action-title {

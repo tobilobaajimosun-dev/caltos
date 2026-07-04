@@ -7,12 +7,12 @@
   height: 40px;
   border-radius: 8px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   padding: 0 12px;
   transition: background 0.15s, border-color 0.15s;
 
   &:hover:not(.focused) {
-    background: #f2f6fa;
+    background: var(--surface-overlay);
     border-color: #edeeee;
   }
 

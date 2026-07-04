@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from './shared/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +8,8 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   template: '<router-outlet />',
 })
-export class AppComponent {}
+export class AppComponent {
+  // Injected here (not just in header/sidebar) so the persisted theme
+  // applies on every route, including public auth pages with no shell chrome.
+  private readonly theme = inject(ThemeService);
+}

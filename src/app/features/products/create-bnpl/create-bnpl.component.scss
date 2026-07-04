@@ -9,7 +9,7 @@ $bnpl-red-light: #FEE4E2;
 .page {
   display: flex;
   min-height: 100vh;
-  background: #f9fafb;
+  background: var(--surface-overlay);
 }
 
 .main {
@@ -27,7 +27,7 @@ $bnpl-red-light: #FEE4E2;
   gap: 16px;
   height: 60px;
   padding: 0 32px;
-  background: #fff;
+  background: var(--surface-base);
   border-bottom: 1px solid var(--color-stroke);
   flex-shrink: 0;
   position: sticky;
@@ -116,13 +116,13 @@ $bnpl-red-light: #FEE4E2;
   padding: 0 16px;
   border-radius: 8px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   color: var(--color-header);
   cursor: pointer;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .btn-preview-product {
@@ -133,14 +133,14 @@ $bnpl-red-light: #FEE4E2;
   padding: 0 16px;
   border-radius: 8px;
   border: 1px solid var(--color-input-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   color: var(--color-body);
   cursor: pointer;
   text-decoration: none;
-  &:hover { background: #f9fafb; border-color: $blue; color: $blue; }
+  &:hover { background: var(--surface-overlay); border-color: $blue; color: $blue; }
 }
 
 .btn-next-step {
@@ -163,7 +163,7 @@ $bnpl-red-light: #FEE4E2;
 
 // ── Stepper ──────────────────────────────────────────────────────────────────
 .stepper-bar {
-  background: #fff;
+  background: var(--surface-base);
   border-bottom: 1px solid var(--color-stroke);
   padding: 0 32px;
   flex-shrink: 0;
@@ -189,12 +189,12 @@ $bnpl-red-light: #FEE4E2;
   cursor: pointer;
   border-radius: 6px;
   transition: background 0.12s;
-  &:hover:not(.active) { background: #f9fafb; }
+  &:hover:not(.active) { background: var(--surface-overlay); }
   &.active .step-circle { background: $blue; color: white; border-color: $blue; }
   &.active .step-label  { color: $blue; font-weight: 600; }
   &.done .step-circle   { background: $blue; color: white; border-color: $blue; }
   &.done .step-label    { color: var(--color-body); }
-  &:not(.active):not(.done) .step-circle { background: #fff; color: var(--color-grey-header); border-color: var(--color-stroke); }
+  &:not(.active):not(.done) .step-circle { background: var(--surface-base); color: var(--color-grey-header); border-color: var(--color-stroke); }
   &:not(.active):not(.done) .step-label  { color: var(--color-grey-header); }
 }
 
@@ -265,7 +265,7 @@ $bnpl-red-light: #FEE4E2;
 }
 
 .form-card {
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 12px;
   padding: 20px;
@@ -288,7 +288,7 @@ $bnpl-red-light: #FEE4E2;
   line-height: 1.5;
 }
 
-.brand-readonly-card { background: #fafafa; }
+.brand-readonly-card { background: var(--surface-overlay); }
 
 .req { color: #F04438; }
 .optional { color: var(--color-grey-header); font-size: 11px; font-weight: 400; }
@@ -345,7 +345,7 @@ $bnpl-red-light: #FEE4E2;
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--color-header);
-  background: #fff;
+  background: var(--surface-base);
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -364,7 +364,7 @@ $bnpl-red-light: #FEE4E2;
   align-items: center;
   border: 1px solid var(--color-input-stroke);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-base);
   overflow: hidden;
   &:focus-within { border-color: $blue; box-shadow: 0 0 0 3px rgba(0,83,166,.1); }
   input { border: none; outline: none; box-shadow: none; height: 40px; flex: 1; min-width: 0; padding: 0 12px; font-family: var(--font-body); font-size: 13px; color: var(--color-header); background: transparent; }
@@ -375,7 +375,7 @@ $bnpl-red-light: #FEE4E2;
   font-weight: 600;
   color: var(--color-grey-header);
   padding: 0 10px 0 12px;
-  background: #f9fafb;
+  background: var(--surface-overlay);
   border-right: 1px solid var(--color-input-stroke);
   height: 40px;
   display: flex;
@@ -387,7 +387,7 @@ $bnpl-red-light: #FEE4E2;
   align-items: center;
   border: 1px solid var(--color-input-stroke);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-base);
   overflow: hidden;
   &:focus-within { border-color: $blue; }
   input { border: none; outline: none; box-shadow: none; height: 40px; flex: 1; min-width: 0; padding: 0 12px; font-family: var(--font-body); font-size: 13px; color: var(--color-header); background: transparent; }
@@ -397,7 +397,7 @@ $bnpl-red-light: #FEE4E2;
   font-size: 12px;
   color: var(--color-grey-header);
   padding: 0 12px;
-  background: #f9fafb;
+  background: var(--surface-overlay);
   border-left: 1px solid var(--color-input-stroke);
   white-space: nowrap;
   display: flex;
@@ -418,7 +418,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 8px 16px;
   border: none;
   border-right: 1px solid var(--color-input-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
@@ -426,7 +426,7 @@ $bnpl-red-light: #FEE4E2;
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
   &:last-child { border-right: none; }
-  &:hover:not(.active) { background: #f9fafb; color: var(--color-body); }
+  &:hover:not(.active) { background: var(--surface-overlay); color: var(--color-body); }
   &.active { background: $blue; color: white; font-weight: 600; }
 }
 
@@ -445,7 +445,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 11px 12px;
   border-radius: 10px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
@@ -458,7 +458,7 @@ $bnpl-red-light: #FEE4E2;
   height: 16px;
   border-radius: 4px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   flex-shrink: 0;
   transition: background 0.12s, border-color 0.12s;
   &.active {
@@ -499,7 +499,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 14px;
   border-radius: 10px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   cursor: pointer;
   text-align: left;
   transition: border-color 0.12s, background 0.12s;
@@ -515,7 +515,7 @@ $bnpl-red-light: #FEE4E2;
   height: 16px;
   border-radius: 4px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   transition: background 0.12s, border-color 0.12s;
   &.active {
     background: $blue;
@@ -563,7 +563,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 5px 10px;
   border: none;
   border-right: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: 500;
@@ -571,7 +571,7 @@ $bnpl-red-light: #FEE4E2;
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
   &:last-child { border-right: none; }
-  &:hover:not(.selected) { background: #f2f4f7; }
+  &:hover:not(.selected) { background: var(--surface-overlay); }
   &.selected { background: $blue; color: white; font-weight: 600; }
 }
 
@@ -595,7 +595,7 @@ $bnpl-red-light: #FEE4E2;
   font-weight: 500;
   color: var(--color-grey-header);
   cursor: pointer;
-  &.active { background: #fff; color: var(--color-header); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  &.active { background: var(--surface-base); color: var(--color-header); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
 }
 
 // ── Toggle options ────────────────────────────────────────────────────────────
@@ -682,7 +682,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 7px 14px;
   border-radius: 8px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
@@ -749,7 +749,7 @@ $bnpl-red-light: #FEE4E2;
   color: var(--color-body);
   line-height: 1.6;
   resize: none;
-  background: #fafafa;
+  background: var(--surface-overlay);
   outline: none;
 }
 
@@ -766,7 +766,7 @@ $bnpl-red-light: #FEE4E2;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 10px;
 }
@@ -781,7 +781,7 @@ $bnpl-red-light: #FEE4E2;
   height: 40px;
   border-radius: 8px;
   border: 1px solid var(--color-stroke);
-  background: #f2f4f7;
+  background: var(--surface-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -801,7 +801,7 @@ $bnpl-red-light: #FEE4E2;
   border: 1px solid var(--color-stroke);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--surface-base);
   &.open { border-color: $blue-border; }
 }
 
@@ -811,7 +811,7 @@ $bnpl-red-light: #FEE4E2;
   justify-content: space-between;
   padding: 16px 20px;
   cursor: pointer;
-  &:hover { background: #fafafa; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .review-section-left { display: flex; align-items: center; gap: 12px; }
@@ -840,7 +840,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
@@ -852,7 +852,7 @@ $bnpl-red-light: #FEE4E2;
 .review-section-body {
   padding: 16px 20px;
   border-top: 1px solid var(--color-stroke);
-  background: #fafafa;
+  background: var(--surface-overlay);
 }
 
 .review-grid {
@@ -895,7 +895,7 @@ $bnpl-red-light: #FEE4E2;
 
 // ── URL preview ───────────────────────────────────────────────────────────────
 .url-preview {
-  background: #f9fafb;
+  background: var(--surface-overlay);
   border: 1px solid var(--color-stroke);
   border-radius: 8px;
   padding: 11px 14px;
@@ -913,7 +913,7 @@ $bnpl-red-light: #FEE4E2;
 .url-mini {
   font-family: monospace;
   font-size: 11px;
-  background: #f2f4f7;
+  background: var(--surface-overlay);
   padding: 2px 6px;
   border-radius: 4px;
   color: var(--color-body);
@@ -923,7 +923,7 @@ $bnpl-red-light: #FEE4E2;
 .right-panel { position: sticky; top: 112px; }
 
 .panel-card {
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 14px;
   padding: 16px;
@@ -1017,7 +1017,7 @@ $bnpl-red-light: #FEE4E2;
   cursor: pointer;
   text-align: left;
   transition: background 0.1s;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
   &.active { background: $blue-light; }
 }
 
@@ -1065,7 +1065,7 @@ $bnpl-red-light: #FEE4E2;
   height: 14px;
   border-radius: 50%;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1090,7 +1090,7 @@ $bnpl-red-light: #FEE4E2;
 .guide-progress-bar {
   flex: 1;
   height: 4px;
-  background: #f2f4f7;
+  background: var(--surface-overlay);
   border-radius: 100px;
   overflow: hidden;
 }
@@ -1118,7 +1118,7 @@ $bnpl-red-light: #FEE4E2;
   align-items: center;
   gap: 12px;
   padding: 14px 32px;
-  background: #fff;
+  background: var(--surface-base);
   border-top: 1px solid var(--color-stroke);
   z-index: 20;
 }
@@ -1131,7 +1131,7 @@ $bnpl-red-light: #FEE4E2;
   padding: 0 18px;
   border-radius: 8px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
@@ -1139,7 +1139,7 @@ $bnpl-red-light: #FEE4E2;
   cursor: pointer;
   text-decoration: none;
   flex-shrink: 0;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .footer-hint {
@@ -1193,7 +1193,7 @@ $bnpl-red-light: #FEE4E2;
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--color-header);
-  background: #fff;
+  background: var(--surface-base);
   outline: none;
   width: 100%;
   cursor: pointer;
@@ -1212,7 +1212,7 @@ $bnpl-red-light: #FEE4E2;
 }
 
 .dialog {
-  background: #fff;
+  background: var(--surface-base);
   border-radius: 14px;
   padding: 28px;
   max-width: 400px;
@@ -1258,7 +1258,7 @@ $bnpl-red-light: #FEE4E2;
   cursor: pointer;
   &.primary   { background: $blue; color: white; &:hover { background: #003d7a; } &:disabled { opacity: 0.4; cursor: not-allowed; } }
   &.danger    { background: #FEE4E2; color: #D92D20; &:hover { background: #FECDCA; } }
-  &.secondary { background: #f2f4f7; color: var(--color-body); &:hover { background: #e8eaed; } }
+  &.secondary { background: var(--surface-overlay); color: var(--color-body); &:hover { background: var(--surface-overlay); } }
 }
 
 // ── Publish overlay ───────────────────────────────────────────────────────────
@@ -1273,7 +1273,7 @@ $bnpl-red-light: #FEE4E2;
 }
 
 .publish-success-card {
-  background: #fff;
+  background: var(--surface-base);
   border-radius: 20px;
   padding: 40px 36px;
   max-width: 420px;
@@ -1332,11 +1332,11 @@ $bnpl-red-light: #FEE4E2;
   height: 42px;
   border-radius: 10px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   color: var(--color-body);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }

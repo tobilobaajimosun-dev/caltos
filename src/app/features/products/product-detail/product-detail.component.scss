@@ -7,13 +7,13 @@
   display: flex; align-items: center; justify-content: space-between;
   height: 64px; gap: 16px;
   border-bottom: 1px solid var(--color-stroke);
-  padding: 0 32px; background: #fff;
+  padding: 0 32px; background: var(--surface-base);
   position: sticky; top: 0; z-index: 10;
 }
 
 .search-wrap {
   display: flex; align-items: center; gap: 8px; flex: 1; max-width: 520px;
-  background: #f9fafb; border: 1px solid var(--color-stroke);
+  background: var(--surface-overlay); border: 1px solid var(--color-stroke);
   border-radius: 8px; padding: 0 12px; height: 40px; color: var(--color-grey-header);
 }
 
@@ -24,17 +24,17 @@
 }
 
 .search-kbd { display: flex; gap: 2px;
-  kbd { font-family: var(--font-body); font-size: 11px; color: var(--color-grey-header); background: #ecf0f3; border-radius: 4px; padding: 1px 5px; }
+  kbd { font-family: var(--font-body); font-size: 11px; color: var(--color-grey-header); background: var(--color-stroke); border-radius: 4px; padding: 1px 5px; }
 }
 
 .top-actions { display: flex; align-items: center; gap: 8px; }
 
 .icon-btn {
   width: 36px; height: 36px; border-radius: 50%;
-  border: 1px solid var(--color-stroke); background: #fff;
+  border: 1px solid var(--color-stroke); background: var(--surface-base);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--color-grey-header);
-  &:hover { background: #f5f5f5; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .avatar {
@@ -109,20 +109,20 @@
 
 .more-btn {
   width: 34px; height: 34px; border-radius: 8px;
-  border: 1px solid var(--color-stroke); background: #fff;
+  border: 1px solid var(--color-stroke); background: var(--surface-base);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--color-body);
-  &:hover { background: #f5f5f5; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .edit-btn {
   display: inline-flex; align-items: center; gap: 7px;
-  background: #fff; color: var(--color-body);
+  background: var(--surface-base); color: var(--color-body);
   border: 1px solid var(--color-stroke);
   border-radius: 8px; padding: 8px 14px;
   font-family: var(--font-body); font-size: 13px; font-weight: 500;
   cursor: pointer;
-  &:hover { background: #f7f8fa; }
+  &:hover { background: var(--surface-raised); }
 }
 
 /* ── Link bar ── */
@@ -133,7 +133,7 @@
 
 .ph-link-inner {
   display: flex; align-items: center; gap: 8px;
-  background: #f7f8fa; border: 1px solid var(--color-stroke);
+  background: var(--surface-raised); border: 1px solid var(--color-stroke);
   border-radius: 8px; padding: 7px 10px 7px 12px;
   flex: 1; max-width: 440px; min-width: 0;
   svg { color: var(--color-grey-header); flex-shrink: 0; }
@@ -156,13 +156,13 @@
 
 .ph-link-btn {
   display: inline-flex; align-items: center; gap: 5px;
-  border: 1px solid var(--color-stroke); background: #fff;
+  border: 1px solid var(--color-stroke); background: var(--surface-base);
   border-radius: 8px; padding: 6px 12px;
   font-family: var(--font-body); font-size: 12.5px;
   color: var(--color-body); font-weight: 500;
   cursor: pointer; text-decoration: none; white-space: nowrap;
   svg { color: var(--color-grey-header); }
-  &:hover { background: #f7f8fa; }
+  &:hover { background: var(--surface-raised); }
   &.ph-link-more { padding: 6px 9px; }
 }
 
@@ -216,7 +216,7 @@
 /* ── Setup checklist (reused from previous) ── */
 .setup-checklist {
   border: 1px solid var(--color-stroke);
-  border-radius: 12px; overflow: hidden; background: #fff;
+  border-radius: 12px; overflow: hidden; background: var(--surface-base);
 }
 
 .setup-ch-header {
@@ -290,7 +290,7 @@
 
 /* ── Overview sections (Stripe-style cards) ── */
 .ov-section {
-  background: #fff; border: 1px solid var(--color-stroke);
+  background: var(--surface-base); border: 1px solid var(--color-stroke);
   border-radius: 12px; overflow: hidden;
 }
 
@@ -372,7 +372,7 @@
   }
 
   &.doc {
-    background: #f9fafb; border-color: var(--color-stroke);
+    background: var(--surface-overlay); border-color: var(--color-stroke);
     color: var(--color-body); font-weight: 400;
     &::before { display: none; }
     svg { color: var(--color-grey-header); flex-shrink: 0; }
@@ -400,16 +400,16 @@
   gap: 12px;
   padding: 12px 14px;
   border-bottom: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   &:last-child { border-bottom: none; }
-  &:hover { background: #fafafa; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .channel-priority {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #f2f4f7;
+  background: var(--surface-overlay);
   border: 1px solid var(--color-stroke);
   display: flex;
   align-items: center;
@@ -437,7 +437,7 @@
 .channel-desc {
   font-size: 11px;
   color: var(--color-grey-header);
-  em { font-style: normal; color: #8a93a6; }
+  em { font-style: normal; color: var(--text-muted); }
 }
 
 .channel-status-pill {
@@ -446,7 +446,7 @@
   padding: 3px 10px;
   border-radius: 100px;
   border: 1px solid var(--color-stroke);
-  background: #f2f4f7;
+  background: var(--surface-overlay);
   color: var(--color-grey-header);
   white-space: nowrap;
   flex-shrink: 0;
@@ -464,7 +464,7 @@
   }
 
   &.not-configured {
-    background: #f2f4f7;
+    background: var(--surface-overlay);
     color: var(--color-grey-header);
     border-color: var(--color-stroke);
   }
@@ -509,7 +509,7 @@
    RIGHT SIDEBAR CARDS
 ══════════════════════════════════════ */
 .sidebar-card {
-  background: #fff; border: 1px solid var(--color-stroke);
+  background: var(--surface-base); border: 1px solid var(--color-stroke);
   border-radius: 12px; overflow: hidden;
 }
 
@@ -524,7 +524,7 @@
   font-family: var(--font-body); font-size: 11.5px;
   color: var(--color-grey-header); background: none; border: none; cursor: pointer;
   &.active { background: var(--color-stroke); color: var(--color-body); font-weight: 500; }
-  &:hover:not(.active) { background: #f3f4f6; }
+  &:hover:not(.active) { background: var(--surface-overlay); }
 }
 
 /* Stat rows */
@@ -557,7 +557,7 @@
   font-family: var(--font-body); font-size: 11px; font-weight: 600; flex-shrink: 0;
   &.up { background: #ecfdf5; color: #059669; }
   &.down { background: #fff1f0; color: #e03e3e; }
-  &.neutral { background: #f3f4f6; color: var(--color-grey-header); }
+  &.neutral { background: var(--surface-overlay); color: var(--color-grey-header); }
 }
 
 /* Donut card */
@@ -573,7 +573,7 @@
 
 .period-btn {
   display: flex; align-items: center; gap: 3px;
-  border: 1px solid var(--color-stroke); background: #fff; border-radius: 7px;
+  border: 1px solid var(--color-stroke); background: var(--surface-base); border-radius: 7px;
   padding: 4px 9px; font-family: var(--font-body); font-size: 11px;
   color: var(--color-body); cursor: pointer;
 }
@@ -628,7 +628,7 @@
 .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .detail-card {
-  background: #fff; border: 1px solid var(--color-stroke);
+  background: var(--surface-base); border: 1px solid var(--color-stroke);
   border-radius: 12px; padding: 20px; overflow: hidden;
 }
 
@@ -644,10 +644,10 @@
 }
 
 .card-edit {
-  border: 1px solid var(--color-stroke); background: #fff; border-radius: 7px;
+  border: 1px solid var(--color-stroke); background: var(--surface-base); border-radius: 7px;
   padding: 5px 12px; font-family: var(--font-body); font-size: 12px;
   color: var(--color-body); cursor: pointer;
-  &:hover { background: #f5f5f5; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
@@ -728,7 +728,7 @@
   display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-radius: 8px;
   font-family: var(--font-body); font-size: 12px; color: var(--color-body);
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .doc-icon { color: var(--color-grey-header); flex-shrink: 0; }
@@ -752,7 +752,7 @@
 
 /* Legal */
 .policy-box {
-  background: #f9fafb; border: 1px solid var(--color-stroke); border-radius: 8px;
+  background: var(--surface-overlay); border: 1px solid var(--color-stroke); border-radius: 8px;
   padding: 16px; font-family: var(--font-body); font-size: 13px; color: var(--color-body);
   line-height: 1.7; white-space: pre-line; margin-bottom: 12px;
 }
@@ -766,7 +766,7 @@
 .empty-tab {
   padding: 56px; text-align: center;
   font-family: var(--font-body); font-size: 13px; color: var(--color-grey-header);
-  background: #fff; border: 1px solid var(--color-stroke); border-radius: 12px;
+  background: var(--surface-base); border: 1px solid var(--color-stroke); border-radius: 12px;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   svg { opacity: 0.3; }
 }
@@ -835,7 +835,7 @@
 
 /* Vendor table */
 .vendor-table {
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 12px;
   overflow: hidden;
@@ -846,7 +846,7 @@
   grid-template-columns: 2.2fr 1.4fr 100px 1.4fr 120px 100px;
   gap: 12px;
   padding: 10px 16px;
-  background: #f9fafb;
+  background: var(--surface-overlay);
   border-bottom: 1px solid var(--color-stroke);
   font-size: 11px;
   font-weight: 700;
@@ -864,7 +864,7 @@
   border-bottom: 1px solid var(--color-stroke);
   transition: background 0.1s;
   &:last-child { border-bottom: none; }
-  &:hover { background: #fafafa; }
+  &:hover { background: var(--surface-overlay); }
   &.suspended { opacity: 0.6; }
 }
 
@@ -957,14 +957,14 @@
   height: 30px;
   border: 1px solid var(--color-stroke);
   border-radius: 7px;
-  background: #fff;
+  background: var(--surface-base);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--color-grey-header);
   transition: background 0.1s, border-color 0.1s, color 0.1s;
-  &:hover { background: #f2f4f7; border-color: #c0c9d1; color: var(--color-body); }
+  &:hover { background: var(--surface-overlay); border-color: #c0c9d1; color: var(--color-body); }
   &.danger:hover { background: #FEE4E2; border-color: #FDA29B; color: #B42318; }
 }
 
@@ -976,7 +976,7 @@
   justify-content: center;
   gap: 10px;
   padding: 64px 32px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 12px;
   text-align: center;
@@ -1022,7 +1022,7 @@
 }
 
 .onboard-modal {
-  background: #fff;
+  background: var(--surface-base);
   border-radius: 16px;
   width: 520px;
   max-width: calc(100vw - 32px);
@@ -1068,7 +1068,7 @@
   color: var(--color-grey-header);
   border-radius: 6px;
   flex-shrink: 0;
-  &:hover { background: #f2f4f7; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 /* Step indicators */
@@ -1086,7 +1086,7 @@
   height: 26px;
   border-radius: 50%;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-size: 11px;
   font-weight: 700;
   color: var(--color-grey-header);
@@ -1144,7 +1144,7 @@
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--color-header);
-  background: #fff;
+  background: var(--surface-base);
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -1163,7 +1163,7 @@
   padding: 0 16px;
   border-radius: 8px;
   border: 1px solid var(--color-input-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
@@ -1255,7 +1255,7 @@
   padding: 24px 16px;
   border: 1.5px dashed var(--color-input-stroke);
   border-radius: 10px;
-  background: #fafafa;
+  background: var(--surface-overlay);
   cursor: pointer;
   font-size: 13px;
   color: var(--color-body);
@@ -1268,7 +1268,7 @@
 
 /* Review */
 .ob-review-section {
-  background: #f9fafb;
+  background: var(--surface-overlay);
   border: 1px solid var(--color-stroke);
   border-radius: 10px;
   padding: 14px;
@@ -1343,13 +1343,13 @@
   padding: 0 16px;
   border-radius: 8px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   color: var(--color-body);
   cursor: pointer;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .ob-next-btn {

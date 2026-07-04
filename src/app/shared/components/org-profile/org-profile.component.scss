@@ -3,9 +3,9 @@
 .org-profile {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   background: none;
   border: none;
   cursor: pointer;
@@ -65,16 +65,6 @@
   letter-spacing: 0.04em;
   width: fit-content;
   flex-shrink: 0;
-}
-
-.balance-text {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-family: var(--font-body);
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
 }
 
 .chevrons {

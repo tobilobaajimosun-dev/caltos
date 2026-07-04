@@ -5,19 +5,52 @@
 <nav class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="sidebarState.mobileOpen()">
 
   <div class="sidebar-top">
-    <app-org-profile
-      [orgName]="orgName"
-      avatarLetter="P"
-      avatarColor="#E55A2B"
-      role="ADMIN"
-      [balance]="account.balance()"
-      [iconOnly]="collapsed"
-      (clicked)="switchOrgOpen.set(true)"
-    />
+    <div class="org-switcher-wrap">
+      <app-org-profile
+        [orgName]="orgName"
+        avatarLetter="P"
+        avatarColor="#E55A2B"
+        role="ADMIN"
+        [iconOnly]="collapsed"
+        (clicked)="switchOrgOpen.set(!switchOrgOpen())"
+      />
+      @if (switchOrgOpen()) {
+        <div class="org-switch-backdrop" (click)="switchOrgOpen.set(false)"></div>
+        <div class="org-switch-dropdown">
+          <div class="org-switch-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" placeholder="Find organization..." class="org-switch-search-input" />
+          </div>
+          <div class="org-switch-list">
+            @for (org of orgs; track org.id) {
+              <button type="button" class="org-switch-item" [class.active]="org.name === orgName" (click)="selectOrg(org)">
+                <span class="org-switch-avatar" [style.background]="org.color">{{ org.name[0] }}</span>
+                <span class="org-switch-name">{{ org.name }}</span>
+                @if (org.name === orgName) {
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="var(--color-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                }
+              </button>
+            }
+          </div>
+          <div class="org-switch-divider"></div>
+          <button type="button" class="org-switch-add">
+            <span class="org-switch-add-icon">+</span>
+            <span class="org-switch-add-text">
+              <span class="org-switch-add-title">Create Organization</span>
+              <span class="org-switch-add-desc">Collaborate with others in a shared workspace</span>
+            </span>
+          </button>
+        </div>
+      }
+    </div>
+
     <button class="collapse-btn" (click)="collapsed = !collapsed" [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" [class.flipped]="collapsed">
         <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
+      @if (!collapsed) {
+        <span class="collapse-label">Collapse</span>
+      }
     </button>
   </div>
 
@@ -44,27 +77,8 @@
 
   <div class="sidebar-bottom">
     @if (!collapsed) {
-      <div class="theme-toggle">
-        <span>Dark mode</span>
-        <app-toggle [checked]="theme.isDark()" (checkedChange)="theme.set($event)" />
-      </div>
       <app-badge-card />
     }
   </div>
 
 </nav>
-
-<app-modal [isOpen]="switchOrgOpen()" title="Switch organization" (closed)="switchOrgOpen.set(false)">
-  <div class="org-switch-list">
-    @for (org of orgs; track org.id) {
-      <button type="button" class="org-switch-item" [class.active]="org.name === orgName" (click)="selectOrg(org)">
-        <span class="org-switch-avatar" [style.background]="org.color">{{ org.name[0] }}</span>
-        <span class="org-switch-name">{{ org.name }}</span>
-        @if (org.name === orgName) {
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="var(--color-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        }
-      </button>
-    }
-    <button type="button" class="org-switch-add">+ Add organization</button>
-  </div>
-</app-modal>

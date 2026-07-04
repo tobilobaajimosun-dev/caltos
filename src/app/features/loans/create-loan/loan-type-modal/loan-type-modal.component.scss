@@ -15,7 +15,7 @@ $blue-border: #B2DDFF;
 
 .modal-card {
   position: relative;
-  background: #fff;
+  background: var(--surface-base);
   border-radius: 16px;
   width: 100%;
   max-width: 880px;
@@ -49,12 +49,12 @@ $blue-border: #B2DDFF;
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .modal-header {
@@ -92,7 +92,7 @@ $blue-border: #B2DDFF;
   padding: 14px;
   border-radius: 12px;
   border: 1.5px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   cursor: pointer;
   text-align: left;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -104,7 +104,7 @@ $blue-border: #B2DDFF;
 
   &.scratch {
     border-style: dashed;
-    background: #fafafa;
+    background: var(--surface-overlay);
   }
 }
 
@@ -194,12 +194,12 @@ $blue-border: #B2DDFF;
   height: 30px;
   border-radius: 7px;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .detail-body {

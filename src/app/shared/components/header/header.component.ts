@@ -5,6 +5,7 @@ import { CommandPaletteComponent, CommandGroup } from '../command-palette/comman
 import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { SessionService } from '../../services/session.service';
+import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-header',
@@ -22,6 +23,7 @@ export class HeaderComponent {
   readonly theme = inject(ThemeService);
   readonly sidebarState = inject(SidebarStateService);
   private readonly session = inject(SessionService);
+  readonly account = inject(AccountService);
 
   readonly helpMenuOpen = signal(false);
   readonly userMenuOpen = signal(false);

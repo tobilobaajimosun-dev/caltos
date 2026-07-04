@@ -44,12 +44,12 @@
   height: 36px;
   padding: 0 16px;
   border-radius: 100px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1.5px solid var(--color-stroke);
   color: var(--color-header);
   font-size: 13px;
 
-  &:hover:not(:disabled) { background: #f2f6fa; }
+  &:hover:not(:disabled) { background: var(--surface-overlay); }
 
   &.dark {
     background: var(--color-header);
@@ -69,7 +69,7 @@
   border: 1.5px solid var(--color-stroke);
   color: var(--color-blue);
 
-  &:hover:not(:disabled) { background: #f2f6fa; }
+  &:hover:not(:disabled) { background: var(--surface-overlay); }
 }
 
 /* Back button — text link with arrow */
@@ -88,12 +88,12 @@
   height: 36px;
   padding: 0 14px;
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1.5px solid var(--color-stroke);
   color: var(--color-body);
   font-size: 13px;
 
-  &:hover:not(:disabled) { background: #f2f6fa; }
+  &:hover:not(:disabled) { background: var(--surface-overlay); }
 
   &.active {
     background: rgba(0, 83, 166, 0.08);
@@ -113,7 +113,7 @@
   padding: 0;
   justify-content: center;
 
-  &:hover:not(:disabled) { background: #f2f6fa; }
+  &:hover:not(:disabled) { background: var(--surface-overlay); }
 }
 
 /* Text */

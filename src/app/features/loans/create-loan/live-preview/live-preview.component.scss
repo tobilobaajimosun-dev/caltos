@@ -8,7 +8,7 @@
   position: relative;
   width: 220px;
   min-height: 440px;
-  background: #fff;
+  background: var(--surface-base);
   border-radius: 32px;
   box-shadow:
     0 0 0 8px #1a1a1a,
@@ -80,7 +80,7 @@
 }
 
 .screen-footer {
-  background: #fff;
+  background: var(--surface-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,13 +122,13 @@
 .welcome-title {
   font-size: 14px;
   font-weight: 700;
-  color: #121212;
+  color: var(--text-primary);
   margin-bottom: 3px;
 }
 
 .welcome-sub {
   font-size: 10px;
-  color: #8a93a6;
+  color: var(--text-muted);
 }
 
 .feature-list {
@@ -143,7 +143,7 @@
   align-items: center;
   gap: 8px;
   font-size: 10px;
-  color: #44444b;
+  color: var(--text-secondary);
 }
 
 .dot {
@@ -165,12 +165,12 @@
 .form-title {
   font-size: 13px;
   font-weight: 700;
-  color: #121212;
+  color: var(--text-primary);
 }
 
 .form-sub {
   font-size: 10px;
-  color: #8a93a6;
+  color: var(--text-muted);
   margin-top: -6px;
 }
 
@@ -190,14 +190,14 @@
 .field-label {
   font-size: 9px;
   font-weight: 600;
-  color: #44444b;
+  color: var(--text-secondary);
 }
 
 .field-input {
   height: 28px;
-  border: 1px solid #ecf0f3;
+  border: 1px solid var(--color-stroke);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface-base);
 }
 
 // Verify screen
@@ -217,12 +217,12 @@
 .verify-title {
   font-size: 13px;
   font-weight: 700;
-  color: #121212;
+  color: var(--text-primary);
 }
 
 .verify-sub {
   font-size: 10px;
-  color: #8a93a6;
+  color: var(--text-muted);
   text-align: center;
 }
 
@@ -235,9 +235,9 @@
 .otp-box {
   width: 36px;
   height: 40px;
-  border: 1.5px solid #ecf0f3;
+  border: 1.5px solid var(--color-stroke);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-base);
 }
 
 // Shared CTA

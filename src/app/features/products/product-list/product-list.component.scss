@@ -1,7 +1,7 @@
 .page {
   display: flex;
   min-height: 100vh;
-  background: #f9fafb;
+  background: var(--surface-overlay);
 }
 
 .main {
@@ -22,7 +22,7 @@
   border-bottom: 1px solid var(--color-stroke);
   margin: 0 -32px;
   padding: 0 32px;
-  background: #fff;
+  background: var(--surface-base);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -34,7 +34,7 @@
   gap: 8px;
   flex: 1;
   max-width: 520px;
-  background: #f9fafb;
+  background: var(--surface-overlay);
   border: 1px solid var(--color-stroke);
   border-radius: 8px;
   padding: 0 12px;
@@ -62,7 +62,7 @@
     font-family: var(--font-body);
     font-size: 11px;
     color: var(--color-grey-header);
-    background: #ecf0f3;
+    background: var(--color-stroke);
     border-radius: 4px;
     padding: 1px 5px;
   }
@@ -79,13 +79,13 @@
   height: 36px;
   border-radius: 50%;
   border: 1px solid var(--color-stroke);
-  background: #fff;
+  background: var(--surface-base);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--color-grey-header);
-  &:hover { background: #f5f5f5; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .avatar {
@@ -121,13 +121,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--surface-base);
   color: var(--color-body);
   border: 1px solid var(--color-stroke);
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
-  &:hover { background: #f5f5f5; border-color: #d1d5db; color: var(--color-header); }
+  &:hover { background: var(--surface-overlay); border-color: #d1d5db; color: var(--color-header); }
 }
 
 .page-title {
@@ -171,7 +171,7 @@
 }
 
 .stat-card {
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 12px;
   padding: 20px 20px 24px;
@@ -180,15 +180,15 @@
 
   &:first-child {
     border-top: 2.5px solid var(--color-blue);
-    background: linear-gradient(160deg, rgba(0,83,166,0.035) 0%, #fff 55%);
+    background: linear-gradient(160deg, rgba(0,83,166,0.035) 0%, var(--surface-base) 55%);
   }
   &:nth-child(2) {
     border-top: 2.5px solid #059669;
-    background: linear-gradient(160deg, rgba(5,150,105,0.04) 0%, #fff 55%);
+    background: linear-gradient(160deg, rgba(5,150,105,0.04) 0%, var(--surface-base) 55%);
   }
   &:last-child {
     border-top: 2.5px solid #9ca3af;
-    background: linear-gradient(160deg, rgba(156,163,175,0.06) 0%, #fff 55%);
+    background: linear-gradient(160deg, rgba(156,163,175,0.06) 0%, var(--surface-base) 55%);
   }
 }
 
@@ -289,7 +289,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 8px;
   padding: 7px 14px;
@@ -297,7 +297,7 @@
   font-size: 13px;
   color: var(--color-body);
   cursor: pointer;
-  &:hover { background: #f9fafb; }
+  &:hover { background: var(--surface-overlay); }
 }
 
 .add-fee-btn {
@@ -317,7 +317,7 @@
 /* ── Table ── */
 .table-wrap {
   margin-top: 16px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 12px;
   overflow: hidden;
@@ -347,7 +347,7 @@
   }
 
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: #fafafa; }
+  tbody tr:hover td { background: var(--surface-overlay); }
   tbody tr.clickable-row { cursor: pointer; }
 }
 
@@ -431,7 +431,7 @@
   top: calc(100% + 6px);
   right: 0;
   width: 192px;
-  background: #fff;
+  background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -461,7 +461,7 @@
   text-decoration: none;
   text-align: left;
 
-  &:hover { background: #f5f5f5; }
+  &:hover { background: var(--surface-overlay); }
 
   &.danger {
     color: #e03e3e;
@@ -546,7 +546,7 @@
     background: rgba(0, 83, 166, 0.05);
   }
 
-  &:not(.active):hover { background: #f5f5f5; }
+  &:not(.active):hover { background: var(--surface-overlay); }
 }
 
 /* ── Empty state ── */

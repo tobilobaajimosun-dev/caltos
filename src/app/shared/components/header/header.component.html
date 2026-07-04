@@ -48,6 +48,8 @@
       }
     </button>
 
+    <span class="balance-pill">{{ account.balance() }}</span>
+
     <div class="menu-wrap">
       <button class="user-trigger" type="button" (click)="toggleUserMenu()">
         <app-avatar [name]="userName" size="sm" />
