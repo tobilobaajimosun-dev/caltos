@@ -409,6 +409,87 @@
               </div>
             }
 
+            <!-- Repayment Deduction Channels -->
+            <div class="form-card">
+              <div class="form-card-title">Repayment Deduction Channel</div>
+              <div class="form-card-sub">Choose how repayments will be collected from borrowers — deductions happen before salary reaches the borrower where supported.</div>
+              <div class="deduct-grid">
+
+                <button class="deduct-card" [class.selected]="config.deductIppis" (click)="config.deductIppis = !config.deductIppis">
+                  <div class="deduct-check" [class.active]="config.deductIppis"></div>
+                  <div class="deduct-body">
+                    <div class="deduct-title">IPPIS</div>
+                    <div class="deduct-sub">At-source payroll deduction for federal employees. Safest option — deducted before salary is credited.</div>
+                    <div class="deduct-tags">
+                      <span class="deduct-tag green">Lowest risk</span>
+                      <span class="deduct-tag">Federal MDAs only</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button class="deduct-card" [class.selected]="config.deductRemita" (click)="config.deductRemita = !config.deductRemita">
+                  <div class="deduct-check" [class.active]="config.deductRemita"></div>
+                  <div class="deduct-body">
+                    <div class="deduct-title">Remita</div>
+                    <div class="deduct-sub">Standing order / mandate on salary inflow. Works for federal and some state employees paid via Remita.</div>
+                    <div class="deduct-tags">
+                      <span class="deduct-tag blue">Federal + some states</span>
+                      <span class="deduct-tag">Requires Remita key</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button class="deduct-card" [class.selected]="config.deductDedukt" (click)="config.deductDedukt = !config.deductDedukt">
+                  <div class="deduct-check" [class.active]="config.deductDedukt"></div>
+                  <div class="deduct-body">
+                    <div class="deduct-title">Dedukt</div>
+                    <div class="deduct-sub">Third-party deduction platform. Works across public and private sector employers on their network.</div>
+                    <div class="deduct-tags">
+                      <span class="deduct-tag blue">Public + private</span>
+                      <span class="deduct-tag">API integration</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button class="deduct-card" [class.selected]="config.deductWacs" (click)="config.deductWacs = !config.deductWacs">
+                  <div class="deduct-check" [class.active]="config.deductWacs"></div>
+                  <div class="deduct-body">
+                    <div class="deduct-title">WACS</div>
+                    <div class="deduct-sub">State-level payroll deduction system. Coverage varies by state — each state has its own implementation.</div>
+                    <div class="deduct-tags">
+                      <span class="deduct-tag">State-specific</span>
+                      <span class="deduct-tag">Varies by state</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button class="deduct-card" [class.selected]="config.deductDirectDebit" (click)="config.deductDirectDebit = !config.deductDirectDebit">
+                  <div class="deduct-check" [class.active]="config.deductDirectDebit"></div>
+                  <div class="deduct-body">
+                    <div class="deduct-title">Direct Debit</div>
+                    <div class="deduct-sub">Standard debit from the borrower's bank account on the due date. Works for any bank. Useful as a fallback when payroll deduction isn't available.</div>
+                    <div class="deduct-tags">
+                      <span class="deduct-tag">Any bank</span>
+                      <span class="deduct-tag">Fallback option</span>
+                    </div>
+                  </div>
+                </button>
+
+              </div>
+              @if (noDeductionSelected) {
+                <div class="info-callout warn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                  No deduction channel selected. Repayments will need to be collected manually or via a channel configured later.
+                </div>
+              }
+              @if (config.deductIppis || config.deductRemita) {
+                <div class="info-callout">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5"/></svg>
+                  {{ config.deductIppis && config.deductRemita ? 'IPPIS and Remita require' : config.deductIppis ? 'IPPIS requires' : 'Remita requires' }} integration keys. Configure them in Settings → Integrations before going live.
+                </div>
+              }
+            </div>
+
             <!-- Documents -->
             <div class="form-card">
               <div class="form-card-title">Required Documents</div>
@@ -957,7 +1038,8 @@
                     @if (i === 2) {
                       <div class="review-grid">
                         <div class="review-item"><span class="r-label">Identity</span><span class="r-val">{{ compact([config.identityBvn ? 'BVN' : '', config.identityNin ? 'NIN' : '', config.identityPhoneOtp ? 'Phone OTP' : '']) }}</span></div>
-                        <div class="review-item"><span class="r-label">Income</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'IPPIS' : '', config.incomeBankStatement ? 'Bank Statement' : '']) }}</span></div>
+                        <div class="review-item"><span class="r-label">Income verification</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'IPPIS' : '', config.incomeBankStatement ? 'Bank Statement' : '']) || 'None' }}</span></div>
+                        <div class="review-item review-item--full"><span class="r-label">Repayment deduction</span><span class="r-val">{{ activeDeductionChannels.join(' · ') || 'None configured' }}</span></div>
                         <div class="review-item"><span class="r-label">Gov ID</span><span class="r-val">{{ config.docGovId | titlecase }}</span></div>
                       </div>
                     }

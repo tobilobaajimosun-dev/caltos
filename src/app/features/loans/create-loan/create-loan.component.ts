@@ -52,6 +52,12 @@ export interface LoanConfig {
   incomeRemita: boolean;
   incomeIppis: boolean;
   incomeBankStatement: boolean;
+  // Repayment deduction channels (separate from income verification)
+  deductIppis: boolean;        // At-source payroll deduction via IPPIS (federal only)
+  deductRemita: boolean;       // Remita standing order / mandate
+  deductDedukt: boolean;       // Dedukt third-party deduction platform
+  deductWacs: boolean;         // WACS state-level payroll deduction
+  deductDirectDebit: boolean;  // Standard direct debit from borrower's account (fallback)
   docGovId: string;
   docUtilityBill: string;
   docWorkVerification: string;
@@ -124,6 +130,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: true,
+    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -138,6 +145,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: true, incomeBankStatement: false,
+    deductIppis: true, deductRemita: true, deductWacs: false, deductDedukt: false, deductDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -152,6 +160,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'none',
     docGuarantorForm: 'required', docSchoolId: 'required', docAdmissionLetter: 'required',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -166,6 +175,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: false,
+    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none',
@@ -180,6 +190,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    deductIppis: false, deductRemita: false, deductDedukt: true, deductWacs: false, deductDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'required', docWorkVerification: 'optional',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none',
@@ -194,6 +205,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required',
@@ -208,6 +220,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -299,6 +312,7 @@ export class CreateLoanComponent implements OnInit {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: false,
     docGovId: 'none', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -449,6 +463,20 @@ export class CreateLoanComponent implements OnInit {
   get showIncomeVerification(): boolean { return true; }
   get noIncomeSelected(): boolean {
     return !this.config.incomeRemita && !this.config.incomeIppis && !this.config.incomeBankStatement;
+  }
+
+  get noDeductionSelected(): boolean {
+    return !this.config.deductIppis && !this.config.deductRemita && !this.config.deductDedukt && !this.config.deductWacs && !this.config.deductDirectDebit;
+  }
+
+  get activeDeductionChannels(): string[] {
+    const ch: string[] = [];
+    if (this.config.deductIppis)       ch.push('IPPIS');
+    if (this.config.deductRemita)      ch.push('Remita');
+    if (this.config.deductDedukt)      ch.push('Dedukt');
+    if (this.config.deductWacs)        ch.push('WACS');
+    if (this.config.deductDirectDebit) ch.push('Direct Debit');
+    return ch;
   }
 
   get showSchoolDocs(): boolean { return this.config.template === 'school'; }
