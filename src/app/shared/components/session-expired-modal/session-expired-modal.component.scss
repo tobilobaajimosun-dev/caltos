@@ -1,0 +1,115 @@
+:host { display: contents; }
+
+.session-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 18, 0.5);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.session-dialog {
+  width: 380px;
+  max-width: 90vw;
+  background: var(--surface-base);
+  border-radius: 14px;
+  padding: var(--space-6);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  text-align: center;
+}
+
+.session-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+}
+
+.session-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.session-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0 0 var(--space-5);
+}
+
+.session-password-wrap {
+  position: relative;
+  text-align: left;
+}
+
+.session-input {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-input-stroke);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  outline: none;
+
+  &:focus { border-color: var(--color-blue); box-shadow: 0 0 0 3px var(--color-focus-ring); }
+  &.invalid { border-color: var(--color-error); }
+}
+
+.session-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.session-error {
+  font-size: var(--text-xs);
+  color: var(--color-error);
+  text-align: left;
+  margin: 4px 0 0;
+}
+
+.session-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.session-cancel {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-input-stroke);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+}
+
+.session-submit {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-blue);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}

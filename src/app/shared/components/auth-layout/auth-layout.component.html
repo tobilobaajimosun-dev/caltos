@@ -1,0 +1,31 @@
+<div class="auth-shell">
+  <div class="form-pane">
+    <div class="form-pane-inner">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <span class="brand-name">Caltos</span>
+      </div>
+      <div class="form-slot">
+        <ng-content />
+      </div>
+    </div>
+  </div>
+
+  <div class="value-pane">
+    <div class="value-content">
+      <div class="value-badge">Princeps Finance</div>
+      <h1 class="value-headline">{{ headline() }}</h1>
+      <p class="value-subhead">{{ subhead() }}</p>
+      <div class="value-metrics">
+        <div class="metric">
+          <p class="metric-value">₦4.2B+</p>
+          <p class="metric-label">Disbursed on Caltos</p>
+        </div>
+        <div class="metric">
+          <p class="metric-value">98.4%</p>
+          <p class="metric-label">Repayment rate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

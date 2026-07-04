@@ -1,0 +1,249 @@
+<div class="onboarding-shell">
+
+  @if (step() !== 'success') {
+    <div class="onboarding-header">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <span class="brand-name">Caltos</span>
+      </div>
+      <div class="stepper">
+        @for (s of steps; track s.id; let i = $index) {
+          <div class="stepper-item" [class.done]="i < stepIndex()" [class.active]="i === stepIndex()">
+            <span class="stepper-dot">{{ i < stepIndex() ? '✓' : i + 1 }}</span>
+            <span class="stepper-label">{{ s.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="onboarding-card">
+
+    @if (step() === 'org-basics') {
+      <h1 class="title">Tell us about your organization</h1>
+      <p class="subtitle">This helps us tailor Caltos to how you lend.</p>
+
+      <form class="onboarding-form" [formGroup]="orgForm" (ngSubmit)="submitOrgBasics()">
+        <div class="field">
+          <label class="field-label" for="org-name">Organization name</label>
+          <input id="org-name" class="field-input" formControlName="orgName" placeholder="e.g. Princeps Finance"
+            [class.invalid]="orgForm.controls.orgName.invalid && orgForm.controls.orgName.touched" />
+          @if (orgForm.controls.orgName.invalid && orgForm.controls.orgName.touched) {
+            <p class="field-error">Organization name is required.</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="industry">Industry</label>
+          <select id="industry" class="field-input" formControlName="industry"
+            [class.invalid]="orgForm.controls.industry.invalid && orgForm.controls.industry.touched">
+            <option value="" disabled>Select industry</option>
+            @for (opt of industries; track opt) { <option [value]="opt">{{ opt }}</option> }
+          </select>
+          @if (orgForm.controls.industry.invalid && orgForm.controls.industry.touched) {
+            <p class="field-error">Select an industry.</p>
+          }
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="country">Country</label>
+            <input id="country" class="field-input" formControlName="country" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="state">State</label>
+            <select id="state" class="field-input" formControlName="state"
+              [class.invalid]="orgForm.controls.state.invalid && orgForm.controls.state.touched">
+              <option value="" disabled>Select state</option>
+              @for (s of states; track s) { <option [value]="s">{{ s }}</option> }
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="website">Website <span class="optional">(optional)</span></label>
+          <input id="website" class="field-input" formControlName="website" placeholder="https://" />
+        </div>
+
+        <button type="submit" class="submit-btn">Continue</button>
+      </form>
+    }
+
+    @if (step() === 'admin-account') {
+      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <h1 class="title">Create your admin account</h1>
+      <p class="subtitle">You'll use this to sign in and manage your organization.</p>
+
+      <form class="onboarding-form" [formGroup]="adminForm" (ngSubmit)="submitAdminAccount()">
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="first-name">First name</label>
+            <input id="first-name" class="field-input" formControlName="firstName"
+              [class.invalid]="adminForm.controls.firstName.invalid && adminForm.controls.firstName.touched" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="last-name">Last name</label>
+            <input id="last-name" class="field-input" formControlName="lastName"
+              [class.invalid]="adminForm.controls.lastName.invalid && adminForm.controls.lastName.touched" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="admin-email">Email</label>
+          <input id="admin-email" class="field-input" type="email" formControlName="email" placeholder="you@company.com"
+            [class.invalid]="adminForm.controls.email.invalid && adminForm.controls.email.touched" />
+          @if (adminForm.controls.email.invalid && adminForm.controls.email.touched) {
+            <p class="field-error">Enter a valid email address.</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="admin-phone">Phone number</label>
+          <input id="admin-phone" class="field-input" formControlName="phone" placeholder="+234"
+            [class.invalid]="adminForm.controls.phone.invalid && adminForm.controls.phone.touched" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="admin-password">Password</label>
+            <div class="password-wrap">
+              <input id="admin-password" class="field-input" [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password" (input)="onPasswordInput($any($event.target).value)"
+                [class.invalid]="adminForm.controls.password.invalid && adminForm.controls.password.touched" />
+              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" aria-label="Toggle password visibility">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M2 12c1.8-3.6 5.6-7 10-7s8.2 3.4 10 7c-1.8 3.6-5.6 7-10 7s-8.2-3.4-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+            @if (strength().label) {
+              <div class="strength-meter">
+                <div class="strength-bar" [class.filled]="strength().level >= 1" [class]="strength().level >= 1 ? strength().label : ''"></div>
+                <div class="strength-bar" [class.filled]="strength().level >= 2" [class]="strength().level >= 2 ? strength().label : ''"></div>
+                <div class="strength-bar" [class.filled]="strength().level >= 3" [class]="strength().level >= 3 ? strength().label : ''"></div>
+              </div>
+            }
+          </div>
+          <div class="field">
+            <label class="field-label" for="admin-confirm-password">Confirm password</label>
+            <input id="admin-confirm-password" class="field-input" type="password" formControlName="confirmPassword"
+              [class.invalid]="passwordsMismatch() && adminForm.controls.confirmPassword.touched" />
+            @if (passwordsMismatch() && adminForm.controls.confirmPassword.touched) {
+              <p class="field-error">Passwords do not match.</p>
+            }
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Continue</button>
+      </form>
+    }
+
+    @if (step() === 'org-verification') {
+      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <h1 class="title">Verify your organization</h1>
+      <p class="subtitle">We use this to confirm your business is licensed to lend.</p>
+
+      <div class="verification-tabs">
+        <button type="button" class="v-tab" [class.active]="verificationMethod() === 'cac'" (click)="verificationMethod.set('cac')">Upload CAC Certificate</button>
+        <button type="button" class="v-tab" [class.active]="verificationMethod() === 'rc'" (click)="verificationMethod.set('rc')">RC Number Lookup</button>
+      </div>
+
+      <form class="onboarding-form" [formGroup]="verificationForm" (ngSubmit)="continueVerification()">
+        @if (verificationMethod() === 'cac') {
+          <div class="upload-dropzone">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4 7 9M12 4l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.5"/></svg>
+            <p>Drag and drop your CAC certificate, or click to browse</p>
+          </div>
+        } @else {
+          <div class="field">
+            <label class="field-label" for="rc-number">RC Number</label>
+            <input id="rc-number" class="field-input" formControlName="rcNumber" placeholder="RC1234567" />
+          </div>
+        }
+
+        <div class="field">
+          <label class="field-label" for="bvn">BVN of authorized signatory</label>
+          <input id="bvn" class="field-input" formControlName="bvn" placeholder="11-digit BVN"
+            [class.invalid]="verificationForm.controls.bvn.invalid && verificationForm.controls.bvn.touched" />
+          @if (verificationForm.controls.bvn.invalid && verificationForm.controls.bvn.touched) {
+            <p class="field-error">Enter a valid 11-digit BVN.</p>
+          }
+        </div>
+
+        <div class="info-banner">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+          Verification status: <strong>Under review</strong>. You can continue setting up your account while we verify these details.
+        </div>
+
+        <button type="submit" class="submit-btn">Continue anyway</button>
+      </form>
+    }
+
+    @if (step() === 'platform-setup') {
+      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <h1 class="title">Set up your first loan product</h1>
+      <p class="subtitle">This is what borrowers will apply for. You can add more products later.</p>
+
+      <div class="setup-cta">
+        <div class="setup-cta-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <p class="setup-cta-title">Let's set up your first loan product</p>
+          <p class="setup-cta-desc">Define your amounts, interest rate, and repayment terms in a few steps.</p>
+        </div>
+      </div>
+
+      <button type="button" class="submit-btn" (click)="goToProductSetup()">Set up loan product</button>
+      <button type="button" class="secondary-btn" style="margin-top: 8px;" (click)="next()">I'll do this later</button>
+    }
+
+    @if (step() === 'invite-team') {
+      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <h1 class="title">Invite your team</h1>
+      <p class="subtitle">Add teammates now, or skip and invite them later from Settings.</p>
+
+      <div class="invite-list">
+        @for (row of invites(); track $index; let i = $index) {
+          <div class="invite-row">
+            <input
+              class="field-input"
+              type="email"
+              placeholder="teammate@company.com"
+              [value]="row.email"
+              (input)="updateInviteEmail(i, $any($event.target).value)"
+            />
+            <select class="field-input" [value]="row.role" (change)="updateInviteRole(i, $any($event.target).value)">
+              @for (r of roles; track r) { <option [value]="r">{{ r }}</option> }
+            </select>
+            @if (invites().length > 1) {
+              <button type="button" class="remove-row-btn" (click)="removeInviteRow(i)" aria-label="Remove">×</button>
+            }
+          </div>
+        }
+      </div>
+
+      <button type="button" class="add-row-btn" (click)="addInviteRow()">+ Add another teammate</button>
+
+      <button type="button" class="submit-btn" style="margin-top: 16px;" [disabled]="submitting()" (click)="sendInvites()">
+        {{ submitting() ? 'Sending invites...' : 'Send invites' }}
+      </button>
+      <button type="button" class="secondary-btn" style="margin-top: 8px;" (click)="next()">Skip for now</button>
+    }
+
+    @if (step() === 'success') {
+      <div class="success-screen">
+        <div class="confetti">
+          @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+            <span class="confetti-piece" [style.--i]="i"></span>
+          }
+        </div>
+        <div class="success-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h1 class="title">Your account is ready</h1>
+        <p class="subtitle">Welcome to Caltos. Let's get your first loan disbursed.</p>
+        <button type="button" class="submit-btn" (click)="goToDashboard()">Go to Dashboard</button>
+      </div>
+    }
+
+  </div>
+</div>

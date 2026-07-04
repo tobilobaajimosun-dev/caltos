@@ -20,10 +20,18 @@ import { RecoveryPortalComponent } from './features/collections/recovery-portal/
 import { ReportsComponent } from './features/reports/reports.component';
 import { EmployerPortalComponent } from './features/employers/employer-portal/employer-portal.component';
 import { AlertSettingsComponent } from './features/settings/alert-settings/alert-settings.component';
+import { LoginComponent } from './features/auth/login/login.component';
+import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
+import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
+import { AcceptInviteComponent } from './features/auth/accept-invite/accept-invite.component';
 
 export const routes: Routes = [
-  // Public, unauthenticated borrower-facing flow — no shell chrome
+  // Public, unauthenticated flows — no shell chrome
   { path: 'apply', component: ApplyComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'onboarding', component: OnboardingComponent },
+  { path: 'invite/:token', component: AcceptInviteComponent },
   // Self-contained component-library demo (renders its own sidebar) — no shell chrome
   { path: 'showcase', component: ShowcaseComponent },
 

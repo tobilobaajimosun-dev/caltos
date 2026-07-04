@@ -5,6 +5,7 @@ import { CommandPaletteComponent, CommandGroup } from '../command-palette/comman
 import { ToggleComponent } from '../toggle/toggle.component';
 import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
+import { SessionService } from '../../services/session.service';
 
 interface OrgOption {
   id: string;
@@ -26,6 +27,7 @@ export class HeaderComponent {
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly sidebarState = inject(SidebarStateService);
+  private readonly session = inject(SessionService);
 
   readonly orgMenuOpen = signal(false);
   readonly helpMenuOpen = signal(false);
@@ -104,6 +106,11 @@ export class HeaderComponent {
 
   signOut() {
     this.closeMenus();
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/login');
+  }
+
+  simulateSessionExpiry() {
+    this.closeMenus();
+    this.session.expire();
   }
 }

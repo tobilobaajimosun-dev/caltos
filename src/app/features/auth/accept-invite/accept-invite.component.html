@@ -1,0 +1,55 @@
+<app-auth-layout headline="You've been invited." subhead="Join your team on Caltos and start managing loans together.">
+
+  <h1 class="title">Join {{ orgName }}</h1>
+  <p class="subtitle">{{ inviterName }} invited you (<strong>{{ inviteeEmail }}</strong>) to join <strong>{{ orgName }}</strong> on Caltos.</p>
+
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="acceptInvite()">
+    <div class="field">
+      <label class="field-label" for="invite-password">Create a password</label>
+      <div class="password-wrap">
+        <input
+          id="invite-password"
+          class="field-input"
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Enter a password"
+          (input)="onPasswordInput($any($event.target).value)"
+          [class.invalid]="form.controls.password.invalid && form.controls.password.touched"
+        />
+        <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" aria-label="Toggle password visibility">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M2 12c1.8-3.6 5.6-7 10-7s8.2 3.4 10 7c-1.8 3.6-5.6 7-10 7s-8.2-3.4-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+      @if (strength().label) {
+        <div class="strength-meter">
+          <div class="strength-bar" [class.filled]="strength().level >= 1" [class]="strength().level >= 1 ? strength().label : ''"></div>
+          <div class="strength-bar" [class.filled]="strength().level >= 2" [class]="strength().level >= 2 ? strength().label : ''"></div>
+          <div class="strength-bar" [class.filled]="strength().level >= 3" [class]="strength().level >= 3 ? strength().label : ''"></div>
+        </div>
+      }
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <p class="field-error">Password must be at least 8 characters.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="invite-confirm-password">Confirm password</label>
+      <input
+        id="invite-confirm-password"
+        class="field-input"
+        type="password"
+        formControlName="confirmPassword"
+        placeholder="Re-enter your password"
+        [class.invalid]="passwordsMismatch() && form.controls.confirmPassword.touched"
+      />
+      @if (passwordsMismatch() && form.controls.confirmPassword.touched) {
+        <p class="field-error">Passwords do not match.</p>
+      }
+    </div>
+
+    <button type="submit" class="submit-btn" [disabled]="submitting()">
+      {{ submitting() ? 'Joining...' : 'Accept invite and join' }}
+    </button>
+  </form>
+
+</app-auth-layout>

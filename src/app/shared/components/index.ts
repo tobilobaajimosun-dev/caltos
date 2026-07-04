@@ -36,6 +36,8 @@ export { OrgProfileComponent } from './org-profile/org-profile.component';
 export { SidebarComponent } from './sidebar/sidebar.component';
 export { HeaderComponent } from './header/header.component';
 export { AppShellComponent } from './app-shell/app-shell.component';
+export { AuthLayoutComponent } from './auth-layout/auth-layout.component';
+export { SessionExpiredModalComponent } from './session-expired-modal/session-expired-modal.component';
 export { TooltipComponent } from './tooltip/tooltip.component';
 export { ColumnTitleComponent } from './column-title/column-title.component';
 export { TableItemComponent } from './table-item/table-item.component';

@@ -6,6 +6,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '../breadcrumb/breadcrumb.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
+import { SessionExpiredModalComponent } from '../session-expired-modal/session-expired-modal.component';
 
 const LABELS: Record<string, string> = {
   home: 'Home', products: 'Products', loans: 'Loans', collections: 'Collections',
@@ -18,7 +19,7 @@ const LABELS: Record<string, string> = {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, SkeletonComponent],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, SkeletonComponent, SessionExpiredModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',

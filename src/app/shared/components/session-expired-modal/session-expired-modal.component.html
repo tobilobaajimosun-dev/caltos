@@ -1,0 +1,36 @@
+@if (session.expired()) {
+  <div class="session-backdrop">
+    <div class="session-dialog" role="dialog" aria-label="Session expired">
+      <div class="session-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <h2 class="session-title">Your session expired for security</h2>
+      <p class="session-desc">Re-enter your password to continue where you left off.</p>
+
+      <form [formGroup]="form" (ngSubmit)="resume()">
+        <div class="session-password-wrap">
+          <input
+            class="session-input"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.invalid]="form.controls.password.invalid && form.controls.password.touched"
+          />
+          <button type="button" class="session-toggle" (click)="showPassword.set(!showPassword())" aria-label="Toggle password visibility">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M2 12c1.8-3.6 5.6-7 10-7s8.2 3.4 10 7c-1.8 3.6-5.6 7-10 7s-8.2-3.4-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <p class="session-error">Enter your password to continue.</p>
+        }
+
+        <div class="session-actions">
+          <button type="button" class="session-cancel" (click)="signOut()">Cancel</button>
+          <button type="submit" class="session-submit" [disabled]="submitting()">
+            {{ submitting() ? 'Verifying...' : 'Continue' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -83,6 +83,14 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 - Sidebar active-item highlighting is derived from the current Router URL (longest route-prefix match); the `activeItemId` input is only a fallback for nav items without a real route (Customers, Wallet, Teams — pending their own feature issues).
 - Unmatched routes fall through to `NotFoundComponent` (`src/app/pages/not-found/`) via a `**` wildcard route.
 
+### Authentication (#13)
+- Routes (outside the shell, no sidebar/header): `/login`, `/forgot-password`, `/onboarding`, `/invite/:token`.
+- `AuthLayoutComponent` (`app-auth-layout`) is the shared split-screen shell (form left, branded value-prop right) used by login, forgot-password, and accept-invite. It hides the right pane below 1024px. Onboarding uses its own full-width stepper layout instead, since its forms are wider.
+- Shared form styling lives in `src/app/features/auth/_auth-forms.scss`, pulled in via `@use '../auth-forms'` — field/error/strength-meter/button classes are consistent across all auth screens.
+- All auth forms use `ReactiveFormsModule` (`FormBuilder` + `Validators`), not `[(ngModel)]`.
+- Login's 2FA step is always shown after valid credentials (demo OTP: `123456`); email `locked@princepsfinance.com` demos the invalid-credentials error state.
+- `SessionService` (`src/app/shared/services/session.service.ts`) drives `SessionExpiredModalComponent`, mounted once in `AppShellComponent` so it can appear over any page without losing context. Trigger it via the header's user menu → "Simulate session expiry (demo)" — there's no real session/idle-timeout backend yet.
+
 ### Data Display
 | Component | Selector | Key Inputs |
 |---|---|---|

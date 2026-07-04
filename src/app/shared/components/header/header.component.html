@@ -76,6 +76,7 @@
             <app-toggle [checked]="theme.isDark()" (checkedChange)="theme.set($event)" />
           </div>
           <div class="dropdown-divider"></div>
+          <button class="dropdown-item" (click)="simulateSessionExpiry()">Simulate session expiry (demo)</button>
           <button class="dropdown-item sign-out" (click)="signOut()">Sign out</button>
         </div>
       }
