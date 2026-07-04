@@ -19,7 +19,34 @@ Loan SaaS app. Angular 21 standalone components. Deployed at https://caltos-rho.
 --color-input-stroke: #c0c9d1 (input borders)
 --font-heading: 'Switzer'
 --font-body: 'Euclid Circular B'
+
+// Status colors
+--color-success / --color-success-bg
+--color-warning / --color-warning-bg
+--color-error / --color-error-bg
+--color-info / --color-info-bg
+
+// Surface hierarchy
+--surface-base / --surface-raised / --surface-overlay
+
+// Text hierarchy (prefer these over --color-header/body/grey-header in new code)
+--text-primary / --text-secondary / --text-muted / --text-disabled
+
+// Interactive
+--color-focus-ring
+
+// Spacing scale: --space-1 (4px) through --space-12 (48px)
+// Typography scale: --text-xs (11px) through --text-3xl (36px)
 ```
+
+### Dark Mode
+- Toggled via `ThemeService` (`src/app/shared/services/theme.service.ts`) — `theme.toggle()` / `theme.set(bool)` / `theme.isDark()` signal
+- Applies/removes a `.dark` class on `<html>`, persisted to `localStorage`
+- `.dark` overrides the surface/text/status tokens above — write new component styles against tokens (not hardcoded hex) so they adapt automatically
+- Toggle UI currently lives in the sidebar; will move to Settings > Appearance and the header user menu once those are built
+
+### Responsive Breakpoints (SCSS variables in `styles.scss`)
+`$bp-sm: 640px`, `$bp-md: 1024px`, `$bp-lg: 1280px`, `$bp-xl: 1440px`. Sidebar becomes an off-canvas overlay below `$bp-md`, driven by `SidebarStateService` (`src/app/shared/services/sidebar-state.service.ts`).
 
 ## Component Library (`src/app/shared/components/`)
 All components are exported from the barrel: `import { X } from './shared/components'`
@@ -83,6 +110,25 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 | `ModalComponent` | `app-modal` | `isOpen`, `title` | `closed` |
 | `PaginationComponent` | `app-pagination` | `currentPage`, `totalPages`, `pageSize` | `pageChange`, `pageSizeChange` |
 | `RoundTabsComponent` | `app-round-tabs` | `tabs: Tab[]`, `activeTab` | `activeTabChange` |
+
+### Design System (#16)
+| Component | Selector | Key Inputs | Key Outputs |
+|---|---|---|---|
+| `ChartComponent` | `app-chart` | `type: 'line'|'bar'`, `data: ChartDataPoint[]`, `color` | |
+| `DateRangePickerComponent` | `app-date-range-picker` | — | `rangeChange` |
+| `EmptyStateComponent` | `app-empty-state` | `title`, `description` (content slots: `[icon]`, `[cta]`) | |
+| `SkeletonComponent` | `app-skeleton` | `variant: 'block'|'inline'|'avatar'`, `width`, `height` | |
+| `BreadcrumbComponent` | `app-breadcrumb` | `items: BreadcrumbItem[]` | |
+| `ConfirmModalComponent` | `app-confirm-modal` | `isOpen`, `title`, `message`, `confirmLabel`, `cancelLabel`, `danger` | `confirmed`, `cancelled` |
+| `AlertBannerComponent` | `app-alert-banner` | `type: 'success'|'warning'|'error'|'info'`, `title`, `message`, `dismissible` | `dismissed` |
+| `CommandPaletteComponent` | `app-command-palette` | `isOpen`, `groups: CommandGroup[]` | `selected`, `closed` |
+| `DrawerComponent` | `app-drawer` | `isOpen`, `title`, `position: 'left'|'right'`, `width` (content slot: `[footer]`) | `closed` |
+| `AvatarComponent` | `app-avatar` | `name`, `color`, `size: 'sm'|'md'|'lg'` | |
+| `CalendarComponent` | `app-calendar` | `month`, `year`, `events: CalendarEvent[]`, `selectedDate` | `dateSelected`, `monthChange` |
+| `ProgressBarComponent` | `app-progress-bar` | `value`, `max`, `label`, `color` | |
+| `TabsComponent` | `app-tabs` | `tabs: TabItem[]`, `activeTab` | `activeTabChange` |
+
+These 13 use the `input()`/`output()` signal APIs and `OnPush` — the newer Angular convention. Older components in this table still use `@Input()`/`@Output()` decorators; don't mass-migrate them, but write new components signal-first.
 
 ## Conventions
 - All components are standalone — import them directly in the feature component's `imports: []`

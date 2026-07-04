@@ -1,0 +1,22 @@
+:host { display: contents; }
+
+.confirm-message {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.danger {
+  ::ng-deep .btn,
+  ::ng-deep button {
+    background: var(--color-error) !important;
+    border-color: var(--color-error) !important;
+  }
+}

@@ -1,0 +1,39 @@
+<div class="calendar">
+  <div class="calendar-header">
+    <button class="nav-btn" type="button" (click)="prevMonth()" aria-label="Previous month">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="month-label">{{ monthLabel() }}</span>
+    <button class="nav-btn" type="button" (click)="nextMonth()" aria-label="Next month">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <div class="calendar-grid weekdays">
+    @for (w of weekdays; track w) {
+      <span class="weekday">{{ w }}</span>
+    }
+  </div>
+
+  <div class="calendar-grid">
+    @for (cell of cells(); track $index) {
+      @if (cell.day) {
+        <button
+          type="button"
+          class="day-cell"
+          [class.today]="cell.isToday"
+          [class.has-event]="!!cell.event"
+          [class.selected]="cell.iso === selectedDate()"
+          (click)="dateSelected.emit(cell.iso!)"
+        >
+          {{ cell.day }}
+          @if (cell.event) {
+            <span class="event-dot"></span>
+          }
+        </button>
+      } @else {
+        <span class="day-cell empty"></span>
+      }
+    }
+  </div>
+</div>

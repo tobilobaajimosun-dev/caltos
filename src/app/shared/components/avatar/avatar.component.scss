@@ -1,0 +1,17 @@
+:host { display: inline-block; }
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  flex-shrink: 0;
+  user-select: none;
+
+  &.size-sm { width: 24px; height: 24px; font-size: var(--text-xs); }
+  &.size-md { width: 36px; height: 36px; font-size: var(--text-sm); }
+  &.size-lg { width: 56px; height: 56px; font-size: var(--text-xl); }
+}

@@ -39,6 +39,21 @@ export { ColumnTitleComponent } from './column-title/column-title.component';
 export { TableItemComponent } from './table-item/table-item.component';
 export { ComingSoonComponent } from './coming-soon/coming-soon.component';
 
+// Design system components (#16)
+export { ChartComponent } from './chart/chart.component';
+export { DateRangePickerComponent } from './date-range-picker/date-range-picker.component';
+export { EmptyStateComponent } from './empty-state/empty-state.component';
+export { SkeletonComponent } from './skeleton/skeleton.component';
+export { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
+export { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
+export { AlertBannerComponent } from './alert-banner/alert-banner.component';
+export { CommandPaletteComponent } from './command-palette/command-palette.component';
+export { DrawerComponent } from './drawer/drawer.component';
+export { AvatarComponent } from './avatar/avatar.component';
+export { CalendarComponent } from './calendar/calendar.component';
+export { ProgressBarComponent } from './progress-bar/progress-bar.component';
+export { TabsComponent } from './tabs/tabs.component';
+
 export type { BadgeStatus } from './status-badge/status-badge.component';
 export type { ButtonVariant } from './button/button.component';
 export type { IconButtonIcon, IconButtonColor } from './icon-button/icon-button.component';
@@ -47,3 +62,13 @@ export type { SettingsRowType } from './settings-row/settings-row.component';
 export type { PermissionItem } from './permission-group/permission-group.component';
 export type { TableItemType, TableItemUser } from './table-item/table-item.component';
 export type { SideNavItem } from './sidebar/sidebar.component';
+export type { ChartType, ChartDataPoint } from './chart/chart.component';
+export type { DateRange } from './date-range-picker/date-range-picker.component';
+export type { AlertBannerType } from './alert-banner/alert-banner.component';
+export type { BreadcrumbItem } from './breadcrumb/breadcrumb.component';
+export type { CommandGroup, CommandItem } from './command-palette/command-palette.component';
+export type { DrawerPosition } from './drawer/drawer.component';
+export type { CalendarEvent } from './calendar/calendar.component';
+export type { AvatarSize } from './avatar/avatar.component';
+export type { TabItem } from './tabs/tabs.component';
+export type { SkeletonVariant } from './skeleton/skeleton.component';

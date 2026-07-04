@@ -10,7 +10,82 @@
 
   --font-heading: 'Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body: 'Euclid Circular B', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  // Status colors
+  --color-success: #16a34a;
+  --color-success-bg: #dcfce7;
+  --color-warning: #d97706;
+  --color-warning-bg: #fef3c7;
+  --color-error: #dc2626;
+  --color-error-bg: #fee2e2;
+  --color-info: #2563eb;
+  --color-info-bg: #dbeafe;
+
+  // Surface hierarchy
+  --surface-base: #ffffff;
+  --surface-raised: #f7f9fb;
+  --surface-overlay: #f0f3f8;
+
+  // Text hierarchy
+  --text-primary: #121212;
+  --text-secondary: #44444b;
+  --text-muted: #8a93a6;
+  --text-disabled: #bbbbcb;
+
+  // Interactive
+  --color-focus-ring: rgba(0, 83, 166, 0.3);
+
+  // Spacing scale
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  // Typography scale
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
 }
+
+.dark {
+  --surface-base: #0f0f12;
+  --surface-raised: #1a1a20;
+  --surface-overlay: #222229;
+  --color-stroke: #2e2e38;
+  --color-input-stroke: #3a3a46;
+  --color-grey: #4a4a58;
+  --text-primary: #f0f0f5;
+  --text-secondary: #b0b0be;
+  --text-muted: #6b6b82;
+  --text-disabled: #4a4a58;
+  --color-header: var(--text-primary);
+  --color-body: var(--text-secondary);
+  --color-grey-header: var(--text-muted);
+
+  --color-success-bg: #103820;
+  --color-warning-bg: #3a2a08;
+  --color-error-bg: #3a1414;
+  --color-info-bg: #10233a;
+
+  background: var(--surface-raised);
+  color-scheme: dark;
+}
+
+// Responsive breakpoints (use with SCSS media queries, e.g. @media (max-width: $bp-md))
+$bp-sm: 640px;
+$bp-md: 1024px;
+$bp-lg: 1280px;
+$bp-xl: 1440px;
 
 *,
 *::before,
@@ -18,10 +93,15 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
   font-family: var(--font-body);
-  color: var(--color-body);
+  color: var(--text-secondary);
   -webkit-font-smoothing: antialiased;
-  background: #f7f9fb;
+  background: var(--surface-raised);
+}
+
+body {
+  transition: background-color 0.15s ease, color 0.15s ease;
 }

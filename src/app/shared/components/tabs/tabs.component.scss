@@ -1,0 +1,27 @@
+:host { display: block; }
+
+.tabs {
+  display: flex;
+  gap: var(--space-6);
+  border-bottom: 1px solid var(--color-stroke);
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  padding: var(--space-3) 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover { color: var(--text-primary); }
+
+  &.active {
+    color: var(--color-blue);
+    border-bottom-color: var(--color-blue);
+  }
+}

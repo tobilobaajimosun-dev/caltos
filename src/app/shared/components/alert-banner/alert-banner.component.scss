@@ -1,0 +1,42 @@
+:host { display: block; }
+
+.alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-family: var(--font-body);
+}
+
+.alert-icon { flex-shrink: 0; margin-top: 1px; }
+.alert-body { flex: 1; }
+
+.alert-title {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.alert-message {
+  font-size: var(--text-sm);
+  margin: 2px 0 0;
+  opacity: 0.9;
+}
+
+.alert-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  padding: 2px;
+  &:hover { opacity: 1; }
+}
+
+.type-success { background: var(--color-success-bg); color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
+.type-warning { background: var(--color-warning-bg); color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 30%, transparent); }
+.type-error   { background: var(--color-error-bg);   color: var(--color-error);   border-color: color-mix(in srgb, var(--color-error) 30%, transparent); }
+.type-info    { background: var(--color-info-bg);    color: var(--color-info);    border-color: color-mix(in srgb, var(--color-info) 30%, transparent); }

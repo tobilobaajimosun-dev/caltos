@@ -231,7 +231,66 @@
     <div class="row">
       <button class="demo-btn" (click)="showModal = true">Open Generic Modal</button>
       <button class="demo-btn" (click)="showUploadModal = true">Open Upload Modal</button>
+      <button class="demo-btn" (click)="showConfirmModal = true">Open Confirm Modal</button>
+      <button class="demo-btn" (click)="showDrawer = true">Open Drawer</button>
+      <button class="demo-btn" (click)="showCommandPalette = true">Open Command Palette (⌘K)</button>
     </div>
+
+    <!-- ── Design System (#16) ──────────────────────────── -->
+    <h2 class="section-title">Avatar</h2>
+    <div class="row">
+      <app-avatar name="Jesulademi Ajimosun" size="sm" />
+      <app-avatar name="Adeniyi Kabiru" size="md" />
+      <app-avatar name="Princeps Finance" size="lg" />
+    </div>
+
+    <h2 class="section-title">Progress Bar</h2>
+    <div class="row" style="flex-direction: column; align-items: stretch; max-width: 320px;">
+      <app-progress-bar label="Loan repayment progress" [value]="62" />
+    </div>
+
+    <h2 class="section-title">Breadcrumb</h2>
+    <app-breadcrumb [items]="breadcrumbItems" />
+
+    <h2 class="section-title">Tabs</h2>
+    <app-tabs [tabs]="showcaseTabs" [activeTab]="activeShowcaseTab" (activeTabChange)="activeShowcaseTab = $event" />
+
+    <h2 class="section-title">Alert Banners</h2>
+    <div class="row" style="flex-direction: column; align-items: stretch;">
+      <app-alert-banner type="success" title="Product published" message="This loan product is now live." />
+      <app-alert-banner type="warning" title="Missing integration keys" message="IPPIS requires a valid API key." />
+      <app-alert-banner type="error" title="Upload failed" message="The document could not be uploaded." />
+      <app-alert-banner type="info" title="Heads up" message="Changes save automatically." />
+    </div>
+
+    <h2 class="section-title">Skeleton</h2>
+    <div class="row" style="flex-direction: column; align-items: stretch; max-width: 320px;">
+      <app-skeleton variant="avatar" width="40px" height="40px" />
+      <app-skeleton height="14px" />
+      <app-skeleton height="14px" width="70%" />
+    </div>
+
+    <h2 class="section-title">Empty State</h2>
+    <app-empty-state title="No loans yet" description="Loans will appear here once a customer applies.">
+      <div icon>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <button cta class="demo-btn">Create loan product</button>
+    </app-empty-state>
+
+    <h2 class="section-title">Chart</h2>
+    <div class="row" style="flex-direction: column; align-items: stretch;">
+      <app-chart type="line" [data]="chartData" />
+      <app-chart type="bar" [data]="chartData" color="var(--color-success)" />
+    </div>
+
+    <h2 class="section-title">Calendar</h2>
+    <div style="max-width: 320px;">
+      <app-calendar [month]="calMonth" [year]="calYear" (monthChange)="calMonth = $event.month; calYear = $event.year" />
+    </div>
+
+    <h2 class="section-title">Date Range Picker</h2>
+    <app-date-range-picker />
 
   </div>
 </div>
@@ -255,4 +314,28 @@
   [isOpen]="showUploadModal"
   (closed)="showUploadModal = false"
   (submitted)="showUploadModal = false"
+/>
+
+<app-confirm-modal
+  [isOpen]="showConfirmModal"
+  title="Delete this product?"
+  message="This action can't be undone."
+  confirmLabel="Delete"
+  [danger]="true"
+  (confirmed)="showConfirmModal = false"
+  (cancelled)="showConfirmModal = false"
+/>
+
+<app-drawer
+  [isOpen]="showDrawer"
+  title="Loan Details"
+  (closed)="showDrawer = false"
+>
+  <p>Drawer body content goes here.</p>
+</app-drawer>
+
+<app-command-palette
+  [isOpen]="showCommandPalette"
+  [groups]="commandGroups"
+  (closed)="showCommandPalette = false"
 />

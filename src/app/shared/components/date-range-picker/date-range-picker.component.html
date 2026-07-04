@@ -1,0 +1,27 @@
+<div class="range-picker">
+  <div class="preset-chips">
+    @for (preset of presets; track preset) {
+      <button
+        type="button"
+        class="chip"
+        [class.active]="activePreset() === preset"
+        (click)="selectPreset(preset)"
+      >{{ preset }}</button>
+    }
+  </div>
+
+  @if (activePreset() === 'Custom') {
+    <div class="custom-range">
+      <app-calendar
+        [month]="calMonth()"
+        [year]="calYear()"
+        [selectedDate]="rangeEnd() ?? rangeStart()"
+        (dateSelected)="onDateSelected($event)"
+        (monthChange)="onMonthChange($event)"
+      />
+      @if (rangeStart()) {
+        <p class="range-summary">{{ rangeStart() }} @if (rangeEnd()) { → {{ rangeEnd() }} }</p>
+      }
+    </div>
+  }
+</div>

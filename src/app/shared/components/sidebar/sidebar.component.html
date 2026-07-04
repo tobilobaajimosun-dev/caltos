@@ -1,4 +1,8 @@
-<nav class="sidebar" [class.collapsed]="collapsed">
+@if (sidebarState.mobileOpen()) {
+  <div class="sidebar-backdrop" (click)="sidebarState.close()"></div>
+}
+
+<nav class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="sidebarState.mobileOpen()">
 
   <div class="sidebar-top">
     <app-org-profile
@@ -28,10 +32,14 @@
     }
   </div>
 
-  @if (!collapsed) {
-    <div class="sidebar-bottom">
-      <app-badge-card />
+  <div class="sidebar-bottom">
+    <div class="theme-toggle">
+      <span>Dark mode</span>
+      <app-toggle [checked]="theme.isDark()" (checkedChange)="theme.set($event)" />
     </div>
-  }
+    @if (!collapsed) {
+      <app-badge-card />
+    }
+  </div>
 
 </nav>

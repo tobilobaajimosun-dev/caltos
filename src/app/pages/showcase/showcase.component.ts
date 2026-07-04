@@ -25,8 +25,25 @@ import {
   SidebarComponent,
   ColumnTitleComponent,
   TableItemComponent,
+  ChartComponent,
+  DateRangePickerComponent,
+  EmptyStateComponent,
+  SkeletonComponent,
+  BreadcrumbComponent,
+  ConfirmModalComponent,
+  AlertBannerComponent,
+  CommandPaletteComponent,
+  DrawerComponent,
+  AvatarComponent,
+  CalendarComponent,
+  ProgressBarComponent,
+  TabsComponent,
   Tab,
   PermissionItem,
+  ChartDataPoint,
+  BreadcrumbItem,
+  CommandGroup,
+  TabItem,
 } from '../../shared/components';
 
 @Component({
@@ -58,6 +75,19 @@ import {
     SidebarComponent,
     ColumnTitleComponent,
     TableItemComponent,
+    ChartComponent,
+    DateRangePickerComponent,
+    EmptyStateComponent,
+    SkeletonComponent,
+    BreadcrumbComponent,
+    ConfirmModalComponent,
+    AlertBannerComponent,
+    CommandPaletteComponent,
+    DrawerComponent,
+    AvatarComponent,
+    CalendarComponent,
+    ProgressBarComponent,
+    TabsComponent,
   ],
   templateUrl: './showcase.component.html',
   styleUrls: ['./showcase.component.scss'],
@@ -112,4 +142,40 @@ export class ShowcaseComponent {
     { label: 'Active', value: 'active' },
     { label: 'Inactive', value: 'inactive' },
   ];
+
+  // ── Design system (#16) ─────────────────────────────
+  chartData: ChartDataPoint[] = [
+    { label: 'Mon', value: 40 }, { label: 'Tue', value: 65 }, { label: 'Wed', value: 52 },
+    { label: 'Thu', value: 80 }, { label: 'Fri', value: 71 }, { label: 'Sat', value: 90 },
+  ];
+
+  breadcrumbItems: BreadcrumbItem[] = [
+    { label: 'Customers', link: '/customers' },
+    { label: 'Adeniyi Kabiru' },
+  ];
+
+  showConfirmModal = false;
+  showDrawer = false;
+  showCommandPalette = false;
+
+  commandGroups: CommandGroup[] = [
+    { label: 'Navigate', items: [
+      { id: 'home', label: 'Go to Home', shortcut: 'G H' },
+      { id: 'loans', label: 'Go to Loans', shortcut: 'G L' },
+    ]},
+    { label: 'Actions', items: [
+      { id: 'new-loan', label: 'Create new loan product' },
+      { id: 'new-customer', label: 'Add new customer' },
+    ]},
+  ];
+
+  showcaseTabs: TabItem[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'activity', label: 'Activity' },
+    { id: 'documents', label: 'Documents' },
+  ];
+  activeShowcaseTab = 'overview';
+
+  calMonth = new Date().getMonth() + 1;
+  calYear = new Date().getFullYear();
 }

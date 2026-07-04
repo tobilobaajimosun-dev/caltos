@@ -1,0 +1,11 @@
+<app-modal [isOpen]="isOpen()" [title]="title()" (closed)="cancelled.emit()">
+  @if (message()) {
+    <p class="confirm-message">{{ message() }}</p>
+  }
+  <div class="confirm-actions">
+    <app-button variant="outline" [label]="cancelLabel()" (clicked)="cancelled.emit()" />
+    <span [class.danger]="danger()">
+      <app-button variant="primary" [label]="confirmLabel()" (clicked)="confirmed.emit()" />
+    </span>
+  </div>
+</app-modal>
