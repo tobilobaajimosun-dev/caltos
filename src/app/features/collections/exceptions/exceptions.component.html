@@ -1,0 +1,38 @@
+<div class="page-header">
+  <h1 class="page-title">Exception Management</h1>
+  <p class="page-subtitle">Review and resolve flagged collections exceptions.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Open exceptions" value="7" />
+  <app-kpi-card label="Resolved today" value="3" />
+  <app-kpi-card label="Avg. resolution time" value="4.2h" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Flagged exceptions</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Customer" /></th>
+        <th><app-column-title label="Reason" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Flagged on" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows; track row.customer.email) {
+        <tr>
+          <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+          <td><app-table-item type="text" [text]="row.reason" /></td>
+          <td><app-table-item type="amount" [amount]="row.amount" /></td>
+          <td><app-table-item type="date" [date]="row.flaggedOn" /></td>
+          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Resolved' : 'Open'" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

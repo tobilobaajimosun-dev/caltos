@@ -1,0 +1,23 @@
+<div class="page-header">
+  <h1 class="page-title">Alert & Notification Settings</h1>
+  <p class="page-subtitle">Configure alert thresholds and notification channels.</p>
+</div>
+
+<div class="panel">
+  <app-alert-banner type="info" title="Delivery channels" message="Alerts are sent via email and in-app notification. SMS delivery is coming soon." [dismissible]="false" />
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Alert types</p>
+  </div>
+  @for (alert of alerts(); track alert.label; let i = $index) {
+    <app-settings-row
+      type="toggle"
+      [label]="alert.label"
+      [subtitle]="alert.subtitle"
+      [toggled]="alert.toggled"
+      (toggleChange)="toggleAlert(i, $event)"
+    />
+  }
+</div>

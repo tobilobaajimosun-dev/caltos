@@ -1,0 +1,36 @@
+<div class="page-header">
+  <h1 class="page-title">Employer Portal</h1>
+  <p class="page-subtitle">Manage employer relationships and payroll deduction agreements.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Active employers" value="34" />
+  <app-kpi-card label="Total employees covered" value="12,480" />
+  <app-kpi-card label="Pending agreements" value="3" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Employers</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Employer" /></th>
+        <th><app-column-title label="Employees" /></th>
+        <th><app-column-title label="Deduction channel" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of employers; track row.name) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.name" /></td>
+          <td><app-table-item type="text" [text]="row.employees.toString()" /></td>
+          <td><app-table-item type="text" [text]="row.deductionChannel" /></td>
+          <td><app-status-badge [status]="row.status" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

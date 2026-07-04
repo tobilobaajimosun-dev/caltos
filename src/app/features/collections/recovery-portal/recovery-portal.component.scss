@@ -1,0 +1,7 @@
+@use '../../stub-pages';
+
+.progress-row {
+  align-items: flex-start;
+
+  .progress-row-info { padding-top: 2px; }
+}

@@ -1,0 +1,43 @@
+<div class="page-header">
+  <h1 class="page-title">{{ product }}</h1>
+  <p class="page-subtitle">{{ customerName }} · {{ loanId }}</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Principal" [value]="principal" />
+  <app-kpi-card label="Outstanding balance" [value]="outstanding" />
+  <app-kpi-card label="Next repayment due" [value]="nextDueDate" />
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Repayment progress</p>
+  </div>
+  <app-progress-bar [value]="repaidPct" label="Repaid to date" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Repayment schedule</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Installment" /></th>
+        <th><app-column-title label="Due date" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of schedule; track row.installment) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.installment" /></td>
+          <td><app-table-item type="date" [date]="row.dueDate" /></td>
+          <td><app-table-item type="amount" [amount]="row.amount" /></td>
+          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Paid' : 'Upcoming'" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

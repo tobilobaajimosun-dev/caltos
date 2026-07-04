@@ -1,0 +1,48 @@
+<div class="page-header">
+  <h1 class="page-title">Loans</h1>
+  <p class="page-subtitle">Track every loan from disbursement to final repayment.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Active loans" value="128" />
+  <app-kpi-card label="Overdue" value="14" />
+  <app-kpi-card label="Disbursed this month" value="₦18.4M" />
+  <app-kpi-card label="Repayment rate" value="94.2%" />
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Disbursement trend (last 7 days)</p>
+  </div>
+  <app-chart type="line" [data]="disbursementTrend" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Recent loans</p>
+  </div>
+  <table class="loans-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Customer" /></th>
+        <th><app-column-title label="Loan ID" /></th>
+        <th><app-column-title label="Product" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Due date" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (loan of loans; track loan.id) {
+        <tr class="clickable-row" [routerLink]="['/loans', loan.id]">
+          <td><app-table-item type="user-avatar" [user]="loan.customer" /></td>
+          <td><app-table-item type="text" [text]="loan.id" /></td>
+          <td><app-table-item type="text" [text]="loan.product" /></td>
+          <td><app-table-item type="amount" [amount]="loan.amount" /></td>
+          <td><app-table-item type="status" [status]="loan.status" /></td>
+          <td><app-table-item type="date" [date]="loan.dueDate" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

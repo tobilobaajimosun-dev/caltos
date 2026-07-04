@@ -1,0 +1,16 @@
+@use '../stub-pages';
+
+.generate-btn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-input-stroke);
+  background: var(--surface-base);
+  color: var(--color-blue);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+}

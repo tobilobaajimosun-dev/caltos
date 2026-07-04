@@ -89,11 +89,7 @@
           <p class="section-title">Here's how things are going today.</p>
           <p class="section-sub">Your latest loans, repayments, and customer activity—updated in real time.</p>
         </div>
-        <div class="period-tabs">
-          @for (tab of periodTabs; track tab.id) {
-            <button class="period-tab" [class.active]="activePeriod === tab.id" (click)="activePeriod = tab.id">{{ tab.label }}</button>
-          }
-        </div>
+        <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
       </div>
 
       <!-- KPI metrics row -->
@@ -174,7 +170,7 @@
           <div class="person-list">
             @for (row of payoutActivity; track row.id) {
               <div class="person-row">
-                <span class="p-avatar">{{ row.initials }}</span>
+                <app-avatar [name]="row.name" size="sm" />
                 <div class="p-info">
                   <span class="p-name">{{ row.name }}</span>
                   <span class="p-id">{{ row.id }}</span>
@@ -270,9 +266,7 @@
                   </div>
                   <span class="disbursed-amount">{{ d.amount }}</span>
                 </div>
-                <div class="bar-track">
-                  <div class="bar-fill" [style.width.%]="d.pct" [style.background]="d.color"></div>
-                </div>
+                <app-progress-bar [value]="d.pct" [color]="d.color" />
               </div>
             }
             <p class="last-updated">Last Updated: 2:38PM</p>
@@ -328,7 +322,7 @@
           <div class="person-list">
             @for (row of repaymentHistory; track row.id) {
               <div class="person-row">
-                <span class="p-avatar">{{ row.initials }}</span>
+                <app-avatar [name]="row.name" size="sm" />
                 <div class="p-info">
                   <span class="p-name">{{ row.name }}</span>
                   <span class="p-id">{{ row.id }}</span>

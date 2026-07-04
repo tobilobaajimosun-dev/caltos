@@ -1,0 +1,26 @@
+<div class="page-header">
+  <h1 class="page-title">Recovery Officer Portal</h1>
+  <p class="page-subtitle">Assign and track recovery officer casework.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Assigned cases" value="53" />
+  <app-kpi-card label="Recovered this month" value="₦2.0M" />
+  <app-kpi-card label="Avg. recovery rate" value="58%" />
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Officer performance</p>
+  </div>
+  @for (officer of officers; track officer.name) {
+    <div class="progress-row">
+      <app-avatar [name]="officer.name" size="md" />
+      <div class="progress-row-info">
+        <p class="progress-row-name">{{ officer.name }}</p>
+        <app-progress-bar [value]="officer.recoveredPct" [label]="officer.casesAssigned + ' cases assigned'" />
+      </div>
+      <p class="progress-row-meta">{{ officer.recoveredAmount }} recovered</p>
+    </div>
+  }
+</div>

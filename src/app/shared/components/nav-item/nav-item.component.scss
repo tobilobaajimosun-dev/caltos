@@ -18,7 +18,7 @@
   letter-spacing: -0.28px;
   transition: background 0.15s, color 0.15s;
 
-  &:hover:not(.active) { background: rgba(0,0,0,0.04); }
+  &:hover:not(.active) { background: var(--surface-overlay); }
 
   &.active {
     background: rgba(0, 83, 166, 0.08);

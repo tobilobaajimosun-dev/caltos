@@ -1,19 +1,19 @@
 import { Component } from '@angular/core';
-import { StatusBadgeComponent } from '../../shared/components';
+import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem } from '../../shared/components';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [StatusBadgeComponent],
+  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {
   activePeriod = 'today';
 
-  readonly periodTabs = [
+  readonly periodTabs: TabItem[] = [
     { id: 'today',     label: 'Today' },
     { id: 'yesterday', label: 'Yesterday' },
     { id: 'week',      label: 'This Week' },

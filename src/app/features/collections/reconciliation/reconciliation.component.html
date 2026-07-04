@@ -1,0 +1,38 @@
+<div class="page-header">
+  <h1 class="page-title">Reconciliation</h1>
+  <p class="page-subtitle">Match disbursements and repayments against bank records.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Matched" value="1,204" />
+  <app-kpi-card label="Unmatched" value="18" />
+  <app-kpi-card label="Match rate" value="98.5%" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Recent transactions</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Reference" /></th>
+        <th><app-column-title label="Customer" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Date" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows; track row.reference) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.reference" /></td>
+          <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+          <td><app-table-item type="amount" [amount]="row.amount" /></td>
+          <td><app-table-item type="date" [date]="row.date" /></td>
+          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Matched' : row.status === 'pending' ? 'Reviewing' : 'Unmatched'" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,11 +1,25 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { ComingSoonComponent } from '../../../shared/components';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { KpiCardComponent, AvatarComponent, ProgressBarComponent } from '../../../shared/components';
+
+interface OfficerRow {
+  name: string;
+  casesAssigned: number;
+  recoveredPct: number;
+  recoveredAmount: string;
+}
 
 @Component({
   selector: 'app-recovery-portal',
   standalone: true,
-  imports: [ComingSoonComponent],
+  imports: [KpiCardComponent, AvatarComponent, ProgressBarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<app-coming-soon title="Recovery Officer Portal" subtitle="Assign and track recovery officer casework." />`,
+  templateUrl: './recovery-portal.component.html',
+  styleUrl: './recovery-portal.component.scss',
 })
-export class RecoveryPortalComponent {}
+export class RecoveryPortalComponent {
+  readonly officers: OfficerRow[] = [
+    { name: 'Tunde Bakare', casesAssigned: 18, recoveredPct: 72, recoveredAmount: '₦890,000' },
+    { name: 'Ngozi Eze', casesAssigned: 14, recoveredPct: 58, recoveredAmount: '₦610,000' },
+    { name: 'Yusuf Ibrahim', casesAssigned: 21, recoveredPct: 45, recoveredAmount: '₦540,000' },
+  ];
+}

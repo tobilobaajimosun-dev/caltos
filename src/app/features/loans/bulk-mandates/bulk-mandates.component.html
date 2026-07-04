@@ -1,0 +1,40 @@
+<div class="page-header">
+  <h1 class="page-title">Bulk Mandate Operations</h1>
+  <p class="page-subtitle">Upload and process repayment mandates in bulk across loans.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Processed" value="284" />
+  <app-kpi-card label="Failed" value="12" />
+  <app-kpi-card label="Pending" value="6" />
+</div>
+
+<div class="panel">
+  <app-alert-banner type="info" title="Bulk upload" message="Upload a CSV of customer mandates to activate repayment deductions in one batch." [dismissible]="false" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Latest batch</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Customer" /></th>
+        <th><app-column-title label="Bank" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows; track row.customer.email) {
+        <tr>
+          <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+          <td><app-table-item type="text" [text]="row.bank" /></td>
+          <td><app-table-item type="amount" [amount]="row.amount" /></td>
+          <td><app-status-badge [status]="row.status" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
