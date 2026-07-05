@@ -4,12 +4,6 @@
   <div class="shell-main">
     <app-header />
 
-    @if (breadcrumbItems().length) {
-      <div class="shell-breadcrumb">
-        <app-breadcrumb [items]="breadcrumbItems()" />
-      </div>
-    }
-
     <div class="shell-content">
       @if (navigating()) {
         <div class="shell-loading">

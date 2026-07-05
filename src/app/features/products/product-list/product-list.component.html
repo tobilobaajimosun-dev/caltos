@@ -67,20 +67,14 @@
 
     <!-- Tabs + filter -->
     <div class="tabs-row">
-      <div class="tabs">
-        <button class="tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">All Products <span class="tab-count">{{ stats.all }}</span></button>
-        <button class="tab" [class.active]="activeTab === 'live'" (click)="setTab('live')">Live <span class="tab-count">{{ stats.live }}</span></button>
-        <button class="tab" [class.active]="activeTab === 'draft'" (click)="setTab('draft')">Draft <span class="tab-count">{{ stats.draft }}</span></button>
-        <button class="tab" [class.active]="activeTab === 'deactivated'" (click)="setTab('deactivated')">Deactivated <span class="tab-count">{{ stats.deactivated }}</span></button>
-        <button class="tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees</button>
-      </div>
+      <app-round-tabs [tabs]="productTabs" [activeTab]="activeTab" (activeTabChange)="setTab($event)" />
       @if (activeTab === 'fees') {
         <app-button variant="text" label="+ Add custom new fee" />
       } @else {
         <div class="tabs-row-actions">
           <app-search placeholder="Search by name or product ID" [value]="searchQuery" (valueChange)="searchQuery = $event" />
           <app-button variant="filter" label="Filter" />
-          <app-button variant="primary" label="Export CSV" />
+          <app-button variant="primary" label="Export CSV" [icon]="downloadIcon" />
         </div>
       }
     </div>

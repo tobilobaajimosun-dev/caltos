@@ -8,47 +8,43 @@
 
 <div class="stats-row">
   <div class="stat-card">
-    <span class="stat-label">Total</span>
+    <span class="stat-label">All customers <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="All customers on your platform" /></span>
     <span class="stat-value">{{ stats.total }}</span>
   </div>
   <div class="stat-card">
-    <span class="stat-label">Active Borrowers</span>
+    <span class="stat-label">Active customers <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="Customers with at least one active loan" /></span>
     <span class="stat-value">{{ stats.active }}</span>
   </div>
   <div class="stat-card">
-    <span class="stat-label">Overdue</span>
+    <span class="stat-label">Overdue customers <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="Customers with a repayment past due" /></span>
     <span class="stat-value">{{ stats.overdue }}</span>
   </div>
   <div class="stat-card">
-    <span class="stat-label">Blacklisted</span>
-    <span class="stat-value">{{ stats.blacklisted }}</span>
+    <span class="stat-label">Inactive & Dormant <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="Customers with no recent activity" /></span>
+    <span class="stat-value">{{ stats.dormant }}</span>
   </div>
 </div>
 
-<div class="filters-row">
-  <app-search placeholder="Search by name, phone, BVN, or email" [value]="searchQuery" (valueChange)="searchQuery = $event; currentPage = 1" />
-
-  <app-select [options]="statusOptions" [value]="statusFilter" (valueChange)="statusFilter = $event; currentPage = 1" />
-
-  <app-select [options]="officerOptions" [value]="officerFilter" (valueChange)="officerFilter = $event; currentPage = 1" />
-
-  <app-select [options]="productOptions" [value]="productFilter" (valueChange)="productFilter = $event; currentPage = 1" />
-
-  <app-select [options]="sortOptions" [value]="sortKey" (valueChange)="sortKey = $any($event)" />
-</div>
-
-@if (activeFilterChips.length) {
-  <div class="chips-row">
-    @for (chip of activeFilterChips; track chip.key) {
-      <span class="filter-chip">
-        {{ chip.label }}
-        <button type="button" (click)="removeFilterChip(chip.key)" aria-label="Remove filter">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-      </span>
-    }
+<div class="toolbar-row">
+  <div class="toolbar-tabs">
+    <app-round-tabs [tabs]="tabs" [activeTab]="activeTab" (activeTabChange)="setTab($any($event))" />
+    <button type="button" class="tab-action" (click)="onAddCustomerMenuSelect('bulk')">Bulk upload</button>
   </div>
-}
+  <div class="toolbar-actions">
+    <button type="button" class="toolbar-btn">
+      <hi-icon [icon]="filterIcon" size="14" color="currentColor" />
+      Filter
+    </button>
+    <button type="button" class="toolbar-btn" (click)="editColumns()">
+      <hi-icon [icon]="columnsIcon" size="14" color="currentColor" />
+      Edit columns
+    </button>
+    <button type="button" class="toolbar-btn" (click)="exportAll()">
+      <hi-icon [icon]="downloadIcon" size="14" color="currentColor" />
+      Export .csv
+    </button>
+  </div>
+</div>
 
 @if (selectedIds.size > 0) {
   <div class="bulk-bar">
@@ -64,10 +60,6 @@
 
 <div class="panel table-panel">
   @if (!isEmpty) {
-    <div class="table-toolbar">
-      <app-button variant="filter" label="Filter" />
-      <app-button variant="primary" label="Export CSV" (clicked)="exportAll()" />
-    </div>
     <table class="ref-table">
       <thead>
         <tr>
@@ -134,13 +126,13 @@
       (pageSizeChange)="pageSize = $event; currentPage = 1" />
   } @else {
     <app-empty-state
-      [title]="searchQuery.trim() || activeFilterChips.length ? 'No customers match your filters' : 'No customers yet'"
-      [description]="searchQuery.trim() || activeFilterChips.length ? 'Try a different search term or clear your filters.' : 'Add your first customer to start tracking their loans.'">
+      [title]="activeTab !== 'all' ? 'No customers match this filter' : 'No customers yet'"
+      [description]="activeTab !== 'all' ? 'Try a different tab to see more customers.' : 'Add your first customer to start tracking their loans.'">
       <svg icon width="80" height="80" viewBox="0 0 80 80" fill="none">
         <circle cx="40" cy="30" r="12" stroke="currentColor" stroke-width="2"/>
         <path d="M18 65c0-13 10-22 22-22s22 9 22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      @if (!searchQuery.trim() && !activeFilterChips.length) {
+      @if (activeTab === 'all') {
         <app-split-button cta label="+ Add new customer" [items]="addCustomerMenuItems" (itemSelected)="onAddCustomerMenuSelect($event)" />
       }
     </app-empty-state>

@@ -114,15 +114,25 @@
 .balance-pill {
   display: inline-flex;
   align-items: center;
-  height: 34px;
+  gap: var(--space-2);
+  height: 36px;
   padding: 0 var(--space-3);
   border-radius: 8px;
   background: var(--surface-overlay);
+  white-space: nowrap;
+}
+
+.balance-pill-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.balance-pill-value {
   font-family: var(--font-heading);
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
 }
 
 .menu-wrap {

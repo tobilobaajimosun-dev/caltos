@@ -3,7 +3,7 @@
 .wallet-summary-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: var(--space-4);
+  gap: 12px;
   margin: var(--space-6) var(--space-8) 0;
 }
 
@@ -122,8 +122,8 @@
 .funds-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-  margin: var(--space-4) var(--space-8) 0;
+  gap: 12px;
+  margin: 12px var(--space-8) 0;
 }
 
 .funds-panel {

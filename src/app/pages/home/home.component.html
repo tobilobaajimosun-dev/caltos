@@ -68,7 +68,6 @@
           <p class="section-sub">Your latest loans, repayments, and customer activity—updated in real time.</p>
         </div>
         <div class="section-header-actions">
-          <app-select [options]="currencyOptions" [value]="currency" (valueChange)="currency = $event" />
           <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
         </div>
       </div>
@@ -136,6 +135,12 @@
                 </defs>
                 <path d="M0 200 C60 196 100 190 150 178 C200 163 230 148 280 128 C320 112 360 100 410 84 C450 70 490 54 540 36 C580 22 615 12 650 4 L650 210 L0 210 Z" fill="url(#areaGrad)"/>
                 <path d="M0 200 C60 196 100 190 150 178 C200 163 230 148 280 128 C320 112 360 100 410 84 C450 70 490 54 540 36 C580 22 615 12 650 4" stroke="#059669" stroke-width="2" fill="none" stroke-linecap="round"/>
+                @for (pt of disbursementTrend; track pt.date) {
+                  <circle class="chart-point" [attr.cx]="pt.x" [attr.cy]="pt.y" r="10" fill="transparent">
+                    <title>{{ pt.date }}: {{ pt.amount }}</title>
+                  </circle>
+                  <circle class="chart-point-dot" [attr.cx]="pt.x" [attr.cy]="pt.y" r="3" fill="#059669" />
+                }
               </svg>
               <p class="chart-x-label">July 15, 2024</p>
             </div>
@@ -179,10 +184,18 @@
           <div class="donut-container">
             <svg width="160" height="160" viewBox="0 0 160 160">
               <circle cx="80" cy="80" r="58" fill="none" stroke="#f3f4f6" stroke-width="24"/>
-              <circle cx="80" cy="80" r="58" fill="none" stroke="#0053a6" stroke-width="24" stroke-dasharray="136 228" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
-              <circle cx="80" cy="80" r="58" fill="none" stroke="#e03e3e" stroke-width="24" stroke-dasharray="91 273" stroke-dashoffset="-136" transform="rotate(-90 80 80)"/>
-              <circle cx="80" cy="80" r="58" fill="none" stroke="#f59e0b" stroke-width="24" stroke-dasharray="54 310" stroke-dashoffset="-227" transform="rotate(-90 80 80)"/>
-              <circle cx="80" cy="80" r="58" fill="none" stroke="#8b5cf6" stroke-width="24" stroke-dasharray="83 281" stroke-dashoffset="-281" transform="rotate(-90 80 80)"/>
+              <circle class="donut-segment" cx="80" cy="80" r="58" fill="none" stroke="#0053a6" stroke-width="24" stroke-dasharray="136 228" stroke-dashoffset="0" transform="rotate(-90 80 80)">
+                <title>Credit Lite: 37% of customers</title>
+              </circle>
+              <circle class="donut-segment" cx="80" cy="80" r="58" fill="none" stroke="#e03e3e" stroke-width="24" stroke-dasharray="91 273" stroke-dashoffset="-136" transform="rotate(-90 80 80)">
+                <title>Credit Wallet: 25% of customers</title>
+              </circle>
+              <circle class="donut-segment" cx="80" cy="80" r="58" fill="none" stroke="#f59e0b" stroke-width="24" stroke-dasharray="54 310" stroke-dashoffset="-227" transform="rotate(-90 80 80)">
+                <title>Corper Wallet: 15% of customers</title>
+              </circle>
+              <circle class="donut-segment" cx="80" cy="80" r="58" fill="none" stroke="#8b5cf6" stroke-width="24" stroke-dasharray="83 281" stroke-dashoffset="-281" transform="rotate(-90 80 80)">
+                <title>Credit Something: 23% of customers</title>
+              </circle>
               <circle cx="80" cy="80" r="22" fill="#fff"/>
             </svg>
           </div>

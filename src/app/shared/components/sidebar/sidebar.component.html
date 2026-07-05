@@ -2,7 +2,7 @@
   <div class="sidebar-backdrop" (click)="sidebarState.close()"></div>
 }
 
-<nav class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="sidebarState.mobileOpen()">
+<nav class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="sidebarState.mobileOpen()">
 
   <div class="sidebar-top">
     <div class="org-switcher-wrap">
@@ -11,7 +11,7 @@
         avatarLetter="P"
         avatarColor="#E55A2B"
         role="ADMIN"
-        [iconOnly]="collapsed"
+        [iconOnly]="collapsed()"
         (clicked)="switchOrgOpen.set(!switchOrgOpen())"
       />
       @if (switchOrgOpen()) {
@@ -53,10 +53,10 @@
         [active]="isActive(item)"
         [hasDropdown]="item.hasDropdown ?? false"
         [expanded]="isExpanded(item.id)"
-        [iconOnly]="collapsed"
+        [iconOnly]="collapsed()"
         (clicked)="navigate(item)"
       />
-      @if (item.hasDropdown && item.children && isExpanded(item.id) && !collapsed) {
+      @if (item.hasDropdown && item.children && isExpanded(item.id) && !collapsed()) {
         <div class="nav-children">
           @for (child of item.children; track child.label) {
             <button class="nav-child" type="button" (click)="navigateChild(child)">{{ child.label }}</button>
@@ -67,7 +67,7 @@
   </div>
 
   <div class="sidebar-bottom">
-    @if (!collapsed) {
+    @if (!collapsed()) {
       <app-badge-card />
     }
   </div>
@@ -75,11 +75,11 @@
   <button
     type="button"
     class="collapse-handle"
-    (click)="collapsed = !collapsed"
-    [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-    [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+    (click)="collapsed.set(!collapsed())"
+    [title]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+    [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
   >
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" [class.flipped]="collapsed">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" [class.flipped]="collapsed()">
       <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>

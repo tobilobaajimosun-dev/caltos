@@ -14,6 +14,11 @@
   transition: background 0.15s;
 
   &:hover { background: var(--surface-overlay); }
+
+  &.icon-only {
+    justify-content: center;
+    padding: var(--space-3) 0;
+  }
 }
 
 .avatar {

@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent, SelectComponent, SelectOption } from '../../shared/components';
+import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent } from '../../shared/components';
 import { AccountService } from '../../shared/services/account.service';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
@@ -7,17 +7,13 @@ type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent, SelectComponent],
+  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {
   readonly account = inject(AccountService);
   activePeriod = 'today';
-  currency = 'NGN';
-
-  // Only NGN is supported today — app-select renders a single option as a static, non-interactive pill.
-  readonly currencyOptions: SelectOption[] = [{ value: 'NGN', label: 'NGN' }];
 
   readonly periodTabs: TabItem[] = [
     { id: 'today',     label: 'Today' },
@@ -25,6 +21,15 @@ export class HomeComponent {
     { id: 'week',      label: 'This Week' },
     { id: 'month',     label: 'This Month' },
     { id: 'custom',    label: 'Custom' },
+  ];
+
+  readonly disbursementTrend = [
+    { date: 'Jul 9',  amount: '₦1,240,000', x: 0,   y: 200 },
+    { date: 'Jul 10', amount: '₦1,680,000', x: 150, y: 178 },
+    { date: 'Jul 11', amount: '₦2,410,000', x: 280, y: 128 },
+    { date: 'Jul 12', amount: '₦2,980,000', x: 410, y: 84  },
+    { date: 'Jul 13', amount: '₦3,520,000', x: 540, y: 36  },
+    { date: 'Jul 14', amount: '₦3,934,199', x: 650, y: 4   },
   ];
 
   readonly metrics = [

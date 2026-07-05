@@ -48,7 +48,12 @@
       }
     </button>
 
-    <span class="balance-pill">{{ account.balance() }}</span>
+    <app-button variant="secondary" label="Give a loan" (clicked)="giveLoan()" />
+
+    <span class="balance-pill">
+      <span class="balance-pill-label">Wallet balance</span>
+      <span class="balance-pill-value">{{ account.balance() }}</span>
+    </span>
 
     <div class="menu-wrap">
       <button class="user-trigger" type="button" (click)="toggleUserMenu()">

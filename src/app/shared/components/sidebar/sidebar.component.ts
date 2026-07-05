@@ -43,7 +43,7 @@ export class SidebarComponent {
   @Input() activeItemId = 'quick-actions';
   @Output() navChange = new EventEmitter<string>();
 
-  collapsed = false;
+  readonly collapsed = signal(false);
   private readonly expandedIds = signal<ReadonlySet<string>>(new Set());
 
   readonly switchOrgOpen = signal(false);

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Download01Icon } from '@hugeicons/core-free-icons';
 import {
   KpiCardComponent,
   ChartComponent,
@@ -9,6 +10,7 @@ import {
   TableItemUser,
   BadgeStatus,
   ButtonComponent,
+  IconData,
 } from '../../../shared/components';
 
 interface LoanRow {
@@ -29,6 +31,8 @@ interface LoanRow {
   styleUrl: './loan-list.component.scss',
 })
 export class LoanListComponent {
+  readonly downloadIcon: IconData = Download01Icon as IconData;
+
   readonly disbursementTrend: ChartDataPoint[] = [
     { label: 'Mon', value: 12 }, { label: 'Tue', value: 18 }, { label: 'Wed', value: 14 },
     { label: 'Thu', value: 22 }, { label: 'Fri', value: 19 }, { label: 'Sat', value: 9 }, { label: 'Sun', value: 15 },

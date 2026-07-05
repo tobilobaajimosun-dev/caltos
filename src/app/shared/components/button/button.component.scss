@@ -22,7 +22,7 @@
 
 /* Primary — filled blue */
 .btn.primary {
-  height: 40px;
+  height: 36px;
   padding: 0 18px;
   border-radius: 8px;
   background: var(--color-blue);
@@ -35,7 +35,7 @@
 
 /* Dropdown — blue with chevron */
 .btn.dropdown {
-  height: 40px;
+  height: 36px;
   padding: 0 18px;
   border-radius: 8px;
   background: var(--color-blue);
@@ -68,7 +68,7 @@
 
 /* Outline variant */
 .btn.outline {
-  height: 40px;
+  height: 36px;
   padding: 0 18px;
   border-radius: 8px;
   background: transparent;
@@ -110,8 +110,8 @@
 
 /* Round — circle icon button */
 .btn.round {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: transparent;
   border: 1.5px solid var(--color-stroke);

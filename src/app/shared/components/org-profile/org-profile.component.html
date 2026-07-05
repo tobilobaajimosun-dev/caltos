@@ -1,4 +1,4 @@
-<button class="org-profile" (click)="clicked.emit()">
+<button class="org-profile" [class.icon-only]="iconOnly" (click)="clicked.emit()">
   <span class="avatar" [style.background]="avatarColor">{{ avatarLetter }}</span>
   @if (!iconOnly) {
     <div class="info">

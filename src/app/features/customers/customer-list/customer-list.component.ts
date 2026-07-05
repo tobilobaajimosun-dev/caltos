@@ -1,23 +1,24 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { UserAdd01Icon, FileUploadIcon } from '@hugeicons/core-free-icons';
+import { UserAdd01Icon, FileUploadIcon, FilterIcon, ColumnsThreeCogIcon, Download01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, TableItemUser,
-  EmptyStateComponent, PaginationComponent, SearchComponent, ConfirmModalComponent, ToastComponent,
-  SelectComponent, SelectOption, SplitButtonComponent, SplitButtonItem, IconData,
+  EmptyStateComponent, PaginationComponent, ConfirmModalComponent, ToastComponent,
+  SplitButtonComponent, SplitButtonItem, IconData, HiIconComponent, Tab, RoundTabsComponent,
 } from '../../../shared/components';
 import { CustomersService, CustomerRecord, CustomerStatus } from '../../../shared/services/customers.service';
 import { AddEditCustomerModalComponent } from '../add-edit-customer-modal/add-edit-customer-modal.component';
 
 type SortKey = 'name' | 'registeredAt' | 'activeLoans' | 'outstandingBalance';
+type CustomerTab = 'all' | 'active' | 'dormant' | 'overdue';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
   imports: [
     RouterLink, ButtonComponent, ColumnTitleComponent, TableItemComponent, EmptyStateComponent,
-    PaginationComponent, SearchComponent, ConfirmModalComponent, ToastComponent, AddEditCustomerModalComponent,
-    SelectComponent, SplitButtonComponent,
+    PaginationComponent, ConfirmModalComponent, ToastComponent, AddEditCustomerModalComponent,
+    SplitButtonComponent, HiIconComponent, RoundTabsComponent,
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss',
@@ -29,11 +30,20 @@ export class CustomerListComponent {
 
   readonly customers = this.customersService.customers;
 
-  searchQuery = '';
-  statusFilter = '';
-  officerFilter = '';
-  productFilter = '';
+  readonly filterIcon: IconData = FilterIcon as IconData;
+  readonly columnsIcon: IconData = ColumnsThreeCogIcon as IconData;
+  readonly downloadIcon: IconData = Download01Icon as IconData;
+  readonly infoIcon: IconData = InformationCircleIcon as IconData;
+
+  activeTab: CustomerTab = 'all';
   sortKey: SortKey = 'name';
+
+  readonly tabs: Tab[] = [
+    { label: 'All Customers', value: 'all' },
+    { label: 'Active Customers', value: 'active' },
+    { label: 'Dormant Customers', value: 'dormant' },
+    { label: 'Overdue Customers', value: 'overdue' },
+  ];
 
   currentPage = 1;
   pageSize = 10;
@@ -49,40 +59,9 @@ export class CustomerListComponent {
   toastVisible = false;
   toastMessage = '';
 
-  get officers(): string[] {
-    return [...new Set(this.customers().map((c) => c.loanOfficer))].sort();
-  }
-
-  get products(): string[] {
-    return [...new Set(this.customers().map((c) => c.product).filter((p) => p !== '—'))].sort();
-  }
-
-  readonly statusOptions: SelectOption[] = [
-    { value: '', label: 'All statuses' },
-    { value: 'active', label: 'Active' },
-    { value: 'overdue', label: 'Overdue' },
-    { value: 'blacklisted', label: 'Blacklisted' },
-    { value: 'inactive', label: 'Inactive' },
-  ];
-
-  get officerOptions(): SelectOption[] {
-    return [{ value: '', label: 'All loan officers' }, ...this.officers.map((o) => ({ value: o, label: o }))];
-  }
-
-  get productOptions(): SelectOption[] {
-    return [{ value: '', label: 'All products' }, ...this.products.map((p) => ({ value: p, label: p }))];
-  }
-
   readonly addCustomerMenuItems: SplitButtonItem[] = [
     { id: 'single', label: 'Add single customer', icon: UserAdd01Icon as IconData },
     { id: 'bulk', label: 'Bulk upload via spreadsheet', icon: FileUploadIcon as IconData },
-  ];
-
-  readonly sortOptions: SelectOption[] = [
-    { value: 'name', label: 'Sort: Name' },
-    { value: 'registeredAt', label: 'Sort: Date Added' },
-    { value: 'activeLoans', label: 'Sort: Loan Count' },
-    { value: 'outstandingBalance', label: 'Sort: Outstanding Balance' },
   ];
 
   get stats() {
@@ -91,39 +70,21 @@ export class CustomerListComponent {
       total: all.length,
       active: all.filter((c) => c.status === 'active').length,
       overdue: all.filter((c) => c.status === 'overdue').length,
-      blacklisted: all.filter((c) => c.status === 'blacklisted').length,
+      dormant: all.filter((c) => c.status === 'inactive').length,
     };
   }
 
-  get activeFilterChips(): { key: string; label: string }[] {
-    const chips: { key: string; label: string }[] = [];
-    if (this.statusFilter) chips.push({ key: 'status', label: `Status: ${this.statusLabel(this.statusFilter as CustomerStatus)}` });
-    if (this.officerFilter) chips.push({ key: 'officer', label: `Officer: ${this.officerFilter}` });
-    if (this.productFilter) chips.push({ key: 'product', label: `Product: ${this.productFilter}` });
-    return chips;
-  }
-
-  removeFilterChip(key: string) {
-    if (key === 'status') this.statusFilter = '';
-    if (key === 'officer') this.officerFilter = '';
-    if (key === 'product') this.productFilter = '';
+  setTab(tab: CustomerTab) {
+    this.activeTab = tab;
     this.currentPage = 1;
   }
 
   get filteredCustomers(): CustomerRecord[] {
     let list = this.customers();
 
-    const q = this.searchQuery.trim().toLowerCase();
-    if (q) {
-      list = list.filter((c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.phone.includes(q) ||
-        c.bvn.includes(q));
-    }
-    if (this.statusFilter) list = list.filter((c) => c.status === this.statusFilter);
-    if (this.officerFilter) list = list.filter((c) => c.loanOfficer === this.officerFilter);
-    if (this.productFilter) list = list.filter((c) => c.product === this.productFilter);
+    if (this.activeTab === 'active') list = list.filter((c) => c.status === 'active');
+    if (this.activeTab === 'dormant') list = list.filter((c) => c.status === 'inactive');
+    if (this.activeTab === 'overdue') list = list.filter((c) => c.status === 'overdue');
 
     list = [...list].sort((a, b) => {
       if (this.sortKey === 'name') return a.name.localeCompare(b.name);
@@ -281,6 +242,10 @@ export class CustomerListComponent {
 
   exportAll() {
     this.showToast(`Exported ${this.filteredCustomers.length} customer${this.filteredCustomers.length === 1 ? '' : 's'}.`);
+  }
+
+  editColumns() {
+    this.showToast('Column customization is coming soon.');
   }
 
   bulkSendReminder() {

@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
 import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
-import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent } from '../../../shared/components';
+import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent, RoundTabsComponent, Tab } from '../../../shared/components';
 import { ProductsService, ProductRecord, ProductStatus } from '../../../shared/services/products.service';
 import {
   InformationCircleIcon,
@@ -11,6 +11,7 @@ import {
   MoreVerticalIcon,
   PlusSignIcon,
   FileNotFoundIcon,
+  Download01Icon,
 } from '@hugeicons/core-free-icons';
 
 type ActiveTab = 'all' | 'live' | 'draft' | 'deactivated' | 'fees';
@@ -31,6 +32,7 @@ interface Fee {
   imports: [
     RouterLink, HiIconComponent, LoanTypeModalComponent, ProductSettingsModalComponent,
     TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent,
+    RoundTabsComponent,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
@@ -48,6 +50,7 @@ export class ProductListComponent {
 
   readonly infoIcon: IconData = InformationCircleIcon as IconData;
   readonly filterIcon: IconData = FilterIcon as IconData;
+  readonly downloadIcon: IconData = Download01Icon as IconData;
   readonly moreIcon: IconData = MoreVerticalIcon as IconData;
   readonly plusIcon: IconData = PlusSignIcon as IconData;
   readonly emptyIcon: IconData = FileNotFoundIcon as IconData;
@@ -76,6 +79,14 @@ export class ProductListComponent {
       deactivated: all.filter((p) => p.status === 'deactivated').length,
     };
   }
+
+  readonly productTabs: Tab[] = [
+    { label: 'All Products', value: 'all' },
+    { label: 'Live', value: 'live' },
+    { label: 'Draft', value: 'draft' },
+    { label: 'Deactivated', value: 'deactivated' },
+    { label: 'Fees', value: 'fees' },
+  ];
 
   get filteredProducts(): ProductRecord[] {
     let list = this.products();
@@ -109,7 +120,7 @@ export class ProductListComponent {
     return 'Launch your first product and start disbursing in minutes.';
   }
 
-  setTab(tab: ActiveTab) { this.activeTab = tab; }
+  setTab(tab: string) { this.activeTab = tab as ActiveTab; }
 
   navigateTo(id: string) {
     this.router.navigate(['/products', id]);

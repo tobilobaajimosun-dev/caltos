@@ -1,8 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Download01Icon } from '@hugeicons/core-free-icons';
 import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, PaginationComponent,
-  ModalComponent, SelectComponent, SelectOption, CheckboxComponent, ToggleComponent, BadgeStatus,
+  ModalComponent, SelectComponent, SelectOption, CheckboxComponent, ToggleComponent, BadgeStatus, IconData,
 } from '../../shared/components';
 import { AccountService } from '../../shared/services/account.service';
 
@@ -29,6 +30,7 @@ interface WalletTransaction {
 export class WalletComponent {
   readonly account = inject(AccountService);
 
+  readonly downloadIcon: IconData = Download01Icon as IconData;
   readonly balanceHidden = signal(false);
   readonly notifSettingsOpen = signal(false);
 

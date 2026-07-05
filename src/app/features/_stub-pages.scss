@@ -53,6 +53,7 @@
 
 .table-panel {
   padding: 0;
+  overflow-x: auto;
 
   .panel-head {
     padding: var(--space-5) var(--space-5) 0;

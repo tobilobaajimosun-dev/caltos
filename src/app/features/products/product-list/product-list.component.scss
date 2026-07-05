@@ -1,7 +1,7 @@
 .page {
   display: flex;
   min-height: 100vh;
-  background: var(--surface-overlay);
+  background: var(--surface-base);
 }
 
 .main {
@@ -166,7 +166,7 @@
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
@@ -200,12 +200,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--color-grey-header);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-muted);
   margin-bottom: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .stat-value {
@@ -372,7 +370,7 @@
 
 .ptype-badge {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 7px;
   border-radius: 100px;
   &.bnpl { color: #D92D20; background: #FEE4E2; }
@@ -387,7 +385,7 @@
   justify-content: center;
   font-family: var(--font-heading);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 
   &[data-color="0"] { background: #e8effa; color: var(--color-blue); }

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { Router } from '@angular/router';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { CommandPaletteComponent, CommandGroup } from '../command-palette/command-palette.component';
+import { ButtonComponent } from '../button/button.component';
 import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { SessionService } from '../../services/session.service';
@@ -10,7 +11,7 @@ import { AccountService } from '../../services/account.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [AvatarComponent, CommandPaletteComponent],
+  imports: [AvatarComponent, CommandPaletteComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -82,6 +83,10 @@ export class HeaderComponent {
   signOut() {
     this.closeMenus();
     this.router.navigateByUrl('/login');
+  }
+
+  giveLoan() {
+    this.router.navigateByUrl('/loans');
   }
 
   simulateSessionExpiry() {
