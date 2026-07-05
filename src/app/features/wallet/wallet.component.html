@@ -1,0 +1,133 @@
+<div class="page-header">
+  <h1 class="page-title">Wallet</h1>
+  <p class="page-subtitle">Manage your organisation's funds, track top-ups, and view every transaction in one place.</p>
+</div>
+
+<div class="wallet-summary-row">
+  <div class="panel balance-panel">
+    <div class="panel-label-row">
+      <span class="panel-label">Wallet Balance</span>
+      <span class="info-dot" title="Your available wallet balance">i</span>
+    </div>
+    <div class="balance-amount-row">
+      <span class="balance-amount">{{ maskedBalance }}</span>
+      <button type="button" class="eye-toggle" (click)="toggleBalanceVisibility()" aria-label="Toggle balance visibility">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+    </div>
+    <div class="balance-actions">
+      <app-button variant="primary" label="Top up wallet" />
+      <app-button variant="secondary" label="Balance notification settings" (clicked)="openNotifSettings()" />
+    </div>
+  </div>
+
+  <div class="panel account-panel">
+    <div class="panel-label-row">
+      <span class="panel-label">Virtual Account Details</span>
+      <span class="info-dot" title="The account customers pay into">i</span>
+    </div>
+    <div class="account-number-row">
+      <span class="account-number">{{ account.accountNumber() }}</span>
+      <span class="bank-name">{{ account.bankName() }}</span>
+    </div>
+    <app-button variant="secondary" label="See all virtual accounts" [fullWidth]="true" />
+    <div class="account-meta">
+      <span class="meta-label">Date last funded</span>
+      <span class="meta-value">{{ lastFundedDate }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="funds-row">
+  <div class="panel funds-panel">
+    <div class="funds-head">
+      <span class="panel-label funds-in">Funds In</span>
+      <app-select [options]="periodOptions" [value]="fundsInPeriod" (valueChange)="fundsInPeriod = $event" />
+    </div>
+    <span class="funds-amount">{{ fundsIn }}</span>
+  </div>
+
+  <div class="panel funds-panel">
+    <div class="funds-head">
+      <span class="panel-label funds-out">Funds Out</span>
+      <app-select [options]="periodOptions" [value]="fundsOutPeriod" (valueChange)="fundsOutPeriod = $event" />
+    </div>
+    <span class="funds-amount">{{ fundsOut }}</span>
+  </div>
+</div>
+
+<div class="panel table-panel transactions-panel">
+  <div class="panel-head">
+    <p class="panel-title">Transactions</p>
+    <div class="table-toolbar-actions">
+      <app-button variant="filter" label="Filter" />
+      <app-button variant="primary" label="Export CSV" />
+    </div>
+  </div>
+
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Date" /></th>
+        <th><app-column-title label="Narration / Description" /></th>
+        <th><app-column-title label="Transaction ID" /></th>
+        <th><app-column-title label="Amount (₦)" /></th>
+        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Balance After (₦)" /></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (txn of transactions; track txn.txnId) {
+        <tr>
+          <td>
+            <div class="date-cell">
+              <span class="date-primary">{{ txn.date }}</span>
+              <span class="date-secondary">{{ txn.time }}</span>
+            </div>
+          </td>
+          <td><app-table-item type="text" [text]="txn.narration" /></td>
+          <td><app-table-item type="text" [text]="txn.txnId" /></td>
+          <td><app-table-item type="text" [text]="txn.amount" /></td>
+          <td><app-table-item type="status" [status]="txn.status" /></td>
+          <td><app-table-item type="text" [text]="txn.balanceAfter" /></td>
+          <td><app-table-item type="more" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <app-pagination [currentPage]="currentPage" [totalPages]="1" [pageSize]="pageSize" (pageChange)="currentPage = $event" (pageSizeChange)="pageSize = $event" />
+</div>
+
+<app-modal [isOpen]="notifSettingsOpen()" title="Balance Notification Settings" size="sm" (closed)="closeNotifSettings()">
+  <div class="notif-body">
+    <p class="notif-desc">Get notified when your wallet balance crosses certain limits or when funds are added.</p>
+
+    <label class="notif-field-label" for="lowBalanceThreshold">Low balance threshold (₦)</label>
+    <input
+      id="lowBalanceThreshold"
+      class="notif-input"
+      type="text"
+      placeholder="Input the balance amount here"
+      [(ngModel)]="lowBalanceThreshold"
+      name="lowBalanceThreshold"
+    />
+
+    <p class="notif-field-label">Notification Channels</p>
+    <div class="notif-channels">
+      <app-checkbox label="Email" [checked]="emailNotify" (checkedChange)="emailNotify = $event" />
+      <app-checkbox label="In-app notification" [checked]="inAppNotify" (checkedChange)="inAppNotify = $event" />
+    </div>
+
+    <div class="notif-toggle-row">
+      <app-toggle [checked]="dailySummary" (checkedChange)="dailySummary = $event" />
+      <span>Receive a daily balance summary at 6 PM in your mail</span>
+    </div>
+  </div>
+
+  <div modalFooter class="notif-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeNotifSettings()" />
+    <app-button variant="primary" label="Save settings" (clicked)="saveNotifSettings()" />
+  </div>
+</app-modal>
