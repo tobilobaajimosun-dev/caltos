@@ -24,8 +24,13 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
 import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
 import { AcceptInviteComponent } from './features/auth/accept-invite/accept-invite.component';
+import { LandingComponent } from './pages/landing/landing.component';
+import { CustomerListComponent } from './features/customers/customer-list/customer-list.component';
+import { CustomerProfileComponent } from './features/customers/customer-profile/customer-profile.component';
 
 export const routes: Routes = [
+  // Public marketing landing page — the app's true entry point
+  { path: '', pathMatch: 'full', component: LandingComponent },
   // Public, unauthenticated flows — no shell chrome
   { path: 'apply', component: ApplyComponent },
   { path: 'login', component: LoginComponent },
@@ -39,8 +44,10 @@ export const routes: Routes = [
     path: '',
     component: AppShellComponent,
     children: [
-      { path: '', component: QuickActionsComponent },
+      { path: 'quick-actions', component: QuickActionsComponent },
       { path: 'home', component: HomeComponent },
+      { path: 'customers', component: CustomerListComponent },
+      { path: 'customers/:id', component: CustomerProfileComponent },
       { path: 'products', component: ProductListComponent },
       { path: 'products/create', component: CreateLoanComponent },
       { path: 'products/create-bnpl', component: CreateBnplComponent },

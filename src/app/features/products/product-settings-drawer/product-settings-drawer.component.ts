@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../../shared/components';
 
 type SettingsSection = 'automations' | 'integrations' | 'approval' | 'documents' | 'notifications';
 
@@ -22,7 +23,7 @@ interface Integration {
 @Component({
   selector: 'app-product-settings-drawer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ButtonComponent],
   templateUrl: './product-settings-drawer.component.html',
   styleUrls: ['./product-settings-drawer.component.scss'],
 })

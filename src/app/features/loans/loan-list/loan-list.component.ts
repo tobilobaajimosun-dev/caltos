@@ -8,6 +8,7 @@ import {
   TableItemComponent,
   TableItemUser,
   BadgeStatus,
+  ButtonComponent,
 } from '../../../shared/components';
 
 interface LoanRow {
@@ -22,7 +23,7 @@ interface LoanRow {
 @Component({
   selector: 'app-loan-list',
   standalone: true,
-  imports: [RouterLink, KpiCardComponent, ChartComponent, ColumnTitleComponent, TableItemComponent],
+  imports: [RouterLink, KpiCardComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-list.component.html',
   styleUrl: './loan-list.component.scss',
@@ -40,4 +41,17 @@ export class LoanListComponent {
     { id: 'LN-202406-004', customer: { name: 'Damilola Ojo', email: 'damilola@princepsfinance.com' }, product: 'Credit Lite', amount: '₦45,000', status: 'active', dueDate: '2026-07-25' },
     { id: 'LN-202406-005', customer: { name: 'Emeka Nwosu', email: 'emeka@princepsfinance.com' }, product: 'Salary Advance', amount: '₦210,000', status: 'suspended', dueDate: '2026-07-10' },
   ];
+
+  readonly productTabs = ['All Products', ...new Set(this.loans.map((l) => l.product))];
+  activeProduct = 'All Products';
+
+  get filteredLoans(): LoanRow[] {
+    return this.activeProduct === 'All Products'
+      ? this.loans
+      : this.loans.filter((l) => l.product === this.activeProduct);
+  }
+
+  setProduct(product: string) {
+    this.activeProduct = product;
+  }
 }

@@ -3,6 +3,7 @@
   @if (step() === 'credentials') {
     <h1 class="title">Welcome back</h1>
     <p class="subtitle">Sign in to your Caltos account</p>
+    <p class="demo-hint">Demo login: <strong>demo&#64;princepsfinance.com</strong> / <strong>Password123!</strong> (OTP: <strong>123456</strong>)</p>
 
     <form class="auth-form" [formGroup]="form" (ngSubmit)="submitCredentials()">
       <div class="field">
@@ -58,16 +59,18 @@
         <p class="form-error">{{ formError() }}</p>
       }
 
-      <button type="submit" class="submit-btn" [disabled]="submitting()">
-        {{ submitting() ? 'Signing in...' : 'Sign in' }}
-      </button>
+      <app-button
+        variant="primary"
+        [fullWidth]="true"
+        [label]="submitting() ? 'Signing in...' : 'Sign in'"
+        [disabled]="submitting()" />
     </form>
 
     <p class="footer-note">Don't have an account? <a routerLink="/onboarding">Start free trial</a></p>
   }
 
   @if (step() === 'otp') {
-    <button type="button" class="back-btn" (click)="backToCredentials()">← Back</button>
+    <app-button variant="back" label="Back" (clicked)="backToCredentials()" />
     <h1 class="title">Two-factor verification</h1>
     <p class="subtitle">Enter the 6-digit code from your authenticator app. <span class="hint">(demo code: 123456)</span></p>
 
@@ -93,9 +96,11 @@
         <p class="form-error">{{ formError() }}</p>
       }
 
-      <button type="submit" class="submit-btn" [disabled]="submitting()">
-        {{ submitting() ? 'Verifying...' : 'Verify and sign in' }}
-      </button>
+      <app-button
+        variant="primary"
+        [fullWidth]="true"
+        [label]="submitting() ? 'Verifying...' : 'Verify and sign in'"
+        [disabled]="submitting()" />
     </form>
   }
 

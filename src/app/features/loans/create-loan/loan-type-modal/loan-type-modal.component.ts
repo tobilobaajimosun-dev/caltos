@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../../shared/components/hi-icon/hi-icon.component';
+import { ButtonComponent } from '../../../../shared/components';
 import { Cancel01Icon } from '@hugeicons/core-free-icons';
 
 interface LoanType {
@@ -73,7 +74,7 @@ const LOAN_TYPES: LoanType[] = [
 @Component({
   selector: 'app-loan-type-modal',
   standalone: true,
-  imports: [HiIconComponent],
+  imports: [HiIconComponent, ButtonComponent],
   templateUrl: './loan-type-modal.component.html',
   styleUrls: ['./loan-type-modal.component.scss'],
 })

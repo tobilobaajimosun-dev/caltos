@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ModalComponent } from '../../../shared/components';
+import { ModalComponent, ButtonComponent } from '../../../shared/components';
 
 type SettingsSection = 'automations' | 'integrations' | 'approval' | 'documents' | 'notifications';
 
@@ -23,7 +23,7 @@ interface Integration {
 @Component({
   selector: 'app-product-settings-modal',
   standalone: true,
-  imports: [CommonModule, ModalComponent],
+  imports: [CommonModule, ModalComponent, ButtonComponent],
   templateUrl: './product-settings-modal.component.html',
   styleUrls: ['./product-settings-modal.component.scss'],
 })

@@ -1,0 +1,140 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">{{ isEditMode ? 'Edit Customer' : 'Add Customer' }}</div>
+          <div class="modal-sub">Step {{ step + 1 }} of {{ steps.length }} — {{ steps[step] }}</div>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="close()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="steps-bar">
+        @for (label of steps; track label; let i = $index) {
+          @if (i > 0) { <div class="connector" [class.done]="i <= step"></div> }
+          <div class="step-dot" [class.active]="i === step" [class.done]="i < step">
+            @if (i < step) {
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            } @else { {{ i + 1 }} }
+          </div>
+        }
+      </div>
+
+      <div class="modal-body">
+
+        @if (step === 0) {
+          <div class="field-group">
+            <label class="field-label">Full name <span class="req">*</span></label>
+            <input class="field-input" type="text" placeholder="e.g. Akpan Akporigomayen" [(ngModel)]="draft.name" />
+          </div>
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label">Email <span class="req">*</span></label>
+              <input class="field-input" type="email" placeholder="name@email.com" [(ngModel)]="draft.email" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Phone <span class="req">*</span></label>
+              <input class="field-input" type="tel" placeholder="0800 000 0000" [(ngModel)]="draft.phone" />
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label">Date of birth</label>
+              <input class="field-input" type="date" [(ngModel)]="draft.dob" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Location</label>
+              <input class="field-input" type="text" placeholder="e.g. Lagos" [(ngModel)]="draft.location" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Address</label>
+            <input class="field-input" type="text" placeholder="Street address" [(ngModel)]="draft.address" />
+          </div>
+        }
+
+        @if (step === 1) {
+          <div class="field-group">
+            <label class="field-label">Employer</label>
+            <input class="field-input" type="text" placeholder="e.g. NYSC — Lagos State Secretariat" [(ngModel)]="draft.employer" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Monthly salary</label>
+            <input class="field-input" type="text" placeholder="e.g. ₦150,000/month" [(ngModel)]="draft.salary" />
+          </div>
+        }
+
+        @if (step === 2) {
+          <div class="field-group">
+            <label class="field-label">Bank name</label>
+            <input class="field-input" type="text" placeholder="e.g. GTBank" [(ngModel)]="draft.bankName" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Account number</label>
+            <input class="field-input" type="text" placeholder="10-digit account number" maxlength="10" [(ngModel)]="draft.accountNumber" />
+          </div>
+        }
+
+        @if (step === 3) {
+          <div class="field-group">
+            <label class="field-label">BVN <span class="req">*</span></label>
+            <div class="verify-row">
+              <input
+                class="field-input"
+                type="text"
+                placeholder="11-digit BVN"
+                maxlength="11"
+                [(ngModel)]="draft.bvn"
+                (input)="bvnLookupState.set('idle')" />
+              <app-button
+                variant="outline"
+                [label]="bvnLookupState() === 'loading' ? 'Looking up…' : 'Verify'"
+                [disabled]="draft.bvn.length !== 11 || bvnLookupState() === 'loading'"
+                (clicked)="lookupBvn()" />
+            </div>
+            <p class="hint">Demo tip: a BVN starting with "0" simulates a failed lookup.</p>
+          </div>
+
+          @if (bvnLookupState() === 'loading') {
+            <div class="lookup-status loading">
+              <span class="spinner"></span>Verifying BVN via NIMC…
+            </div>
+          }
+          @if (bvnLookupState() === 'success') {
+            <div class="lookup-status success">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#D1FAE5"/><path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div>
+                <div class="lookup-name">{{ bvnLookupName() }}</div>
+                <div class="lookup-sub">BVN verified successfully.</div>
+              </div>
+            </div>
+          }
+          @if (bvnLookupState() === 'error') {
+            <div class="lookup-status error">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#F04438" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="#F04438" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Could not verify this BVN. Please check the number and try again.
+            </div>
+          }
+        }
+
+      </div>
+
+      <div class="modal-footer">
+        @if (step > 0) {
+          <app-button variant="back" label="Back" (clicked)="back()" />
+        } @else {
+          <app-button variant="outline" label="Cancel" (clicked)="close()" />
+        }
+        @if (!isLastStep) {
+          <app-button variant="primary" label="Continue" (clicked)="next()" />
+        } @else {
+          <app-button variant="primary" [label]="isEditMode ? 'Save changes' : 'Add Customer'" (clicked)="submit()" />
+        }
+      </div>
+
+    </div>
+  </div>
+}

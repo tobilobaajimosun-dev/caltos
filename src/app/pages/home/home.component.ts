@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem } from '../../shared/components';
+import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent } from '../../shared/components';
 import { AccountService } from '../../shared/services/account.service';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
@@ -7,7 +7,7 @@ type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent],
+  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })

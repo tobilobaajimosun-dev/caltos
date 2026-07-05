@@ -1,4 +1,4 @@
-<app-auth-layout headline="You've been invited." subhead="Join your team on Caltos and start managing loans together.">
+<app-auth-layout>
 
   <h1 class="title">Join {{ orgName }}</h1>
   <p class="subtitle">{{ inviterName }} invited you (<strong>{{ inviteeEmail }}</strong>) to join <strong>{{ orgName }}</strong> on Caltos.</p>
@@ -47,9 +47,11 @@
       }
     </div>
 
-    <button type="submit" class="submit-btn" [disabled]="submitting()">
-      {{ submitting() ? 'Joining...' : 'Accept invite and join' }}
-    </button>
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      [label]="submitting() ? 'Joining...' : 'Accept invite and join'"
+      [disabled]="submitting()" />
   </form>
 
 </app-auth-layout>

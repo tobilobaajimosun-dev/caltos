@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthLayoutComponent } from '../../../shared/components';
+import { AuthLayoutComponent, ButtonComponent } from '../../../shared/components';
 
 @Component({
   selector: 'app-accept-invite',
   standalone: true,
-  imports: [ReactiveFormsModule, AuthLayoutComponent],
+  imports: [ReactiveFormsModule, AuthLayoutComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './accept-invite.component.html',
   styleUrl: './accept-invite.component.scss',
@@ -60,7 +60,7 @@ export class AcceptInviteComponent {
     this.submitting.set(true);
     setTimeout(() => {
       this.submitting.set(false);
-      this.router.navigateByUrl('/');
+      this.router.navigateByUrl('/home');
     }, 500);
   }
 }

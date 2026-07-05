@@ -1,1 +1,46 @@
 @use '../../stub-pages';
+
+.product-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin: var(--space-5) 0;
+}
+
+.product-pills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.product-pill {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface-base);
+  border: 1.5px dashed var(--color-input-stroke);
+  border-radius: 100px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover { background: var(--surface-overlay); }
+
+  &.active {
+    border-style: solid;
+    border-color: var(--color-blue);
+    color: var(--color-blue);
+    background: var(--color-info-bg);
+    font-weight: 600;
+  }
+}
+
+.product-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}

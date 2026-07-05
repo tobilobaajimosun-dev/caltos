@@ -21,17 +21,12 @@
         @if (config.name.length > 2 && nameAvailable) { <span class="available-badge">Available</span> }
       </div>
       <div class="top-actions">
-        <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
+        <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
         <a routerLink="/apply" target="_blank" class="btn-preview-product">
           <hi-icon [icon]="eyeIcon" size="14" color="currentColor" />
           Preview Product
         </a>
-        <button class="btn-next-step" (click)="next()" [disabled]="isLast">
-          Next Step
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+        <app-button variant="primary" label="Next Step" [disabled]="isLast" (clicked)="next()" />
       </div>
     </div>
 
@@ -869,32 +864,17 @@
     <!-- Footer -->
     <div class="wizard-footer">
       @if (stepId === 'review') {
-        <button class="btn-save-draft" (click)="saveDraft()">Save as Draft</button>
+        <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
         <span class="footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
-        <button class="btn-publish" (click)="publish()">
-          Publish BNPL Product
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+        <app-button variant="primary" label="Publish BNPL Product" (clicked)="publish()" />
       } @else {
         @if (!isFirst) {
-          <button class="btn-back" (click)="back()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Back
-          </button>
+          <app-button variant="back" label="Back" (clicked)="back()" />
         } @else {
           <a routerLink="/products" class="btn-back">Cancel</a>
         }
         <span class="footer-hint">Don't worry, you can change any of these settings later.</span>
-        <button class="btn-continue" (click)="next()">
-          Save &amp; Continue
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+        <app-button variant="primary" label="Save & Continue" (clicked)="next()" />
       }
     </div>
 
@@ -924,8 +904,8 @@
         </div>
       </div>
       <div class="dialog-actions">
-        <button class="dialog-btn secondary" (click)="showCustomFeeModal = false">Cancel</button>
-        <button class="dialog-btn primary" (click)="addCustomFee()" [disabled]="!customFeeName.trim()">Add Fee</button>
+        <app-button variant="outline" label="Cancel" (clicked)="showCustomFeeModal = false" />
+        <app-button variant="primary" label="Add Fee" [disabled]="!customFeeName.trim()" (clicked)="addCustomFee()" />
       </div>
     </div>
   </div>

@@ -1,9 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { TooltipComponent } from '../../../shared/components';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ChartDataPoint, ColumnTitleComponent, TableItemComponent, TableItemUser } from '../../../shared/components';
+import { ProductsService, ProductStats, ProductStatus } from '../../../shared/services/products.service';
 
-type DetailTab = 'overview' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity' | 'vendors';
+type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity' | 'vendors';
+
+interface ActiveLoanRow {
+  id: string;
+  customer: TableItemUser;
+  amount: string;
+  disbursedDate: string;
+  outstanding: string;
+  status: 'active' | 'overdue' | 'suspended';
+}
 
 interface Vendor {
   id: string;
@@ -30,9 +40,6 @@ interface NewVendorDraft {
   directorBvn: string;
   bankName: string;
   accountNumber: string;
-  accountName: string;
-  accountNameVerified: boolean;
-  accountNameError: string;
 }
 
 interface ChecklistItem {
@@ -46,7 +53,7 @@ interface ChecklistItem {
 interface ProductData {
   name: string;
   type: 'loan' | 'bnpl';
-  status: 'live' | 'deactivated';
+  status: ProductStatus;
   createdAt: string;
   description: string;
   websiteLink: string;
@@ -189,19 +196,38 @@ const BNPL_SAMPLE_VENDORS: Vendor[] = [
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, TooltipComponent],
+  imports: [RouterLink, FormsModule, TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ColumnTitleComponent, TableItemComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
 export class ProductDetailComponent implements OnInit {
+  private readonly productsService = inject(ProductsService);
+  private readonly router = inject(Router);
+
   activeTab: DetailTab = 'overview';
   statPeriod: 'today' | 'week' | 'month' | 'all' = 'month';
+
+  productStats: ProductStats = {
+    totalApplications: 0, approvalRate: 0, avgLoanSize: '₦0', activeLoans: 0,
+    totalDisbursed: '₦0', collectionRate: 0, nplRate: 0,
+  };
+
+  readonly disbursementTrend: ChartDataPoint[] = [
+    { label: 'Feb', value: 10 }, { label: 'Mar', value: 14 }, { label: 'Apr', value: 12 },
+    { label: 'May', value: 18 }, { label: 'Jun', value: 16 }, { label: 'Jul', value: 22 },
+  ];
+
+  activeLoans: ActiveLoanRow[] = [];
 
   // Vendor management state
   showOnboardModal = false;
   onboardStep = 0;
-  accountNameVerifying = false;
   copiedVendorId: string | null = null;
+
+  readonly accountNameVerifying = signal(false);
+  readonly accountName = signal('');
+  readonly accountNameVerified = signal(false);
+  readonly accountNameError = signal('');
 
   vendors: Vendor[] = [];
 
@@ -219,9 +245,6 @@ export class ProductDetailComponent implements OnInit {
     directorBvn: '',
     bankName: '',
     accountNumber: '',
-    accountName: '',
-    accountNameVerified: false,
-    accountNameError: '',
   };
 
   readonly nigerianBanks = [
@@ -258,15 +281,60 @@ export class ProductDetailComponent implements OnInit {
   get pendingItems() { return this.checklist.filter(c => !c.done); }
   get pendingLabels() { return this.pendingItems.map(i => i.label).join(' · '); }
 
-  constructor(private route: ActivatedRoute) {}
+  private readonly route = inject(ActivatedRoute);
+
+  productId = 'CW001';
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      const id = params['id'] as string;
+      const id = (params['id'] as string) ?? 'CW001';
+      this.productId = id;
       this.product = MOCK_PRODUCTS[id] ?? MOCK_PRODUCTS['CW001'];
       this.vendors = this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : [];
       this.activeTab = 'overview';
+
+      const record = this.productsService.getById(id);
+      if (record) {
+        this.product = { ...this.product, name: record.name, status: record.status, createdAt: record.createdAt };
+        this.productStats = record.stats;
+      }
+
+      this.activeLoans = this.buildMockActiveLoans();
     });
+  }
+
+  private buildMockActiveLoans(): ActiveLoanRow[] {
+    const names = [
+      { name: 'Akpan Akporigomayen', email: 'akpan@princepsfinance.com' },
+      { name: 'Bola Adebayo', email: 'bola@princepsfinance.com' },
+      { name: 'Chika Okafor', email: 'chika@princepsfinance.com' },
+      { name: 'Damilola Ojo', email: 'damilola@princepsfinance.com' },
+    ];
+    const statuses: ActiveLoanRow['status'][] = ['active', 'active', 'overdue', 'active'];
+    return names.map((customer, i) => ({
+      id: `${this.productId}-L${(i + 1).toString().padStart(3, '0')}`,
+      customer,
+      amount: `₦${(50 + i * 20).toLocaleString()},000`,
+      disbursedDate: '2026-06-1' + (i + 1),
+      outstanding: `₦${(30 + i * 15).toLocaleString()},000`,
+      status: statuses[i],
+    }));
+  }
+
+  editProduct() {
+    this.router.navigate(['/products/create'], { queryParams: { id: this.productId } });
+  }
+
+  togglePublish() {
+    const next: ProductStatus = this.product.status === 'live' ? 'deactivated' : 'live';
+    this.productsService.setStatus(this.productId, next);
+    this.product = { ...this.product, status: next };
+  }
+
+  statusLabel(status: ProductStatus): string {
+    if (status === 'live') return 'Live';
+    if (status === 'draft') return 'Draft';
+    return 'Deactivated';
   }
 
   setTab(tab: DetailTab) { this.activeTab = tab; }
@@ -287,31 +355,39 @@ export class ProductDetailComponent implements OnInit {
     this.newVendor = {
       businessName: '', cac: '', category: '', address: '', phone: '', email: '', website: '',
       directorName: '', directorPhone: '', directorIdType: 'Passport', directorBvn: '',
-      bankName: '', accountNumber: '', accountName: '', accountNameVerified: false, accountNameError: '',
+      bankName: '', accountNumber: '',
     };
+    this.accountNameVerifying.set(false);
+    this.accountName.set('');
+    this.accountNameVerified.set(false);
+    this.accountNameError.set('');
     this.showOnboardModal = true;
   }
 
   onboardNext() { if (this.onboardStep < 3) this.onboardStep++; }
   onboardBack() { if (this.onboardStep > 0) this.onboardStep--; }
 
+  resetAccountNameVerification() {
+    this.accountName.set('');
+    this.accountNameVerified.set(false);
+    this.accountNameError.set('');
+  }
+
   verifyAccountName() {
-    this.newVendor.accountName = '';
-    this.newVendor.accountNameVerified = false;
-    this.newVendor.accountNameError = '';
+    this.resetAccountNameVerification();
     if (this.newVendor.accountNumber.length < 10) return;
-    this.accountNameVerifying = true;
+    this.accountNameVerifying.set(true);
     setTimeout(() => {
-      this.accountNameVerifying = false;
+      this.accountNameVerifying.set(false);
       const normalized = (name: string) => name.toLowerCase().replace(/[^a-z]/g, '');
       const fetched = 'TECHHUB ELECTRONICS LIMITED';
-      this.newVendor.accountName = fetched;
+      this.accountName.set(fetched);
       const match = normalized(fetched).includes(normalized(this.newVendor.businessName)) ||
                     normalized(this.newVendor.businessName).includes(normalized(fetched).slice(0, 6));
       if (match) {
-        this.newVendor.accountNameVerified = true;
+        this.accountNameVerified.set(true);
       } else {
-        this.newVendor.accountNameError = `Settlement account name ("${fetched}") does not match the business name provided. Please check and try again.`;
+        this.accountNameError.set(`Settlement account name ("${fetched}") does not match the business name provided. Please check and try again.`);
       }
     }, 1200);
   }

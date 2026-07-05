@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../../shared/components';
 
 type Step = 'org-basics' | 'admin-account' | 'org-verification' | 'platform-setup' | 'invite-team' | 'success';
 
@@ -20,7 +21,7 @@ interface InviteRow {
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
@@ -39,6 +40,7 @@ export class OnboardingComponent {
   readonly stepIndex = computed(() => this.steps.findIndex((s) => s.id === this.step()));
 
   readonly industries = ['Microfinance', 'SACCO', 'Corporate Lender', 'Individual'];
+  readonly licenseTypes = ['Moneylender', 'Microfinance Bank', 'Digital Lending License', 'Other'];
   readonly states = [
     'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
     'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe', 'Imo',
@@ -49,11 +51,12 @@ export class OnboardingComponent {
   readonly roles = ['Admin', 'Loan Officer', 'Risk Manager', 'Support'];
 
   readonly orgForm = this.fb.nonNullable.group({
-    orgName: ['', Validators.required],
+    orgName: ['', [Validators.required, Validators.maxLength(75)]],
     industry: ['', Validators.required],
     country: ['Nigeria', Validators.required],
     state: ['', Validators.required],
     website: [''],
+    description: [''],
   });
 
   readonly adminForm = this.fb.nonNullable.group({
@@ -66,6 +69,9 @@ export class OnboardingComponent {
   });
 
   readonly verificationForm = this.fb.nonNullable.group({
+    hasLicense: ['', Validators.required],
+    workingOnLicense: [''],
+    licenseType: [''],
     rcNumber: [''],
     bvn: ['', [Validators.pattern(/^\d{11}$/)]],
   });
@@ -161,6 +167,6 @@ export class OnboardingComponent {
   }
 
   goToDashboard() {
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/quick-actions');
   }
 }

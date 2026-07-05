@@ -99,12 +99,14 @@
   font-family: var(--font-body); font-size: 12px; font-weight: 500;
   &.live { background: #ecfdf5; color: #059669; }
   &.deactivated { background: #fff1f0; color: #e03e3e; }
+  &.draft { background: #fef3c7; color: #d97706; }
 }
 
 .status-dot {
   width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
   .live & { background: #059669; }
   .deactivated & { background: #e03e3e; }
+  .draft & { background: #d97706; }
 }
 
 .more-btn {
@@ -1384,4 +1386,40 @@
   color: white;
   cursor: pointer;
   &:hover { background: #015c38; }
+}
+
+/* ── Performance tab ── */
+.perf-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.perf-kpi-card {
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perf-kpi-label {
+  font-size: 12px;
+  color: var(--color-grey-header);
+}
+
+.perf-kpi-val {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-header);
+
+  &.danger { color: #e03e3e; }
+}
+
+@media (max-width: 1200px) {
+  .perf-kpi-row { grid-template-columns: repeat(2, 1fr); }
 }

@@ -17,15 +17,7 @@
             </svg>
           </button>
         </app-tooltip>
-        <button class="create-btn" (click)="showLoanTypeModal = true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-          Create a loan product
-        </button>
+        <app-button variant="primary" label="Create a loan product" (clicked)="showLoanTypeModal = true" />
       </div>
     </div>
 
@@ -53,6 +45,16 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">
+          Draft Products
+          <app-tooltip text="Products still being configured — not yet visible to borrowers." position="bottom">
+            <hi-icon [icon]="infoIcon" size="14" color="var(--color-grey-header)" />
+          </app-tooltip>
+        </div>
+        <div class="stat-value">{{ stats.draft }}</div>
+        <p class="stat-sub">not yet published</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
           Deactivated Products
           <app-tooltip text="Products that have been turned off and are no longer accepting new applications." position="bottom">
             <hi-icon [icon]="infoIcon" size="14" color="var(--color-grey-header)" />
@@ -68,134 +70,135 @@
       <div class="tabs">
         <button class="tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">All Products <span class="tab-count">{{ stats.all }}</span></button>
         <button class="tab" [class.active]="activeTab === 'live'" (click)="setTab('live')">Live <span class="tab-count">{{ stats.live }}</span></button>
+        <button class="tab" [class.active]="activeTab === 'draft'" (click)="setTab('draft')">Draft <span class="tab-count">{{ stats.draft }}</span></button>
         <button class="tab" [class.active]="activeTab === 'deactivated'" (click)="setTab('deactivated')">Deactivated <span class="tab-count">{{ stats.deactivated }}</span></button>
         <button class="tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Fees</button>
       </div>
       @if (activeTab === 'fees') {
-        <button class="add-fee-btn">
-          <hi-icon [icon]="plusIcon" size="14" color="var(--color-blue)" />
-          Add custom new fee
-        </button>
+        <app-button variant="text" label="+ Add custom new fee" />
       } @else {
-        <button class="filter-btn" style="margin-bottom: 10px;">
-          <hi-icon [icon]="filterIcon" size="14" color="var(--color-body)" />
-          Filter
-        </button>
+        <div class="tabs-row-actions">
+          <app-search placeholder="Search by name or product ID" [value]="searchQuery" (valueChange)="searchQuery = $event" />
+          <app-button variant="filter" label="Filter" />
+        </div>
       }
     </div>
 
-    <!-- Products table -->
-    @if (showProductTable) {
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Product name</th>
-              <th>Product ID</th>
-              <th>Amount range</th>
-              <th>Tenor</th>
-              <th>Interest rate</th>
-              <th>Status</th>
-              <th>Created on</th>
-              <th></th>
-            </tr>
-          </thead>
-          @if (!isEmpty) {
-            <tbody>
-              @for (product of filteredProducts; track product.productId; let i = $index) {
-                <tr class="clickable-row" (click)="navigateTo(product.productId)">
-                  <td class="col-name">
-                    <div class="pname-cell">
-                      <div class="pname-avatar" [attr.data-color]="i % 4">
-                        {{ product.name[0] }}{{ product.name.split(' ')[1]?.[0] ?? '' }}
-                      </div>
-                      <span class="pname-text">{{ product.name }}</span>
-                      @if (product.type === 'bnpl') {
-                        <span class="ptype-badge bnpl">BNPL</span>
-                      }
-                    </div>
-                  </td>
-                  <td class="col-id">{{ product.productId }}</td>
-                  <td>₦{{ product.minAmount }} - ₦{{ product.maxAmount }}</td>
-                  <td>{{ product.minTenor }}-{{ product.maxTenor }} months</td>
-                  <td>{{ product.interestRate }}</td>
-                  <td>
-                    <span class="status-badge" [class]="product.status">
-                      {{ product.status === 'live' ? 'Live' : 'Deactivated' }}
-                    </span>
-                  </td>
-                  <td class="col-date">{{ product.createdAt }}</td>
-                  <td class="col-actions">
-                    <div class="dropdown-wrap">
-                      <button class="more-btn" (click)="toggleDropdown($event, product.productId)">
-                        <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
-                      </button>
-                      @if (openDropdownId === product.productId) {
-                        <div class="row-dropdown" (click)="$event.stopPropagation()">
-                          <a class="dropdown-item" [routerLink]="['/products', product.productId]">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
-                            View product
-                          </a>
-                          <a class="dropdown-item" [routerLink]="['/products', product.productId, 'edit']">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Edit product
-                          </a>
-                          <div class="dropdown-divider"></div>
-                          <button class="dropdown-item danger">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="3" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 10v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 7V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="1.5"/></svg>
-                            Deactivate product
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          }
-        </table>
+    <!-- Products grid -->
+    @if (showProductGrid) {
+      @if (!isEmpty) {
+        <div class="product-grid">
+          @for (product of filteredProducts; track product.id) {
+            <div class="product-card" (click)="navigateTo(product.id)">
+              <div class="product-card-head">
+                <div class="pname-cell">
+                  <span class="pname-text">{{ product.name }}</span>
+                  @if (product.type === 'bnpl') {
+                    <span class="ptype-badge bnpl">BNPL</span>
+                  }
+                </div>
+                <span class="product-id-badge">{{ product.id }}</span>
+              </div>
 
-        @if (isEmpty) {
-          <app-empty-state title="No loan products yet." description="Launch your first product and start disbursing in minutes.">
-            <svg icon width="80" height="80" viewBox="0 0 80 80" fill="none">
-              <rect x="15" y="20" width="50" height="50" rx="4" stroke="currentColor" stroke-width="2"/>
-              <path d="M25 35h30M25 45h20M25 55h15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="58" cy="22" r="12" fill="var(--surface-overlay)" stroke="currentColor" stroke-width="2"/>
-              <path d="M54 22h8M58 18v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <button cta class="create-btn" (click)="showLoanTypeModal = true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-              Create a loan product
-            </button>
-          </app-empty-state>
-        } @else {
-          <div class="pagination-row">
-            <div class="page-size">
-              Showing
-              <button class="page-size-btn">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              10
-              <button class="page-size-btn">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              rows
+              <div class="product-card-status-row">
+                <span class="status-badge" [class]="product.status">{{ statusLabel(product.status) }}</span>
+                @if (product.status !== 'draft') {
+                  <label class="status-toggle" (click)="$event.stopPropagation()">
+                    <input
+                      type="checkbox"
+                      [checked]="product.status === 'live'"
+                      (change)="requestStatusChange($event, product, product.status === 'live' ? 'deactivate' : 'activate')" />
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                  </label>
+                }
+              </div>
+
+              <div class="product-terms-row">
+                <div class="term">
+                  <span class="term-label">Interest</span>
+                  <span class="term-value">{{ product.interestRate }}% {{ product.interestFrequency }}</span>
+                </div>
+                <div class="term">
+                  <span class="term-label">Tenor</span>
+                  <span class="term-value">{{ product.minTenor }}-{{ product.maxTenor }} {{ product.tenorUnit }}</span>
+                </div>
+                <div class="term">
+                  <span class="term-label">Amount</span>
+                  <span class="term-value">₦{{ product.minAmount }} - ₦{{ product.maxAmount }}</span>
+                </div>
+              </div>
+
+              <div class="product-stats-row">
+                <div class="stat">
+                  <span class="stat-mini-label">Active loans</span>
+                  <span class="stat-mini-value">{{ product.stats.activeLoans }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-mini-label">Total disbursed</span>
+                  <span class="stat-mini-value">{{ product.stats.totalDisbursed }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-mini-label">Collection rate</span>
+                  <span class="stat-mini-value">{{ product.stats.collectionRate }}%</span>
+                </div>
+              </div>
+
+              <div class="product-card-footer">
+                <span class="created-on">Created {{ product.createdAt }}</span>
+                <div class="dropdown-wrap">
+                  <button class="more-btn" (click)="toggleDropdown($event, product.id)">
+                    <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
+                  </button>
+                  @if (openDropdownId === product.id) {
+                    <div class="row-dropdown" (click)="$event.stopPropagation()">
+                      <a class="dropdown-item" [routerLink]="['/products', product.id]">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                        View product
+                      </a>
+                      <button class="dropdown-item" (click)="editProduct(product); $event.stopPropagation()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Edit product
+                      </button>
+                      <button class="dropdown-item" (click)="duplicateProduct($event, product)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Duplicate
+                      </button>
+                      <div class="dropdown-divider"></div>
+                      @if (product.status === 'live') {
+                        <button class="dropdown-item danger" (click)="requestStatusChange($event, product, 'deactivate')">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          Deactivate product
+                        </button>
+                      } @else if (product.status === 'deactivated') {
+                        <button class="dropdown-item" (click)="requestStatusChange($event, product, 'activate')">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          Activate product
+                        </button>
+                      }
+                      <button class="dropdown-item danger" (click)="requestDelete($event, product)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="3" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 10v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 7V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Delete product
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
             </div>
-            <div class="page-nums">
-              <button class="page-num active">1</button>
-              <button class="page-num">2</button>
-              <button class="page-num">3</button>
-              <button class="page-num">4</button>
-              <button class="page-num">5</button>
-            </div>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      } @else {
+        <app-empty-state [title]="emptyStateTitle" [description]="emptyStateDesc">
+          <svg icon width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <rect x="15" y="20" width="50" height="50" rx="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M25 35h30M25 45h20M25 55h15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="58" cy="22" r="12" fill="var(--surface-overlay)" stroke="currentColor" stroke-width="2"/>
+            <path d="M54 22h8M58 18v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          @if (!searchQuery.trim()) {
+            <app-button cta variant="primary" label="Create a loan product" (clicked)="showLoanTypeModal = true" />
+          }
+        </app-empty-state>
+      }
     }
 
     <!-- Fees table -->
@@ -268,3 +271,16 @@
 <app-product-settings-modal
   [isOpen]="showSettingsDrawer"
   (closed)="showSettingsDrawer = false" />
+
+<app-confirm-modal
+  [isOpen]="!!confirmTarget"
+  [title]="confirmModalCopy.title"
+  [message]="confirmModalCopy.message"
+  [confirmLabel]="confirmModalCopy.confirmLabel"
+  [danger]="confirmModalCopy.danger"
+  (confirmed)="confirmActionExecute()"
+  (cancelled)="cancelConfirm()" />
+
+@if (toastVisible) {
+  <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />
+}

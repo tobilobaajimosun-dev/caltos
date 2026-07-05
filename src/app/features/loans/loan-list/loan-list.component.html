@@ -17,6 +17,24 @@
   <app-chart type="line" [data]="disbursementTrend" />
 </div>
 
+<div class="product-filter-row">
+  <div class="product-pills">
+    @for (product of productTabs; track product) {
+      <button
+        type="button"
+        class="product-pill"
+        [class.active]="activeProduct === product"
+        (click)="setProduct(product)">
+        {{ product }}
+      </button>
+    }
+  </div>
+  <div class="product-filter-actions">
+    <app-button variant="filter" label="Filter" />
+    <app-button variant="outline" label="Download report" />
+  </div>
+</div>
+
 <div class="panel table-panel">
   <div class="panel-head">
     <p class="panel-title">Recent loans</p>
@@ -33,7 +51,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (loan of loans; track loan.id) {
+      @for (loan of filteredLoans; track loan.id) {
         <tr class="clickable-row" [routerLink]="['/loans', loan.id]">
           <td><app-table-item type="user-avatar" [user]="loan.customer" /></td>
           <td><app-table-item type="text" [text]="loan.id" /></td>

@@ -1,0 +1,180 @@
+<div class="page-header">
+  <div class="page-title-group">
+    <h1 class="page-title">Customers</h1>
+    <p class="page-subtitle">Find, understand, and manage every borrower from one place.</p>
+  </div>
+  <app-button variant="primary" label="+ Add Customer" (clicked)="openAddCustomer()" />
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <span class="stat-label">Total</span>
+    <span class="stat-value">{{ stats.total }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Active Borrowers</span>
+    <span class="stat-value">{{ stats.active }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Overdue</span>
+    <span class="stat-value">{{ stats.overdue }}</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Blacklisted</span>
+    <span class="stat-value">{{ stats.blacklisted }}</span>
+  </div>
+</div>
+
+<div class="filters-row">
+  <app-search placeholder="Search by name, phone, BVN, or email" [value]="searchQuery" (valueChange)="searchQuery = $event; currentPage = 1" />
+
+  <select class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="currentPage = 1" name="statusFilter">
+    <option value="">All statuses</option>
+    <option value="active">Active</option>
+    <option value="overdue">Overdue</option>
+    <option value="blacklisted">Blacklisted</option>
+    <option value="inactive">Inactive</option>
+  </select>
+
+  <select class="filter-select" [(ngModel)]="officerFilter" (ngModelChange)="currentPage = 1" name="officerFilter">
+    <option value="">All loan officers</option>
+    @for (o of officers; track o) { <option [value]="o">{{ o }}</option> }
+  </select>
+
+  <select class="filter-select" [(ngModel)]="productFilter" (ngModelChange)="currentPage = 1" name="productFilter">
+    <option value="">All products</option>
+    @for (p of products; track p) { <option [value]="p">{{ p }}</option> }
+  </select>
+
+  <select class="filter-select" [(ngModel)]="sortKey" name="sortKey">
+    <option value="name">Sort: Name</option>
+    <option value="registeredAt">Sort: Date Added</option>
+    <option value="activeLoans">Sort: Loan Count</option>
+    <option value="outstandingBalance">Sort: Outstanding Balance</option>
+  </select>
+</div>
+
+@if (activeFilterChips.length) {
+  <div class="chips-row">
+    @for (chip of activeFilterChips; track chip.key) {
+      <span class="filter-chip">
+        {{ chip.label }}
+        <button type="button" (click)="removeFilterChip(chip.key)" aria-label="Remove filter">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </span>
+    }
+  </div>
+}
+
+@if (selectedIds.size > 0) {
+  <div class="bulk-bar">
+    <span>{{ selectedIds.size }} selected</span>
+    <div class="bulk-actions">
+      <button type="button" (click)="bulkExport()">Export</button>
+      <button type="button" (click)="bulkSendReminder()">Send reminder</button>
+      <button type="button" (click)="bulkAssignOfficer()">Assign to officer</button>
+      <button type="button" class="clear" (click)="clearSelection()">Clear</button>
+    </div>
+  </div>
+}
+
+<div class="panel table-panel">
+  @if (!isEmpty) {
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th class="col-check">
+            <input type="checkbox" [checked]="allPageSelected" (change)="toggleSelectAll()" />
+          </th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Phone" /></th>
+          <th><app-column-title label="BVN Status" /></th>
+          <th><app-column-title label="Active Loans" /></th>
+          <th><app-column-title label="Outstanding" /></th>
+          <th><app-column-title label="Last Activity" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (customer of pagedCustomers; track customer.id) {
+          <tr class="clickable-row" (click)="navigateTo(customer.id)">
+            <td class="col-check" (click)="$event.stopPropagation()">
+              <input type="checkbox" [checked]="selectedIds.has(customer.id)" (change)="toggleSelect(customer.id)" />
+            </td>
+            <td><app-table-item type="user-avatar" [user]="asUser(customer)" /></td>
+            <td>{{ maskedPhone(customer.phone) }}</td>
+            <td>
+              <span class="bvn-badge" [class.verified]="customer.bvnStatus === 'verified'">
+                {{ customer.bvnStatus === 'verified' ? 'Verified' : 'Pending' }}
+              </span>
+            </td>
+            <td>{{ customer.activeLoans }}</td>
+            <td class="bold">{{ customer.outstandingBalance }}</td>
+            <td>{{ relativeTime(customer.lastActivity) }}</td>
+            <td><span class="status-badge" [class]="customer.status">{{ statusLabel(customer.status) }}</span></td>
+            <td class="col-actions" (click)="$event.stopPropagation()">
+              <div class="dropdown-wrap">
+                <button type="button" class="more-btn" (click)="toggleDropdown($event, customer.id)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
+                </button>
+                @if (openDropdownId === customer.id) {
+                  <div class="row-dropdown" (click)="$event.stopPropagation()">
+                    <a class="dropdown-item" [routerLink]="['/customers', customer.id]">View profile</a>
+                    <button type="button" class="dropdown-item" (click)="openEditCustomer($event, customer)">Edit</button>
+                    <div class="dropdown-divider"></div>
+                    @if (customer.status === 'blacklisted') {
+                      <button type="button" class="dropdown-item" (click)="requestBlacklist($event, customer)">Reactivate</button>
+                    } @else {
+                      <button type="button" class="dropdown-item danger" (click)="requestBlacklist($event, customer)">Blacklist</button>
+                    }
+                    <button type="button" class="dropdown-item danger" (click)="requestDelete($event, customer)">Remove</button>
+                  </div>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      [pageSize]="pageSize"
+      (pageChange)="currentPage = $event"
+      (pageSizeChange)="pageSize = $event; currentPage = 1" />
+  } @else {
+    <app-empty-state
+      [title]="searchQuery.trim() || activeFilterChips.length ? 'No customers match your filters' : 'No customers yet'"
+      [description]="searchQuery.trim() || activeFilterChips.length ? 'Try a different search term or clear your filters.' : 'Add your first customer to start tracking their loans.'">
+      <svg icon width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="30" r="12" stroke="currentColor" stroke-width="2"/>
+        <path d="M18 65c0-13 10-22 22-22s22 9 22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      @if (!searchQuery.trim() && !activeFilterChips.length) {
+        <app-button cta variant="primary" label="+ Add Customer" (clicked)="openAddCustomer()" />
+      }
+    </app-empty-state>
+  }
+</div>
+
+<app-add-edit-customer-modal
+  [isOpen]="showAddModal"
+  [customer]="editingCustomer"
+  (closed)="showAddModal = false"
+  (saved)="showAddModal = false" />
+
+<app-confirm-modal
+  [isOpen]="!!confirmTarget"
+  [title]="confirmModalCopy.title"
+  [message]="confirmModalCopy.message"
+  [confirmLabel]="confirmModalCopy.confirmLabel"
+  [danger]="confirmModalCopy.danger"
+  (confirmed)="confirmActionExecute()"
+  (cancelled)="cancelConfirm()" />
+
+@if (toastVisible) {
+  <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />
+}

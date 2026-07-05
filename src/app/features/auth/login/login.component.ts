@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthLayoutComponent } from '../../../shared/components';
+import { AuthLayoutComponent, ButtonComponent } from '../../../shared/components';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -67,7 +67,7 @@ export class LoginComponent {
         this.formError.set('Invalid code. Please check your authenticator app and try again.');
         return;
       }
-      this.router.navigateByUrl('/');
+      this.router.navigateByUrl('/home');
     }, 500);
   }
 

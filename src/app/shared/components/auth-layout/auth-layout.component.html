@@ -1,31 +1,15 @@
 <div class="auth-shell">
-  <div class="form-pane">
-    <div class="form-pane-inner">
-      <div class="brand">
-        <div class="brand-mark">C</div>
-        <span class="brand-name">Caltos</span>
-      </div>
-      <div class="form-slot">
-        <ng-content />
-      </div>
-    </div>
+  <div class="bg-pattern"></div>
+
+  <a routerLink="/" class="back-home">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back home
+  </a>
+
+  <div class="auth-card">
+    <div class="brand-mark">C</div>
+    <ng-content />
   </div>
 
-  <div class="value-pane">
-    <div class="value-content">
-      <div class="value-badge">Princeps Finance</div>
-      <h1 class="value-headline">{{ headline() }}</h1>
-      <p class="value-subhead">{{ subhead() }}</p>
-      <div class="value-metrics">
-        <div class="metric">
-          <p class="metric-value">₦4.2B+</p>
-          <p class="metric-label">Disbursed on Caltos</p>
-        </div>
-        <div class="metric">
-          <p class="metric-value">98.4%</p>
-          <p class="metric-label">Repayment rate</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <p class="auth-footer">&copy;2026 Caltos Credit Systems Limited. All rights reserved.</p>
 </div>

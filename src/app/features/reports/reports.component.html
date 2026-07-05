@@ -1,17 +1,150 @@
 <div class="page-header">
-  <h1 class="page-title">Reports & Exports</h1>
-  <p class="page-subtitle">Generate and export performance and portfolio reports.</p>
+  <div>
+    <h1 class="page-title">Reports & Performance</h1>
+    <p class="page-subtitle">Historical data across products, team, and customers – select a period to begin.</p>
+  </div>
+  <div class="main-tabs">
+    <button type="button" class="main-tab" [class.active]="mainTab === 'report'" (click)="mainTab = 'report'">Report</button>
+    <button type="button" class="main-tab" [class.active]="mainTab === 'export'" (click)="mainTab = 'export'">Export Data</button>
+  </div>
 </div>
 
-<div class="report-grid">
-  @for (report of reports; track report.title) {
-    <div class="report-card">
-      <div class="report-card-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <p class="report-card-title">{{ report.title }}</p>
-      <p class="report-card-desc">{{ report.description }}</p>
-      <button class="generate-btn" type="button">Generate report</button>
+@if (mainTab === 'report') {
+
+  <div class="report-toolbar">
+    <app-round-tabs [tabs]="reportSubTabs" [activeTab]="reportSubTab" (activeTabChange)="reportSubTab = $event" />
+    <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
+  </div>
+
+  @if (reportSubTab === 'overview') {
+
+    <div class="toolbar-actions">
+      <app-button variant="filter" label="Filter" />
+      <app-button variant="primary" label="Export" (clicked)="mainTab = 'export'" />
     </div>
+
+    <div class="kpi-grid">
+      @for (m of kpis; track m.label) {
+        <div class="metric-card">
+          <div class="metric-head">
+            <span class="metric-label">{{ m.label }}</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <p class="metric-amount">{{ m.amount }}</p>
+          @if (m.trend) {
+            <div class="metric-trend-row">
+              <span class="trend-chip" [class.up]="m.trend.dir === 'up'" [class.down]="m.trend.dir === 'down'">
+                @if (m.trend.dir === 'up') {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                } @else {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                }
+                {{ m.trend.value }}% vs last period
+              </span>
+            </div>
+          }
+          <div class="metric-count-block">
+            <span class="metric-count-label">{{ m.countLabel }}</span>
+            <span class="metric-count-val">{{ m.countVal }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="charts-row">
+      <div class="panel wide-panel">
+        <div class="panel-head">
+          <p class="panel-title">Lending Trend</p>
+          <p class="panel-sub">Monthly disbursements vs repayments</p>
+        </div>
+        <p class="panel-hero-val">₦3,934,199.13 <span class="trend-chip up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>23% vs last period</span></p>
+        <app-chart type="line" [data]="lendingTrend" />
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Loan Status Split</p>
+          <p class="panel-sub">All loans this period</p>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut" [style.background]="loanStatusGradient"></div>
+          <div class="donut-legend">
+            @for (s of loanStatusSplit; track s.label) {
+              <div class="legend-row">
+                <span class="legend-dot" [style.background]="s.color"></span>
+                {{ s.label }}
+                <strong>{{ s.count }}</strong>
+                <span class="legend-pct">{{ s.pct }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Repayment Trend</p>
+          <p class="panel-sub">Collections · Jan - Feb 2026</p>
+        </div>
+        <p class="panel-hero-val">₦1.8B <span class="trend-chip up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>23% vs last period</span></p>
+        <p class="panel-note">Total Collected</p>
+      </div>
+    </div>
+
+  } @else {
+    <app-coming-soon title="Coming soon" [subtitle]="reportSubTab === 'products' ? 'Loan product performance breakdown is on its way.' : reportSubTab === 'referral' ? 'Referral performance tracking is on its way.' : 'Customer analytics are on their way.'" />
   }
-</div>
+
+}
+
+@if (mainTab === 'export') {
+
+  <div class="report-grid">
+    @for (report of reports; track report.title) {
+      <div class="report-card">
+        <div class="report-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p class="report-card-title">{{ report.title }}</p>
+        <p class="report-card-desc">{{ report.description }}</p>
+        <app-button variant="outline" label="Export" />
+      </div>
+    }
+  </div>
+
+  <div class="panel table-panel export-history">
+    <div class="panel-head">
+      <p class="panel-title">Export history</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Data exported</th>
+          <th>Size</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (record of exportHistory; track record.date) {
+          <tr>
+            <td>{{ record.date }}</td>
+            <td>{{ record.type }}</td>
+            <td>{{ record.size }}</td>
+            <td class="actions-cell">
+              <div class="dropdown-wrap">
+                <button type="button" class="see-more-btn" (click)="toggleExportMenu($event, record)">See more</button>
+                @if (record.menuOpen) {
+                  <div class="row-dropdown" (click)="$event.stopPropagation()">
+                    <button type="button" class="dropdown-item">Download again</button>
+                  </div>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+}

@@ -26,8 +26,9 @@
       <form class="onboarding-form" [formGroup]="orgForm" (ngSubmit)="submitOrgBasics()">
         <div class="field">
           <label class="field-label" for="org-name">Organization name</label>
-          <input id="org-name" class="field-input" formControlName="orgName" placeholder="e.g. Princeps Finance"
+          <input id="org-name" class="field-input" formControlName="orgName" placeholder="e.g. Princeps Finance" maxlength="75"
             [class.invalid]="orgForm.controls.orgName.invalid && orgForm.controls.orgName.touched" />
+          <p class="char-count">{{ orgForm.controls.orgName.value.length }}/75</p>
           @if (orgForm.controls.orgName.invalid && orgForm.controls.orgName.touched) {
             <p class="field-error">Organization name is required.</p>
           }
@@ -65,14 +66,21 @@
           <input id="website" class="field-input" formControlName="website" placeholder="https://" />
         </div>
 
-        <button type="submit" class="submit-btn">Continue</button>
+        <div class="field">
+          <label class="field-label" for="description">Description <span class="optional">(optional)</span></label>
+          <textarea id="description" class="field-input" formControlName="description" rows="3"
+            placeholder="Briefly describe the lending business you want to set up"></textarea>
+        </div>
+
+        <app-button variant="primary" [fullWidth]="true" label="Continue" />
       </form>
     }
 
     @if (step() === 'admin-account') {
-      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <app-button variant="back" label="Back" (clicked)="back()" />
       <h1 class="title">Create your admin account</h1>
       <p class="subtitle">You'll use this to sign in and manage your organization.</p>
+      <p class="demo-hint">Try any email, e.g. <strong>newuser&#64;princepsfinance.com</strong> — no existing account check in this demo.</p>
 
       <form class="onboarding-form" [formGroup]="adminForm" (ngSubmit)="submitAdminAccount()">
         <div class="field-row">
@@ -99,8 +107,11 @@
 
         <div class="field">
           <label class="field-label" for="admin-phone">Phone number</label>
-          <input id="admin-phone" class="field-input" formControlName="phone" placeholder="+234"
-            [class.invalid]="adminForm.controls.phone.invalid && adminForm.controls.phone.touched" />
+          <div class="phone-wrap">
+            <span class="phone-prefix">+234</span>
+            <input id="admin-phone" class="field-input" type="tel" formControlName="phone" placeholder="800 000 0000"
+              [class.invalid]="adminForm.controls.phone.invalid && adminForm.controls.phone.touched" />
+          </div>
         </div>
 
         <div class="field-row">
@@ -132,53 +143,91 @@
           </div>
         </div>
 
-        <button type="submit" class="submit-btn">Continue</button>
+        <app-button variant="primary" [fullWidth]="true" label="Continue" />
       </form>
     }
 
     @if (step() === 'org-verification') {
-      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <app-button variant="back" label="Back" (clicked)="back()" />
       <h1 class="title">Verify your organization</h1>
       <p class="subtitle">We use this to confirm your business is licensed to lend.</p>
 
-      <div class="verification-tabs">
-        <button type="button" class="v-tab" [class.active]="verificationMethod() === 'cac'" (click)="verificationMethod.set('cac')">Upload CAC Certificate</button>
-        <button type="button" class="v-tab" [class.active]="verificationMethod() === 'rc'" (click)="verificationMethod.set('rc')">RC Number Lookup</button>
-      </div>
-
       <form class="onboarding-form" [formGroup]="verificationForm" (ngSubmit)="continueVerification()">
-        @if (verificationMethod() === 'cac') {
-          <div class="upload-dropzone">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4 7 9M12 4l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.5"/></svg>
-            <p>Drag and drop your CAC certificate, or click to browse</p>
-          </div>
-        } @else {
+        <div class="field">
+          <label class="field-label" for="has-license">Do you have a license?</label>
+          <select id="has-license" class="field-input" formControlName="hasLicense">
+            <option value="" disabled>Select an option</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        @if (verificationForm.controls.hasLicense.value === 'no') {
           <div class="field">
-            <label class="field-label" for="rc-number">RC Number</label>
-            <input id="rc-number" class="field-input" formControlName="rcNumber" placeholder="RC1234567" />
+            <label class="field-label" for="working-on-license">Are you currently working on your license?</label>
+            <select id="working-on-license" class="field-input" formControlName="workingOnLicense">
+              <option value="" disabled>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+
+          @if (verificationForm.controls.workingOnLicense.value === 'yes') {
+            <div class="field">
+              <label class="field-label" for="license-type">What type of license do you plan to get</label>
+              <select id="license-type" class="field-input" formControlName="licenseType">
+                <option value="" disabled>Select a license type</option>
+                @for (t of licenseTypes; track t) { <option [value]="t">{{ t }}</option> }
+              </select>
+            </div>
+          }
+        }
+
+        @if (verificationForm.controls.hasLicense.value === 'yes') {
+          <div class="verification-tabs">
+            <button type="button" class="v-tab" [class.active]="verificationMethod() === 'cac'" (click)="verificationMethod.set('cac')">Upload CAC Certificate</button>
+            <button type="button" class="v-tab" [class.active]="verificationMethod() === 'rc'" (click)="verificationMethod.set('rc')">RC Number Lookup</button>
+          </div>
+
+          @if (verificationMethod() === 'cac') {
+            <div class="upload-dropzone">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4 7 9M12 4l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.5"/></svg>
+              <p>Drag and drop your CAC certificate, or click to browse</p>
+            </div>
+          } @else {
+            <div class="field">
+              <label class="field-label" for="rc-number">RC Number</label>
+              <input id="rc-number" class="field-input" formControlName="rcNumber" placeholder="RC1234567" />
+            </div>
+          }
+
+          <div class="field">
+            <label class="field-label" for="bvn">BVN of authorized signatory</label>
+            <input id="bvn" class="field-input" formControlName="bvn" placeholder="11-digit BVN"
+              [class.invalid]="verificationForm.controls.bvn.invalid && verificationForm.controls.bvn.touched" />
+            @if (verificationForm.controls.bvn.invalid && verificationForm.controls.bvn.touched) {
+              <p class="field-error">Enter a valid 11-digit BVN.</p>
+            }
           </div>
         }
 
-        <div class="field">
-          <label class="field-label" for="bvn">BVN of authorized signatory</label>
-          <input id="bvn" class="field-input" formControlName="bvn" placeholder="11-digit BVN"
-            [class.invalid]="verificationForm.controls.bvn.invalid && verificationForm.controls.bvn.touched" />
-          @if (verificationForm.controls.bvn.invalid && verificationForm.controls.bvn.touched) {
-            <p class="field-error">Enter a valid 11-digit BVN.</p>
-          }
-        </div>
+        @if (verificationForm.controls.hasLicense.value === 'yes') {
+          <div class="info-banner">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+            Verification status: <strong>Under review</strong>. You can continue setting up your account while we verify these details.
+          </div>
+        }
 
-        <div class="info-banner">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
-          Verification status: <strong>Under review</strong>. You can continue setting up your account while we verify these details.
-        </div>
-
-        <button type="submit" class="submit-btn">Continue anyway</button>
+        <app-button
+          variant="primary"
+          [fullWidth]="true"
+          [label]="verificationForm.controls.hasLicense.value === 'yes' ? 'Continue anyway' : 'Continue'"
+          [disabled]="!verificationForm.controls.hasLicense.value" />
       </form>
     }
 
     @if (step() === 'platform-setup') {
-      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <app-button variant="back" label="Back" (clicked)="back()" />
       <h1 class="title">Set up your first loan product</h1>
       <p class="subtitle">This is what borrowers will apply for. You can add more products later.</p>
 
@@ -192,12 +241,14 @@
         </div>
       </div>
 
-      <button type="button" class="submit-btn" (click)="goToProductSetup()">Set up loan product</button>
-      <button type="button" class="secondary-btn" style="margin-top: 8px;" (click)="next()">I'll do this later</button>
+      <app-button variant="primary" [fullWidth]="true" label="Set up loan product" (clicked)="goToProductSetup()" />
+      <div style="margin-top: 8px;">
+        <app-button variant="outline" [fullWidth]="true" label="I'll do this later" (clicked)="next()" />
+      </div>
     }
 
     @if (step() === 'invite-team') {
-      <button type="button" class="back-btn" (click)="back()">← Back</button>
+      <app-button variant="back" label="Back" (clicked)="back()" />
       <h1 class="title">Invite your team</h1>
       <p class="subtitle">Add teammates now, or skip and invite them later from Settings.</p>
 
@@ -221,12 +272,19 @@
         }
       </div>
 
-      <button type="button" class="add-row-btn" (click)="addInviteRow()">+ Add another teammate</button>
+      <app-button variant="text" label="+ Add another teammate" (clicked)="addInviteRow()" />
 
-      <button type="button" class="submit-btn" style="margin-top: 16px;" [disabled]="submitting()" (click)="sendInvites()">
-        {{ submitting() ? 'Sending invites...' : 'Send invites' }}
-      </button>
-      <button type="button" class="secondary-btn" style="margin-top: 8px;" (click)="next()">Skip for now</button>
+      <div style="margin-top: 16px;">
+        <app-button
+          variant="primary"
+          [fullWidth]="true"
+          [label]="submitting() ? 'Sending invites...' : 'Send invites'"
+          [disabled]="submitting()"
+          (clicked)="sendInvites()" />
+      </div>
+      <div style="margin-top: 8px;">
+        <app-button variant="outline" [fullWidth]="true" label="Skip for now" (clicked)="next()" />
+      </div>
     }
 
     @if (step() === 'success') {
@@ -241,7 +299,7 @@
         </div>
         <h1 class="title">Your account is ready</h1>
         <p class="subtitle">Welcome to Caltos. Let's get your first loan disbursed.</p>
-        <button type="button" class="submit-btn" (click)="goToDashboard()">Go to Dashboard</button>
+        <app-button variant="primary" [fullWidth]="true" label="Go to Dashboard" (clicked)="goToDashboard()" />
       </div>
     }
 

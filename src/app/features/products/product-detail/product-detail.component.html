@@ -7,17 +7,16 @@
       <!-- ── PRODUCT HEADER ── -->
       <div class="product-header">
 
-        <a routerLink="/products" class="back-crumb">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Products
-        </a>
+        <app-breadcrumb [items]="[{ label: 'Products', link: '/products' }, { label: product.name }]" />
 
         <div class="ph-top">
           <div class="ph-top-left">
             <p class="ph-type">Loan Product</p>
             <div class="ph-name-row">
               <h1 class="ph-name">{{ product.name }}</h1>
-              <span class="status-pill live"><span class="status-dot"></span>Live</span>
+              <span class="status-pill" [class]="product.status">
+                <span class="status-dot"></span>{{ statusLabel(product.status) }}
+              </span>
             </div>
             <p class="ph-desc">{{ product.description }}</p>
           </div>
@@ -25,10 +24,11 @@
             <button class="more-btn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
             </button>
-            <button class="edit-btn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Edit product
-            </button>
+            <app-button
+              variant="outline"
+              [label]="product.status === 'live' ? 'Unpublish' : 'Publish'"
+              (clicked)="togglePublish()" />
+            <app-button variant="primary" label="Edit product" (clicked)="editProduct()" />
           </div>
         </div>
 
@@ -41,10 +41,7 @@
             </button>
           </div>
           <div class="ph-link-actions">
-            <button class="ph-link-btn" (click)="copyLink()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
-              Copy link
-            </button>
+            <app-button variant="outline" label="Copy link" (clicked)="copyLink()" />
             <a class="ph-link-btn" [href]="product.applyRoute" target="_blank">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Preview portal
@@ -57,6 +54,8 @@
 
         <div class="ph-tabs">
           <button class="ph-tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
+          <button class="ph-tab" [class.active]="activeTab === 'performance'" (click)="setTab('performance')">Performance</button>
+          <button class="ph-tab" [class.active]="activeTab === 'active-loans'" (click)="setTab('active-loans')">Active Loans</button>
           @if (isBnpl) {
             <button class="ph-tab bnpl-tab" [class.active]="activeTab === 'vendors'" (click)="setTab('vendors')">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -143,7 +142,7 @@
             <div class="ov-section">
               <div class="ov-section-hd">
                 <h3 class="ov-section-title">Your loan offering</h3>
-                <button class="ov-section-edit">Edit</button>
+                <app-button variant="text" label="Edit" />
               </div>
               <table class="ov-table">
                 <thead>
@@ -177,7 +176,7 @@
             <div class="ov-section">
               <div class="ov-section-hd">
                 <h3 class="ov-section-title">Repayment channels</h3>
-                <button class="ov-section-edit" (click)="goToTab('disbursement')">Configure</button>
+                <app-button variant="text" label="Configure" (clicked)="goToTab('disbursement')" />
               </div>
               <p class="ov-section-note">How repayments are collected — ordered by priority.</p>
               <div class="channel-list">
@@ -223,7 +222,7 @@
             <div class="ov-section">
               <div class="ov-section-hd">
                 <h3 class="ov-section-title">Who can apply</h3>
-                <button class="ov-section-edit" (click)="goToTab('eligibility')">Edit requirements</button>
+                <app-button variant="text" label="Edit requirements" (clicked)="goToTab('eligibility')" />
               </div>
               <p class="ov-section-note">Borrowers must qualify through at least one of the following channels.</p>
               <p class="ov-section-note muted">Qualifying channels:</p>
@@ -402,6 +401,103 @@
         </div>
       }
 
+      <!-- ═══ PERFORMANCE ═══ -->
+      @if (activeTab === 'performance') {
+        <div class="tab-body">
+          <div class="perf-kpi-row">
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">Total Applications</span>
+              <span class="perf-kpi-val">{{ productStats.totalApplications }}</span>
+            </div>
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">Approval Rate</span>
+              <span class="perf-kpi-val">{{ productStats.approvalRate }}%</span>
+            </div>
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">Avg Loan Size</span>
+              <span class="perf-kpi-val">{{ productStats.avgLoanSize }}</span>
+            </div>
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">Active Loans</span>
+              <span class="perf-kpi-val">{{ productStats.activeLoans }}</span>
+            </div>
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">Total Disbursed</span>
+              <span class="perf-kpi-val">{{ productStats.totalDisbursed }}</span>
+            </div>
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">Collection Rate</span>
+              <span class="perf-kpi-val">{{ productStats.collectionRate }}%</span>
+            </div>
+            <div class="perf-kpi-card">
+              <span class="perf-kpi-label">NPL Rate</span>
+              <span class="perf-kpi-val danger">{{ productStats.nplRate }}%</span>
+            </div>
+          </div>
+
+          <div class="detail-card mt">
+            <div class="card-header">
+              <p class="card-title">Monthly disbursements vs repayments (last 6 months)</p>
+            </div>
+            <app-chart type="line" [data]="disbursementTrend" />
+          </div>
+
+          <div class="detail-card mt">
+            <div class="card-header">
+              <p class="card-title">Top customers by loan size</p>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Customer</th><th>Loan ID</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                @for (loan of activeLoans; track loan.id) {
+                  <tr>
+                    <td>{{ loan.customer.name }}</td>
+                    <td class="mono">{{ loan.id }}</td>
+                    <td class="bold">{{ loan.amount }}</td>
+                    <td><span class="status-badge" [class]="loan.status === 'active' ? 'live' : 'deactivated'">{{ loan.status }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ ACTIVE LOANS ═══ -->
+      @if (activeTab === 'active-loans') {
+        <div class="tab-body">
+          <div class="detail-card">
+            <div class="card-header">
+              <p class="card-title">Active loans under this product</p>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th><app-column-title label="Customer" /></th>
+                  <th><app-column-title label="Loan ID" /></th>
+                  <th><app-column-title label="Amount" /></th>
+                  <th><app-column-title label="Disbursed" /></th>
+                  <th><app-column-title label="Outstanding" /></th>
+                  <th><app-column-title label="Status" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (loan of activeLoans; track loan.id) {
+                  <tr class="clickable-row" [routerLink]="['/loans', loan.id]">
+                    <td><app-table-item type="user-avatar" [user]="loan.customer" /></td>
+                    <td class="mono">{{ loan.id }}</td>
+                    <td class="bold">{{ loan.amount }}</td>
+                    <td>{{ loan.disbursedDate }}</td>
+                    <td>{{ loan.outstanding }}</td>
+                    <td><app-table-item type="status" [status]="loan.status" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
       <!-- ═══ ELIGIBILITY & KYC ═══ -->
       @if (activeTab === 'eligibility') {
         <div class="tab-body">
@@ -409,7 +505,7 @@
             <div class="detail-card">
               <div class="card-header">
                 <p class="card-title">Qualifying criteria</p>
-                <button class="card-edit">Edit</button>
+                <app-button variant="outline" label="Edit" />
               </div>
               <p class="field-label">
                 Who qualifies
@@ -436,7 +532,7 @@
             <div class="detail-card">
               <div class="card-header">
                 <p class="card-title">Required documents</p>
-                <button class="card-edit">Edit</button>
+                <app-button variant="outline" label="Edit" />
               </div>
               <p class="field-label">
                 Applicants must submit these before receiving funds
@@ -463,7 +559,7 @@
           <div class="detail-card">
             <div class="card-header">
               <p class="card-title">Processing fee</p>
-              <button class="card-edit">Edit</button>
+              <app-button variant="outline" label="Edit" />
             </div>
             <div class="config-grid">
               <div class="config-row">
@@ -497,7 +593,7 @@
             <div class="detail-card mt">
               <div class="card-header">
                 <p class="card-title">Custom fees</p>
-                <button class="card-edit">Add fee</button>
+                <app-button variant="outline" label="Add fee" />
               </div>
               <table class="data-table">
                 <thead><tr><th>Name</th><th>Method</th><th>Value</th><th>Apply to</th></tr></thead>
@@ -513,7 +609,7 @@
           <div class="detail-card mt">
             <div class="card-header">
               <p class="card-title">Late payment penalty</p>
-              <button class="card-edit">Edit</button>
+              <app-button variant="outline" label="Edit" />
             </div>
             <div class="config-grid">
               <div class="config-row"><span class="config-label">Status</span><span class="config-value"><span class="status-badge live">Enabled</span></span></div>
@@ -533,7 +629,7 @@
             <div class="detail-card">
               <div class="card-header">
                 <p class="card-title">Disbursement settings</p>
-                <button class="card-edit">Edit</button>
+                <app-button variant="outline" label="Edit" />
               </div>
               <div class="config-grid">
                 <div class="config-row">
@@ -558,7 +654,7 @@
             <div class="detail-card">
               <div class="card-header">
                 <p class="card-title">Repayment schedule</p>
-                <button class="card-edit">Edit</button>
+                <app-button variant="outline" label="Edit" />
               </div>
               <div class="config-grid">
                 <div class="config-row"><span class="config-label">Frequency</span><span class="config-value">{{ product.repaymentFrequency }}</span></div>
@@ -588,7 +684,7 @@
           <div class="detail-card">
             <div class="card-header">
               <p class="card-title">Borrower consent & policy</p>
-              <button class="card-edit">Edit</button>
+              <app-button variant="outline" label="Edit" />
             </div>
             <div class="policy-box">{{ product.policyText }}</div>
             <div class="policy-footer">
@@ -618,10 +714,7 @@
               <h2 class="vendors-title">Vendors</h2>
               <p class="vendors-sub">Each vendor gets a unique purchase link. Approved funds go directly to their settlement account.</p>
             </div>
-            <button class="onboard-btn" (click)="openOnboardModal()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-              Onboard a Vendor
-            </button>
+            <app-button variant="primary" label="Onboard a Vendor" (clicked)="openOnboardModal()" />
           </div>
 
           @if (vendors.length > 0) {
@@ -686,10 +779,7 @@
               </div>
               <div class="vendors-empty-title">No vendors yet</div>
               <p class="vendors-empty-sub">Onboard your first vendor to generate a unique purchase link.</p>
-              <button class="onboard-btn" (click)="openOnboardModal()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-                Onboard a Vendor
-              </button>
+              <app-button variant="primary" label="Onboard a Vendor" (clicked)="openOnboardModal()" />
             </div>
           }
 
@@ -817,30 +907,32 @@
             <div class="ob-verify-row">
               <input class="ob-input" type="text" placeholder="10-digit account number" maxlength="10"
                 [(ngModel)]="newVendor.accountNumber"
-                (input)="newVendor.accountName = ''; newVendor.accountNameVerified = false; newVendor.accountNameError = ''" />
-              <button class="ob-verify-btn" (click)="verifyAccountName()" [disabled]="newVendor.accountNumber.length < 10 || accountNameVerifying">
-                {{ accountNameVerifying ? 'Verifying…' : 'Verify' }}
-              </button>
+                (input)="resetAccountNameVerification()" />
+              <app-button
+                variant="outline"
+                [label]="accountNameVerifying() ? 'Verifying…' : 'Verify'"
+                [disabled]="newVendor.accountNumber.length < 10 || accountNameVerifying()"
+                (clicked)="verifyAccountName()" />
             </div>
           </div>
-          @if (accountNameVerifying) {
+          @if (accountNameVerifying()) {
             <div class="ob-verifying">
               <span class="ob-spinner"></span>Verifying account name via Monnify…
             </div>
           }
-          @if (newVendor.accountName && newVendor.accountNameVerified) {
+          @if (accountName() && accountNameVerified()) {
             <div class="ob-account-verified">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#D1FAE5"/><path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <div>
-                <div class="ob-account-name">{{ newVendor.accountName }}</div>
+                <div class="ob-account-name">{{ accountName() }}</div>
                 <div class="ob-account-match">Account verified — name matches business name</div>
               </div>
             </div>
           }
-          @if (newVendor.accountNameError) {
+          @if (accountNameError()) {
             <div class="ob-account-error">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#F04438" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="#F04438" stroke-width="1.8" stroke-linecap="round"/></svg>
-              {{ newVendor.accountNameError }}
+              {{ accountNameError() }}
             </div>
           }
         }
@@ -874,8 +966,8 @@
               <div class="ob-rv">
                 <span class="ob-rv-l">Account Name</span>
                 <span class="ob-rv-v">
-                  {{ newVendor.accountName || '—' }}
-                  @if (newVendor.accountNameVerified) { <span class="ob-verified-tag">Verified</span> }
+                  {{ accountName() || '—' }}
+                  @if (accountNameVerified()) { <span class="ob-verified-tag">Verified</span> }
                 </span>
               </div>
             </div>
@@ -886,23 +978,14 @@
 
       <div class="onboard-modal-footer">
         @if (onboardStep > 0) {
-          <button class="ob-back-btn" (click)="onboardBack()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Back
-          </button>
+          <app-button variant="back" label="Back" (clicked)="onboardBack()" />
         } @else {
-          <button class="ob-back-btn" (click)="showOnboardModal = false">Cancel</button>
+          <app-button variant="outline" label="Cancel" (clicked)="showOnboardModal = false" />
         }
         @if (onboardStep < 3) {
-          <button class="ob-next-btn" (click)="onboardNext()">
-            Continue
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <app-button variant="primary" label="Continue" (clicked)="onboardNext()" />
         } @else {
-          <button class="ob-confirm-btn" (click)="confirmOnboard()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Onboard Vendor
-          </button>
+          <app-button variant="primary" label="Onboard Vendor" (clicked)="confirmOnboard()" />
         }
       </div>
 

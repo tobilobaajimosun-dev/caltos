@@ -5,6 +5,7 @@ import {
   CheckboxComponent,
   RadioButtonComponent,
   ToggleComponent,
+  ButtonComponent,
 } from '../../../shared/components';
 import { AddPenaltyModalComponent, PenaltyEntry } from './add-penalty-modal/add-penalty-modal.component';
 import { AddCustomFeeModalComponent, CustomFee } from './add-custom-fee-modal/add-custom-fee-modal.component';
@@ -42,7 +43,7 @@ const STEPS = [
   imports: [
     FormsModule, RouterLink,
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
-    AddPenaltyModalComponent, AddCustomFeeModalComponent,
+    AddPenaltyModalComponent, AddCustomFeeModalComponent, ButtonComponent,
   ],
   templateUrl: './create-product.component.html',
   styleUrls: ['./create-product.component.scss'],

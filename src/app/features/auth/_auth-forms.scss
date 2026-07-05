@@ -6,6 +6,7 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 4px;
+  text-align: center;
 }
 
 .subtitle {
@@ -13,8 +14,22 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
   margin: 0 0 var(--space-6);
+  text-align: center;
 
   .hint { color: var(--color-blue); }
+}
+
+.demo-hint {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-blue);
+  background: var(--color-info-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 var(--space-6);
+  text-align: center;
+
+  strong { font-weight: 700; }
 }
 
 .auth-form {

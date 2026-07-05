@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../../../shared/components';
 
 export interface CustomFee {
   name: string;
@@ -11,7 +12,7 @@ export interface CustomFee {
 @Component({
   selector: 'app-add-custom-fee-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ButtonComponent],
   templateUrl: './add-custom-fee-modal.component.html',
   styleUrls: ['./add-custom-fee-modal.component.scss']
 })

@@ -3,6 +3,7 @@
   [ngClass]="variant"
   [class.active]="active"
   [class.dark]="dark"
+  [class.full-width]="fullWidth"
   [disabled]="disabled"
   (click)="!disabled && clicked.emit()">
 
@@ -14,12 +15,12 @@
     <hi-icon [icon]="filterIcon" size="14" color="currentColor" />
   }
 
-  @if (variant === 'primary' || variant === 'dropdown') {
-    <hi-icon [icon]="userIcon" size="16" color="currentColor" />
+  @if ((variant === 'primary' || variant === 'dropdown') && icon) {
+    <hi-icon [icon]="icon" size="16" color="currentColor" />
   }
 
   @if (variant === 'round') {
-    <hi-icon [icon]="refreshIcon" size="16" color="currentColor" />
+    <hi-icon [icon]="roundIcon" size="16" color="currentColor" />
   }
 
   @if (variant !== 'round') {

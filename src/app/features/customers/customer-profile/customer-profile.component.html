@@ -1,0 +1,269 @@
+@if (customer) {
+<div class="profile-page">
+
+  <app-breadcrumb [items]="[{ label: 'Customers', link: '/customers' }, { label: customer.name }]" />
+
+  <div class="profile-header">
+    <div class="profile-header-left">
+      <div class="profile-avatar">{{ customer.name[0] }}{{ customer.name.split(' ')[1]?.[0] ?? '' }}</div>
+      <div>
+        <div class="profile-name-row">
+          <h1 class="profile-name">{{ customer.name }}</h1>
+          <span class="status-badge" [class]="customer.status">{{ statusLabel(customer.status) }}</span>
+        </div>
+        <p class="profile-id">{{ customer.id }} · {{ customer.email }}</p>
+      </div>
+    </div>
+    <div class="profile-header-actions">
+      <app-button variant="outline" label="Edit" (clicked)="openEdit()" />
+      <app-button
+        variant="outline"
+        [label]="customer.status === 'blacklisted' ? 'Reactivate' : 'Suspend'"
+        (clicked)="requestSuspendToggle()" />
+      <app-button variant="primary" label="Add Note" (clicked)="setTab('notes')" />
+    </div>
+  </div>
+
+  <div class="profile-tabs">
+    <button class="profile-tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
+    <button class="profile-tab" [class.active]="activeTab === 'loans'" (click)="setTab('loans')">Loans</button>
+    <button class="profile-tab" [class.active]="activeTab === 'kyc'" (click)="setTab('kyc')">KYC Documents</button>
+    <button class="profile-tab" [class.active]="activeTab === 'repayments'" (click)="setTab('repayments')">Repayments</button>
+    <button class="profile-tab" [class.active]="activeTab === 'notes'" (click)="setTab('notes')">Notes</button>
+    <button class="profile-tab" [class.active]="activeTab === 'activity'" (click)="setTab('activity')">Activity Log</button>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  @if (activeTab === 'overview') {
+    <div class="tab-body overview-grid">
+      <div class="detail-card">
+        <p class="card-title">Personal information</p>
+        <div class="detail-row"><span class="d-label">Full name</span><span class="d-val">{{ customer.name }}</span></div>
+        <div class="detail-row"><span class="d-label">Date of birth</span><span class="d-val">{{ customer.dob || '—' }}</span></div>
+        <div class="detail-row"><span class="d-label">Phone</span><span class="d-val">{{ customer.phone || '—' }}</span></div>
+        <div class="detail-row"><span class="d-label">Email</span><span class="d-val">{{ customer.email || '—' }}</span></div>
+        <div class="detail-row"><span class="d-label">Address</span><span class="d-val">{{ customer.address || '—' }}</span></div>
+        <div class="detail-row"><span class="d-label">Location</span><span class="d-val">{{ customer.location || '—' }}</span></div>
+      </div>
+
+      <div class="detail-card">
+        <p class="card-title">Employment</p>
+        <div class="detail-row"><span class="d-label">Employer</span><span class="d-val">{{ customer.employer || '—' }}</span></div>
+        <div class="detail-row"><span class="d-label">Salary</span><span class="d-val">{{ customer.salary || '—' }}</span></div>
+        <div class="detail-row"><span class="d-label">Salary account</span><span class="d-val">{{ customer.salaryAccount || '—' }}</span></div>
+      </div>
+
+      <div class="detail-card">
+        <p class="card-title">Linked accounts</p>
+        @if (customer.linkedAccounts.length) {
+          @for (acc of customer.linkedAccounts; track acc.accountNumber) {
+            <div class="detail-row"><span class="d-label">{{ acc.bank }}</span><span class="d-val mono">{{ acc.accountNumber }}</span></div>
+          }
+        } @else {
+          <p class="empty-note">No linked bank accounts.</p>
+        }
+      </div>
+
+      <div class="detail-card">
+        <p class="card-title">Risk profile</p>
+        <div class="risk-row">
+          <div class="risk-score-circle" [style.--pct]="customer.riskScore">
+            <span>{{ customer.riskScore }}</span>
+          </div>
+          <div>
+            <p class="risk-level" [class]="customer.riskLevel.toLowerCase()">{{ customer.riskLevel }} risk</p>
+            <p class="empty-note">Based on repayment history and profile completeness.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <p class="card-title">Wallet summary</p>
+        <div class="detail-row"><span class="d-label">Wallet balance</span><span class="d-val bold">{{ customer.walletBalance }}</span></div>
+        <div class="detail-row"><span class="d-label">Active loans</span><span class="d-val">{{ customer.activeLoans }}</span></div>
+        <div class="detail-row"><span class="d-label">Outstanding balance</span><span class="d-val">{{ customer.outstandingBalance }}</span></div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ LOANS ═══ -->
+  @if (activeTab === 'loans') {
+    <div class="tab-body">
+      @if (customer.loans.length) {
+        <div class="detail-card">
+          <table class="ref-table">
+            <thead>
+              <tr><th>Product</th><th>Amount</th><th>Disbursed</th><th>Status</th><th>Balance</th><th>Next Repayment</th></tr>
+            </thead>
+            <tbody>
+              @for (loan of customer.loans; track loan.id) {
+                <tr class="clickable-row" (click)="toggleLoanExpand(loan.id)">
+                  <td class="bold">{{ loan.product }}</td>
+                  <td>{{ loan.amount }}</td>
+                  <td>{{ loan.disbursedDate }}</td>
+                  <td><span class="status-badge" [class]="loan.status">{{ loan.status }}</span></td>
+                  <td>{{ loan.balance }}</td>
+                  <td>{{ loan.nextRepayment }}</td>
+                </tr>
+                @if (expandedLoanId === loan.id) {
+                  <tr class="schedule-row">
+                    <td colspan="6">
+                      <div class="schedule-box">
+                        <p class="schedule-title">Repayment schedule — {{ loan.id }}</p>
+                        <p class="empty-note">Detailed instalment schedule for this loan will appear here.</p>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-tab">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.5"/></svg>
+          <p>No loans yet for this customer.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ KYC DOCUMENTS ═══ -->
+  @if (activeTab === 'kyc') {
+    <div class="tab-body">
+      @if (customer.kycDocs.length) {
+        <div class="doc-grid">
+          @for (doc of customer.kycDocs; track doc.name) {
+            <div class="doc-card">
+              <div class="doc-thumb">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
+              </div>
+              <div class="doc-info">
+                <p class="doc-name">{{ doc.name }}</p>
+                <p class="doc-meta">Uploaded {{ doc.uploadDate }} @if (doc.expiry !== '—') { · Expires {{ doc.expiry }} }</p>
+              </div>
+              <span class="status-badge" [class]="doc.status === 'verified' ? 'active' : doc.status === 'rejected' ? 'blacklisted' : 'overdue'">
+                {{ doc.status === 'verified' ? 'Verified' : doc.status === 'rejected' ? 'Rejected' : 'Pending' }}
+              </span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-tab">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
+          <p>No KYC documents uploaded yet.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ REPAYMENTS ═══ -->
+  @if (activeTab === 'repayments') {
+    <div class="tab-body">
+      @if (customer.repayments.length) {
+        <div class="detail-card">
+          <table class="ref-table">
+            <thead>
+              <tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Balance After</th></tr>
+            </thead>
+            <tbody>
+              @for (rpy of customer.repayments; track rpy.reference) {
+                <tr>
+                  <td>{{ rpy.date }}</td>
+                  <td class="bold">{{ rpy.amount }}</td>
+                  <td>{{ rpy.method }}</td>
+                  <td class="mono">{{ rpy.reference }}</td>
+                  <td>{{ rpy.balanceAfter }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-tab">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <p>No repayments recorded yet.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ NOTES ═══ -->
+  @if (activeTab === 'notes') {
+    <div class="tab-body">
+      <div class="detail-card">
+        <p class="card-title">Add a note</p>
+        <textarea class="note-input" rows="3" placeholder="Add a note about this customer…" [(ngModel)]="newNote"></textarea>
+        <div class="note-actions">
+          <app-button variant="primary" label="Add Note" [disabled]="!newNote.trim()" (clicked)="addNote()" />
+        </div>
+      </div>
+
+      @if (customer.notes.length) {
+        <div class="notes-timeline">
+          @for (note of customer.notes; track note.id) {
+            <div class="note-item">
+              <div class="note-avatar">{{ note.author[0] }}</div>
+              <div class="note-content">
+                <p class="note-meta"><strong>{{ note.author }}</strong> · {{ note.date }}</p>
+                <p class="note-text">{{ note.text }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-tab">
+          <p>No notes yet.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ ACTIVITY LOG ═══ -->
+  @if (activeTab === 'activity') {
+    <div class="tab-body">
+      @if (customer.activityLog.length) {
+        <div class="activity-timeline">
+          @for (activity of customer.activityLog; track activity.id) {
+            <div class="activity-item">
+              <span class="activity-dot"></span>
+              <div>
+                <p class="activity-action">{{ activity.action }}</p>
+                <p class="activity-date">{{ activity.date }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-tab">
+          <p>No activity recorded yet.</p>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+} @else {
+  <div class="not-found-tab">
+    <p>Customer not found.</p>
+  </div>
+}
+
+<app-add-edit-customer-modal
+  [isOpen]="showEditModal"
+  [customer]="customer"
+  (closed)="showEditModal = false"
+  (saved)="onCustomerSaved($event)" />
+
+<app-confirm-modal
+  [isOpen]="!!confirmAction"
+  [title]="confirmCopy.title"
+  [message]="confirmCopy.message"
+  [confirmLabel]="confirmCopy.confirmLabel"
+  [danger]="confirmCopy.danger"
+  (confirmed)="confirmSuspendExecute()"
+  (cancelled)="cancelSuspend()" />
+
+@if (toastVisible) {
+  <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />
+}

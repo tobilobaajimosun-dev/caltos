@@ -5,7 +5,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   FilterIcon,
-  UserCircleIcon,
   RefreshIcon,
 } from '@hugeicons/core-free-icons';
 
@@ -16,7 +15,8 @@ export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'back' | 'filt
   standalone: true,
   imports: [NgClass, HiIconComponent],
   templateUrl: './button.component.html',
-  styleUrls: ['./button.component.scss']
+  styleUrls: ['./button.component.scss'],
+  host: { '[class.full-width-host]': 'fullWidth' }
 })
 export class ButtonComponent {
   @Input() variant: ButtonVariant = 'primary';
@@ -24,11 +24,16 @@ export class ButtonComponent {
   @Input() disabled = false;
   @Input() active = false;
   @Input() dark = false;
+  @Input() icon: IconData | null = null;
+  @Input() fullWidth = false;
   @Output() clicked = new EventEmitter<void>();
 
   readonly backIcon: IconData = ChevronLeftIcon as IconData;
   readonly filterIcon: IconData = FilterIcon as IconData;
-  readonly userIcon: IconData = UserCircleIcon as IconData;
   readonly refreshIcon: IconData = RefreshIcon as IconData;
   readonly chevronRightIcon: IconData = ChevronRightIcon as IconData;
+
+  get roundIcon(): IconData {
+    return this.icon ?? this.refreshIcon;
+  }
 }

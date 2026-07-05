@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,10 +7,11 @@ import {
   CheckboxComponent, RadioButtonComponent,
   ToggleComponent, TextareaComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
-  FileUploadComponent,
+  FileUploadComponent, ButtonComponent,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
+import { ProductsService } from '../../../shared/services/products.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   PlusSignIcon, EyeIcon, Clock01Icon,
@@ -239,7 +240,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
     TextareaComponent, CollapsibleSectionComponent,
     CopyUrlFieldComponent, QrCodeComponent,
-    FileUploadComponent, LivePreviewComponent,
+    FileUploadComponent, LivePreviewComponent, ButtonComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrls: ['./create-loan.component.scss'],
@@ -331,7 +332,11 @@ export class CreateLoanComponent implements OnInit {
     brandColor: '#6941C6', brandName: '',
   };
 
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly productsService = inject(ProductsService);
+
+  editingProductId: string | null = null;
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -339,6 +344,27 @@ export class CreateLoanComponent implements OnInit {
       if (type && TEMPLATE_PRESETS[type]) {
         const preset = TEMPLATE_PRESETS[type];
         this.config = { ...this.config, ...preset, template: type };
+      }
+
+      const id = params['id'];
+      if (id) {
+        const record = this.productsService.getById(id);
+        if (record) {
+          this.editingProductId = id;
+          this.config = {
+            ...this.config,
+            name: record.name,
+            description: record.description,
+            minAmount: record.minAmount.replace(/,/g, ''),
+            maxAmount: record.maxAmount.replace(/,/g, ''),
+            minTenor: record.minTenor,
+            maxTenor: record.maxTenor,
+            tenorUnit: record.tenorUnit,
+            interestModel: record.interestType,
+            interestRate: record.interestRate,
+            interestChargedWhen: record.interestFrequency,
+          };
+        }
       }
     });
     this.loadRecommendedCustomFields();
@@ -405,7 +431,30 @@ export class CreateLoanComponent implements OnInit {
   back() { if (!this.isFirst) this.currentStep--; }
   goToStep(i: number) { this.currentStep = i; }
 
+  private buildProductPatch() {
+    return {
+      name: this.config.name || 'Untitled Product',
+      type: (this.config.template === 'bnpl' ? 'bnpl' : 'loan') as 'loan' | 'bnpl',
+      description: this.config.description,
+      minAmount: this.config.minAmount,
+      maxAmount: this.config.maxAmount,
+      minTenor: this.config.minTenor,
+      maxTenor: this.config.maxTenor,
+      tenorUnit: this.config.tenorUnit,
+      interestType: this.config.interestModel,
+      interestRate: this.config.interestRate,
+      interestFrequency: this.config.interestChargedWhen,
+    };
+  }
+
   saveDraft() {
+    const patch = this.buildProductPatch();
+    if (this.editingProductId) {
+      this.productsService.update(this.editingProductId, patch);
+    } else {
+      const created = this.productsService.create({ ...patch, status: 'draft' });
+      this.editingProductId = created.id;
+    }
     this.isDraft = true;
     this.showUnsavedDialog = false;
   }
@@ -416,6 +465,13 @@ export class CreateLoanComponent implements OnInit {
   }
 
   publish() {
+    const patch = this.buildProductPatch();
+    if (this.editingProductId) {
+      this.productsService.update(this.editingProductId, { ...patch, status: 'live' });
+    } else {
+      const created = this.productsService.create({ ...patch, status: 'live' });
+      this.editingProductId = created.id;
+    }
     localStorage.setItem('caltos_published_config', JSON.stringify(this.config));
     this.isPublished = true;
     this.isDraft = false;

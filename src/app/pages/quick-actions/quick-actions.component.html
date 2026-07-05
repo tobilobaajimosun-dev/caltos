@@ -30,10 +30,7 @@
               <p class="kyc-desc">Complete your company KYC to unlock and start using your wallet for disbursements and repayments.</p>
             </div>
           </div>
-          <button class="kyc-cta" (click)="completeKyc()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="1.5"/><path d="M16 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Complete KYC
-          </button>
+          <app-button variant="primary" label="Complete KYC" (clicked)="completeKyc()" />
         </div>
 
         <!-- Setup cards -->

@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../../../shared/components';
 
 export interface PenaltyEntry {
   name: string;
@@ -15,7 +16,7 @@ export interface PenaltyEntry {
 @Component({
   selector: 'app-add-penalty-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ButtonComponent],
   templateUrl: './add-penalty-modal.component.html',
   styleUrls: ['./add-penalty-modal.component.scss']
 })

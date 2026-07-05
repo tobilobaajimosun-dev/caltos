@@ -1,0 +1,70 @@
+<div class="landing">
+
+  <div class="bg-blob top"></div>
+  <div class="bg-blob bottom"></div>
+
+  <header class="landing-nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <span class="brand-name">Caltos</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#products">Products</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <a routerLink="/login" class="nav-login">Log in</a>
+    </div>
+  </header>
+
+  <main class="hero">
+    <h1 class="hero-title">Ship &amp; manage your loan<br />product in minutes!</h1>
+    <p class="hero-sub">Create, manage, disburse &amp; recollect loans in no time<br />with a complete suite of loan solutions made for you.</p>
+
+    <form class="hero-cta" (submit)="$event.preventDefault()">
+      <input
+        type="email"
+        class="hero-email"
+        placeholder="Enter your work email"
+        [value]="email()"
+        (input)="email.set($any($event.target).value)"
+      />
+      <a routerLink="/onboarding" class="hero-btn">
+        Get started
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </form>
+
+    <div class="preview-card">
+      <div class="preview-sidebar">
+        <div class="preview-org">
+          <span class="preview-org-avatar">P</span>
+          <span class="preview-org-name">Princeps Finance</span>
+        </div>
+        <div class="preview-nav-item active">
+          <span class="preview-dot"></span>
+          Quick Action
+        </div>
+        <div class="preview-nav-item">
+          <span class="preview-dot"></span>
+          Settings
+        </div>
+      </div>
+      <div class="preview-main">
+        <div class="preview-search"></div>
+        <div class="preview-welcome">
+          <div class="preview-avatar">P</div>
+          <p class="preview-welcome-title">Welcome to Caltos!</p>
+          <p class="preview-welcome-sub">Easy loan operations begin here; pick somewhere to get started.</p>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-mini-card"></div>
+          <div class="preview-mini-card"></div>
+          <div class="preview-mini-card"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>

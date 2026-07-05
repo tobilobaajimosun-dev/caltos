@@ -2,14 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
-import { AuthLayoutComponent } from '../../../shared/components';
+import { AuthLayoutComponent, ButtonComponent } from '../../../shared/components';
 
 type Step = 'email' | 'check-email' | 'new-password' | 'success';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent, TitleCasePipe],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent, TitleCasePipe, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.scss',
