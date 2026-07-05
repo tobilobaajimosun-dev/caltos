@@ -421,6 +421,7 @@ export class CreateLoanComponent implements OnInit {
   get isFirst() { return this.currentStep === 0; }
   get isLast() { return this.currentStep === this.steps.length - 1; }
   get isReview() { return this.stepId === 'review'; }
+  get progressPct() { return (this.currentStep / Math.max(this.steps.length - 1, 1)) * 100; }
 
   stepStatus(i: number): 'active' | 'done' | 'upcoming' {
     if (i === this.currentStep) return 'active';

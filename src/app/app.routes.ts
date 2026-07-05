@@ -28,6 +28,7 @@ import { AcceptInviteComponent } from './features/auth/accept-invite/accept-invi
 import { LandingComponent } from './pages/landing/landing.component';
 import { CustomerListComponent } from './features/customers/customer-list/customer-list.component';
 import { CustomerProfileComponent } from './features/customers/customer-profile/customer-profile.component';
+import { WalletComponent } from './features/wallet/wallet.component';
 
 export const routes: Routes = [
   // Public marketing landing page — the app's true entry point
@@ -40,6 +41,8 @@ export const routes: Routes = [
   { path: 'invite/:token', component: AcceptInviteComponent },
   // Self-contained component-library demo (renders its own sidebar) — no shell chrome
   { path: 'showcase', component: ShowcaseComponent },
+  // Full-screen wizard — no sidebar/header chrome (Mercury-style)
+  { path: 'products/create', component: CreateLoanComponent },
 
   {
     path: '',
@@ -49,8 +52,8 @@ export const routes: Routes = [
       { path: 'home', component: HomeComponent },
       { path: 'customers', component: CustomerListComponent },
       { path: 'customers/:id', component: CustomerProfileComponent },
+      { path: 'wallet', component: WalletComponent },
       { path: 'products', component: ProductListComponent },
-      { path: 'products/create', component: CreateLoanComponent },
       { path: 'products/create-bnpl', component: CreateBnplComponent },
       { path: 'products/:id', component: ProductDetailComponent },
       { path: 'loans', component: LoanListComponent },

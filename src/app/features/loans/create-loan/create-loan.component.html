@@ -1,46 +1,46 @@
-<div class="page">
+<div class="wiz-shell">
 
-  <div class="main">
+  <!-- Top progress bar -->
+  <div class="wiz-progress" role="progressbar" [attr.aria-valuenow]="progressPct" aria-valuemin="0" aria-valuemax="100">
+    <div class="wiz-progress-fill" [style.width.%]="progressPct"></div>
+  </div>
 
-    <!-- Top bar -->
-    <div class="top-bar">
-      <a routerLink="/products" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Back to Products
-      </a>
-      <div class="loan-name-wrap">
-        <input
-          class="loan-name-input"
-          placeholder="New Loan Product"
-          [value]="config.name"
-          (input)="onNameChange($any($event.target).value)" />
-        @if (isDraft) {
-          <span class="draft-badge">Draft</span>
-        }
-        @if (config.name.length > 2 && nameAvailable) {
-          <span class="available-badge">Available</span>
-        }
-      </div>
-      <div class="top-actions">
-        <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
-        <a routerLink="/apply" target="_blank" class="btn-preview-product">
-          <hi-icon [icon]="eyeIcon" size="14" color="currentColor" />
-          Preview Product
-        </a>
-        <app-button variant="primary" label="Next Step" [disabled]="isLast" (clicked)="next()" />
-      </div>
+  <!-- Minimal header strip -->
+  <header class="wiz-header">
+    <div class="wiz-brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <rect width="26" height="26" rx="7" fill="#0053a6"/>
+        <path d="M7 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="13" cy="13" r="2" fill="white"/>
+      </svg>
+      <span class="wiz-brand-label">Create loan product</span>
     </div>
+    <div class="wiz-header-right">
+      <a routerLink="/apply" target="_blank" class="wiz-preview-btn">
+        <hi-icon [icon]="eyeIcon" size="14" color="currentColor" />
+        Preview
+      </a>
+      <button class="wiz-save-btn" (click)="saveDraft()">
+        @if (isDraft) { Draft saved } @else { Save draft }
+      </button>
+      <a routerLink="/products" class="wiz-close-btn" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </a>
+    </div>
+  </header>
 
-    <!-- Body -->
-    <div class="body">
-      <div class="content">
+  <!-- Scrollable main content -->
+  <main class="wiz-main">
+    <div class="wiz-step-meta">Step {{ currentStep + 1 }} of {{ steps.length }}</div>
+
+    <div class="wiz-content">
 
         <!-- ── STEP: about ── -->
         @if (stepId === 'about') {
           <div class="content-header">
-            <h1 class="content-title">About this Loan</h1>
+            <h1 class="content-title">What are you building?</h1>
             <p class="content-sub">Define the basics of your loan product — name, target audience, amounts and interest.</p>
           </div>
           <div class="form-sections">
@@ -194,7 +194,7 @@
         <!-- ── STEP: application ── -->
         @if (stepId === 'application') {
           <div class="content-header">
-            <h1 class="content-title">Set Up Your Application</h1>
+            <h1 class="content-title">How will borrowers apply?</h1>
             <p class="content-sub">Configure how applicants start, what information they provide, and how returning applicants are handled.</p>
           </div>
           <div class="form-sections">
@@ -333,7 +333,7 @@
         <!-- ── STEP: verification ── -->
         @if (stepId === 'verification') {
           <div class="content-header">
-            <h1 class="content-title">Verification</h1>
+            <h1 class="content-title">How will you verify borrowers?</h1>
             <p class="content-sub">Choose how you'll verify applicant identity, income, and required documents.</p>
           </div>
           <div class="form-sections">
@@ -518,7 +518,7 @@
         <!-- ── STEP: pricing ── -->
         @if (stepId === 'pricing') {
           <div class="content-header">
-            <h1 class="content-title">Pricing &amp; Fees</h1>
+            <h1 class="content-title">What are the fees &amp; penalties?</h1>
             <p class="content-sub">Configure processing fees and late payment penalties for this loan product.</p>
           </div>
           <div class="form-sections">
@@ -682,7 +682,7 @@
         <!-- ── STEP: disbursement ── -->
         @if (stepId === 'disbursement') {
           <div class="content-header">
-            <h1 class="content-title">Disbursement</h1>
+            <h1 class="content-title">How should approved loans be disbursed?</h1>
             <p class="content-sub">Define how and when approved loans should be disbursed to borrowers.</p>
           </div>
           <div class="form-sections">
@@ -751,7 +751,7 @@
         <!-- ── STEP: repayment ── -->
         @if (stepId === 'repayment') {
           <div class="content-header">
-            <h1 class="content-title">Repayment</h1>
+            <h1 class="content-title">When and how will borrowers repay?</h1>
             <p class="content-sub">Set how and when borrowers will repay this loan.</p>
           </div>
           <div class="form-sections">
@@ -852,7 +852,7 @@
         <!-- ── STEP: legal ── -->
         @if (stepId === 'legal') {
           <div class="content-header">
-            <h1 class="content-title">Legal</h1>
+            <h1 class="content-title">What legal documents apply?</h1>
             <p class="content-sub">Upload your legal documents or use our default consent text.</p>
           </div>
           <div class="form-sections">
@@ -917,7 +917,7 @@
         <!-- ── STEP: customisation ── -->
         @if (stepId === 'customisation') {
           <div class="content-header">
-            <h1 class="content-title">Customisation</h1>
+            <h1 class="content-title">How should the product appear to borrowers?</h1>
             <p class="content-sub">Personalise the borrower experience with your brand and messaging.</p>
           </div>
           <div class="form-sections">
@@ -1109,67 +1109,26 @@
           </div>
         }
 
-      </div>
+    </div><!-- wiz-content -->
+  </main>
 
-      <!-- Right panel: Setup Guide -->
-      <aside class="right-panel">
-        <div class="panel-card setup-guide">
-          <div class="setup-guide-header">
-            <div class="setup-guide-title">Setup guide</div>
-            <div class="setup-guide-count">{{ currentStep + 1 }} / {{ steps.length }} completed</div>
-          </div>
-          <div class="setup-progress-bar">
-            <div class="setup-progress-fill" [style.width.%]="((currentStep) / (steps.length - 1)) * 100"></div>
-          </div>
-          <div class="setup-step-list">
-            @for (step of steps; track step.id; let i = $index) {
-              <button class="setup-step-item" [class.done]="i < currentStep" [class.active]="i === currentStep" (click)="goToStep(i)">
-                <div class="setup-step-icon">
-                  @if (i < currentStep) {
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="8" fill="#0053a6"/>
-                      <path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  } @else if (i === currentStep) {
-                    <div class="setup-step-dot active-dot"></div>
-                  } @else {
-                    <div class="setup-step-dot upcoming-dot"></div>
-                  }
-                </div>
-                <span class="setup-step-label">{{ step.label }}</span>
-                @if (i === currentStep) {
-                  <svg class="setup-step-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                }
-              </button>
-            }
-          </div>
-          <div class="setup-guide-footer">
-            Completing all steps is required before publishing.
-          </div>
-        </div>
-      </aside>
-    </div>
-
-    <!-- Footer -->
-    <div class="wizard-footer">
-      @if (isReview) {
-        <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
-        <span class="footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
-        <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
+  <!-- Footer -->
+  <footer class="wiz-footer">
+    @if (isReview) {
+      <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
+      <span class="wiz-footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
+      <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
+    } @else {
+      @if (!isFirst) {
+        <app-button variant="back" label="Back" (clicked)="back()" />
       } @else {
-        @if (!isFirst) {
-          <app-button variant="back" label="Back" (clicked)="back()" />
-        } @else {
-          <a routerLink="/products" class="btn-back">Cancel</a>
-        }
-        <span class="footer-hint">Don't worry, you can change any of these settings later.</span>
-        <app-button variant="primary" label="Save & Continue" (clicked)="next()" />
+        <a routerLink="/products" class="wiz-cancel-btn">Cancel</a>
       }
-    </div>
+      <span class="wiz-footer-hint">You can change any of these settings later.</span>
+      <app-button variant="primary" label="Save & Continue" (clicked)="next()" />
+    }
+  </footer>
 
-  </div>
 </div>
 
 <!-- Publish Success Overlay -->
