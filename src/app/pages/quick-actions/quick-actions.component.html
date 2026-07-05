@@ -13,25 +13,46 @@
           <p class="hero-sub">Easy loan operations begins here; pick somewhere to get started.</p>
         </div>
 
-        <!-- KYC activation card -->
-        <div class="kyc-card">
-          <div class="kyc-left">
-            <div class="kyc-icon-wrap">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <div class="kyc-info">
-              <div class="kyc-title-row">
-                <span class="kyc-heading">Activate Your Wallet</span>
-                <span class="required-badge">Required</span>
+        <!-- Organization verification card -->
+        @if (!orgVerified()) {
+          <div class="kyc-card">
+            <div class="kyc-left">
+              <div class="kyc-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
               </div>
-              <p class="kyc-desc">Complete your company KYC to unlock and start using your wallet for disbursements and repayments.</p>
+              <div class="kyc-info">
+                <div class="kyc-title-row">
+                  <span class="kyc-heading">Verify your organization</span>
+                  <span class="required-badge">Required</span>
+                </div>
+                <p class="kyc-desc">Confirm your organization's registration details so we can verify and activate your account.</p>
+              </div>
             </div>
+            <app-button variant="primary" label="Verify organization" (clicked)="openOrgModal()" />
           </div>
-          <app-button variant="primary" label="Complete KYC" (clicked)="completeKyc()" />
-        </div>
+        } @else {
+          <div class="kyc-card">
+            <div class="kyc-left">
+              <div class="kyc-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="kyc-info">
+                <div class="kyc-title-row">
+                  <span class="kyc-heading">Activate Your Wallet</span>
+                  <span class="required-badge">Required</span>
+                </div>
+                <p class="kyc-desc">Complete your company KYC to unlock and start using your wallet for disbursements and repayments.</p>
+              </div>
+            </div>
+            <app-button variant="primary" label="Complete KYC" (clicked)="completeKyc()" />
+          </div>
+        }
 
         <!-- Setup cards -->
         <div class="setup-cards">
@@ -193,3 +214,54 @@
 
   </div>
 </div>
+
+@if (showOrgModal()) {
+  <div class="modal-overlay" (click)="closeOrgModal()">
+    <div class="org-modal" (click)="$event.stopPropagation()">
+      <div class="org-modal-header">
+        <div>
+          <div class="org-modal-title">Verify your organization</div>
+          <div class="org-modal-sub">Tell us a bit more about your registered business.</div>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeOrgModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="org-modal-body">
+        <div class="field-group">
+          <label class="field-label">Organization name <span class="req">*</span></label>
+          <input class="field-input" type="text" [(ngModel)]="orgDraft.orgName" name="orgModalName" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">RC number <span class="req">*</span></label>
+          <input class="field-input" type="text" placeholder="e.g. RC1234567" [(ngModel)]="orgDraft.rcNumber" name="orgModalRc" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">License type <span class="req">*</span></label>
+          <select class="field-input" [(ngModel)]="orgDraft.licenseType" name="orgModalLicense">
+            <option value="" disabled>Select license type</option>
+            @for (opt of licenseTypeOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        @if (orgDraft.licenseType === 'Other') {
+          <div class="field-group">
+            <label class="field-label">Please specify <span class="req">*</span></label>
+            <input class="field-input" type="text" placeholder="Enter your license type" [(ngModel)]="orgDraft.licenseTypeOther" name="orgModalLicenseOther" />
+          </div>
+        }
+      </div>
+
+      <div class="org-modal-footer">
+        <app-button variant="outline" label="Cancel" (clicked)="closeOrgModal()" />
+        <app-button variant="primary" label="Submit for verification" [disabled]="!orgFormValid" (clicked)="submitOrgVerification()" />
+      </div>
+    </div>
+  </div>
+}
+
+@if (toastVisible()) {
+  <app-toast type="success" title="Submitted" [message]="toastMessage()" (dismissed)="toastVisible.set(false)" />
+}

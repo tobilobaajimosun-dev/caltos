@@ -1,0 +1,18 @@
+<div class="page-header">
+  <h1 class="page-title">Organization Profile</h1>
+  <p class="page-subtitle">Your registered business details and regulatory information.</p>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Business details</p>
+  </div>
+  <app-settings-row type="text" label="Organization name" [value]="orgName" (valueChange)="update('orgName', $event)" />
+  <app-settings-row type="text" label="RC number" subtitle="Your CAC registration number" [value]="rcNumber" (valueChange)="update('rcNumber', $event)" />
+  <app-settings-row type="text" label="License type" [value]="licenseType" (valueChange)="update('licenseType', $event)" />
+  <app-settings-row type="text" label="Regulator name" subtitle="The regulatory body that licenses your organization" [value]="regulatorName" (valueChange)="update('regulatorName', $event)" />
+</div>
+
+@if (toastVisible()) {
+  <app-toast type="success" title="Saved" message="Organization profile updated." (dismissed)="toastVisible.set(false)" />
+}

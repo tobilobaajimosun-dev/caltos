@@ -37,7 +37,10 @@
             </div>
             <div class="field-group">
               <label class="field-label">Phone <span class="req">*</span></label>
-              <input class="field-input" type="tel" placeholder="0800 000 0000" [(ngModel)]="draft.phone" />
+              <div class="phone-input-wrap">
+                <span class="phone-prefix">🇳🇬 +234</span>
+                <input class="field-input" type="tel" placeholder="800 000 0000" [(ngModel)]="draft.phone" />
+              </div>
             </div>
           </div>
           <div class="two-col">

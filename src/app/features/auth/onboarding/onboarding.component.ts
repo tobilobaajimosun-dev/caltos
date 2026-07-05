@@ -1,27 +1,27 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { ButtonComponent } from '../../../shared/components';
+import { Router } from '@angular/router';
+import { ButtonComponent, ToastComponent } from '../../../shared/components';
 
-type Step = 'org-basics' | 'admin-account' | 'org-verification' | 'platform-setup' | 'invite-team' | 'success';
+type Step = 'create-account' | 'verify-otp' | 'success';
 
-const STEPS: { id: Step; label: string }[] = [
-  { id: 'org-basics', label: 'Organization' },
-  { id: 'admin-account', label: 'Admin Account' },
-  { id: 'org-verification', label: 'Verification' },
-  { id: 'platform-setup', label: 'Platform Setup' },
-  { id: 'invite-team', label: 'Invite Team' },
-];
-
-interface InviteRow {
-  email: string;
-  role: string;
+interface PasswordRule {
+  label: string;
+  test: (value: string) => boolean;
 }
+
+const PASSWORD_RULES: PasswordRule[] = [
+  { label: 'At least 8 characters', test: (v) => v.length >= 8 },
+  { label: 'One uppercase letter', test: (v) => /[A-Z]/.test(v) },
+  { label: 'One lowercase letter', test: (v) => /[a-z]/.test(v) },
+  { label: 'One number', test: (v) => /\d/.test(v) },
+  { label: 'One special character', test: (v) => /[^A-Za-z0-9]/.test(v) },
+];
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent],
+  imports: [ReactiveFormsModule, ButtonComponent, ToastComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.scss',
@@ -30,140 +30,91 @@ export class OnboardingComponent {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
 
-  readonly steps = STEPS;
-  readonly step = signal<Step>('org-basics');
+  readonly step = signal<Step>('create-account');
   readonly submitting = signal(false);
   readonly showPassword = signal(false);
-  readonly verificationMethod = signal<'cac' | 'rc'>('cac');
+  readonly showConfirmPassword = signal(false);
+  readonly passwordFocused = signal(false);
   readonly password = signal('');
+  readonly toastVisible = signal(false);
 
-  readonly stepIndex = computed(() => this.steps.findIndex((s) => s.id === this.step()));
-
-  readonly industries = ['Microfinance', 'SACCO', 'Corporate Lender', 'Individual'];
-  readonly licenseTypes = ['Moneylender', 'Microfinance Bank', 'Digital Lending License', 'Other'];
-  readonly states = [
-    'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
-    'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe', 'Imo',
-    'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa',
-    'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba',
-    'Yobe', 'Zamfara',
-  ];
-  readonly roles = ['Admin', 'Loan Officer', 'Risk Manager', 'Support'];
-
-  readonly orgForm = this.fb.nonNullable.group({
-    orgName: ['', [Validators.required, Validators.maxLength(75)]],
-    industry: ['', Validators.required],
-    country: ['Nigeria', Validators.required],
-    state: ['', Validators.required],
-    website: [''],
-    description: [''],
-  });
-
-  readonly adminForm = this.fb.nonNullable.group({
+  readonly createAccountForm = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
+    businessEmail: ['', [Validators.required, Validators.email]],
+    orgName: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', Validators.required],
-    phone: ['', Validators.required],
+    agreeTerms: [false, Validators.requiredTrue],
   });
 
-  readonly verificationForm = this.fb.nonNullable.group({
-    hasLicense: ['', Validators.required],
-    workingOnLicense: [''],
-    licenseType: [''],
-    rcNumber: [''],
-    bvn: ['', [Validators.pattern(/^\d{11}$/)]],
+  readonly otpForm = this.fb.nonNullable.group({
+    otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
   });
 
-  readonly invites = signal<InviteRow[]>([{ email: '', role: 'Loan Officer' }]);
+  readonly formError = signal('');
 
   readonly passwordsMismatch = computed(() => {
-    const { password, confirmPassword } = this.adminForm.getRawValue();
+    const { password, confirmPassword } = this.createAccountForm.getRawValue();
     return !!confirmPassword && password !== confirmPassword;
   });
 
-  readonly strength = computed(() => {
+  readonly passwordRuleChecks = computed(() => {
     const p = this.password();
-    let score = 0;
-    if (p.length >= 8) score++;
-    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
-    if (/\d/.test(p)) score++;
-    if (/[^A-Za-z0-9]/.test(p)) score++;
-    if (!p) return { level: 0, label: '' as const };
-    if (score <= 1) return { level: 1, label: 'weak' as const };
-    if (score <= 2) return { level: 2, label: 'fair' as const };
-    return { level: 3, label: 'strong' as const };
+    return PASSWORD_RULES.map((rule) => ({ label: rule.label, passed: rule.test(p) }));
   });
+
+  readonly allPasswordRulesPassed = computed(() => this.passwordRuleChecks().every((r) => r.passed));
 
   onPasswordInput(value: string) {
     this.password.set(value);
   }
 
-  goToStep(id: Step) {
-    this.step.set(id);
-  }
-
-  next() {
-    const idx = this.stepIndex();
-    if (idx < this.steps.length - 1) {
-      this.step.set(this.steps[idx + 1].id);
-    } else {
-      this.step.set('success');
-    }
-  }
-
-  back() {
-    const idx = this.stepIndex();
-    if (idx > 0) this.step.set(this.steps[idx - 1].id);
-  }
-
-  submitOrgBasics() {
-    if (this.orgForm.invalid) {
-      this.orgForm.markAllAsTouched();
+  submitCreateAccount() {
+    this.formError.set('');
+    if (this.createAccountForm.invalid || this.passwordsMismatch() || !this.allPasswordRulesPassed()) {
+      this.createAccountForm.markAllAsTouched();
+      if (this.passwordsMismatch()) this.formError.set('Passwords do not match.');
+      else if (!this.allPasswordRulesPassed()) this.formError.set('Password does not meet all requirements.');
       return;
     }
-    this.next();
-  }
-
-  submitAdminAccount() {
-    if (this.adminForm.invalid || this.passwordsMismatch()) {
-      this.adminForm.markAllAsTouched();
-      return;
-    }
-    this.next();
-  }
-
-  continueVerification() {
-    this.next();
-  }
-
-  goToProductSetup() {
-    this.router.navigateByUrl('/products/create');
-  }
-
-  addInviteRow() {
-    this.invites.update((rows) => [...rows, { email: '', role: 'Loan Officer' }]);
-  }
-
-  removeInviteRow(index: number) {
-    this.invites.update((rows) => rows.filter((_, i) => i !== index));
-  }
-
-  updateInviteEmail(index: number, email: string) {
-    this.invites.update((rows) => rows.map((r, i) => (i === index ? { ...r, email } : r)));
-  }
-
-  updateInviteRole(index: number, role: string) {
-    this.invites.update((rows) => rows.map((r, i) => (i === index ? { ...r, role } : r)));
-  }
-
-  sendInvites() {
     this.submitting.set(true);
     setTimeout(() => {
       this.submitting.set(false);
+      this.step.set('verify-otp');
+      this.showToast();
+    }, 500);
+  }
+
+  private showToast() {
+    this.toastVisible.set(true);
+    setTimeout(() => this.toastVisible.set(false), 4000);
+  }
+
+  resendOtp() {
+    this.showToast();
+  }
+
+  submitOtp() {
+    this.formError.set('');
+    if (this.otpForm.invalid) {
+      this.otpForm.markAllAsTouched();
+      return;
+    }
+    this.submitting.set(true);
+    setTimeout(() => {
+      this.submitting.set(false);
+      if (this.otpForm.controls.otp.value !== '123456') {
+        this.formError.set('Invalid code. Please check your email and try again.');
+        return;
+      }
       this.step.set('success');
     }, 500);
+  }
+
+  backToCreateAccount() {
+    this.step.set('create-account');
+    this.formError.set('');
   }
 
   goToDashboard() {

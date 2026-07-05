@@ -62,7 +62,14 @@
           <p class="section-title">Here's how things are going today.</p>
           <p class="section-sub">Your latest loans, repayments, and customer activity—updated in real time.</p>
         </div>
-        <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
+        <div class="section-header-actions">
+          <select class="currency-select" [(ngModel)]="currency" name="homeCurrency">
+            <option value="NGN">NGN</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+          </select>
+          <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
+        </div>
       </div>
 
       <!-- KPI metrics row -->

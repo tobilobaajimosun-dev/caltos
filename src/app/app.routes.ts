@@ -20,6 +20,7 @@ import { RecoveryPortalComponent } from './features/collections/recovery-portal/
 import { ReportsComponent } from './features/reports/reports.component';
 import { EmployerPortalComponent } from './features/employers/employer-portal/employer-portal.component';
 import { AlertSettingsComponent } from './features/settings/alert-settings/alert-settings.component';
+import { OrganizationSettingsComponent } from './features/settings/organization-settings/organization-settings.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
 import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
@@ -62,6 +63,7 @@ export const routes: Routes = [
       { path: 'recovery', component: RecoveryPortalComponent },
       { path: 'reports', component: ReportsComponent },
       { path: 'employers', component: EmployerPortalComponent },
+      { path: 'settings', component: OrganizationSettingsComponent },
       { path: 'settings/alerts', component: AlertSettingsComponent },
     ],
   },

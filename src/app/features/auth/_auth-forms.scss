@@ -44,6 +44,24 @@
   gap: 6px;
 }
 
+.input-with-count {
+  position: relative;
+
+  .field-input { padding-right: 52px; }
+}
+
+.input-char-count {
+  position: absolute;
+  right: 12px;
+  bottom: 50%;
+  transform: translateY(50%);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 .field-label {
   font-family: var(--font-body);
   font-size: var(--text-sm);
