@@ -1,0 +1,24 @@
+<div class="split-host">
+  <button type="button" class="split-trigger" [class.open]="open()" (click)="toggle()">
+    @if (icon()) {
+      <hi-icon [icon]="icon()!" size="16" color="currentColor" />
+    }
+    <span class="split-label">{{ label() }}</span>
+    <span class="split-divider"></span>
+    <hi-icon class="chevron" [class.open]="open()" [icon]="chevronIcon" size="14" color="currentColor" />
+  </button>
+
+  @if (open()) {
+    <div class="split-backdrop" (click)="close()"></div>
+    <div class="split-menu" role="menu">
+      @for (item of items(); track item.id) {
+        <button type="button" class="split-menu-item" role="menuitem" (click)="select(item)">
+          @if (item.icon) {
+            <hi-icon [icon]="item.icon" size="18" color="currentColor" />
+          }
+          <span>{{ item.label }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

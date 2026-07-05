@@ -1,4 +1,5 @@
 export { HiIconComponent } from './hi-icon/hi-icon.component';
+export type { IconData } from './hi-icon/hi-icon.component';
 export { TextareaComponent } from './textarea/textarea.component';
 export { CopyUrlFieldComponent } from './copy-url-field/copy-url-field.component';
 export { QrCodeComponent } from './qr-code/qr-code.component';
@@ -57,6 +58,8 @@ export { AvatarComponent } from './avatar/avatar.component';
 export { CalendarComponent } from './calendar/calendar.component';
 export { ProgressBarComponent } from './progress-bar/progress-bar.component';
 export { TabsComponent } from './tabs/tabs.component';
+export { SelectComponent } from './select/select.component';
+export { SplitButtonComponent } from './split-button/split-button.component';
 
 export type { BadgeStatus } from './status-badge/status-badge.component';
 export type { ButtonVariant } from './button/button.component';
@@ -76,3 +79,5 @@ export type { CalendarEvent } from './calendar/calendar.component';
 export type { AvatarSize } from './avatar/avatar.component';
 export type { TabItem } from './tabs/tabs.component';
 export type { SkeletonVariant } from './skeleton/skeleton.component';
+export type { SelectOption } from './select/select.component';
+export type { SplitButtonItem } from './split-button/split-button.component';

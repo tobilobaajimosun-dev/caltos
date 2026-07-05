@@ -1,6 +1,6 @@
 @if (isOpen) {
   <div class="modal-backdrop" (click)="onBackdropClick($event)">
-    <div class="modal-dialog" role="dialog" [attr.aria-label]="title">
+    <div class="modal-dialog" [class]="size" role="dialog" [attr.aria-label]="title">
       <div class="modal-header">
         <span class="modal-title">{{ title }}</span>
         <button class="modal-close" (click)="closed.emit()" aria-label="Close">
@@ -11,6 +11,9 @@
       </div>
       <div class="modal-body">
         <ng-content></ng-content>
+      </div>
+      <div class="modal-footer">
+        <ng-content select="[modalFooter]"></ng-content>
       </div>
     </div>
   </div>

@@ -1,9 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { UserAdd01Icon, FileUploadIcon } from '@hugeicons/core-free-icons';
 import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, TableItemUser,
   EmptyStateComponent, PaginationComponent, SearchComponent, ConfirmModalComponent, ToastComponent,
+  SelectComponent, SelectOption, SplitButtonComponent, SplitButtonItem, IconData,
 } from '../../../shared/components';
 import { CustomersService, CustomerRecord, CustomerStatus } from '../../../shared/services/customers.service';
 import { AddEditCustomerModalComponent } from '../add-edit-customer-modal/add-edit-customer-modal.component';
@@ -14,8 +15,9 @@ type SortKey = 'name' | 'registeredAt' | 'activeLoans' | 'outstandingBalance';
   selector: 'app-customer-list',
   standalone: true,
   imports: [
-    RouterLink, FormsModule, ButtonComponent, ColumnTitleComponent, TableItemComponent, EmptyStateComponent,
+    RouterLink, ButtonComponent, ColumnTitleComponent, TableItemComponent, EmptyStateComponent,
     PaginationComponent, SearchComponent, ConfirmModalComponent, ToastComponent, AddEditCustomerModalComponent,
+    SelectComponent, SplitButtonComponent,
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss',
@@ -54,6 +56,34 @@ export class CustomerListComponent {
   get products(): string[] {
     return [...new Set(this.customers().map((c) => c.product).filter((p) => p !== '—'))].sort();
   }
+
+  readonly statusOptions: SelectOption[] = [
+    { value: '', label: 'All statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'blacklisted', label: 'Blacklisted' },
+    { value: 'inactive', label: 'Inactive' },
+  ];
+
+  get officerOptions(): SelectOption[] {
+    return [{ value: '', label: 'All loan officers' }, ...this.officers.map((o) => ({ value: o, label: o }))];
+  }
+
+  get productOptions(): SelectOption[] {
+    return [{ value: '', label: 'All products' }, ...this.products.map((p) => ({ value: p, label: p }))];
+  }
+
+  readonly addCustomerMenuItems: SplitButtonItem[] = [
+    { id: 'single', label: 'Add single customer', icon: UserAdd01Icon as IconData },
+    { id: 'bulk', label: 'Bulk upload via spreadsheet', icon: FileUploadIcon as IconData },
+  ];
+
+  readonly sortOptions: SelectOption[] = [
+    { value: 'name', label: 'Sort: Name' },
+    { value: 'registeredAt', label: 'Sort: Date Added' },
+    { value: 'activeLoans', label: 'Sort: Loan Count' },
+    { value: 'outstandingBalance', label: 'Sort: Outstanding Balance' },
+  ];
 
   get stats() {
     const all = this.customers();
@@ -187,6 +217,11 @@ export class CustomerListComponent {
     this.showAddModal = true;
   }
 
+  onAddCustomerMenuSelect(id: string) {
+    if (id === 'single') this.openAddCustomer();
+    if (id === 'bulk') this.showToast('Bulk upload via spreadsheet is coming soon.');
+  }
+
   openEditCustomer(event: Event, customer: CustomerRecord) {
     event.stopPropagation();
     this.openDropdownId = null;
@@ -242,6 +277,10 @@ export class CustomerListComponent {
   bulkExport() {
     this.showToast(`Exported ${this.selectedIds.size} customer${this.selectedIds.size === 1 ? '' : 's'}.`);
     this.clearSelection();
+  }
+
+  exportAll() {
+    this.showToast(`Exported ${this.filteredCustomers.length} customer${this.filteredCustomers.length === 1 ? '' : 's'}.`);
   }
 
   bulkSendReminder() {

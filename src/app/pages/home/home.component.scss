@@ -92,10 +92,29 @@
 
 /* ── Content ── */
 .content {
-  padding: 24px 32px 48px;
+  padding: var(--space-6) var(--space-8) var(--space-12);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-6);
+}
+
+.page-header {
+  margin-bottom: var(--space-2);
+}
+
+.page-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 4px 0 0;
 }
 
 /* ── Wallet card ── */
@@ -306,22 +325,6 @@
   flex-shrink: 0;
 }
 
-.currency-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%238a93a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding: 8px 30px 8px 14px;
-  border-radius: 100px;
-  border: 1px solid var(--color-stroke);
-  background-color: var(--surface-base);
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-header);
-  cursor: pointer;
-}
-
 .period-tabs {
   display: flex;
   align-items: center;
@@ -353,7 +356,7 @@
 .metrics-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .metric-card {
@@ -473,7 +476,7 @@
 .charts-row {
   display: grid;
   grid-template-columns: 1fr 340px;
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .wide-panel  { }
@@ -597,7 +600,7 @@
 .tri-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .tri-panel { }

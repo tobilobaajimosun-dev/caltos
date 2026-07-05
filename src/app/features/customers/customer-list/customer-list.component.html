@@ -3,7 +3,7 @@
     <h1 class="page-title">Customers</h1>
     <p class="page-subtitle">Find, understand, and manage every borrower from one place.</p>
   </div>
-  <app-button variant="primary" label="+ Add Customer" (clicked)="openAddCustomer()" />
+  <app-split-button label="+ Add new customer" [items]="addCustomerMenuItems" (itemSelected)="onAddCustomerMenuSelect($event)" />
 </div>
 
 <div class="stats-row">
@@ -28,30 +28,13 @@
 <div class="filters-row">
   <app-search placeholder="Search by name, phone, BVN, or email" [value]="searchQuery" (valueChange)="searchQuery = $event; currentPage = 1" />
 
-  <select class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="currentPage = 1" name="statusFilter">
-    <option value="">All statuses</option>
-    <option value="active">Active</option>
-    <option value="overdue">Overdue</option>
-    <option value="blacklisted">Blacklisted</option>
-    <option value="inactive">Inactive</option>
-  </select>
+  <app-select [options]="statusOptions" [value]="statusFilter" (valueChange)="statusFilter = $event; currentPage = 1" />
 
-  <select class="filter-select" [(ngModel)]="officerFilter" (ngModelChange)="currentPage = 1" name="officerFilter">
-    <option value="">All loan officers</option>
-    @for (o of officers; track o) { <option [value]="o">{{ o }}</option> }
-  </select>
+  <app-select [options]="officerOptions" [value]="officerFilter" (valueChange)="officerFilter = $event; currentPage = 1" />
 
-  <select class="filter-select" [(ngModel)]="productFilter" (ngModelChange)="currentPage = 1" name="productFilter">
-    <option value="">All products</option>
-    @for (p of products; track p) { <option [value]="p">{{ p }}</option> }
-  </select>
+  <app-select [options]="productOptions" [value]="productFilter" (valueChange)="productFilter = $event; currentPage = 1" />
 
-  <select class="filter-select" [(ngModel)]="sortKey" name="sortKey">
-    <option value="name">Sort: Name</option>
-    <option value="registeredAt">Sort: Date Added</option>
-    <option value="activeLoans">Sort: Loan Count</option>
-    <option value="outstandingBalance">Sort: Outstanding Balance</option>
-  </select>
+  <app-select [options]="sortOptions" [value]="sortKey" (valueChange)="sortKey = $any($event)" />
 </div>
 
 @if (activeFilterChips.length) {
@@ -81,6 +64,10 @@
 
 <div class="panel table-panel">
   @if (!isEmpty) {
+    <div class="table-toolbar">
+      <app-button variant="filter" label="Filter" />
+      <app-button variant="primary" label="Export CSV" (clicked)="exportAll()" />
+    </div>
     <table class="ref-table">
       <thead>
         <tr>
@@ -154,7 +141,7 @@
         <path d="M18 65c0-13 10-22 22-22s22 9 22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
       @if (!searchQuery.trim() && !activeFilterChips.length) {
-        <app-button cta variant="primary" label="+ Add Customer" (clicked)="openAddCustomer()" />
+        <app-split-button cta label="+ Add new customer" [items]="addCustomerMenuItems" (itemSelected)="onAddCustomerMenuSelect($event)" />
       }
     </app-empty-state>
   }

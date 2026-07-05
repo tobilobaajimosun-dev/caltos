@@ -4,13 +4,12 @@
   font-family: var(--font-body);
   font-size: var(--text-base);
   color: var(--text-secondary);
-  margin: 0 0 var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-6) var(--space-5);
 }
 
 .confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
+  display: contents;
 }
 
 .danger {

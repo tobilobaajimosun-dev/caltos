@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+export type ModalSize = 'sm' | 'md' | 'lg';
+
 @Component({
   selector: 'app-modal',
   standalone: true,
@@ -11,6 +13,7 @@ import { CommonModule } from '@angular/common';
 export class ModalComponent {
   @Input() isOpen = false;
   @Input() title = '';
+  @Input() size: ModalSize = 'md';
   @Output() closed = new EventEmitter<void>();
 
   @HostListener('document:keydown.escape')

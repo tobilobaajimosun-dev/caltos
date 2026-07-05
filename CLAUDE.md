@@ -60,6 +60,7 @@ All components are exported from the barrel: `import { X } from './shared/compon
 | `ToggleComponent` | `app-toggle` | `checked` | `checkedChange` |
 | `CheckboxComponent` | `app-checkbox` | `checked`, `label`, `variant: 'square'|'round'` | `checkedChange` |
 | `RadioButtonComponent` | `app-radio-button` | `selected`, `label` | `selectedChange` |
+| `SelectComponent` | `app-select` | `options: SelectOption[]`, `value` | `valueChange` |
 
 ### Buttons
 | Component | Selector | Key Inputs |
@@ -81,7 +82,7 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 ### App Shell & Routing (#14)
 - `AppShellComponent` (`src/app/shared/components/app-shell/`) is the parent route component in `app.routes.ts` — every authenticated page is nested under it as a child route, so sidebar/header/breadcrumb render once instead of per-page.
 - Excluded from the shell: `/apply` (public borrower-facing flow) and `/showcase` (self-contained component-library demo that renders its own sidebar).
-- Sidebar active-item highlighting is derived from the current Router URL (longest route-prefix match); the `activeItemId` input is only a fallback for nav items without a real route (Customers, Wallet, Teams — pending their own feature issues).
+- Sidebar active-item highlighting is derived from the current Router URL (longest route-prefix match); the `activeItemId` input is only a fallback for nav items without a real route (Teams — pending its own feature issue).
 - Unmatched routes fall through to `NotFoundComponent` (`src/app/pages/not-found/`) via a `**` wildcard route.
 - Org identity lives only in the sidebar (`OrgProfileComponent`, single-line name truncated with an ellipsis + role badge below) — the header does not duplicate it. Clicking the org row opens an anchored "Switch organization" **dropdown** (Vercel-team-switcher style: search box, org list with avatar/checkmark, "Create Organization"), built directly into `SidebarComponent`'s template/scss — not `app-modal`. It sits next to the org row (`.org-switcher-wrap { position: relative }` + `.org-switch-dropdown { position: absolute }`), with a full-screen invisible backdrop to catch outside clicks.
 - Sidebar layout: org profile row, then the collapse toggle **below it on its own full-width row** (not side-by-side) — `.sidebar-top { flex-direction: column }`. Spacing throughout the sidebar uses the `--space-*` tokens, not ad hoc pixel values.
@@ -129,7 +130,7 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 ### Modals & Overlays
 | Component | Selector | Key Inputs |
 |---|---|---|
-| `ModalComponent` | `app-modal` | `isOpen`, `title` | `closed` |
+| `ModalComponent` | `app-modal` | `isOpen`, `title`, `size: 'sm'|'md'|'lg'` (content slot `[modalFooter]` for footer actions — see `UI-COMPONENTS.md`) | `closed` |
 | `PaginationComponent` | `app-pagination` | `currentPage`, `totalPages`, `pageSize` | `pageChange`, `pageSizeChange` |
 | `RoundTabsComponent` | `app-round-tabs` | `tabs: Tab[]`, `activeTab` | `activeTabChange` |
 

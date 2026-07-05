@@ -1,0 +1,26 @@
+<div class="select-host">
+  @if (isStatic()) {
+    <span class="select-trigger static">
+      <span class="select-label">{{ selectedLabel() }}</span>
+    </span>
+  } @else {
+    <button type="button" class="select-trigger" [class.open]="open()" (click)="toggle()">
+      <span class="select-label">{{ selectedLabel() }}</span>
+      <hi-icon class="chevron" [class.open]="open()" [icon]="chevronIcon" size="14" color="currentColor" />
+    </button>
+
+    @if (open()) {
+      <div class="select-backdrop" (click)="close()"></div>
+      <div class="select-menu" role="listbox">
+        @for (opt of options(); track opt.value) {
+          <button type="button" class="select-option" [class.active]="opt.value === value()" (click)="select(opt)">
+            <span>{{ opt.label }}</span>
+            @if (opt.value === value()) {
+              <hi-icon [icon]="checkIcon" size="15" color="var(--color-blue)" />
+            }
+          </button>
+        }
+      </div>
+    }
+  }
+</div>

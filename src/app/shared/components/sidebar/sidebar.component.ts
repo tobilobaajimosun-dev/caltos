@@ -56,7 +56,7 @@ export class SidebarComponent {
     { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/quick-actions' },
     { id: 'home',          label: 'Home',                icon: 'home',      route: '/home' },
     { id: 'customers',     label: 'Customers',           icon: 'customers', route: '/customers' },
-    { id: 'wallet',        label: 'Wallet',              icon: 'wallet' },
+    { id: 'wallet',        label: 'Wallet',              icon: 'wallet',    route: '/wallet' },
     { id: 'products',      label: 'Products',            icon: 'products',  route: '/products' },
     {
       id: 'loans', label: 'Loans', icon: 'loans', route: '/loans', hasDropdown: true,

@@ -4,6 +4,11 @@
 
     <div class="content">
 
+      <div class="page-header">
+        <h1 class="page-title">Home</h1>
+        <p class="page-subtitle">Your organisation's activity at a glance.</p>
+      </div>
+
       <!-- Wallet Balance Card -->
       <div class="wallet-card">
         <div class="wallet-left">
@@ -63,11 +68,7 @@
           <p class="section-sub">Your latest loans, repayments, and customer activity—updated in real time.</p>
         </div>
         <div class="section-header-actions">
-          <select class="currency-select" [(ngModel)]="currency" name="homeCurrency">
-            <option value="NGN">NGN</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-          </select>
+          <app-select [options]="currencyOptions" [value]="currency" (valueChange)="currency = $event" />
           <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
         </div>
       </div>

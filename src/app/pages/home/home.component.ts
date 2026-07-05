@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent } from '../../shared/components';
+import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent, SelectComponent, SelectOption } from '../../shared/components';
 import { AccountService } from '../../shared/services/account.service';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
@@ -8,7 +7,7 @@ type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent],
+  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent, SelectComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -16,6 +15,9 @@ export class HomeComponent {
   readonly account = inject(AccountService);
   activePeriod = 'today';
   currency = 'NGN';
+
+  // Only NGN is supported today — app-select renders a single option as a static, non-interactive pill.
+  readonly currencyOptions: SelectOption[] = [{ value: 'NGN', label: 'NGN' }];
 
   readonly periodTabs: TabItem[] = [
     { id: 'today',     label: 'Today' },
