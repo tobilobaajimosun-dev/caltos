@@ -1,23 +1,84 @@
 <div class="page-header">
   <h1 class="page-title">Alert & Notification Settings</h1>
-  <p class="page-subtitle">Configure alert thresholds and notification channels.</p>
+  <p class="page-subtitle">Configure alert thresholds, recipients, and notification channels.</p>
 </div>
 
 <div class="panel">
-  <app-alert-banner type="info" title="Delivery channels" message="Alerts are sent via email and in-app notification. SMS delivery is coming soon." [dismissible]="false" />
+  <app-alert-banner type="info" title="Delivery channels" message="Alerts are sent via email, SMS, and in-app notification depending on alert type." [dismissible]="false" />
 </div>
 
 <div class="panel">
   <div class="panel-head">
-    <p class="panel-title">Alert types</p>
+    <p class="panel-title">Ops-facing alerts</p>
   </div>
-  @for (alert of alerts(); track alert.label; let i = $index) {
+  @for (alert of opsAlerts(); track alert.label; let i = $index) {
     <app-settings-row
       type="toggle"
       [label]="alert.label"
       [subtitle]="alert.subtitle"
       [toggled]="alert.toggled"
-      (toggleChange)="toggleAlert(i, $event)"
+      (toggleChange)="toggleOpsAlert(i, $event)"
     />
+    @if (alert.label === 'Underpayment threshold alert' && alert.toggled) {
+      <div class="inline-config">
+        <span class="inline-config-label">Threshold</span>
+        <input type="number" class="threshold-input" [value]="underpaymentThreshold()" (change)="underpaymentThreshold.set($any($event.target).value)" />
+        <span class="inline-config-suffix">% below expected</span>
+      </div>
+    }
   }
+  <div class="inline-config">
+    <span class="inline-config-label">Recipient role</span>
+    <app-select [options]="recipientOptions" [value]="opsRecipient()" (valueChange)="opsRecipient.set($event)" />
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Borrower-facing notifications</p>
+  </div>
+  @for (alert of borrowerAlerts(); track alert.label; let i = $index) {
+    <app-settings-row
+      type="toggle"
+      [label]="alert.label"
+      [subtitle]="alert.subtitle"
+      [toggled]="alert.toggled"
+      (toggleChange)="toggleBorrowerAlert(i, $event)"
+    />
+    @if (alert.label === 'Pre-due date reminder' && alert.toggled) {
+      <div class="inline-config">
+        <span class="inline-config-label">Send</span>
+        <app-select [options]="reminderDaysOptions" [value]="reminderDays()" (valueChange)="reminderDays.set($event)" />
+      </div>
+    }
+  }
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Alert log</p>
+    <p class="panel-sub">Full history of alerts sent with delivery status</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Alert type" /></th>
+        <th><app-column-title label="Recipient" /></th>
+        <th><app-column-title label="Sent at" /></th>
+        <th><app-column-title label="Channel" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of alertLog; track row.sentAt + row.type) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.type" /></td>
+          <td><app-table-item type="text" [text]="row.recipient" /></td>
+          <td><app-table-item type="text" [text]="row.sentAt" /></td>
+          <td><app-table-item type="text" [text]="row.channel" /></td>
+          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Delivered' : 'Failed'" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
 </div>

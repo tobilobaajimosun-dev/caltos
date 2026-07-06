@@ -1,6 +1,12 @@
 <div class="page-header">
-  <h1 class="page-title">{{ product }}</h1>
-  <p class="page-subtitle">{{ customerName }} · {{ loanId }}</p>
+  <div>
+    <h1 class="page-title">{{ product }}</h1>
+    <p class="page-subtitle">{{ customerName }} · {{ loanId }}</p>
+  </div>
+  <div class="header-actions">
+    <a class="header-link" [routerLink]="['/loans', loanId, 'mandates']">Mandates</a>
+    <a class="header-link" [routerLink]="['/loans', loanId, 'refunds']">Refunds</a>
+  </div>
 </div>
 
 <div class="kpi-row">

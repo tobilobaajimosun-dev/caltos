@@ -4,35 +4,146 @@
 </div>
 
 <div class="kpi-row">
-  <app-kpi-card label="Open exceptions" value="7" />
-  <app-kpi-card label="Resolved today" value="3" />
-  <app-kpi-card label="Avg. resolution time" value="4.2h" />
+  <app-kpi-card label="Open exceptions" [value]="openCount()" />
+  <app-kpi-card label="Resolved / closed" [value]="resolvedTodayCount()" />
+  <app-kpi-card label="Revenue at risk" [value]="'₦' + (totalLeakage() | number: '1.0-0')" />
+</div>
+
+<div class="tab-bar">
+  <app-round-tabs [tabs]="categoryTabs" [activeTab]="activeCategory()" (activeTabChange)="setCategory($event)" />
 </div>
 
 <div class="panel table-panel">
   <div class="panel-head">
-    <p class="panel-title">Flagged exceptions</p>
+    <p class="panel-title">Exception queue</p>
   </div>
   <table class="ref-table">
     <thead>
       <tr>
         <th><app-column-title label="Customer" /></th>
-        <th><app-column-title label="Reason" /></th>
+        <th><app-column-title label="Category" /></th>
+        <th><app-column-title label="Channel" /></th>
         <th><app-column-title label="Amount" /></th>
-        <th><app-column-title label="Flagged on" /></th>
+        <th><app-column-title label="Assignee" /></th>
         <th><app-column-title label="Status" /></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
-      @for (row of rows; track row.customer.email) {
-        <tr>
+      @for (row of filteredRows(); track row.id) {
+        <tr class="clickable-row" (click)="open(row)">
           <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
-          <td><app-table-item type="text" [text]="row.reason" /></td>
+          <td><app-table-item type="text" [text]="row.category" /></td>
+          <td><app-table-item type="text" [text]="row.channel" /></td>
           <td><app-table-item type="amount" [amount]="row.amount" /></td>
-          <td><app-table-item type="date" [date]="row.flaggedOn" /></td>
-          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Resolved' : 'Open'" /></td>
+          <td><app-table-item type="text" [text]="row.assignee || 'Unassigned'" /></td>
+          <td><app-status-badge [status]="stateBadge(row.state).status" [label]="stateBadge(row.state).label" /></td>
+          <td class="actions-cell"><button type="button" class="see-more-btn" (click)="$event.stopPropagation(); open(row)">View</button></td>
         </tr>
       }
     </tbody>
   </table>
 </div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Leakage report</p>
+    <p class="panel-sub">Revenue at risk per channel — unresolved variance value</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Channel" /></th>
+        <th><app-column-title label="Unresolved count" /></th>
+        <th><app-column-title label="Unresolved value" /></th>
+        <th><app-column-title label="Trend" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of leakageByChannel; track row.channel) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.channel" /></td>
+          <td><app-table-item type="text" [text]="row.unresolvedCount + ' exceptions'" /></td>
+          <td><app-table-item type="amount" [amount]="'₦' + (row.unresolvedValue | number: '1.0-0')" /></td>
+          <td>
+            <span class="trend-tag" [class.up]="row.trend === 'up'" [class.down]="row.trend === 'down'">
+              {{ row.trend === 'up' ? '▲ rising' : row.trend === 'down' ? '▼ falling' : '— flat' }}
+            </span>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<app-drawer [isOpen]="!!selected()" [title]="selected()?.id ?? ''" (closed)="closeDrawer()">
+  @if (selected(); as row) {
+    <div class="exception-detail">
+      <div class="detail-row">
+        <span class="detail-label">Customer</span>
+        <span class="detail-value">{{ row.customer.name }} ({{ row.customer.email }})</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Category</span>
+        <span class="detail-value">{{ row.category }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Channel</span>
+        <span class="detail-value">{{ row.channel }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Amount</span>
+        <span class="detail-value">{{ row.amount }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Reason</span>
+        <span class="detail-value">{{ row.reason }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Status</span>
+        <app-status-badge [status]="stateBadge(row.state).status" [label]="stateBadge(row.state).label" />
+      </div>
+
+      <div class="detail-section">
+        <p class="detail-section-title">Assign</p>
+        <app-select [options]="assignees" [value]="row.assignee" (valueChange)="assign(row, $event)" />
+      </div>
+
+      @if (row.state !== 'resolved' && row.state !== 'closed') {
+        <div class="detail-section">
+          <p class="detail-section-title">Resolution note</p>
+          <app-textarea placeholder="Describe how this was investigated / resolved..." [value]="noteDraft()" (valueChange)="noteDraft.set($event)" />
+          <div class="detail-actions">
+            <app-button variant="primary" label="Resolve" (clicked)="resolveOrEscalate(row, 'resolved')" />
+            <app-button variant="outline" label="Escalate" (clicked)="resolveOrEscalate(row, 'escalated')" />
+          </div>
+        </div>
+      } @else {
+        @if (row.resolutionNote) {
+          <div class="detail-section">
+            <p class="detail-section-title">Resolution note</p>
+            <p class="resolution-note">{{ row.resolutionNote }}</p>
+          </div>
+        }
+        @if (row.state !== 'closed') {
+          <div class="detail-actions">
+            <app-button variant="outline" label="Close exception" (clicked)="close(row)" />
+          </div>
+        }
+      }
+
+      <div class="detail-section">
+        <p class="detail-section-title">Audit trail</p>
+        <div class="audit-trail">
+          @for (entry of row.audit; track entry.at + entry.action) {
+            <div class="audit-entry">
+              <span class="audit-at">{{ entry.at }}</span>
+              <span class="audit-who">{{ entry.who }}</span>
+              <span class="audit-action">{{ entry.action }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</app-drawer>

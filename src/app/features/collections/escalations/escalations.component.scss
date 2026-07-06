@@ -1,1 +1,117 @@
 @use '../../stub-pages';
+
+.tab-bar {
+  padding: var(--space-6) var(--space-8) 0;
+}
+
+.assignment-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.actions-cell {
+  text-align: right;
+}
+
+.see-more-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-blue);
+  background: none;
+  border: 1px solid var(--color-stroke);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+}
+
+.escalation-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-stroke);
+}
+
+.detail-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.detail-value {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detail-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.quick-log-actions,
+.resolution-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.resolution-note {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  background: var(--surface-overlay);
+  border-radius: 8px;
+  padding: var(--space-3);
+  margin: 0;
+}
+
+.activity-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.activity-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-xs);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-stroke);
+
+  &:last-child { border-bottom: none; }
+}
+
+.activity-at {
+  color: var(--text-muted);
+}
+
+.activity-outcome {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.activity-next {
+  color: var(--text-muted);
+}

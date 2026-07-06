@@ -1,0 +1,83 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mandate Lifecycle</h1>
+    <p class="page-subtitle">Loan {{ loanId }} · mandates stop automatically on liquidation, cancellation, or full repayment.</p>
+  </div>
+  <a class="header-link" [routerLink]="['/mandates/bulk']">Bulk mandate operations</a>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Active mandates" [value]="activeCount()" />
+  <app-kpi-card label="Inflight" [value]="inflightCount()" />
+  <app-kpi-card label="Cancelled" [value]="cancelledCount()" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Mandate status per loan</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Mandate ID" /></th>
+        <th><app-column-title label="Channel" /></th>
+        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Last action" /></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of mandates(); track row.mandateId) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.mandateId" /></td>
+          <td><app-table-item type="text" [text]="row.channel" /></td>
+          <td><app-status-badge [status]="statusBadge(row.status).status" [label]="statusBadge(row.status).label" /></td>
+          <td><app-table-item type="text" [text]="row.lastAction" /></td>
+          <td class="actions-cell">
+            @if (row.status === 'inflight') {
+              <app-button variant="outline" label="Complete now" (clicked)="completeInflight(row)" />
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Lifecycle triggers</p>
+    <p class="panel-sub">Simulate loan lifecycle events — mandates react automatically, no manual intervention</p>
+  </div>
+  <div class="trigger-grid">
+    <div class="trigger-card">
+      <p class="trigger-title">Auto-liquidation trigger</p>
+      <p class="trigger-desc">Cancelling or liquidating this loan auto-cancels the active Remita mandate.</p>
+      <app-button variant="outline" label="Mark loan liquidated" [disabled]="loanStatus() !== 'active'" (clicked)="liquidateLoan()" />
+    </div>
+    <div class="trigger-card">
+      <p class="trigger-title">WACS liquidation bucket</p>
+      <p class="trigger-desc">Moving this loan to the "fully paid" bucket triggers WACS deduction stoppage.</p>
+      <app-button variant="outline" label="Mark fully repaid" [disabled]="loanStatus() === 'fully-repaid'" (clicked)="markFullyRepaid()" />
+    </div>
+    <div class="trigger-card">
+      <p class="trigger-title">IPPIS stoppage flag</p>
+      <p class="trigger-desc">Sends a stoppage flag to the IPPIS administrator once the loan is fully settled.</p>
+      <app-button variant="outline" label="Send stoppage flag" (clicked)="sendIppisStoppageFlag()" />
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Lifecycle event log</p>
+  </div>
+  <div class="event-log">
+    @for (entry of events(); track entry.at + entry.event) {
+      <div class="event-row">
+        <span class="event-at">{{ entry.at }}</span>
+        <span class="event-text">{{ entry.event }}</span>
+      </div>
+    }
+  </div>
+</div>

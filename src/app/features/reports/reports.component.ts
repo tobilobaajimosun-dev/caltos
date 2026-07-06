@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import {
   ButtonComponent,
   TabsComponent,
@@ -8,11 +8,22 @@ import {
   ChartComponent,
   ChartDataPoint,
   ComingSoonComponent,
+  DrawerComponent,
+  SelectComponent,
+  SelectOption,
+  InputComponent,
 } from '../../shared/components';
+
+type ReportFrequency = 'Daily' | 'Weekly' | 'Monthly' | 'On demand';
+type ReportExportFormat = 'CSV' | 'CSV/Excel';
 
 interface ReportDef {
   title: string;
   description: string;
+  frequency: ReportFrequency;
+  exportFormat: ReportExportFormat;
+  autoSend: boolean;
+  recipients: string[];
 }
 
 interface MetricCard {
@@ -34,7 +45,7 @@ interface ExportRecord {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [ButtonComponent, TabsComponent, RoundTabsComponent, ChartComponent, ComingSoonComponent],
+  imports: [ButtonComponent, TabsComponent, RoundTabsComponent, ChartComponent, ComingSoonComponent, DrawerComponent, SelectComponent, InputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
@@ -92,14 +103,90 @@ export class ReportsComponent {
     return `conic-gradient(${stops.join(', ')}, var(--color-stroke) ${acc}% 100%)`;
   })();
 
-  readonly reports: ReportDef[] = [
-    { title: 'Loan Performance', description: 'Disbursements, repayments, and default rates by product.' },
-    { title: 'Collections Summary', description: 'Overdue accounts, recovery rates, and aging analysis.' },
-    { title: 'Customer Growth', description: 'New applications, approvals, and customer retention.' },
-    { title: 'Wallet & Payouts', description: 'Wallet funding, disbursement volume, and payout activity.' },
-    { title: 'Product Mix', description: 'Portfolio breakdown by loan product and channel.' },
-    { title: 'Compliance & Audit', description: 'KYC completion, document verification, and audit trail exports.' },
+  readonly channelOptions: SelectOption[] = [
+    { value: 'all', label: 'All channels' },
+    { value: 'IPPIS', label: 'IPPIS' },
+    { value: 'Remita', label: 'Remita' },
+    { value: 'Dedukt', label: 'Dedukt' },
+    { value: 'WACS', label: 'WACS' },
+    { value: 'Direct Debit', label: 'Direct Debit' },
   ];
+  readonly channelFilter = signal('all');
+
+  readonly productOptions: SelectOption[] = [
+    { value: 'all', label: 'All products' },
+    { value: 'salary-advance', label: 'Salary Advance' },
+    { value: 'credit-wallet', label: 'Credit Wallet' },
+    { value: 'corper-wallet', label: 'Corper Wallet' },
+  ];
+  readonly productFilter = signal('all');
+
+  readonly statusOptions: SelectOption[] = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'closed', label: 'Closed' },
+  ];
+  readonly statusFilter = signal('all');
+
+  readonly dateFrom = signal('2026-06-01');
+  readonly dateTo = signal('2026-07-05');
+
+  readonly reports: ReportDef[] = [
+    { title: 'Daily failed deduction report', description: 'All failed deductions across channels, refreshed each morning.', frequency: 'Daily', exportFormat: 'CSV', autoSend: true, recipients: ['ops@princepsfinance.com'] },
+    { title: 'Monthly variance & reconciliation summary', description: 'Expected vs. actual collections, matched/unmatched breakdown.', frequency: 'Monthly', exportFormat: 'CSV/Excel', autoSend: true, recipients: ['finance@princepsfinance.com'] },
+    { title: 'Aging analysis — overdue loans', description: 'Delinquency buckets with loan count and outstanding value.', frequency: 'On demand', exportFormat: 'CSV', autoSend: false, recipients: [] },
+    { title: 'MDA collection performance analysis', description: 'Expected vs. actual deductions per employer/MDA.', frequency: 'Monthly', exportFormat: 'CSV', autoSend: true, recipients: ['partnerships@princepsfinance.com'] },
+    { title: 'Collection officer activity report', description: 'Contacts made, promises logged, resolutions closed per officer.', frequency: 'Weekly', exportFormat: 'CSV', autoSend: false, recipients: [] },
+    { title: 'Loan amount exception & leakage report', description: 'Revenue at risk from unresolved variances by channel.', frequency: 'Weekly', exportFormat: 'CSV', autoSend: true, recipients: ['revenue-assurance@princepsfinance.com'] },
+    { title: 'Refund tracking summary', description: 'Refunds processed by channel — value and volume.', frequency: 'Monthly', exportFormat: 'CSV', autoSend: false, recipients: [] },
+    { title: 'Middleware system log', description: 'Integration health and sync events across all channels.', frequency: 'On demand', exportFormat: 'CSV', autoSend: false, recipients: [] },
+  ];
+
+  readonly scheduling = signal<ReportDef | null>(null);
+  readonly scheduleEmail = signal('');
+  readonly scheduleCadence = signal<ReportFrequency>('Weekly');
+
+  readonly cadenceOptions: SelectOption[] = [
+    { value: 'Daily', label: 'Daily' },
+    { value: 'Weekly', label: 'Weekly' },
+    { value: 'Monthly', label: 'Monthly' },
+    { value: 'On demand', label: 'On demand' },
+  ];
+
+  openSchedule(report: ReportDef) {
+    this.scheduleEmail.set('');
+    this.scheduleCadence.set(report.frequency);
+    this.scheduling.set(report);
+  }
+
+  closeSchedule() {
+    this.scheduling.set(null);
+  }
+
+  saveSchedule(report: ReportDef) {
+    const email = this.scheduleEmail().trim();
+    if (email) report.recipients.push(email);
+    report.frequency = this.scheduleCadence();
+    report.autoSend = true;
+    this.scheduling.set(null);
+  }
+
+  exportReport(report: ReportDef) {
+    const header = `Report,Frequency,Channel,Product,Status,Date range\n`;
+    const row = `"${report.title}",${report.frequency},${this.channelFilter()},${this.productFilter()},${this.statusFilter()},${this.dateFrom()} to ${this.dateTo()}\n`;
+    const blob = new Blob([header + row], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${report.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.exportHistory = [
+      { date: new Date().toISOString().slice(0, 16).replace('T', ' '), type: report.title, size: `${(Math.random() * 3 + 0.3).toFixed(1)} MB` },
+      ...this.exportHistory,
+    ];
+  }
 
   exportHistory: ExportRecord[] = [
     { date: '2026-07-03 14:20', type: 'Loan Performance', size: '2.4 MB' },

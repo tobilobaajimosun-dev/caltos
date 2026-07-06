@@ -1,26 +1,197 @@
 <div class="page-header">
   <h1 class="page-title">Recovery Officer Portal</h1>
-  <p class="page-subtitle">Assign and track recovery officer casework.</p>
+  <p class="page-subtitle">Your daily engagement activities and assigned overdue accounts.</p>
 </div>
 
 <div class="kpi-row">
-  <app-kpi-card label="Assigned cases" value="53" />
-  <app-kpi-card label="Recovered this month" value="₦2.0M" />
-  <app-kpi-card label="Avg. recovery rate" value="58%" />
+  <app-kpi-card label="Contacts today" [value]="contactsToday()" />
+  <app-kpi-card label="Promises logged" [value]="promisesLoggedToday()" />
+  <app-kpi-card label="Resolutions closed" [value]="resolutionsClosedToday()" />
 </div>
 
-<div class="panel">
-  <div class="panel-head">
-    <p class="panel-title">Officer performance</p>
+<div class="tab-bar">
+  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
+</div>
+
+@if (activeTab() === 'myday') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Today's call list</p>
+      <p class="panel-sub">Due for follow-up today based on last contact / agreed callback</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Days overdue" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Last contact" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of todaysCallList(); track row.id) {
+          <tr>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.daysOverdue + ' days'" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="text" [text]="row.lastContact || 'No contact yet'" /></td>
+            <td class="actions-cell"><app-button variant="primary" label="Quick log" (clicked)="openQuickLog(row)" /></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="5" class="empty-cell">No callbacks due today.</td></tr>
+        }
+      </tbody>
+    </table>
   </div>
-  @for (officer of officers; track officer.name) {
-    <div class="progress-row">
-      <app-avatar [name]="officer.name" size="md" />
-      <div class="progress-row-info">
-        <p class="progress-row-name">{{ officer.name }}</p>
-        <app-progress-bar [value]="officer.recoveredPct" [label]="officer.casesAssigned + ' cases assigned'" />
+
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">My assigned accounts</p>
+      <p class="panel-sub">Sorted by priority — most overdue first</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Days overdue" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Attempts" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of sortedByPriority(); track row.id) {
+          <tr>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.daysOverdue + ' days'" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="text" [text]="row.attempts + ''" /></td>
+            <td><app-status-badge [status]="statusBadge(row).status" [label]="statusBadge(row).label" /></td>
+            <td class="actions-cell"><app-button variant="outline" label="Quick log" (clicked)="openQuickLog(row)" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'ptp') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Promise-to-pay tracker</p>
+      <p class="panel-sub">Countdown to promise date — broken promises flagged</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Promise date" /></th>
+          <th><app-column-title label="Countdown" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of promiseAccounts(); track row.id) {
+          <tr>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="date" [date]="row.promiseDate!" /></td>
+            <td>
+              @if (isBrokenPromise(row.promiseDate!)) {
+                <app-status-badge status="failed" label="Promise broken" />
+              } @else {
+                <span class="countdown">{{ daysUntilPromise(row.promiseDate!) }} days left</span>
+              }
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="4" class="empty-cell">No active promises to pay.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'escalation') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Escalation queue</p>
+      <p class="panel-sub">Exceeded attempts, disputes, or broken promises — needs supervisor review</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Attempts" /></th>
+          <th><app-column-title label="Reason" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of escalationQueue(); track row.id) {
+          <tr>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="text" [text]="row.attempts + ''" /></td>
+            <td><app-table-item type="text" [text]="row.disputed ? 'Dispute raised' : row.attempts >= 5 ? 'Exceeded contact attempts' : 'Broken promise-to-pay'" /></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="4" class="empty-cell">No accounts require supervisor review.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'team') {
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Team overview</p>
+      <p class="panel-sub">All officers' daily activity and performance</p>
+    </div>
+    @for (officer of officers; track officer.name) {
+      <div class="progress-row">
+        <app-avatar [name]="officer.name" size="md" />
+        <div class="progress-row-info">
+          <p class="progress-row-name">{{ officer.name }}</p>
+          <app-progress-bar [value]="officer.recoveredPct" [label]="officer.casesAssigned + ' cases assigned'" />
+        </div>
+        <div class="officer-stats">
+          <span>{{ officer.contactsToday }} contacts today</span>
+          <span>{{ officer.promisesLogged }} promises</span>
+          <span>{{ officer.resolutionsClosed }} resolved</span>
+        </div>
+        <p class="progress-row-meta">{{ officer.recoveredAmount }} recovered</p>
       </div>
-      <p class="progress-row-meta">{{ officer.recoveredAmount }} recovered</p>
+    }
+  </div>
+}
+
+<app-drawer [isOpen]="!!logging()" title="Quick log" (closed)="closeQuickLog()">
+  @if (logging(); as account) {
+    <div class="quick-log-detail">
+      <div class="detail-row">
+        <span class="detail-label">Customer</span>
+        <span class="detail-value">{{ account.customer.name }}</span>
+      </div>
+      <div class="detail-section">
+        <p class="detail-section-title">Outcome</p>
+        <app-select [options]="outcomeOptions" [value]="outcome()" (valueChange)="outcome.set($any($event))" />
+      </div>
+      <div class="detail-section">
+        <p class="detail-section-title">Notes</p>
+        <app-textarea placeholder="Quick note..." [value]="notes()" (valueChange)="notes.set($event)" />
+      </div>
+      <div class="detail-section">
+        <p class="detail-section-title">Next action date</p>
+        <input type="date" class="date-input" [value]="nextActionDate()" (change)="nextActionDate.set($any($event.target).value)" />
+      </div>
+      <app-button variant="primary" label="Save log" (clicked)="submitQuickLog(account)" [fullWidth]="true" />
     </div>
   }
-</div>
+</app-drawer>

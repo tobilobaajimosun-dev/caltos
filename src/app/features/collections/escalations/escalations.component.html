@@ -4,35 +4,173 @@
 </div>
 
 <div class="kpi-row">
-  <app-kpi-card label="Active escalations" value="23" />
-  <app-kpi-card label="Legal stage" value="4" />
-  <app-kpi-card label="Resolved this month" value="11" />
+  <app-kpi-card label="Active escalations" [value]="activeCount()" />
+  <app-kpi-card label="Legal stage" [value]="legalStageCount()" />
+  <app-kpi-card label="Resolved this month" [value]="resolvedCount()" />
 </div>
 
-<div class="panel table-panel">
-  <div class="panel-head">
-    <p class="panel-title">Escalated cases</p>
-  </div>
-  <table class="ref-table">
-    <thead>
-      <tr>
-        <th><app-column-title label="Customer" /></th>
-        <th><app-column-title label="Stage" /></th>
-        <th><app-column-title label="Amount" /></th>
-        <th><app-column-title label="Assigned to" /></th>
-        <th><app-column-title label="Status" /></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (row of rows; track row.customer.email) {
-        <tr>
-          <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
-          <td><app-table-item type="text" [text]="row.stage" /></td>
-          <td><app-table-item type="amount" [amount]="row.amount" /></td>
-          <td><app-table-item type="text" [text]="row.assignedTo" /></td>
-          <td><app-status-badge [status]="row.status" /></td>
-        </tr>
-      }
-    </tbody>
-  </table>
+<div class="tab-bar">
+  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
 </div>
+
+@if (activeTab() === 'accounts') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Escalated cases</p>
+      <div class="assignment-toggle">
+        <span>Round-robin assignment</span>
+        <app-toggle [checked]="roundRobin()" (checkedChange)="roundRobin.set($event)" />
+      </div>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Stage" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Assigned to" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr class="clickable-row" (click)="open(row)">
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.stage" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="text" [text]="row.assignedTo" /></td>
+            <td>
+              @if (row.resolution) {
+                <app-status-badge status="successful" [label]="resolutionLabel(row.resolution)" />
+              } @else {
+                <app-status-badge [status]="row.status" />
+              }
+            </td>
+            <td class="actions-cell"><button type="button" class="see-more-btn" (click)="$event.stopPropagation(); open(row)">View</button></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'rules') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Auto-trigger rules</p>
+      <p class="panel-sub">Escalation fires automatically at each delinquency threshold</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Threshold" /></th>
+          <th><app-column-title label="Action" /></th>
+          <th><app-column-title label="Enabled" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rule of triggerRules(); track rule.threshold) {
+          <tr>
+            <td><app-table-item type="text" [text]="rule.threshold" /></td>
+            <td><app-table-item type="text" [text]="rule.action" /></td>
+            <td><app-toggle [checked]="rule.enabled" (checkedChange)="toggleRule(rule, $event)" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'performance') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Officer performance</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Officer" /></th>
+          <th><app-column-title label="Accounts" /></th>
+          <th><app-column-title label="Resolution rate" /></th>
+          <th><app-column-title label="Avg. days to resolution" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of officerPerformance; track row.officer) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.officer" /></td>
+            <td><app-table-item type="text" [text]="row.accounts + ' accounts'" /></td>
+            <td><app-table-item type="text" [text]="row.resolutionRate + '%'" /></td>
+            <td><app-table-item type="text" [text]="row.avgDaysToResolution + ' days'" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-drawer [isOpen]="!!selected()" [title]="selected()?.id ?? ''" (closed)="closeDrawer()">
+  @if (selected(); as row) {
+    <div class="escalation-detail">
+      <div class="detail-row">
+        <span class="detail-label">Customer</span>
+        <span class="detail-value">{{ row.customer.name }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Days overdue</span>
+        <span class="detail-value">{{ row.daysOverdue }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Amount</span>
+        <span class="detail-value">{{ row.amount }}</span>
+      </div>
+
+      <div class="detail-section">
+        <p class="detail-section-title">Assign to</p>
+        <app-select [options]="officers" [value]="row.assignedTo" (valueChange)="assign(row, $event)" />
+      </div>
+
+      @if (!row.resolution) {
+        <div class="detail-section">
+          <p class="detail-section-title">Log contact attempt</p>
+          <div class="quick-log-actions">
+            <app-button variant="outline" label="Spoke" (clicked)="logContact(row, 'Spoke to customer')" />
+            <app-button variant="outline" label="No answer" (clicked)="logContact(row, 'No answer')" />
+            <app-button variant="outline" label="Promised to pay" (clicked)="logContact(row, 'Promised to pay')" />
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <p class="detail-section-title">Resolution</p>
+          <div class="resolution-actions">
+            <app-button variant="primary" label="Payment received" (clicked)="resolve(row, 'paid')" />
+            <app-button variant="outline" label="Promise to pay" (clicked)="resolve(row, 'promise-to-pay')" />
+            <app-button variant="outline" label="Restructure" (clicked)="resolve(row, 'restructure')" />
+            <app-button variant="text" label="Write off" (clicked)="resolve(row, 'write-off')" />
+          </div>
+        </div>
+      } @else {
+        <div class="detail-section">
+          <p class="detail-section-title">Resolution</p>
+          <p class="resolution-note">{{ resolutionLabel(row.resolution) }}</p>
+        </div>
+      }
+
+      <div class="detail-section">
+        <p class="detail-section-title">Activity log</p>
+        <div class="activity-log">
+          @for (entry of row.activity; track entry.at + entry.outcome) {
+            <div class="activity-row">
+              <span class="activity-at">{{ entry.at }}</span>
+              <span class="activity-outcome">{{ entry.outcome }}</span>
+              @if (entry.nextAction) {
+                <span class="activity-next">Next: {{ entry.nextAction }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</app-drawer>

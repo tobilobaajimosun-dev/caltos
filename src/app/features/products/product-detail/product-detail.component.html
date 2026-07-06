@@ -72,6 +72,7 @@
             Payouts & Repayments
             @if (!checklist[3].done) { <span class="tab-dot"></span> }
           </button>
+          <button class="ph-tab" [class.active]="activeTab === 'collections'" (click)="setTab('collections')">Collections</button>
           <button class="ph-tab" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal & Consent</button>
           <button class="ph-tab" [class.active]="activeTab === 'activity'" (click)="setTab('activity')">Activity</button>
         </div>
@@ -674,6 +675,88 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ COLLECTIONS ═══ -->
+      @if (activeTab === 'collections') {
+        <div class="tab-body">
+          <div class="detail-card">
+            <div class="card-header">
+              <p class="card-title">Channel performance</p>
+              <p class="card-sub">This month — expected vs. collected per deduction channel enabled on this product</p>
+            </div>
+            <div class="channel-tile-grid">
+              @for (ch of channelPerformance; track ch.channel) {
+                <div class="channel-tile">
+                  <div class="channel-tile-head">
+                    <p class="channel-tile-name">{{ ch.channel }}</p>
+                    <app-status-badge [status]="ch.status === 'connected' ? 'active' : 'pending'" [label]="ch.status === 'connected' ? 'Connected' : 'Pending'" />
+                  </div>
+                  <p class="channel-tile-figures">₦{{ ch.collected.toLocaleString() }} <span>/ ₦{{ ch.expected.toLocaleString() }}</span></p>
+                  <app-chart type="line" [data]="ch.successRateTrend" />
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="section-grid">
+            <div class="detail-card">
+              <div class="card-header">
+                <p class="card-title">Portfolio health</p>
+              </div>
+              <div class="config-grid">
+                <div class="config-row"><span class="config-label">Active loans</span><span class="config-value">{{ activeLoans.length }}</span></div>
+                <div class="config-row"><span class="config-label">Overdue rate</span><span class="config-value">{{ overdueRate }}%</span></div>
+                <div class="config-row"><span class="config-label">1–30 days overdue</span><span class="config-value">{{ overdueBuckets.d30 }}</span></div>
+                <div class="config-row"><span class="config-label">31–60 days overdue</span><span class="config-value">{{ overdueBuckets.d60 }}</span></div>
+                <div class="config-row"><span class="config-label">61–90 days overdue</span><span class="config-value">{{ overdueBuckets.d90 }}</span></div>
+                <div class="config-row"><span class="config-label">Avg. days to first missed payment</span><span class="config-value">{{ avgDaysToFirstMissed }}</span></div>
+              </div>
+            </div>
+
+            <div class="detail-card">
+              <div class="card-header">
+                <p class="card-title">Reconciliation status</p>
+                <a class="card-link" [routerLink]="['/collections/reconciliation']">Open Reconciliation Engine</a>
+              </div>
+              <div class="config-grid">
+                <div class="config-row"><span class="config-label">Last reconciliation run</span><span class="config-value">{{ lastReconciliationRun }}</span></div>
+                <div class="config-row"><span class="config-label">Outstanding variances</span><span class="config-value">{{ outstandingVarianceCount }}</span></div>
+                <div class="config-row"><span class="config-label">Outstanding value</span><span class="config-value">{{ outstandingVarianceValue }}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <div class="card-header">
+              <p class="card-title">Recent exceptions</p>
+              <a class="card-link" [routerLink]="['/collections/exceptions']">Open Exception Centre</a>
+            </div>
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th><app-column-title label="Customer" /></th>
+                  <th><app-column-title label="Reason" /></th>
+                  <th><app-column-title label="Amount" /></th>
+                  <th><app-column-title label="Status" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of recentExceptions; track row.customer + row.reason) {
+                  <tr>
+                    <td><app-table-item type="text" [text]="row.customer" /></td>
+                    <td><app-table-item type="text" [text]="row.reason" /></td>
+                    <td><app-table-item type="amount" [amount]="row.amount" /></td>
+                    <td><app-status-badge [status]="row.status" /></td>
+                  </tr>
+                }
+                @empty {
+                  <tr><td colspan="4" class="empty-cell">No exceptions flagged for this product.</td></tr>
+                }
+              </tbody>
+            </table>
           </div>
         </div>
       }

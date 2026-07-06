@@ -1,6 +1,6 @@
 <div class="page-header">
   <h1 class="page-title">Bulk Mandate Operations</h1>
-  <p class="page-subtitle">Upload and process repayment mandates in bulk across loans.</p>
+  <p class="page-subtitle">Manage large volumes of mandates efficiently across all channels.</p>
 </div>
 
 <div class="kpi-row">
@@ -9,32 +9,149 @@
   <app-kpi-card label="Pending" value="6" />
 </div>
 
-<div class="panel">
-  <app-alert-banner type="info" title="Bulk upload" message="Upload a CSV of customer mandates to activate repayment deductions in one batch." [dismissible]="false" />
+<div class="tab-bar">
+  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
 </div>
 
-<div class="panel table-panel">
-  <div class="panel-head">
-    <p class="panel-title">Latest batch</p>
+@if (activeTab() === 'cancel') {
+  <div class="panel filter-panel">
+    <app-select [options]="channelOptions" [value]="channelFilter()" (valueChange)="channelFilter.set($event)" />
+    <app-select [options]="employerOptions" [value]="employerFilter()" (valueChange)="employerFilter.set($event)" />
+    @if (anySelected()) {
+      <app-button variant="primary" [label]="'Cancel ' + selectedCount() + ' selected'" (clicked)="bulkCancel()" />
+    }
   </div>
-  <table class="ref-table">
-    <thead>
-      <tr>
-        <th><app-column-title label="Customer" /></th>
-        <th><app-column-title label="Bank" /></th>
-        <th><app-column-title label="Amount" /></th>
-        <th><app-column-title label="Status" /></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (row of rows; track row.customer.email) {
+
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Mandates — select by channel, date range, employer, or loan cohort</p>
+    </div>
+    <table class="ref-table">
+      <thead>
         <tr>
-          <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
-          <td><app-table-item type="text" [text]="row.bank" /></td>
-          <td><app-table-item type="amount" [amount]="row.amount" /></td>
-          <td><app-status-badge [status]="row.status" /></td>
+          <th></th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Employer" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Date" /></th>
+          <th><app-column-title label="Status" /></th>
         </tr>
-      }
-    </tbody>
-  </table>
-</div>
+      </thead>
+      <tbody>
+        @for (row of filteredRows(); track row.customer.email) {
+          <tr>
+            <td><app-checkbox [checked]="!!row.selected" (checkedChange)="toggleSelect(row, $event)" /></td>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+            <td><app-table-item type="text" [text]="row.employer" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="date" [date]="row.date" /></td>
+            <td><app-status-badge [status]="row.status" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'setup') {
+  <div class="panel">
+    <app-alert-banner type="info" title="Dedukt setup visibility" message="Bulk view of mandate configuration status with broken reference-link detection." [dismissible]="false" />
+  </div>
+
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Setup status dashboard</p>
+      <app-button variant="outline" label="Export completed (CSV)" (clicked)="exportCompleted()" />
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Loan" /></th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Setup status" /></th>
+          <th><app-column-title label="Reference link" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of deduktSetup(); track row.loanId) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.loanId" /></td>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-status-badge [status]="setupBadge(row.setupStatus).status" [label]="setupBadge(row.setupStatus).label" /></td>
+            <td><span class="link-check" [class.ok]="row.referenceLinked" [class.broken]="!row.referenceLinked">{{ row.referenceLinked ? '✓ Linked to active loan' : '✗ Not linked' }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'health') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Mandate health overview</p>
+      <p class="panel-sub">Per channel — connected / pending / broken / not configured</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Connected" /></th>
+          <th><app-column-title label="Pending" /></th>
+          <th><app-column-title label="Broken" /></th>
+          <th><app-column-title label="Not configured" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of healthByChannel; track row.channel) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+            <td><span class="health-count ok">{{ row.connected }}</span></td>
+            <td><span class="health-count warn">{{ row.pending }}</span></td>
+            <td><span class="health-count bad">{{ row.broken }}</span></td>
+            <td><span class="health-count neutral">{{ row.notConfigured }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'timeline') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Remittance timeline tracking</p>
+      <p class="panel-sub">Dedukt — expected remittance date vs. actual receipt date</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Mandate" /></th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Expected date" /></th>
+          <th><app-column-title label="Actual date" /></th>
+          <th><app-column-title label="Status" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of remittanceTimeline; track row.mandateId) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.mandateId" /></td>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="date" [date]="row.expectedDate" /></td>
+            <td>
+              @if (row.actualDate) {
+                <app-table-item type="date" [date]="row.actualDate" />
+              } @else {
+                <span class="not-received">Not yet received</span>
+              }
+            </td>
+            <td><app-status-badge [status]="row.onTime ? 'successful' : 'overdue'" [label]="row.onTime ? 'On time' : 'Delayed'" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

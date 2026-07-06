@@ -99,6 +99,15 @@
 
 @if (mainTab === 'export') {
 
+  <div class="report-toolbar filter-toolbar">
+    <app-select [options]="channelOptions" [value]="channelFilter()" (valueChange)="channelFilter.set($event)" />
+    <app-select [options]="productOptions" [value]="productFilter()" (valueChange)="productFilter.set($event)" />
+    <app-select [options]="statusOptions" [value]="statusFilter()" (valueChange)="statusFilter.set($event)" />
+    <input type="date" class="date-input" [value]="dateFrom()" (change)="dateFrom.set($any($event.target).value)" />
+    <span class="date-sep">to</span>
+    <input type="date" class="date-input" [value]="dateTo()" (change)="dateTo.set($any($event.target).value)" />
+  </div>
+
   <div class="report-grid">
     @for (report of reports; track report.title) {
       <div class="report-card">
@@ -107,7 +116,17 @@
         </div>
         <p class="report-card-title">{{ report.title }}</p>
         <p class="report-card-desc">{{ report.description }}</p>
-        <app-button variant="outline" label="Export" />
+        <div class="report-card-meta">
+          <span class="meta-chip">{{ report.frequency }}</span>
+          <span class="meta-chip">{{ report.exportFormat }}</span>
+          @if (report.autoSend) {
+            <span class="meta-chip auto-send">Auto-send</span>
+          }
+        </div>
+        <div class="report-card-actions">
+          <app-button variant="outline" label="Export" (clicked)="exportReport(report)" />
+          <app-button variant="text" label="Schedule" (clicked)="openSchedule(report)" />
+        </div>
       </div>
     }
   </div>
@@ -148,3 +167,30 @@
   </div>
 
 }
+
+<app-drawer [isOpen]="!!scheduling()" title="Configure schedule" (closed)="closeSchedule()">
+  @if (scheduling(); as report) {
+    <div class="schedule-detail">
+      <p class="schedule-report-title">{{ report.title }}</p>
+      <div class="detail-section">
+        <p class="detail-section-title">Cadence</p>
+        <app-select [options]="cadenceOptions" [value]="scheduleCadence()" (valueChange)="scheduleCadence.set($any($event))" />
+      </div>
+      <div class="detail-section">
+        <p class="detail-section-title">Add recipient email</p>
+        <app-input placeholder="name@princepsfinance.com" [value]="scheduleEmail()" (valueChange)="scheduleEmail.set($event)" />
+      </div>
+      @if (report.recipients.length) {
+        <div class="detail-section">
+          <p class="detail-section-title">Current recipients</p>
+          <div class="recipient-list">
+            @for (email of report.recipients; track email) {
+              <span class="recipient-chip">{{ email }}</span>
+            }
+          </div>
+        </div>
+      }
+      <app-button variant="primary" label="Save schedule" (clicked)="saveSchedule(report)" [fullWidth]="true" />
+    </div>
+  }
+</app-drawer>

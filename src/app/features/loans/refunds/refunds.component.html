@@ -1,0 +1,143 @@
+<div class="page-header">
+  <h1 class="page-title">Refunds</h1>
+  <p class="page-subtitle">Over-deduction detection and refund processing{{ loanId ? ' for loan ' + loanId : '' }}.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Pending review" [value]="overDeductions().length" />
+  <app-kpi-card label="Refunded this month" [value]="'₦' + (247500 | number: '1.0-0')" />
+  <app-kpi-card label="Avg. processing time" value="1.8h" />
+</div>
+
+<div class="tab-bar">
+  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
+</div>
+
+@if (activeTab() === 'queue') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Over-deduction queue</p>
+      @if (anySelected()) {
+        <app-button variant="primary" [label]="'Process batch (₦' + (selectedTotal() | number: '1.0-0') + ')'" (clicked)="processBatch()" />
+      }
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th><app-column-title label="Loan" /></th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Expected" /></th>
+          <th><app-column-title label="Collected" /></th>
+          <th><app-column-title label="Over-deduction" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of overDeductions(); track row.loanId) {
+          <tr>
+            <td><app-checkbox [checked]="!!row.selected" (checkedChange)="toggleSelect(row, $event)" /></td>
+            <td><app-table-item type="text" [text]="row.loanId" /></td>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + (row.expected | number: '1.0-0')" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + (row.collected | number: '1.0-0')" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + (overAmount(row) | number: '1.0-0')" /></td>
+            <td class="actions-cell"><app-button variant="outline" label="Review" (clicked)="review(row)" /></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="8" class="empty-cell">No over-deductions flagged — all clear.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'log') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Refund tracking log</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Refund ID" /></th>
+          <th><app-column-title label="Loan" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th><app-column-title label="Initiated by" /></th>
+          <th><app-column-title label="Date" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of refundLog(); track row.refundId) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.refundId" /></td>
+            <td><app-table-item type="text" [text]="row.loanId" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-status-badge [status]="refundStatusBadge(row.status).status" [label]="refundStatusBadge(row.status).label" /></td>
+            <td><app-table-item type="text" [text]="row.initiatedBy" /></td>
+            <td><app-table-item type="date" [date]="row.date" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'report') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Monthly refund summary</p>
+      <p class="panel-sub">By deduction channel — value and volume</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Total value" /></th>
+          <th><app-column-title label="Volume" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of monthlyReport; track row.channel) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + (row.value | number: '1.0-0')" /></td>
+            <td><app-table-item type="text" [text]="row.volume + ' refunds'" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-drawer [isOpen]="!!reviewing()" title="Review refund" (closed)="closeReview()">
+  @if (reviewing(); as row) {
+    <div class="review-detail">
+      <div class="detail-row">
+        <span class="detail-label">Loan</span>
+        <span class="detail-value">{{ row.loanId }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Customer</span>
+        <span class="detail-value">{{ row.customer.name }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Channel</span>
+        <span class="detail-value">{{ row.channel }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Over-deducted</span>
+        <span class="detail-value">₦{{ overAmount(row) | number: '1.0-0' }}</span>
+      </div>
+
+      <app-input label="Refund amount" type="number" [value]="refundAmount().toString()" (valueChange)="refundAmount.set(+$event || 0)" />
+      <app-select [options]="paymentMethods" [value]="paymentMethod()" (valueChange)="paymentMethod.set($event)" />
+
+      <app-button variant="primary" label="Approve & post refund" (clicked)="approveRefund(row)" [fullWidth]="true" />
+    </div>
+  }
+</app-drawer>

@@ -1,1 +1,28 @@
 @use '../../stub-pages';
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.header-link {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-blue);
+  background: var(--surface-overlay);
+  border: 1px solid var(--color-stroke);
+  border-radius: 8px;
+  padding: 8px 14px;
+  text-decoration: none;
+
+  &:hover { background: var(--surface-raised); }
+}

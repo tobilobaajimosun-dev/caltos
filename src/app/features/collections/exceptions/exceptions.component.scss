@@ -1,1 +1,115 @@
 @use '../../stub-pages';
+
+.tab-bar {
+  padding: var(--space-6) var(--space-8) 0;
+}
+
+.actions-cell {
+  text-align: right;
+}
+
+.see-more-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-blue);
+  background: none;
+  border: 1px solid var(--color-stroke);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+}
+
+.trend-tag {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+
+  &.up { color: var(--color-error); }
+  &.down { color: var(--color-success); }
+}
+
+.exception-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-stroke);
+}
+
+.detail-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.detail-value {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detail-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.detail-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.resolution-note {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  background: var(--surface-overlay);
+  border-radius: 8px;
+  padding: var(--space-3);
+  margin: 0;
+}
+
+.audit-trail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.audit-entry {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.audit-at {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.audit-who {
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.audit-action {
+  color: var(--text-primary);
+}

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   KpiCardComponent,
   ProgressBarComponent,
@@ -19,7 +19,7 @@ interface RepaymentRow {
 @Component({
   selector: 'app-loan-detail',
   standalone: true,
-  imports: [KpiCardComponent, ProgressBarComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent],
+  imports: [RouterLink, KpiCardComponent, ProgressBarComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-detail.component.html',
   styleUrl: './loan-detail.component.scss',

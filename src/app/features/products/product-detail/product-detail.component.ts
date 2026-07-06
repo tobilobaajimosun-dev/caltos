@@ -1,10 +1,25 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ChartDataPoint, ColumnTitleComponent, TableItemComponent, TableItemUser } from '../../../shared/components';
+import { TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ChartDataPoint, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus } from '../../../shared/components';
 import { ProductsService, ProductStats, ProductStatus } from '../../../shared/services/products.service';
 
-type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'legal' | 'activity' | 'vendors';
+type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors';
+
+interface ChannelPerformance {
+  channel: string;
+  status: 'connected' | 'pending';
+  expected: number;
+  collected: number;
+  successRateTrend: ChartDataPoint[];
+}
+
+interface RecentException {
+  customer: string;
+  reason: string;
+  amount: string;
+  status: BadgeStatus;
+}
 
 interface ActiveLoanRow {
   id: string;
@@ -196,7 +211,7 @@ const BNPL_SAMPLE_VENDORS: Vendor[] = [
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ColumnTitleComponent, TableItemComponent],
+  imports: [RouterLink, FormsModule, TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
@@ -218,6 +233,15 @@ export class ProductDetailComponent implements OnInit {
   ];
 
   activeLoans: ActiveLoanRow[] = [];
+
+  channelPerformance: ChannelPerformance[] = [];
+  overdueRate = 0;
+  overdueBuckets = { d30: 0, d60: 0, d90: 0 };
+  avgDaysToFirstMissed = 0;
+  recentExceptions: RecentException[] = [];
+  lastReconciliationRun = '';
+  outstandingVarianceCount = 0;
+  outstandingVarianceValue = '₦0';
 
   // Vendor management state
   showOnboardModal = false;
@@ -300,7 +324,42 @@ export class ProductDetailComponent implements OnInit {
       }
 
       this.activeLoans = this.buildMockActiveLoans();
+      this.buildCollectionsData();
     });
+  }
+
+  private buildCollectionsData() {
+    this.channelPerformance = this.product.deductionChannels.map((ch, i) => {
+      const expected = 1_500_000 + i * 620_000;
+      const variancePct = ch.status === 'connected' ? 0.92 - i * 0.05 : 0.6;
+      return {
+        channel: ch.label,
+        status: ch.status === 'connected' ? 'connected' : 'pending',
+        expected,
+        collected: Math.round(expected * variancePct),
+        successRateTrend: [
+          { label: '3mo ago', value: Math.round((variancePct - 0.06) * 100) },
+          { label: '2mo ago', value: Math.round((variancePct - 0.02) * 100) },
+          { label: 'Last mo', value: Math.round(variancePct * 100) },
+        ],
+      };
+    });
+
+    const overdueCount = this.activeLoans.filter((l) => l.status === 'overdue').length;
+    this.overdueRate = this.activeLoans.length ? Math.round((overdueCount / this.activeLoans.length) * 100) : 0;
+    this.overdueBuckets = { d30: overdueCount, d60: Math.max(0, overdueCount - 1), d90: Math.max(0, overdueCount - 2) };
+    this.avgDaysToFirstMissed = 34;
+
+    this.recentExceptions = this.activeLoans.slice(0, 10).map((loan, i) => ({
+      customer: loan.customer.name,
+      reason: i % 2 === 0 ? 'Amount mismatch vs. schedule' : 'Failed deduction — insufficient balance',
+      amount: loan.outstanding,
+      status: i % 2 === 0 ? 'pending' : 'overdue',
+    }));
+
+    this.lastReconciliationRun = '2026-07-04 06:00';
+    this.outstandingVarianceCount = 3;
+    this.outstandingVarianceValue = '₦186,500';
   }
 
   private buildMockActiveLoans(): ActiveLoanRow[] {

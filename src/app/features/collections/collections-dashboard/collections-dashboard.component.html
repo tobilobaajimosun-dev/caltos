@@ -1,46 +1,123 @@
 <div class="page-header">
-  <h1 class="page-title">Collections</h1>
-  <p class="page-subtitle">Monitor overdue accounts and collections performance.</p>
+  <div>
+    <h1 class="page-title">Collections</h1>
+    <p class="page-subtitle">Real-time visibility across every deduction channel.</p>
+  </div>
+  <app-tabs [tabs]="periodTabs" [activeTab]="period()" (activeTabChange)="setPeriod($event)" />
 </div>
 
 <div class="kpi-row">
-  <app-kpi-card label="Total overdue" value="₦1.4M" />
-  <app-kpi-card label="Overdue accounts" value="81" />
-  <app-kpi-card label="Recovery rate (30d)" value="76.3%" />
-  <app-kpi-card label="Avg. days overdue" value="19" />
+  <app-kpi-card label="Total expected" [value]="'₦' + (totalExpected() | number: '1.0-0')" />
+  <app-kpi-card label="Total collected" [value]="'₦' + (totalCollected() | number: '1.0-0')" />
+  <app-kpi-card label="Variance" [value]="(variancePct() | number: '1.1-1') + '%'" />
+  <app-kpi-card label="Failure rate" [value]="(failureRate() | number: '1.1-1') + '%'" />
 </div>
 
 <div class="panel">
   <div class="panel-head">
-    <p class="panel-title">Overdue by age bucket</p>
+    <p class="panel-title">Per-channel performance</p>
   </div>
-  <app-chart type="bar" [data]="overdueByAge" color="var(--color-error)" />
+  <div class="channel-grid">
+    @for (tile of channelTiles; track tile.channel) {
+      <div class="channel-tile">
+        <p class="channel-name">{{ tile.channel }}</p>
+        <p class="channel-figure">₦{{ tile.collected | number: '1.0-0' }} <span>/ ₦{{ tile.expected | number: '1.0-0' }}</span></p>
+        <app-progress-bar [value]="tile.collected" [max]="tile.expected" [color]="tile.successRate >= 90 ? 'var(--color-success)' : tile.successRate >= 80 ? 'var(--color-warning)' : 'var(--color-error)'" />
+        <div class="channel-meta">
+          <span>{{ tile.successRate }}% success</span>
+          <span>Last: {{ tile.lastDeduction }}</span>
+        </div>
+      </div>
+    }
+  </div>
 </div>
 
 <div class="panel table-panel">
   <div class="panel-head">
-    <p class="panel-title">Most overdue accounts</p>
+    <p class="panel-title">Delinquency buckets</p>
   </div>
   <table class="ref-table">
     <thead>
       <tr>
-        <th><app-column-title label="Customer" /></th>
-        <th><app-column-title label="Product" /></th>
-        <th><app-column-title label="Days overdue" /></th>
-        <th><app-column-title label="Amount" /></th>
-        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Bucket" /></th>
+        <th><app-column-title label="Loan count" /></th>
+        <th><app-column-title label="Outstanding" /></th>
+        <th><app-column-title label="Channel breakdown" /></th>
       </tr>
     </thead>
     <tbody>
-      @for (row of topOverdue; track row.customer.email) {
+      @for (bucket of delinquencyBuckets; track bucket.label) {
         <tr>
-          <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
-          <td><app-table-item type="text" [text]="row.product" /></td>
-          <td><app-table-item type="text" [text]="row.daysOverdue + ' days'" /></td>
-          <td><app-table-item type="amount" [amount]="row.amount" /></td>
-          <td><app-status-badge [status]="row.status" /></td>
+          <td><app-table-item type="text" [text]="bucket.label" /></td>
+          <td><app-table-item type="text" [text]="bucket.loanCount + ' loans'" /></td>
+          <td><app-table-item type="amount" [amount]="'₦' + (bucket.outstanding | number: '1.0-0')" /></td>
+          <td>
+            <div class="channel-chips">
+              @for (entry of bucket.channelBreakdown | keyvalue; track entry.key) {
+                <span class="channel-chip">{{ entry.key }} {{ entry.value }}</span>
+              }
+            </div>
+          </td>
         </tr>
       }
     </tbody>
   </table>
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Failed deduction queue</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Loan" /></th>
+        <th><app-column-title label="Borrower" /></th>
+        <th><app-column-title label="Channel" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Reason" /></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of failedDeductions; track row.loanId) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.loanId" /></td>
+          <td><app-table-item type="user-avatar" [user]="row.borrower" /></td>
+          <td><app-table-item type="text" [text]="row.channel" /></td>
+          <td><app-table-item type="amount" [amount]="row.amount" /></td>
+          <td><app-status-badge [status]="channelBadgeStatus(row.reason)" [label]="row.reason" /></td>
+          <td class="actions-cell">
+            @if (row.resolved) {
+              <span class="resolved-tag">{{ row.resolved === 'retried' ? 'Retried' : row.resolved === 'escalated' ? 'Escalated' : 'Written off' }}</span>
+            } @else {
+              <div class="row-actions">
+                <app-button variant="outline" label="Retry" (clicked)="resolve(row, 'retried')" />
+                <app-button variant="outline" label="Escalate" (clicked)="resolve(row, 'escalated')" />
+                <app-button variant="text" label="Write off" (clicked)="resolve(row, 'written-off')" />
+              </div>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Recovery pipeline</p>
+    <p class="panel-sub">Delinquent loans by bucket with assigned recovery officer</p>
+  </div>
+  <div class="pipeline-funnel">
+    @for (stage of pipeline; track stage.bucket) {
+      <div class="pipeline-stage">
+        <div class="pipeline-row-head">
+          <span class="pipeline-bucket">{{ stage.bucket }}</span>
+          <span class="pipeline-officer">{{ stage.officer }}</span>
+        </div>
+        <app-progress-bar [value]="stage.count" [max]="maxPipelineCount" [label]="stage.count + ' loans'" />
+      </div>
+    }
+  </div>
 </div>

@@ -1,6 +1,6 @@
 <div class="page-header">
   <h1 class="page-title">Employer Portal</h1>
-  <p class="page-subtitle">Manage employer relationships and payroll deduction agreements.</p>
+  <p class="page-subtitle">Monitor deduction performance and manage employer relationships.</p>
 </div>
 
 <div class="kpi-row">
@@ -18,15 +18,19 @@
       <tr>
         <th><app-column-title label="Employer" /></th>
         <th><app-column-title label="Employees" /></th>
-        <th><app-column-title label="Deduction channel" /></th>
+        <th><app-column-title label="Active loans" /></th>
+        <th><app-column-title label="Collection rate" /></th>
+        <th><app-column-title label="Channel" /></th>
         <th><app-column-title label="Status" /></th>
       </tr>
     </thead>
     <tbody>
       @for (row of employers; track row.name) {
-        <tr>
+        <tr class="clickable-row" (click)="open(row)">
           <td><app-table-item type="text" [text]="row.name" /></td>
           <td><app-table-item type="text" [text]="row.employees.toString()" /></td>
+          <td><app-table-item type="text" [text]="row.activeLoans + ''" /></td>
+          <td><app-table-item type="text" [text]="row.collectionRate + '%'" /></td>
           <td><app-table-item type="text" [text]="row.deductionChannel" /></td>
           <td><app-status-badge [status]="row.status" /></td>
         </tr>
@@ -34,3 +38,75 @@
     </tbody>
   </table>
 </div>
+
+<app-drawer [isOpen]="!!selected()" [title]="selected()?.name ?? ''" (closed)="close()" width="480px">
+  @if (selected(); as employer) {
+    <div class="employer-detail">
+      <div class="detail-kpis">
+        <div class="detail-kpi">
+          <span class="detail-kpi-label">Expected this month</span>
+          <span class="detail-kpi-value">₦{{ employer.expectedThisMonth.toLocaleString() }}</span>
+        </div>
+        <div class="detail-kpi">
+          <span class="detail-kpi-label">Actual this month</span>
+          <span class="detail-kpi-value">₦{{ employer.actualThisMonth.toLocaleString() }}</span>
+        </div>
+        <div class="detail-kpi">
+          <span class="detail-kpi-label">Active mandates</span>
+          <span class="detail-kpi-value">{{ employer.activeMandates }}</span>
+        </div>
+        <div class="detail-kpi">
+          <span class="detail-kpi-label">Overdue borrowers</span>
+          <span class="detail-kpi-value">{{ employer.overdueBorrowers }}</span>
+        </div>
+      </div>
+
+      @if (employer.monthlyTrend.length) {
+        <div class="detail-section">
+          <p class="detail-section-title">Monthly collection achievement</p>
+          <app-chart type="line" [data]="employer.monthlyTrend" />
+        </div>
+      }
+
+      <div class="detail-section">
+        <p class="detail-section-title">Integration status</p>
+        <div class="integration-chips">
+          @for (channel of channels; track channel) {
+            @if (employer.integrations[channel]) {
+              <span class="integration-chip" [class.connected]="employer.integrations[channel] === 'connected'">
+                {{ channel }} — {{ employer.integrations[channel] === 'connected' ? 'Connected' : 'Pending' }}
+              </span>
+            }
+          }
+        </div>
+      </div>
+
+      @if (employer.upcomingDeductions.length) {
+        <div class="detail-section">
+          <p class="detail-section-title">Upcoming deductions</p>
+          <div class="upcoming-list">
+            @for (row of employer.upcomingDeductions; track row.borrower + row.expectedDate) {
+              <div class="upcoming-row">
+                <span class="upcoming-borrower">{{ row.borrower }}</span>
+                <span class="upcoming-amount">{{ row.amount }}</span>
+                <span class="upcoming-date">{{ row.expectedDate }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="detail-section">
+        <p class="detail-section-title">Partnership contacts</p>
+        <div class="contact-row">
+          <span class="contact-label">Primary contact</span>
+          <span class="contact-value">{{ employer.contact.name }} · {{ employer.contact.email }}</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">Escalation contact</span>
+          <span class="contact-value">{{ employer.escalationContact.name }} · {{ employer.escalationContact.email }}</span>
+        </div>
+      </div>
+    </div>
+  }
+</app-drawer>

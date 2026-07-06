@@ -9,8 +9,11 @@ import { ProductDetailComponent } from './features/products/product-detail/produ
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
 import { CreateBnplComponent } from './features/products/create-bnpl/create-bnpl.component';
 import { ApplyComponent } from './features/apply/apply.component';
+import { RepaymentPortalComponent } from './features/portal/repayment-portal/repayment-portal.component';
 import { LoanListComponent } from './features/loans/loan-list/loan-list.component';
 import { LoanDetailComponent } from './features/loans/loan-detail/loan-detail.component';
+import { RefundsComponent } from './features/loans/refunds/refunds.component';
+import { MandatesComponent } from './features/loans/mandates/mandates.component';
 import { BulkMandatesComponent } from './features/loans/bulk-mandates/bulk-mandates.component';
 import { CollectionsDashboardComponent } from './features/collections/collections-dashboard/collections-dashboard.component';
 import { ReconciliationComponent } from './features/collections/reconciliation/reconciliation.component';
@@ -35,6 +38,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: LandingComponent },
   // Public, unauthenticated flows — no shell chrome
   { path: 'apply', component: ApplyComponent },
+  { path: 'portal/repayments', component: RepaymentPortalComponent },
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'onboarding', component: OnboardingComponent },
@@ -58,6 +62,8 @@ export const routes: Routes = [
       { path: 'products/:id', component: ProductDetailComponent },
       { path: 'loans', component: LoanListComponent },
       { path: 'loans/:id', component: LoanDetailComponent },
+      { path: 'loans/:id/refunds', component: RefundsComponent },
+      { path: 'loans/:id/mandates', component: MandatesComponent },
       { path: 'mandates/bulk', component: BulkMandatesComponent },
       { path: 'collections', component: CollectionsDashboardComponent },
       { path: 'collections/reconciliation', component: ReconciliationComponent },

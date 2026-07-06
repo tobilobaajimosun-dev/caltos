@@ -1,0 +1,65 @@
+<div class="portal-shell">
+  <div class="portal-header">
+    <div>
+      <p class="portal-eyebrow">Caltos</p>
+      <h1 class="portal-title">Welcome back, {{ borrowerName.split(' ')[0] }}</h1>
+      <p class="portal-subtitle">{{ product }}</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <app-alert-banner
+      type="info"
+      title="Next payment due {{ nextDueDate }}"
+      message="You're on a {{ paymentStreak }}-month on-time payment streak — keep it going!"
+      [dismissible]="false"
+    />
+  </div>
+
+  <div class="kpi-row">
+    <app-kpi-card label="Outstanding principal" [value]="'₦' + outstandingPrincipal.toLocaleString()" />
+    <app-kpi-card label="Interest" [value]="'₦' + outstandingInterest.toLocaleString()" />
+    <app-kpi-card label="Fees" [value]="'₦' + outstandingFees.toLocaleString()" />
+    <app-kpi-card label="Total outstanding" [value]="'₦' + totalOutstanding.toLocaleString()" />
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Mandate status</p>
+    </div>
+    <div class="mandate-row">
+      <span class="mandate-channel">{{ mandateChannel }}</span>
+      <app-status-badge [status]="mandateStatus" label="Active — deductions on schedule" />
+    </div>
+  </div>
+
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Repayment history</p>
+      <div class="statement-actions">
+        <app-button variant="outline" label="Download CSV" (clicked)="downloadStatement('csv')" />
+        <app-button variant="outline" label="Download PDF" (clicked)="downloadStatement('pdf')" />
+      </div>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Date" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Status" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of history; track row.date + row.amount) {
+          <tr>
+            <td><app-table-item type="date" [date]="row.date" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+            <td><app-status-badge [status]="row.status" [label]="statusLabel(row.status)" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
