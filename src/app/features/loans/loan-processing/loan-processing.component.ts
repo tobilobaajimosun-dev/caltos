@@ -16,6 +16,8 @@ import {
   RoundTabsComponent,
   Tab,
 } from '../../../shared/components';
+import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
+import { Tick01Icon } from '@hugeicons/core-free-icons';
 
 type Stage = 'review' | 'credit' | 'approval' | 'offer' | 'disbursement' | 'disbursed' | 'rejected';
 type OfferStatus = 'not-sent' | 'sent' | 'signed' | 'expired';
@@ -71,13 +73,15 @@ interface Application {
   imports: [
     KpiCardComponent, AvatarComponent, DrawerComponent, ModalComponent, SelectComponent,
     InputComponent, TextareaComponent, CheckboxComponent, RadioButtonComponent, ButtonComponent,
-    StatusBadgeComponent, RoundTabsComponent,
+    StatusBadgeComponent, RoundTabsComponent, HiIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-processing.component.html',
   styleUrl: './loan-processing.component.scss',
 })
 export class LoanProcessingComponent {
+  readonly tickIcon: IconData = Tick01Icon as IconData;
+
   readonly mainTabs: Tab[] = [
     { label: 'Pipeline', value: 'pipeline' },
     { label: 'Approval Settings', value: 'settings' },

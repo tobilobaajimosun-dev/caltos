@@ -201,7 +201,7 @@
             @if (!loan.promiseFulfilled) {
               <app-button variant="primary" label="Mark promise fulfilled" (clicked)="markPromiseFulfilled(loan)" />
             } @else {
-              <span class="fulfilled-tag">✓ Fulfilled</span>
+              <span class="fulfilled-tag"><hi-icon [icon]="tickIcon" size="14" aria-hidden="true" /> Fulfilled</span>
             }
           </div>
         </div>

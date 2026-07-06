@@ -26,7 +26,7 @@
       <div class="panel-body">
         @if (filtered().length === 0) {
           <div class="empty-state">
-            <span class="empty-icon">🔔</span>
+            <span class="empty-icon"><hi-icon [icon]="bellIcon" size="24" aria-hidden="true" /></span>
             <p>You're all caught up</p>
           </div>
         } @else {
@@ -35,7 +35,7 @@
               <p class="notif-group-label">{{ group.label }}</p>
               @for (n of group.items; track n.id) {
                 <div class="notif-item" [class.unread]="!n.read" (click)="select(n)">
-                  <span class="notif-icon">{{ iconGlyph(n.icon) }}</span>
+                  <span class="notif-icon"><hi-icon [icon]="notifications.iconFor(n.icon)" size="18" aria-hidden="true" /></span>
                   <div class="notif-content">
                     <p class="notif-title" [class.bold]="!n.read">{{ n.title }}</p>
                     <p class="notif-subtitle">{{ n.subtitle }}</p>

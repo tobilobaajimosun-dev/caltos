@@ -17,6 +17,8 @@ import {
   CheckboxComponent,
   RadioButtonComponent,
 } from '../../shared/components';
+import { HiIconComponent, IconData } from '../../shared/components/hi-icon/hi-icon.component';
+import { Tick01Icon } from '@hugeicons/core-free-icons';
 
 type ParBucket = '1-30' | '31-60' | '61-90' | '90+';
 type CollectionsStage = 'overdue' | 'contacted' | 'promise-to-pay' | 'partial-payment' | 'resolved' | 'written-off';
@@ -62,13 +64,15 @@ interface MonthlyPar {
   imports: [
     ColumnTitleComponent, TableItemComponent, StatusBadgeComponent,
     RoundTabsComponent, DrawerComponent, ModalComponent, SelectComponent, InputComponent,
-    TextareaComponent, ButtonComponent, CheckboxComponent, RadioButtonComponent,
+    TextareaComponent, ButtonComponent, CheckboxComponent, RadioButtonComponent, HiIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './risk-monitor.component.html',
   styleUrl: './risk-monitor.component.scss',
 })
 export class RiskMonitorComponent {
+  readonly tickIcon: IconData = Tick01Icon as IconData;
+
   readonly mainTabs: Tab[] = [
     { label: 'Overview', value: 'overview' },
     { label: 'Overdue Loans', value: 'overdue' },

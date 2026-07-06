@@ -7,12 +7,13 @@ import {
   SelectComponent,
   SelectOption,
 } from '../../shared/components';
+import { HiIconComponent } from '../../shared/components/hi-icon/hi-icon.component';
 import { NotificationService, NotificationCategory, NotificationItem } from '../../shared/services/notification.service';
 
 @Component({
   selector: 'app-notifications-page',
   standalone: true,
-  imports: [ColumnTitleComponent, TableItemComponent, ButtonComponent, SelectComponent],
+  imports: [ColumnTitleComponent, TableItemComponent, ButtonComponent, SelectComponent, HiIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
@@ -80,19 +81,5 @@ export class NotificationsPageComponent {
   open(n: NotificationItem) {
     this.notifications.markAsRead(n.id);
     this.router.navigateByUrl(n.link);
-  }
-
-  iconGlyph(icon: NotificationItem['icon']): string {
-    switch (icon) {
-      case 'approved': return '✅';
-      case 'disbursed': return '💸';
-      case 'overdue': return '⚠️';
-      case 'repayment': return '💰';
-      case 'wallet-low': return '🔴';
-      case 'application': return '📋';
-      case 'approval-required': return '🔔';
-      case 'team-invite': return '👤';
-      case 'system': return '🔧';
-    }
   }
 }

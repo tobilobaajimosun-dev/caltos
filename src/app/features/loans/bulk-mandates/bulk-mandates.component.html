@@ -80,7 +80,12 @@
             <td><app-table-item type="text" [text]="row.loanId" /></td>
             <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
             <td><app-status-badge [status]="setupBadge(row.setupStatus).status" [label]="setupBadge(row.setupStatus).label" /></td>
-            <td><span class="link-check" [class.ok]="row.referenceLinked" [class.broken]="!row.referenceLinked">{{ row.referenceLinked ? '✓ Linked to active loan' : '✗ Not linked' }}</span></td>
+            <td>
+              <span class="link-check" [class.ok]="row.referenceLinked" [class.broken]="!row.referenceLinked">
+                <hi-icon [icon]="row.referenceLinked ? tickIcon : cancelIcon" size="14" aria-hidden="true" />
+                {{ row.referenceLinked ? 'Linked to active loan' : 'Not linked' }}
+              </span>
+            </td>
           </tr>
         }
       </tbody>

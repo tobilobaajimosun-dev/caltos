@@ -40,7 +40,7 @@
           <td class="col-check" (click)="$event.stopPropagation()">
             <input type="checkbox" [checked]="selectedIds().has(n.id)" (change)="toggleSelect(n.id, $any($event.target).checked)" />
           </td>
-          <td class="icon-cell">{{ iconGlyph(n.icon) }}</td>
+          <td class="icon-cell"><hi-icon [icon]="notifications.iconFor(n.icon)" size="18" aria-hidden="true" /></td>
           <td>
             <p class="msg-title">{{ n.title }}</p>
             <p class="msg-subtitle">{{ n.subtitle }}</p>

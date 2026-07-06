@@ -1,11 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Download01Icon } from '@hugeicons/core-free-icons';
+import { Download01Icon, MoneySend01Icon, Search01Icon, SignatureIcon, SmartPhone01Icon } from '@hugeicons/core-free-icons';
 import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, PaginationComponent,
   ModalComponent, SelectComponent, SelectOption, CheckboxComponent, ToggleComponent, BadgeStatus, IconData,
   SearchComponent, InputComponent, FileUploadComponent, AlertBannerComponent, StatusBadgeComponent,
 } from '../../shared/components';
+import { HiIconComponent } from '../../shared/components/hi-icon/hi-icon.component';
 import { AccountService } from '../../shared/services/account.service';
 
 type TxnType = 'Disbursement' | 'Check Fee' | 'Digisign' | 'Top-Up' | 'Withdrawal';
@@ -34,7 +35,7 @@ interface TopUpRecord {
   imports: [
     FormsModule, ButtonComponent, ColumnTitleComponent, TableItemComponent, PaginationComponent,
     ModalComponent, SelectComponent, CheckboxComponent, ToggleComponent, SearchComponent, InputComponent,
-    FileUploadComponent, AlertBannerComponent, StatusBadgeComponent,
+    FileUploadComponent, AlertBannerComponent, StatusBadgeComponent, HiIconComponent,
   ],
   templateUrl: './wallet.component.html',
   styleUrl: './wallet.component.scss',
@@ -77,11 +78,11 @@ export class WalletComponent {
   readonly lowBalanceActive = computed(() => this.parseAmount(this.account.balance()) < (Number(this.lowBalanceThreshold) || 0));
 
   // ── Spend summary ──
-  readonly spendCategories = [
-    { icon: '💸', label: 'Disbursements', amount: '₦4,200,000' },
-    { icon: '🔍', label: 'Eligibility Checks', amount: '₦12,400' },
-    { icon: '✍️', label: 'Digisign Fees', amount: '₦3,800' },
-    { icon: '📱', label: 'SMS/Notifications', amount: '₦950' },
+  readonly spendCategories: { icon: IconData; label: string; amount: string }[] = [
+    { icon: MoneySend01Icon as IconData, label: 'Disbursements', amount: '₦4,200,000' },
+    { icon: Search01Icon as IconData, label: 'Eligibility Checks', amount: '₦12,400' },
+    { icon: SignatureIcon as IconData, label: 'Digisign Fees', amount: '₦3,800' },
+    { icon: SmartPhone01Icon as IconData, label: 'SMS/Notifications', amount: '₦950' },
   ];
 
   // Notification settings form state

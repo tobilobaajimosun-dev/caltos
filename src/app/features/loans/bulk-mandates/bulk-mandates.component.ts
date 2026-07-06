@@ -13,6 +13,8 @@ import {
   ButtonComponent,
   CheckboxComponent,
 } from '../../../shared/components';
+import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
+import { Tick01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 
 type Channel = 'IPPIS' | 'Remita' | 'Dedukt' | 'WACS' | 'Direct Debit';
 type SetupStatus = 'configured' | 'pending' | 'missing' | 'broken';
@@ -64,12 +66,16 @@ interface RemittanceRow {
     SelectComponent,
     ButtonComponent,
     CheckboxComponent,
+    HiIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bulk-mandates.component.html',
   styleUrl: './bulk-mandates.component.scss',
 })
 export class BulkMandatesComponent {
+  readonly tickIcon: IconData = Tick01Icon as IconData;
+  readonly cancelIcon: IconData = Cancel01Icon as IconData;
+
   readonly tabs: Tab[] = [
     { label: 'Bulk Cancel', value: 'cancel' },
     { label: 'Dedukt Setup Status', value: 'setup' },
