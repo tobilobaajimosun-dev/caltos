@@ -15,6 +15,7 @@ import {
 } from '@hugeicons/core-free-icons';
 
 type ActiveTab = 'all' | 'live' | 'draft' | 'deactivated' | 'fees';
+type ProductTypeFilter = 'all' | 'loan' | 'bnpl';
 
 interface Fee {
   name: string;
@@ -24,6 +25,7 @@ interface Fee {
   minFee: string;
   maxFee: string;
   createdAt: string;
+  menuOpen?: boolean;
 }
 
 @Component({
@@ -65,6 +67,9 @@ export class ProductListComponent {
   toastVisible = false;
   toastMessage = '';
 
+  filterPanelOpen = false;
+  typeFilter: ProductTypeFilter = 'all';
+
   readonly fees: Fee[] = [
     { name: 'Admin Fees', type: 'Flat Fee', flatFee: '₦2,500', percentage: '-', minFee: '-', maxFee: '-', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
     { name: 'Processing Fee', type: 'Percentage', flatFee: '-', percentage: '1.50%', minFee: '₦750', maxFee: '₦1550', createdAt: 'Aug 29, 2024, 3:52:12 PM GMT' },
@@ -94,9 +99,52 @@ export class ProductListComponent {
     else if (this.activeTab === 'draft') list = list.filter((p) => p.status === 'draft');
     else if (this.activeTab === 'deactivated') list = list.filter((p) => p.status === 'deactivated');
 
+    if (this.typeFilter !== 'all') list = list.filter((p) => p.type === this.typeFilter);
+
     const q = this.searchQuery.trim().toLowerCase();
     if (q) list = list.filter((p) => p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
     return list;
+  }
+
+  toggleFilterPanel() {
+    this.filterPanelOpen = !this.filterPanelOpen;
+  }
+
+  setTypeFilter(type: ProductTypeFilter) {
+    this.typeFilter = type;
+  }
+
+  exportCsv() {
+    const rows = this.filteredProducts;
+    const header = 'Product ID,Name,Type,Status,Interest Rate,Min Amount,Max Amount,Active Loans,Total Disbursed,Collection Rate\n';
+    const body = rows.map((p) =>
+      `${p.id},"${p.name}",${p.type},${p.status},${p.interestRate}%,${p.minAmount},${p.maxAmount},${p.stats.activeLoans},${p.stats.totalDisbursed},${p.stats.collectionRate}%`,
+    ).join('\n');
+    const blob = new Blob([header + body], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `products-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.showToast(`Exported ${rows.length} product${rows.length === 1 ? '' : 's'}.`);
+  }
+
+  toggleFeeMenu(event: Event, fee: Fee) {
+    event.stopPropagation();
+    const wasOpen = fee.menuOpen;
+    this.fees.forEach((f) => (f.menuOpen = false));
+    fee.menuOpen = !wasOpen;
+  }
+
+  editFee(fee: Fee) {
+    fee.menuOpen = false;
+    this.showToast(`Editing "${fee.name}" is coming soon.`);
+  }
+
+  deleteFee(fee: Fee) {
+    fee.menuOpen = false;
+    this.showToast(`"${fee.name}" removed.`);
   }
 
   get showProductGrid(): boolean {
@@ -130,7 +178,11 @@ export class ProductListComponent {
     this.router.navigate(['/products/create'], { queryParams: { id: product.id } });
   }
 
-  closeDropdown() { this.openDropdownId = null; }
+  closeDropdown() {
+    this.openDropdownId = null;
+    this.filterPanelOpen = false;
+    this.fees.forEach((f) => (f.menuOpen = false));
+  }
 
   toggleDropdown(event: Event, productId: string) {
     event.stopPropagation();

@@ -73,8 +73,18 @@
       } @else {
         <div class="tabs-row-actions">
           <app-search placeholder="Search by name or product ID" [value]="searchQuery" (valueChange)="searchQuery = $event" />
-          <app-button variant="filter" label="Filter" />
-          <app-button variant="primary" label="Export CSV" [icon]="downloadIcon" />
+          <div class="filter-dropdown-wrap" (click)="$event.stopPropagation()">
+            <app-button variant="filter" label="Filter" (clicked)="toggleFilterPanel()" />
+            @if (filterPanelOpen) {
+              <div class="filter-panel">
+                <p class="filter-panel-label">Product type</p>
+                <button type="button" class="filter-option" [class.active]="typeFilter === 'all'" (click)="setTypeFilter('all')">All types</button>
+                <button type="button" class="filter-option" [class.active]="typeFilter === 'loan'" (click)="setTypeFilter('loan')">Loan</button>
+                <button type="button" class="filter-option" [class.active]="typeFilter === 'bnpl'" (click)="setTypeFilter('bnpl')">BNPL</button>
+              </div>
+            }
+          </div>
+          <app-button variant="primary" label="Export CSV" [icon]="downloadIcon" (clicked)="exportCsv()" />
         </div>
       }
     </div>
@@ -223,9 +233,17 @@
                 <td>{{ fee.maxFee }}</td>
                 <td class="col-date">{{ fee.createdAt }}</td>
                 <td class="col-actions">
-                  <button class="more-btn">
-                    <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
-                  </button>
+                  <div class="dropdown-wrap">
+                    <button class="more-btn" (click)="toggleFeeMenu($event, fee)">
+                      <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
+                    </button>
+                    @if (fee.menuOpen) {
+                      <div class="row-dropdown" (click)="$event.stopPropagation()">
+                        <button class="dropdown-item" (click)="editFee(fee)">Edit fee</button>
+                        <button class="dropdown-item danger" (click)="deleteFee(fee)">Delete fee</button>
+                      </div>
+                    }
+                  </div>
                 </td>
               </tr>
             }

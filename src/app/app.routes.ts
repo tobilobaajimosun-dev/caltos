@@ -14,6 +14,8 @@ import { LoanListComponent } from './features/loans/loan-list/loan-list.componen
 import { LoanDetailComponent } from './features/loans/loan-detail/loan-detail.component';
 import { RefundsComponent } from './features/loans/refunds/refunds.component';
 import { MandatesComponent } from './features/loans/mandates/mandates.component';
+import { RepaymentManagementComponent } from './features/loans/repayment-management/repayment-management.component';
+import { LoanProcessingComponent } from './features/loans/loan-processing/loan-processing.component';
 import { BulkMandatesComponent } from './features/loans/bulk-mandates/bulk-mandates.component';
 import { CollectionsDashboardComponent } from './features/collections/collections-dashboard/collections-dashboard.component';
 import { ReconciliationComponent } from './features/collections/reconciliation/reconciliation.component';
@@ -61,6 +63,8 @@ export const routes: Routes = [
       { path: 'products/create-bnpl', component: CreateBnplComponent },
       { path: 'products/:id', component: ProductDetailComponent },
       { path: 'loans', component: LoanListComponent },
+      { path: 'loans/repayments', component: RepaymentManagementComponent },
+      { path: 'loans/processing', component: LoanProcessingComponent },
       { path: 'loans/:id', component: LoanDetailComponent },
       { path: 'loans/:id/refunds', component: RefundsComponent },
       { path: 'loans/:id/mandates', component: MandatesComponent },

@@ -421,6 +421,49 @@
   &:hover { background: #f0f0f0; }
 }
 
+.filter-dropdown-wrap {
+  position: relative;
+}
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  width: 180px;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filter-panel-label {
+  font-size: 11px;
+  color: var(--color-grey-header);
+  margin: 4px 8px 6px;
+}
+
+.filter-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 8px;
+  border-radius: 7px;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-body);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+  &.active { color: var(--color-blue); font-weight: 600; background: var(--surface-overlay); }
+}
+
 /* ── Row dropdown ── */
 .dropdown-wrap {
   position: relative;

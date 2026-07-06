@@ -1,0 +1,272 @@
+<div class="page-header">
+  <h1 class="page-title">Repayment Management</h1>
+  <p class="page-subtitle">Record payments, track due schedules, and manage automated reminders.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Due today" [value]="dueToday().length + ' loans'" />
+  <app-kpi-card label="Overdue" [value]="overdueCount + ' loans'" />
+  <app-kpi-card label="Collected this month" [value]="collectedPct + '% of expected'" />
+  <app-kpi-card label="Avg. days late" [value]="avgDaysLate" />
+</div>
+
+<div class="tab-bar">
+  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
+</div>
+
+@if (activeTab() === 'dashboard') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Due today</p>
+      <div class="unpaid-toggle">
+        <span>Unpaid only</span>
+        <app-toggle [checked]="showUnpaidOnly()" (checkedChange)="showUnpaidOnly.set($event)" />
+      </div>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Loan" /></th>
+          <th><app-column-title label="Amount due" /></th>
+          <th><app-column-title label="Amount paid" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of visibleDueToday(); track row.loanId) {
+          <tr>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.loanId" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + row.amountDue.toLocaleString()" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + row.amountPaid.toLocaleString()" /></td>
+            <td class="actions-cell"><app-button variant="primary" label="Record payment" (clicked)="openRecordPayment(row)" /></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="5" class="empty-cell">Nothing due today.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Upcoming (next 7 days)</p>
+    </div>
+    <div class="upcoming-strip">
+      @for (day of upcoming; track day.date) {
+        <div class="upcoming-day">
+          <span class="upcoming-date">{{ day.date }}</span>
+          <span class="upcoming-count">{{ day.count }} due</span>
+          <span class="upcoming-total">₦{{ day.total.toLocaleString() }}</span>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (activeTab() === 'import') {
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Bulk payment import</p>
+      <p class="panel-sub">Upload a Remita/IPPIS batch file (CSV) to process repayments in bulk</p>
+    </div>
+    <app-file-upload label="Upload CSV file" accept=".csv" (fileSelected)="onFileSelected($event)" />
+  </div>
+
+  @if (importPreview().length) {
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Import preview</p>
+        <p class="panel-sub">{{ importMatchedCount() }} matched · {{ importErrorCount() }} error{{ importErrorCount() === 1 ? '' : 's' }}</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th><app-column-title label="Loan ID" /></th>
+            <th><app-column-title label="Customer" /></th>
+            <th><app-column-title label="Amount" /></th>
+            <th><app-column-title label="Status" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of importPreview(); track row.loanId) {
+            <tr>
+              <td><app-table-item type="text" [text]="row.loanId" /></td>
+              <td><app-table-item type="text" [text]="row.customer" /></td>
+              <td><app-table-item type="text" [text]="row.amount || '—'" /></td>
+              <td>
+                @if (row.matched) {
+                  <app-status-badge status="successful" label="Matched" />
+                } @else {
+                  <app-status-badge status="failed" [label]="row.error ?? 'Error'" />
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="import-actions">
+        <app-button variant="primary" [label]="'Confirm import (' + importMatchedCount() + ')'" (clicked)="confirmImport()" />
+      </div>
+    </div>
+  }
+}
+
+@if (activeTab() === 'reminders') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Reminder rules</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Trigger" /></th>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Template" /></th>
+          <th><app-column-title label="Status" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rule of reminderRules(); track rule.id) {
+          <tr>
+            <td><app-table-item type="text" [text]="ruleLabel(rule)" /></td>
+            <td><app-table-item type="text" [text]="rule.channel" /></td>
+            <td><app-table-item type="text" [text]="rule.template" /></td>
+            <td><app-toggle [checked]="rule.active" (checkedChange)="toggleRule(rule, $event)" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Reminder log</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Date sent" /></th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Loan" /></th>
+          <th><app-column-title label="Channel" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th><app-column-title label="Paid within 24h" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of reminderLog; track row.date + row.loanId) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.date" /></td>
+            <td><app-table-item type="text" [text]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.loanId" /></td>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+            <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Delivered' : 'Failed'" /></td>
+            <td><app-table-item type="text" [text]="row.paidWithin24h ? 'Yes' : 'No'" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">SMS templates</p>
+    </div>
+    <div class="template-list">
+      @for (tpl of smsTemplates; track tpl.stage) {
+        <div class="template-card">
+          <p class="template-stage">{{ tpl.stage }}</p>
+          <p class="template-text">{{ tpl.text }}</p>
+          <div class="template-meta">
+            <span>{{ charCount(tpl.text) }} chars</span>
+            <span>{{ smsCost(tpl.text) }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (activeTab() === 'schedule') {
+  <div class="panel schedule-toolbar">
+    <app-select [options]="rangeOptions" [value]="scheduleRange()" (valueChange)="scheduleRange.set($any($event))" />
+    <app-select [options]="groupOptions" [value]="groupBy()" (valueChange)="groupBy.set($any($event))" />
+    <app-button variant="outline" label="Export CSV" (clicked)="exportSchedule()" />
+  </div>
+
+  @for (group of groupedSchedule().entries; track group[0]) {
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">{{ groupedSchedule().label }}: {{ group[0] }}</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th><app-column-title label="Customer" /></th>
+            <th><app-column-title label="Loan" /></th>
+            <th><app-column-title label="Product" /></th>
+            <th><app-column-title label="Officer" /></th>
+            <th><app-column-title label="Amount" /></th>
+            <th><app-column-title label="Due date" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of group[1]; track row.loanId) {
+            <tr>
+              <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+              <td><app-table-item type="text" [text]="row.loanId" /></td>
+              <td><app-table-item type="text" [text]="row.product" /></td>
+              <td><app-table-item type="text" [text]="row.officer" /></td>
+              <td><app-table-item type="amount" [amount]="row.amount" /></td>
+              <td><app-table-item type="date" [date]="row.dueDate" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<app-drawer [isOpen]="!!recording()" title="Record payment" (closed)="closeRecordPayment()">
+  @if (recording(); as row) {
+    @if (lastConfirmation(); as conf) {
+      <div class="confirmation">
+        <p class="confirmation-title">Payment recorded</p>
+        <div class="detail-row"><span class="detail-label">Loan</span><span class="detail-value">{{ conf.loanId }}</span></div>
+        <div class="detail-row"><span class="detail-label">Remaining balance</span><span class="detail-value">₦{{ conf.newBalance.toLocaleString() }}</span></div>
+        <div class="detail-row"><span class="detail-label">Next due date</span><span class="detail-value">{{ conf.nextDue }}</span></div>
+        <div class="confirmation-actions">
+          <app-button variant="outline" label="Record another" (clicked)="recordAnother()" />
+          <app-button variant="primary" label="Done" (clicked)="closeRecordPayment()" />
+        </div>
+      </div>
+    } @else {
+      <div class="record-payment-form">
+        <div class="detail-row">
+          <span class="detail-label">Customer</span>
+          <span class="detail-value">{{ row.customer.name }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Loan ID</span>
+          <span class="detail-value">{{ row.loanId }}</span>
+        </div>
+
+        <app-input label="Amount paid" type="number" [value]="paymentAmount()" (valueChange)="paymentAmount.set($event)" />
+        @if (paymentDelta < 0) {
+          <p class="payment-note partial">Partial payment — ₦{{ (-paymentDelta).toLocaleString() }} remaining after this.</p>
+        } @else if (paymentDelta > 0) {
+          <p class="payment-note over">Overpayment — ₦{{ paymentDelta.toLocaleString() }} will apply to the next instalment.</p>
+        }
+
+        <app-select [options]="methodOptions" [value]="paymentMethod()" (valueChange)="paymentMethod.set($any($event))" />
+        <app-input label="Bank reference / transaction ID" [value]="paymentReference()" (valueChange)="paymentReference.set($event)" />
+        <app-textarea label="Notes (optional)" [value]="paymentNotes()" (valueChange)="paymentNotes.set($event)" />
+
+        <app-button variant="primary" label="Confirm payment" (clicked)="confirmPayment(row)" [fullWidth]="true" />
+      </div>
+    }
+  }
+</app-drawer>

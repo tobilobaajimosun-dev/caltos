@@ -1,6 +1,12 @@
 <div class="page-header">
-  <h1 class="page-title">Loans</h1>
-  <p class="page-subtitle">Track every loan from disbursement to final repayment.</p>
+  <div>
+    <h1 class="page-title">Loans</h1>
+    <p class="page-subtitle">Track every loan from disbursement to final repayment.</p>
+  </div>
+  <div class="header-actions">
+    <a class="header-link" [routerLink]="['/loans/processing']">Loan processing</a>
+    <a class="header-link" [routerLink]="['/loans/repayments']">Repayment management</a>
+  </div>
 </div>
 
 <div class="kpi-row">
@@ -17,9 +23,13 @@
   <app-chart type="line" [data]="disbursementTrend" />
 </div>
 
+<div class="status-tab-row">
+  <app-round-tabs [tabs]="statusTabs" [activeTab]="activeStatus()" (activeTabChange)="setStatus($event)" />
+</div>
+
 <div class="product-filter-row">
   <div class="product-pills">
-    @for (product of productTabs; track product) {
+    @for (product of productTabs(); track product) {
       <button
         type="button"
         class="product-pill"
@@ -30,10 +40,27 @@
     }
   </div>
   <div class="product-filter-actions">
-    <app-button variant="filter" label="Filter" />
-    <app-button variant="primary" label="Export CSV" [icon]="downloadIcon" />
+    <app-search placeholder="Search loan ID, customer, product..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
+    <div class="filter-selects">
+      <app-select [options]="channelOptions" [value]="channelFilter()" (valueChange)="channelFilter.set($event)" />
+      @if (activeStatus() === 'overdue') {
+        <app-select [options]="bucketOptions" [value]="bucketFilter()" (valueChange)="bucketFilter.set($event)" />
+      }
+    </div>
+    <app-button variant="primary" label="Export CSV" [icon]="downloadIcon" (clicked)="exportAll()" />
   </div>
 </div>
+
+@if (anySelected()) {
+  <div class="bulk-bar">
+    <span>{{ selectedCount() }} selected</span>
+    <div class="bulk-actions">
+      <button type="button" (click)="bulkExport()">Export</button>
+      <button type="button" (click)="bulkAssignOfficer()">Assign to recovery officer</button>
+      <button type="button" class="clear" (click)="clearSelection()">Clear</button>
+    </div>
+  </div>
+}
 
 <div class="panel table-panel">
   <div class="panel-head">
@@ -42,9 +69,11 @@
   <table class="loans-table">
     <thead>
       <tr>
+        <th></th>
         <th><app-column-title label="Customer" /></th>
         <th><app-column-title label="Loan ID" /></th>
         <th><app-column-title label="Product" /></th>
+        <th><app-column-title label="Channel" /></th>
         <th><app-column-title label="Amount" /></th>
         <th><app-column-title label="Status" /></th>
         <th><app-column-title label="Due date" /></th>
@@ -52,14 +81,19 @@
     </thead>
     <tbody>
       @for (loan of filteredLoans; track loan.id) {
-        <tr class="clickable-row" [routerLink]="['/loans', loan.id]">
-          <td><app-table-item type="user-avatar" [user]="loan.customer" /></td>
-          <td><app-table-item type="text" [text]="loan.id" /></td>
-          <td><app-table-item type="text" [text]="loan.product" /></td>
-          <td><app-table-item type="amount" [amount]="loan.amount" /></td>
-          <td><app-table-item type="status" [status]="loan.status" /></td>
-          <td><app-table-item type="date" [date]="loan.dueDate" /></td>
+        <tr class="clickable-row">
+          <td (click)="$event.stopPropagation()"><app-checkbox [checked]="!!loan.selected" (checkedChange)="toggleSelect(loan, $event)" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-table-item type="user-avatar" [user]="loan.customer" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-table-item type="text" [text]="loan.id" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-table-item type="text" [text]="loan.product" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-table-item type="text" [text]="loan.channel" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-table-item type="amount" [amount]="loan.amount" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-status-badge [status]="statusBadge(loan.status).status" [label]="statusBadge(loan.status).label" /></td>
+          <td [routerLink]="['/loans', loan.id]"><app-table-item type="date" [date]="loan.dueDate" /></td>
         </tr>
+      }
+      @empty {
+        <tr><td colspan="8" class="empty-cell">No loans match these filters.</td></tr>
       }
     </tbody>
   </table>

@@ -1,0 +1,281 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Loan Processing</h1>
+    <p class="page-subtitle">Application intake through disbursement — every stage, one pipeline.</p>
+  </div>
+  <app-button variant="primary" label="+ New application" (clicked)="openIntake()" />
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="In pipeline" [value]="applications().length" />
+  <app-kpi-card label="Disbursed" [value]="disbursedCount()" />
+  <app-kpi-card label="Rejected" [value]="rejectedCount()" />
+</div>
+
+<div class="tab-bar">
+  <app-round-tabs [tabs]="mainTabs" [activeTab]="mainTab()" (activeTabChange)="setMainTab($event)" />
+</div>
+
+@if (mainTab() === 'pipeline') {
+  <div class="pipeline-board">
+    @for (col of stageColumns; track col.stage) {
+      <div class="pipeline-column">
+        <div class="pipeline-column-head">
+          <p class="pipeline-column-title">{{ col.label }}</p>
+          <span class="pipeline-count">{{ applicationsIn(col.stage).length }}</span>
+        </div>
+        <div class="pipeline-cards">
+          @for (app of applicationsIn(col.stage); track app.id) {
+            <div class="pipeline-card" (click)="open(app)">
+              <div class="pipeline-card-head">
+                <app-avatar [name]="app.customer" size="sm" />
+                <span class="pipeline-card-name">{{ app.customer }}</span>
+              </div>
+              <p class="pipeline-card-product">{{ app.product }}</p>
+              <p class="pipeline-card-amount">₦{{ app.amount.toLocaleString() }}</p>
+              @if (col.stage === 'credit') {
+                <span class="risk-chip" [style.color]="riskColor(app.credit.riskLevel)">{{ app.credit.riskLevel }} risk</span>
+              }
+              @if (col.stage === 'offer') {
+                <app-status-badge [status]="app.offerStatus === 'signed' ? 'successful' : 'pending'" [label]="app.offerStatus === 'sent' ? 'Awaiting signature' : app.offerStatus === 'signed' ? 'Signed' : 'Not sent'" />
+              }
+            </div>
+          }
+          @empty {
+            <p class="pipeline-empty">No applications at this stage.</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (mainTab() === 'settings') {
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Approval levels</p>
+      <p class="panel-sub">Configure per product — determines how many approvers a loan needs</p>
+    </div>
+    <div class="settings-options">
+      @for (level of ['none', 'single', 'dual', 'committee']; track level) {
+        <div class="settings-radio">
+          <app-radio-button [selected]="approvalLevel() === level" (selectedChange)="approvalLevel.set($any(level))" [label]="level === 'none' ? 'None — auto-approve' : level === 'single' ? 'Single approver' : level === 'dual' ? 'Dual approval' : 'Committee review'" />
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Escalation rules</p>
+    </div>
+    <div class="escalation-row">
+      <span>Auto-escalate if pending for more than</span>
+      <app-input type="number" [value]="escalationHours()" (valueChange)="escalationHours.set($event)" />
+      <span>hours</span>
+    </div>
+  </div>
+}
+
+<app-drawer [isOpen]="!!selected()" [title]="selected()?.id ?? ''" width="480px" (closed)="close()">
+  @if (selected(); as app) {
+    <div class="app-detail">
+      <div class="detail-row"><span class="detail-label">Customer</span><span class="detail-value">{{ app.customer }}</span></div>
+      <div class="detail-row"><span class="detail-label">Product</span><span class="detail-value">{{ app.product }}</span></div>
+      <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">₦{{ app.amount.toLocaleString() }}</span></div>
+      <div class="detail-row"><span class="detail-label">Tenor</span><span class="detail-value">{{ app.tenor }} months</span></div>
+
+      @if (app.stage === 'rejected') {
+        <div class="rejected-banner">
+          <p>Rejected</p>
+          <p class="rejected-reason">{{ app.rejectionReason || 'No reason provided.' }}</p>
+        </div>
+      }
+
+      @if (app.stage === 'review') {
+        <div class="detail-section">
+          <p class="detail-section-title">Checklist</p>
+          <app-checkbox [checked]="app.checklist.bvn" label="BVN verified" (checkedChange)="toggleChecklistItem(app, 'bvn', $event)" />
+          <app-checkbox [checked]="app.checklist.kyc" label="KYC documents complete" (checkedChange)="toggleChecklistItem(app, 'kyc', $event)" />
+          <app-checkbox [checked]="app.checklist.eligibility" label="Eligibility check passed (Remita/IPPIS)" (checkedChange)="toggleChecklistItem(app, 'eligibility', $event)" />
+          <app-checkbox [checked]="app.checklist.activeLoanCheck" label="Active loan check passed" (checkedChange)="toggleChecklistItem(app, 'activeLoanCheck', $event)" />
+        </div>
+        <div class="detail-section">
+          <p class="detail-section-title">Officer notes</p>
+          <app-textarea [value]="app.officerNotes" (valueChange)="setOfficerNotes(app, $event)" placeholder="Add review notes..." />
+        </div>
+        @if (!showRejectForm()) {
+          <div class="detail-actions">
+            <app-button variant="primary" label="Approve for next level" [disabled]="!allChecklistDone" (clicked)="approveForNextLevel(app)" />
+            <app-button variant="outline" label="Return with comments" (clicked)="returnWithComments(app)" />
+            <app-button variant="text" label="Reject" (clicked)="showRejectForm.set(true)" />
+          </div>
+        } @else {
+          <div class="detail-section">
+            <app-textarea label="Rejection reason (required)" [value]="rejectReason()" (valueChange)="rejectReason.set($event)" />
+            <div class="detail-actions">
+              <app-button variant="primary" label="Confirm rejection" [disabled]="!rejectReason().trim()" (clicked)="rejectApplication(app)" />
+              <app-button variant="text" label="Cancel" (clicked)="showRejectForm.set(false)" />
+            </div>
+          </div>
+        }
+      }
+
+      @if (app.stage === 'credit') {
+        <div class="detail-section">
+          <p class="detail-section-title">Salary data (Remita)</p>
+          <div class="credit-grid">
+            <div class="credit-cell"><span>Employer</span><strong>{{ app.credit.employer }}</strong></div>
+            <div class="credit-cell"><span>Net salary</span><strong>₦{{ app.credit.netSalary.toLocaleString() }}</strong></div>
+            <div class="credit-cell"><span>Existing deductions</span><strong>₦{{ app.credit.existingDeductions.toLocaleString() }}</strong></div>
+            <div class="credit-cell"><span>Available salary</span><strong>₦{{ app.credit.availableSalary.toLocaleString() }}</strong></div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <p class="detail-section-title">Affordability</p>
+          <div class="credit-grid">
+            <div class="credit-cell"><span>Max loan amount</span><strong>₦{{ app.credit.maxLoanAmount.toLocaleString() }}</strong></div>
+            <div class="credit-cell"><span>Debt-service ratio</span><strong>{{ app.credit.dsr }}%</strong></div>
+            <div class="credit-cell"><span>Affordability score</span><strong>{{ app.credit.affordabilityScore }}/100</strong></div>
+            <div class="credit-cell">
+              <span>Risk level</span>
+              <strong [style.color]="riskColor(app.credit.riskLevel)">{{ app.credit.riskLevel }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <p class="detail-section-title">Manual override (optional)</p>
+          <app-textarea placeholder="Reason for overriding the automated assessment..." [value]="app.credit.overrideReason" (valueChange)="setOverrideReason(app, $event)" />
+        </div>
+        <div class="detail-actions">
+          <app-button variant="primary" label="Complete assessment" (clicked)="completeCreditAssessment(app)" />
+        </div>
+      }
+
+      @if (app.stage === 'approval') {
+        <div class="detail-section">
+          <p class="detail-section-title">Approval chain</p>
+          <div class="approval-chain">
+            @for (step of app.approvalChain; track step.approver) {
+              <div class="approval-step">
+                <span class="approval-approver">{{ step.approver }}</span>
+                <app-status-badge
+                  [status]="step.status === 'approved' ? 'successful' : step.status === 'rejected' ? 'failed' : 'pending'"
+                  [label]="step.status === 'approved' ? 'Approved' : step.status === 'rejected' ? 'Rejected' : 'Pending'" />
+              </div>
+            }
+          </div>
+        </div>
+        @if (!showRejectForm()) {
+          <div class="detail-actions">
+            <app-button variant="primary" label="Approve at this level" (clicked)="approveAtCurrentLevel(app)" />
+            <app-button variant="text" label="Reject" (clicked)="showRejectForm.set(true)" />
+          </div>
+        } @else {
+          <div class="detail-section">
+            <app-textarea label="Rejection reason (required)" [value]="rejectReason()" (valueChange)="rejectReason.set($event)" />
+            <div class="detail-actions">
+              <app-button variant="primary" label="Confirm rejection" [disabled]="!rejectReason().trim()" (clicked)="rejectAtApproval(app)" />
+              <app-button variant="text" label="Cancel" (clicked)="showRejectForm.set(false)" />
+            </div>
+          </div>
+        }
+      }
+
+      @if (app.stage === 'offer') {
+        <div class="detail-section">
+          <p class="detail-section-title">Offer letter preview</p>
+          <div class="offer-preview">
+            <p>Dear {{ app.customer }},</p>
+            <p>We are pleased to offer you a {{ app.product }} of ₦{{ app.amount.toLocaleString() }} over {{ app.tenor }} months, subject to the terms and conditions attached.</p>
+          </div>
+        </div>
+        <div class="detail-section">
+          <p class="detail-section-title">Signature status</p>
+          <div class="offer-tracker">
+            <span [class.active]="true">Generated</span>
+            <span [class.active]="app.offerStatus === 'sent' || app.offerStatus === 'signed'">Sent</span>
+            <span [class.active]="app.offerStatus === 'signed'">Signed</span>
+          </div>
+        </div>
+        <div class="detail-actions">
+          @if (app.offerStatus === 'not-sent') {
+            <app-button variant="primary" label="Send via Digisign" (clicked)="sendOfferLetter(app)" />
+          } @else if (app.offerStatus === 'sent') {
+            <app-button variant="primary" label="Mark as signed" (clicked)="markSigned(app)" />
+            <app-button variant="outline" label="Upload physically signed copy" />
+          }
+        </div>
+      }
+
+      @if (app.stage === 'disbursement') {
+        <div class="detail-section">
+          <p class="detail-section-title">Final checks</p>
+          <div class="check-row"><span>Signed offer letter</span><span class="check-ok">✓</span></div>
+          <div class="check-row"><span>Wallet balance sufficient</span><span class="check-ok">✓</span></div>
+          <div class="check-row"><span>Bank account verified</span><span class="check-ok">✓</span></div>
+        </div>
+        <div class="detail-section">
+          <p class="detail-section-title">Disbursement method</p>
+          <app-radio-button [selected]="app.disbursementMethod === 'salary'" label="Salary account" (selectedChange)="setDisbursementMethod(app, 'salary')" />
+          <app-radio-button [selected]="app.disbursementMethod === 'custom'" label="Custom account" (selectedChange)="setDisbursementMethod(app, 'custom')" />
+        </div>
+        @if (app.disbursementError) {
+          <p class="disbursement-error">{{ app.disbursementError }}</p>
+        }
+        <div class="detail-actions">
+          <app-button variant="primary" label="Disburse now" (clicked)="disburseNow(app)" [fullWidth]="true" />
+        </div>
+      }
+
+      @if (app.stage === 'disbursed') {
+        <div class="disbursed-banner">
+          <p>Disbursed successfully</p>
+          <p class="disbursed-ref">Loan reference: LN-{{ app.id }}</p>
+        </div>
+      }
+    </div>
+  }
+</app-drawer>
+
+<app-modal [isOpen]="showIntakeModal()" title="New loan application" (closed)="showIntakeModal.set(false)">
+  <div class="intake-steps">
+    <span [class.active]="intakeStep() >= 0">1. Customer</span>
+    <span [class.active]="intakeStep() >= 1">2. Product</span>
+    <span [class.active]="intakeStep() >= 2">3. Loan details</span>
+    <span [class.active]="intakeStep() >= 3">4. Review</span>
+  </div>
+
+  @if (intakeStep() === 0) {
+    <app-input label="Customer name" placeholder="Search existing or enter new..." [value]="intakeCustomer()" (valueChange)="intakeCustomer.set($event)" />
+  }
+
+  @if (intakeStep() === 1) {
+    <app-select [options]="productOptions" [value]="intakeProduct()" (valueChange)="intakeProduct.set($event)" />
+  }
+
+  @if (intakeStep() === 2) {
+    <app-input label="Loan amount" type="number" [value]="intakeAmount()" (valueChange)="intakeAmount.set($event)" />
+    <app-input label="Tenor (months)" type="number" [value]="intakeTenor()" (valueChange)="intakeTenor.set($event)" />
+  }
+
+  @if (intakeStep() === 3) {
+    <div class="intake-review">
+      <div class="detail-row"><span class="detail-label">Customer</span><span class="detail-value">{{ intakeCustomer() || '—' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Product</span><span class="detail-value">{{ intakeProduct() }}</span></div>
+      <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">₦{{ (+intakeAmount() || 0).toLocaleString() }}</span></div>
+      <div class="detail-row"><span class="detail-label">Tenor</span><span class="detail-value">{{ intakeTenor() }} months</span></div>
+    </div>
+  }
+
+  <div modalFooter class="intake-footer">
+    @if (intakeStep() > 0) {
+      <app-button variant="outline" label="Back" (clicked)="intakeBack()" />
+    }
+    @if (intakeStep() < 3) {
+      <app-button variant="primary" label="Next" (clicked)="intakeNext()" />
+    } @else {
+      <app-button variant="primary" label="Submit application" (clicked)="submitIntake()" />
+    }
+  </div>
+</app-modal>

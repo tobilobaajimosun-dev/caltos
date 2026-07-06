@@ -5,6 +5,7 @@ import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, TableItemUser,
   EmptyStateComponent, PaginationComponent, ConfirmModalComponent, ToastComponent,
   SplitButtonComponent, SplitButtonItem, IconData, HiIconComponent, Tab, RoundTabsComponent,
+  SearchComponent, SelectComponent, SelectOption,
 } from '../../../shared/components';
 import { CustomersService, CustomerRecord, CustomerStatus } from '../../../shared/services/customers.service';
 import { AddEditCustomerModalComponent } from '../add-edit-customer-modal/add-edit-customer-modal.component';
@@ -18,7 +19,7 @@ type CustomerTab = 'all' | 'active' | 'dormant' | 'overdue';
   imports: [
     RouterLink, ButtonComponent, ColumnTitleComponent, TableItemComponent, EmptyStateComponent,
     PaginationComponent, ConfirmModalComponent, ToastComponent, AddEditCustomerModalComponent,
-    SplitButtonComponent, HiIconComponent, RoundTabsComponent,
+    SplitButtonComponent, HiIconComponent, RoundTabsComponent, SearchComponent, SelectComponent,
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss',
@@ -53,6 +54,58 @@ export class CustomerListComponent {
   showAddModal = false;
   editingCustomer: CustomerRecord | null = null;
 
+  searchQuery = '';
+  filterPanelOpen = false;
+  officerFilter = 'all';
+  productFilter = 'all';
+  locationFilter = 'all';
+
+  readonly sortOptions: SelectOption[] = [
+    { value: 'name', label: 'Name' },
+    { value: 'registeredAt', label: 'Date Added' },
+    { value: 'activeLoans', label: 'Loan Count' },
+    { value: 'outstandingBalance', label: 'Outstanding Balance' },
+  ];
+
+  get officerOptions(): SelectOption[] {
+    const officers = Array.from(new Set(this.customers().map((c) => c.loanOfficer)));
+    return [{ value: 'all', label: 'All loan officers' }, ...officers.map((o) => ({ value: o, label: o }))];
+  }
+
+  get productOptions(): SelectOption[] {
+    const products = Array.from(new Set(this.customers().map((c) => c.product)));
+    return [{ value: 'all', label: 'All products' }, ...products.map((p) => ({ value: p, label: p }))];
+  }
+
+  get locationOptions(): SelectOption[] {
+    const locations = Array.from(new Set(this.customers().map((c) => c.location)));
+    return [{ value: 'all', label: 'All locations' }, ...locations.map((l) => ({ value: l, label: l }))];
+  }
+
+  get activeFilterChips(): { key: string; label: string }[] {
+    const chips: { key: string; label: string }[] = [];
+    if (this.officerFilter !== 'all') chips.push({ key: 'officer', label: `Officer: ${this.officerFilter}` });
+    if (this.productFilter !== 'all') chips.push({ key: 'product', label: `Product: ${this.productFilter}` });
+    if (this.locationFilter !== 'all') chips.push({ key: 'location', label: `Location: ${this.locationFilter}` });
+    return chips;
+  }
+
+  removeFilterChip(key: string) {
+    if (key === 'officer') this.officerFilter = 'all';
+    if (key === 'product') this.productFilter = 'all';
+    if (key === 'location') this.locationFilter = 'all';
+    this.currentPage = 1;
+  }
+
+  toggleFilterPanel() {
+    this.filterPanelOpen = !this.filterPanelOpen;
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery = value;
+    this.currentPage = 1;
+  }
+
   confirmTarget: CustomerRecord | null = null;
   confirmAction: 'blacklist' | 'reactivate' | 'delete' | null = null;
 
@@ -85,6 +138,20 @@ export class CustomerListComponent {
     if (this.activeTab === 'active') list = list.filter((c) => c.status === 'active');
     if (this.activeTab === 'dormant') list = list.filter((c) => c.status === 'inactive');
     if (this.activeTab === 'overdue') list = list.filter((c) => c.status === 'overdue');
+
+    if (this.officerFilter !== 'all') list = list.filter((c) => c.loanOfficer === this.officerFilter);
+    if (this.productFilter !== 'all') list = list.filter((c) => c.product === this.productFilter);
+    if (this.locationFilter !== 'all') list = list.filter((c) => c.location === this.locationFilter);
+
+    const query = this.searchQuery.trim().toLowerCase();
+    if (query) {
+      list = list.filter((c) =>
+        c.name.toLowerCase().includes(query) ||
+        c.email.toLowerCase().includes(query) ||
+        c.phone.replace(/\s+/g, '').includes(query.replace(/\s+/g, '')) ||
+        c.bvn.includes(query),
+      );
+    }
 
     list = [...list].sort((a, b) => {
       if (this.sortKey === 'name') return a.name.localeCompare(b.name);
@@ -166,7 +233,7 @@ export class CustomerListComponent {
     this.router.navigate(['/customers', id]);
   }
 
-  closeDropdown() { this.openDropdownId = null; }
+  closeDropdown() { this.openDropdownId = null; this.filterPanelOpen = false; }
 
   toggleDropdown(event: Event, id: string) {
     event.stopPropagation();

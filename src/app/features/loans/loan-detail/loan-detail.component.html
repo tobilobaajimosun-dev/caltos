@@ -3,47 +3,93 @@
     <h1 class="page-title">{{ product }}</h1>
     <p class="page-subtitle">{{ customerName }} · {{ loanId }}</p>
   </div>
-  <div class="header-actions">
-    <a class="header-link" [routerLink]="['/loans', loanId, 'mandates']">Mandates</a>
-    <a class="header-link" [routerLink]="['/loans', loanId, 'refunds']">Refunds</a>
-  </div>
+  <app-status-badge [status]="status" />
 </div>
 
-<div class="kpi-row">
-  <app-kpi-card label="Principal" [value]="principal" />
-  <app-kpi-card label="Outstanding balance" [value]="outstanding" />
-  <app-kpi-card label="Next repayment due" [value]="nextDueDate" />
+<div class="tab-bar">
+  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
 </div>
 
-<div class="panel">
-  <div class="panel-head">
-    <p class="panel-title">Repayment progress</p>
+@if (activeTab() === 'overview') {
+  <div class="kpi-row">
+    <app-kpi-card label="Principal" [value]="principal" />
+    <app-kpi-card label="Outstanding balance" [value]="outstanding" />
+    <app-kpi-card label="Next repayment due" [value]="nextDueDate" />
   </div>
-  <app-progress-bar [value]="repaidPct" label="Repaid to date" />
-</div>
 
-<div class="panel table-panel">
-  <div class="panel-head">
-    <p class="panel-title">Repayment schedule</p>
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Loan summary</p>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-row"><span class="summary-label">Disbursed date</span><span class="summary-value">{{ disbursedDate }}</span></div>
+      <div class="summary-row"><span class="summary-label">Deduction channel</span><span class="summary-value">{{ channel }}</span></div>
+      <div class="summary-row"><span class="summary-label">Borrower</span><span class="summary-value">{{ customerName }}</span></div>
+      <div class="summary-row"><span class="summary-label">Product</span><span class="summary-value">{{ product }}</span></div>
+    </div>
   </div>
-  <table class="ref-table">
-    <thead>
-      <tr>
-        <th><app-column-title label="Installment" /></th>
-        <th><app-column-title label="Due date" /></th>
-        <th><app-column-title label="Amount" /></th>
-        <th><app-column-title label="Status" /></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (row of schedule; track row.installment) {
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Repayment progress</p>
+    </div>
+    <app-progress-bar [value]="repaidPct" label="Repaid to date" />
+  </div>
+}
+
+@if (activeTab() === 'mandates') {
+  <div class="embedded-tab">
+    <app-mandates />
+  </div>
+}
+
+@if (activeTab() === 'repayments') {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Repayment schedule</p>
+      <p class="panel-sub">Schedule vs. actual — variance per period</p>
+    </div>
+    <table class="ref-table">
+      <thead>
         <tr>
-          <td><app-table-item type="text" [text]="row.installment" /></td>
-          <td><app-table-item type="date" [date]="row.dueDate" /></td>
-          <td><app-table-item type="amount" [amount]="row.amount" /></td>
-          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Paid' : 'Upcoming'" /></td>
+          <th><app-column-title label="Installment" /></th>
+          <th><app-column-title label="Due date" /></th>
+          <th><app-column-title label="Amount" /></th>
+          <th><app-column-title label="Status" /></th>
         </tr>
+      </thead>
+      <tbody>
+        @for (row of schedule; track row.installment) {
+          <tr>
+            <td><app-table-item type="text" [text]="row.installment" /></td>
+            <td><app-table-item type="date" [date]="row.dueDate" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Paid' : 'Upcoming'" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (activeTab() === 'refunds') {
+  <div class="embedded-tab">
+    <app-refunds />
+  </div>
+}
+
+@if (activeTab() === 'activity') {
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Activity timeline</p>
+    </div>
+    <div class="activity-timeline">
+      @for (entry of activity; track entry.at + entry.event) {
+        <div class="timeline-row">
+          <span class="timeline-at">{{ entry.at }}</span>
+          <span class="timeline-event">{{ entry.event }}</span>
+        </div>
       }
-    </tbody>
-  </table>
-</div>
+    </div>
+  </div>
+}

@@ -31,10 +31,33 @@
     <button type="button" class="tab-action" (click)="onAddCustomerMenuSelect('bulk')">Bulk upload</button>
   </div>
   <div class="toolbar-actions">
-    <button type="button" class="toolbar-btn">
-      <hi-icon [icon]="filterIcon" size="14" color="currentColor" />
-      Filter
-    </button>
+    <app-search placeholder="Search name, phone, BVN, email..." [value]="searchQuery" (valueChange)="onSearchChange($event)" />
+    <div class="filter-dropdown-wrap" (click)="$event.stopPropagation()">
+      <button type="button" class="toolbar-btn" [class.active]="activeFilterChips.length > 0" (click)="toggleFilterPanel()">
+        <hi-icon [icon]="filterIcon" size="14" color="currentColor" />
+        Filter
+        @if (activeFilterChips.length > 0) { <span class="filter-count">{{ activeFilterChips.length }}</span> }
+      </button>
+      @if (filterPanelOpen) {
+        <div class="filter-panel">
+          <div class="filter-field">
+            <label>Loan officer</label>
+            <app-select [options]="officerOptions" [value]="officerFilter" (valueChange)="officerFilter = $event; currentPage = 1" />
+          </div>
+          <div class="filter-field">
+            <label>Product</label>
+            <app-select [options]="productOptions" [value]="productFilter" (valueChange)="productFilter = $event; currentPage = 1" />
+          </div>
+          <div class="filter-field">
+            <label>Location</label>
+            <app-select [options]="locationOptions" [value]="locationFilter" (valueChange)="locationFilter = $event; currentPage = 1" />
+          </div>
+        </div>
+      }
+    </div>
+    <div class="sort-wrap">
+      <app-select [options]="sortOptions" [value]="sortKey" (valueChange)="sortKey = $any($event)" />
+    </div>
     <button type="button" class="toolbar-btn" (click)="editColumns()">
       <hi-icon [icon]="columnsIcon" size="14" color="currentColor" />
       Edit columns
@@ -45,6 +68,17 @@
     </button>
   </div>
 </div>
+
+@if (activeFilterChips.length > 0) {
+  <div class="active-chips-row">
+    @for (chip of activeFilterChips; track chip.key) {
+      <span class="filter-chip">
+        {{ chip.label }}
+        <button type="button" (click)="removeFilterChip(chip.key)">&times;</button>
+      </span>
+    }
+  </div>
+}
 
 @if (selectedIds.size > 0) {
   <div class="bulk-bar">
