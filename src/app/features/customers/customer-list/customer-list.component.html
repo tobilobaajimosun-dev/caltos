@@ -7,22 +7,10 @@
 </div>
 
 <div class="stats-row">
-  <div class="stat-card">
-    <span class="stat-label">All customers <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="All customers on your platform" /></span>
-    <span class="stat-value">{{ stats.total }}</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-label">Active customers <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="Customers with at least one active loan" /></span>
-    <span class="stat-value">{{ stats.active }}</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-label">Overdue customers <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="Customers with a repayment past due" /></span>
-    <span class="stat-value">{{ stats.overdue }}</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-label">Inactive & Dormant <hi-icon [icon]="infoIcon" size="14" color="currentColor" title="Customers with no recent activity" /></span>
-    <span class="stat-value">{{ stats.dormant }}</span>
-  </div>
+  <app-kpi-card label="All customers" [value]="stats.total" tooltip="All customers on your platform." />
+  <app-kpi-card label="Active customers" [value]="stats.active" tooltip="Customers with at least one active loan." />
+  <app-kpi-card label="Overdue customers" [value]="stats.overdue" tooltip="Customers with a repayment past due." />
+  <app-kpi-card label="Inactive & Dormant" [value]="stats.dormant" tooltip="Customers with no recent activity." />
 </div>
 
 <div class="toolbar-row">

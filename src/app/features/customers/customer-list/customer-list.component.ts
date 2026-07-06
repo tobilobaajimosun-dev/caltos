@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { UserAdd01Icon, FileUploadIcon, FilterIcon, ColumnsThreeCogIcon, Download01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
+import { UserAdd01Icon, FileUploadIcon, FilterIcon, ColumnsThreeCogIcon, Download01Icon } from '@hugeicons/core-free-icons';
 import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, TableItemUser,
   EmptyStateComponent, PaginationComponent, ConfirmModalComponent, ToastComponent,
   SplitButtonComponent, SplitButtonItem, IconData, HiIconComponent, Tab, RoundTabsComponent,
-  SearchComponent, SelectComponent, SelectOption,
+  SearchComponent, SelectComponent, SelectOption, KpiCardComponent,
 } from '../../../shared/components';
 import { CustomersService, CustomerRecord, CustomerStatus } from '../../../shared/services/customers.service';
 import { AddEditCustomerModalComponent } from '../add-edit-customer-modal/add-edit-customer-modal.component';
@@ -20,6 +20,7 @@ type CustomerTab = 'all' | 'active' | 'dormant' | 'overdue';
     RouterLink, ButtonComponent, ColumnTitleComponent, TableItemComponent, EmptyStateComponent,
     PaginationComponent, ConfirmModalComponent, ToastComponent, AddEditCustomerModalComponent,
     SplitButtonComponent, HiIconComponent, RoundTabsComponent, SearchComponent, SelectComponent,
+    KpiCardComponent,
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss',
@@ -34,7 +35,6 @@ export class CustomerListComponent {
   readonly filterIcon: IconData = FilterIcon as IconData;
   readonly columnsIcon: IconData = ColumnsThreeCogIcon as IconData;
   readonly downloadIcon: IconData = Download01Icon as IconData;
-  readonly infoIcon: IconData = InformationCircleIcon as IconData;
 
   activeTab: CustomerTab = 'all';
   sortKey: SortKey = 'name';

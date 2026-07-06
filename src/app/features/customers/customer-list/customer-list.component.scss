@@ -14,33 +14,6 @@
   padding: var(--space-6) var(--space-8) 0;
 }
 
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--surface-base);
-  border: 1px solid var(--color-stroke);
-  border-radius: 12px;
-  padding: 16px 18px;
-}
-
-.stat-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-
-  hi-icon { color: var(--text-disabled); }
-}
-
-.stat-value {
-  font-family: var(--font-heading);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--color-header);
-}
-
 .toolbar-row {
   display: flex;
   align-items: center;
