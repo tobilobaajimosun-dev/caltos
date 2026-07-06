@@ -1,18 +1,43 @@
 <div class="kpi-card">
-  <div class="kpi-label-row">
-    <p class="kpi-label">{{ label }}</p>
-    @if (tooltip) {
-      <app-tooltip [text]="tooltip" position="bottom">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="kpi-info-icon">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M12 11v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="12" cy="8" r="1" fill="currentColor"/>
-        </svg>
-      </app-tooltip>
+  <div class="kpi-body">
+    <div class="kpi-label-row">
+      <p class="kpi-label">{{ label }}</p>
+      @if (tooltip) {
+        <app-tooltip [text]="tooltip" position="bottom">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="kpi-info-icon">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 11v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="8" r="1" fill="currentColor"/>
+          </svg>
+        </app-tooltip>
+      }
+    </div>
+    <p class="kpi-value">{{ value }}</p>
+    @if (subtitle) {
+      <p class="kpi-subtitle">{{ subtitle }}</p>
+    }
+    @if (trend) {
+      <div class="kpi-trend-row">
+        <span class="kpi-trend-chip" [class.up]="trend.dir === 'up'" [class.down]="trend.dir === 'down'">
+          @if (trend.dir === 'up') {
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          } @else {
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          }
+          {{ trend.value }}% {{ trendLabel }}
+        </span>
+        @if (sparkPoints) {
+          <svg class="kpi-spark" width="72" height="36" viewBox="0 0 72 36" fill="none">
+            <polyline [attr.points]="sparkPoints" [attr.stroke]="trendColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        }
+      </div>
     }
   </div>
-  <p class="kpi-value">{{ value }}</p>
-  @if (subtitle) {
-    <p class="kpi-subtitle">{{ subtitle }}</p>
+  @if (countLabel) {
+    <div class="kpi-footer">
+      <span class="kpi-footer-label">{{ countLabel }}</span>
+      <span class="kpi-footer-value">{{ countValue }}</span>
+    </div>
   }
 </div>

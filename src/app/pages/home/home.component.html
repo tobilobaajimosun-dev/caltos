@@ -181,35 +181,17 @@
         }
       </div>
 
-      <!-- Existing KPI-like metrics row (legacy) -->
+      <!-- Loan application metrics -->
       <div class="metrics-row">
         @for (m of metrics; track m.label) {
-          <div class="metric-card">
-            <div class="metric-head">
-              <span class="metric-label">{{ m.label }}</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            </div>
-            <p class="metric-amount">{{ m.amount }}</p>
-            @if (m.trend) {
-              <div class="metric-trend-row">
-                <span class="trend-chip" [class.up]="m.trend.dir === 'up'" [class.down]="m.trend.dir === 'down'">
-                  @if (m.trend.dir === 'up') {
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  } @else {
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  }
-                  {{ m.trend.value }}% vs yesterday
-                </span>
-                <svg width="72" height="36" viewBox="0 0 72 36" fill="none">
-                  <polyline [attr.points]="m.sparkPoints" [attr.stroke]="m.trendColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                </svg>
-              </div>
-            }
-            <div class="metric-count-block">
-              <span class="metric-count-label">In Count</span>
-              <span class="metric-count-val">{{ m.count }}</span>
-            </div>
-          </div>
+          <app-kpi-card
+            [label]="m.label"
+            [value]="m.amount"
+            [trend]="m.trend"
+            [trendColor]="m.trendColor"
+            [sparkPoints]="m.sparkPoints"
+            countLabel="In Count"
+            [countValue]="m.count" />
         }
       </div>
 
