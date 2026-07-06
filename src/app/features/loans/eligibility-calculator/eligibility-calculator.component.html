@@ -1,0 +1,58 @@
+<div class="page-header">
+  <h1 class="page-title">Eligibility calculator</h1>
+  <p class="page-subtitle">Estimate the maximum loan amount a customer qualifies for.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Max monthly repayment" [value]="formatCurrency(maxAffordableMonthlyRepayment())" />
+  <app-kpi-card
+    label="Eligible amount"
+    [value]="isEligible() && meetsMinimum() ? formatCurrency(eligibleAmount()) : 'Not eligible'"
+  />
+</div>
+
+<div class="panel calculator-panel">
+  <div class="panel-head">
+    <p class="panel-title">Borrower details</p>
+  </div>
+
+  <div class="calc-form">
+    <app-input label="Monthly salary (₦)" type="number" [value]="monthlySalary()" (valueChange)="monthlySalary.set($event)" />
+    <app-input label="Existing monthly loan obligations (₦)" type="number" [value]="existingObligations()" (valueChange)="existingObligations.set($event)" />
+    <div class="field-group">
+      <span class="field-label">Product</span>
+      <app-select [options]="productOptions()" [value]="productId() || (productOptions()[0]?.value ?? '')" (valueChange)="productId.set($event)" />
+    </div>
+  </div>
+</div>
+
+<div class="panel result-panel">
+  <div class="panel-head">
+    <p class="panel-title">Result</p>
+  </div>
+
+  @if (selectedProduct(); as product) {
+    @if (isEligible() && meetsMinimum()) {
+      <p class="result-headline eligible">Eligible up to {{ formatCurrency(eligibleAmount()) }}</p>
+    } @else {
+      <p class="result-headline not-eligible">Not eligible for {{ product.name }}</p>
+    }
+
+    <div class="detail-row">
+      <span class="detail-label">Product</span>
+      <span class="detail-value">{{ product.name }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Product amount range</span>
+      <span class="detail-value">₦{{ product.minAmount }} – ₦{{ product.maxAmount }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Affordability rule</span>
+      <span class="detail-value">Total obligations ≤ 33% of monthly salary</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Headroom for new repayment</span>
+      <span class="detail-value">{{ formatCurrency(maxAffordableMonthlyRepayment()) }} / month</span>
+    </div>
+  }
+</div>

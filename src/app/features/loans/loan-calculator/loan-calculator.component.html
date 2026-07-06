@@ -1,0 +1,64 @@
+<div class="page-header">
+  <h1 class="page-title">Loan calculator</h1>
+  <p class="page-subtitle">Estimate repayment amounts for a loan before creating it.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card [label]="'Repayment (' + periodLabel() + ')'" [value]="formatCurrency(periodicRepayment())" />
+  <app-kpi-card label="Total interest" [value]="formatCurrency(totalInterest())" />
+  <app-kpi-card label="Total repayment" [value]="formatCurrency(totalRepayment())" />
+</div>
+
+<div class="panel calculator-panel">
+  <div class="panel-head">
+    <p class="panel-title">Loan details</p>
+  </div>
+
+  <div class="calc-form">
+    <app-input label="Loan amount (₦)" type="number" [value]="amount()" (valueChange)="amount.set($event)" />
+
+    <div class="tenor-row">
+      <app-input label="Tenor" type="number" [value]="tenorValue()" (valueChange)="tenorValue.set($event)" />
+      <div class="field-group">
+        <span class="field-label">Unit</span>
+        <app-select [options]="tenorUnits" [value]="tenorUnit()" (valueChange)="tenorUnit.set($event)" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <span class="field-label">Interest model</span>
+      <app-select [options]="interestModels" [value]="interestModel()" (valueChange)="interestModel.set($any($event))" />
+    </div>
+    <app-input label="Interest rate (%)" type="number" [value]="interestRate()" (valueChange)="interestRate.set($event)" />
+    <div class="field-group">
+      <span class="field-label">Charge frequency</span>
+      <app-select [options]="interestChargePeriods" [value]="chargeFrequency()" (valueChange)="chargeFrequency.set($event)" />
+    </div>
+  </div>
+</div>
+
+<div class="panel summary-panel">
+  <div class="panel-head">
+    <p class="panel-title">Summary</p>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">Principal</span>
+    <span class="detail-value">{{ formatCurrency(amount() ? +amount() : 0) }}</span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">Tenor</span>
+    <span class="detail-value">{{ tenorValue() }} {{ tenorUnit() }}</span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">Interest model</span>
+    <span class="detail-value">{{ interestModel() }} ({{ interestRate() }}% {{ chargeFrequency() }})</span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">{{ periodLabel() | titlecase }} repayment</span>
+    <span class="detail-value">{{ formatCurrency(periodicRepayment()) }}</span>
+  </div>
+  <div class="detail-row">
+    <span class="detail-label">Total repayment</span>
+    <span class="detail-value">{{ formatCurrency(totalRepayment()) }}</span>
+  </div>
+</div>

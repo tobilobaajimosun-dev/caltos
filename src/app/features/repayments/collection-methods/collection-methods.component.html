@@ -1,0 +1,27 @@
+<div class="page-header">
+  <h1 class="page-title">Collection methods</h1>
+  <p class="page-subtitle">Manage the deduction channels available for repayment collection.</p>
+  <p class="connected-summary">{{ connectedCount() }} of {{ totalCount() }} channels connected</p>
+</div>
+
+<div class="panel channel-list">
+  @for (method of methods(); track method.channel) {
+    <div class="channel-row">
+      <div class="channel-info">
+        <div class="channel-name-row">
+          <p class="channel-name">{{ method.channel }}</p>
+          <app-status-badge [status]="method.status" [label]="method.statusLabel" />
+        </div>
+        <p class="channel-description">{{ method.description }}</p>
+        @if (method.tags.length) {
+          <div class="channel-tags">
+            @for (tag of method.tags; track tag) {
+              <span class="channel-tag">{{ tag }}</span>
+            }
+          </div>
+        }
+      </div>
+      <app-toggle [checked]="method.enabled" (checkedChange)="toggleMethod(method, $event)" />
+    </div>
+  }
+</div>

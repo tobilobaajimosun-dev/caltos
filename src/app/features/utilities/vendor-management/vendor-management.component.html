@@ -1,0 +1,39 @@
+<div class="page-header">
+  <h1 class="page-title">Vendor management</h1>
+  <p class="page-subtitle">Manage third-party vendors and service providers powering your operations.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Active vendors" [value]="activeVendors()" />
+  <app-kpi-card label="Contracts expiring soon" [value]="expiringSoon()" />
+  <app-kpi-card label="Total vendors" [value]="totalVendors()" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Vendors</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Vendor" /></th>
+        <th><app-column-title label="Service type" /></th>
+        <th><app-column-title label="Contract status" /></th>
+        <th><app-column-title label="Contact person" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (vendor of vendors(); track vendor.name) {
+        <tr>
+          <td><app-table-item type="text" [text]="vendor.name" /></td>
+          <td><app-table-item type="text" [text]="vendor.serviceType" /></td>
+          <td><app-status-badge [status]="vendor.status" [label]="vendor.statusLabel" /></td>
+          <td><app-table-item type="user" [user]="{ name: vendor.contactName, email: vendor.contactEmail }" /></td>
+        </tr>
+      }
+      @empty {
+        <tr><td colspan="4" class="empty-cell">No vendors yet.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
