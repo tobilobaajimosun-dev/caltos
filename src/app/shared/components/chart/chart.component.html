@@ -1,12 +1,25 @@
-<svg class="chart" [attr.viewBox]="viewBox" preserveAspectRatio="none">
-  @if (type() === 'line') {
-    <path [attr.d]="linePath()" fill="none" [attr.stroke]="color()" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-    @for (p of points(); track p.label) {
-      <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3" [attr.fill]="color()" />
+<svg class="chart" [attr.viewBox]="viewBox" preserveAspectRatio="none" role="img" [attr.aria-label]="type() + ' chart'">
+  @switch (type()) {
+    @case ('line') {
+      <path [attr.d]="linePath()" fill="none" [attr.stroke]="color()" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      @for (p of points(); track p.label) {
+        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3" [attr.fill]="color()" />
+      }
     }
-  } @else {
-    @for (b of bars(); track b.label) {
-      <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="color()" rx="3" />
+    @case ('grouped-bar') {
+      @for (b of groupedBars(); track b.x) {
+        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="b.color" rx="2" />
+      }
+    }
+    @case ('area') {
+      @for (layer of areaLayers(); track layer.name) {
+        <path [attr.d]="layer.path" [attr.fill]="layer.color" fill-opacity="0.75" stroke="none" />
+      }
+    }
+    @default {
+      @for (b of bars(); track b.label) {
+        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="color()" rx="3" />
+      }
     }
   }
 </svg>
