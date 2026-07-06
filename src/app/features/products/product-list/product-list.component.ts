@@ -3,15 +3,13 @@ import { Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
 import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
-import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent, RoundTabsComponent, Tab } from '../../../shared/components';
+import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, RoundTabsComponent, Tab, KpiCardComponent, ColumnTitleComponent } from '../../../shared/components';
 import { ProductsService, ProductRecord, ProductStatus } from '../../../shared/services/products.service';
 import {
-  InformationCircleIcon,
   FilterIcon,
   MoreVerticalIcon,
   PlusSignIcon,
   FileNotFoundIcon,
-  Download01Icon,
 } from '@hugeicons/core-free-icons';
 
 type ActiveTab = 'all' | 'live' | 'draft' | 'deactivated' | 'fees';
@@ -33,8 +31,8 @@ interface Fee {
   standalone: true,
   imports: [
     RouterLink, HiIconComponent, LoanTypeModalComponent, ProductSettingsModalComponent,
-    TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent,
-    RoundTabsComponent,
+    TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent,
+    RoundTabsComponent, KpiCardComponent, ColumnTitleComponent,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
@@ -50,9 +48,7 @@ export class ProductListComponent {
   showSettingsDrawer = false;
   openDropdownId: string | null = null;
 
-  readonly infoIcon: IconData = InformationCircleIcon as IconData;
   readonly filterIcon: IconData = FilterIcon as IconData;
-  readonly downloadIcon: IconData = Download01Icon as IconData;
   readonly moreIcon: IconData = MoreVerticalIcon as IconData;
   readonly plusIcon: IconData = PlusSignIcon as IconData;
   readonly emptyIcon: IconData = FileNotFoundIcon as IconData;
@@ -112,22 +108,6 @@ export class ProductListComponent {
 
   setTypeFilter(type: ProductTypeFilter) {
     this.typeFilter = type;
-  }
-
-  exportCsv() {
-    const rows = this.filteredProducts;
-    const header = 'Product ID,Name,Type,Status,Interest Rate,Min Amount,Max Amount,Active Loans,Total Disbursed,Collection Rate\n';
-    const body = rows.map((p) =>
-      `${p.id},"${p.name}",${p.type},${p.status},${p.interestRate}%,${p.minAmount},${p.maxAmount},${p.stats.activeLoans},${p.stats.totalDisbursed},${p.stats.collectionRate}%`,
-    ).join('\n');
-    const blob = new Blob([header + body], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `products-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    this.showToast(`Exported ${rows.length} product${rows.length === 1 ? '' : 's'}.`);
   }
 
   toggleFeeMenu(event: Event, fee: Fee) {
