@@ -1,267 +1,110 @@
 <div class="page">
-
   <div class="main">
+    <div class="content">
 
-    <!-- PRE-KYC STATE -->
-    @if (!kycComplete) {
-      <div class="content">
-
-        <!-- Welcome hero -->
-        <div class="hero">
-          <div class="org-avatar" [style.background]="orgAvatarColor">{{ orgInitial }}</div>
-          <h1 class="hero-title">{{ orgName }}, Welcome to Caltos!</h1>
-          <p class="hero-sub">Easy loan operations begins here; pick somewhere to get started.</p>
-        </div>
-
-        <!-- Organization verification card -->
-        @if (!orgVerified()) {
-          <div class="kyc-card">
-            <div class="kyc-left">
-              <div class="kyc-icon-wrap">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="kyc-info">
-                <div class="kyc-title-row">
-                  <span class="kyc-heading">Verify your organization</span>
-                  <span class="required-badge">Required</span>
-                </div>
-                <p class="kyc-desc">Confirm your organization's registration details so we can verify and activate your account.</p>
-              </div>
-            </div>
-            <app-button variant="primary" label="Verify organization" (clicked)="openOrgModal()" />
-          </div>
-        } @else {
-          <div class="kyc-card">
-            <div class="kyc-left">
-              <div class="kyc-icon-wrap">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="kyc-info">
-                <div class="kyc-title-row">
-                  <span class="kyc-heading">Activate Your Wallet</span>
-                  <span class="required-badge">Required</span>
-                </div>
-                <p class="kyc-desc">Complete your company KYC to unlock and start using your wallet for disbursements and repayments.</p>
-              </div>
-            </div>
-            <app-button variant="primary" label="Complete KYC" (clicked)="completeKyc()" />
-          </div>
-        }
-
-        <!-- Setup cards -->
-        <div class="setup-cards">
-          <div class="setup-card">
-            <div class="setup-icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="setup-title">Set up your organisation details</h3>
-            <p class="setup-desc">Update your company's logo, colours and assets to make this your own.</p>
-            <a class="setup-link" routerLink="/settings">Set up now <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-            <span class="deco-plus">+</span>
-          </div>
-
-          <div class="setup-card">
-            <div class="setup-icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="setup-title">Add your team members</h3>
-            <p class="setup-desc">Get the work started; invite your team members to make it seamless.</p>
-            <a class="setup-link" routerLink="/teams">Set up now <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-            <span class="deco-plus">+</span>
-          </div>
-
-          <div class="setup-card">
-            <div class="setup-icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="setup-title">Read the docs</h3>
-            <p class="setup-desc">Learn how to use Caltos effectively with our comprehensive documentation.</p>
-            <a class="setup-link" href="#" target="_blank">Set up now <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-            <span class="deco-plus">+</span>
-          </div>
-        </div>
-
-      </div>
-    }
-
-    <!-- POST-KYC STATE -->
-    @if (kycComplete) {
-      <div class="content content-kyc-done">
-
-        <div class="qa-header">
-          <div>
-            <h1 class="qa-title">Quick Actions</h1>
-            <p class="qa-sub">Jump straight to what you need. Select an action to get started.</p>
-          </div>
-          <div class="org-pill">
-            <span class="org-dot" [style.background]="orgAvatarColor">{{ orgInitial }}</span>
-            <span class="org-name">{{ orgName }}</span>
-            <span class="kyc-done-pill">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              KYC verified
-            </span>
-          </div>
-        </div>
-
-        <div class="action-grid">
-
-          <a class="action-card" routerLink="/products/create">
-            <div class="action-icon blue">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-            </div>
-            <h3 class="action-title">Create a loan product</h3>
-            <p class="action-desc">Define terms, fees, and eligibility rules for a new loan offering.</p>
-            <span class="action-arrow">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-
-          <a class="action-card" routerLink="/customers">
-            <div class="action-icon green">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M19 8v6M22 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <h3 class="action-title">Add a customer</h3>
-            <p class="action-desc">Onboard a new borrower and verify their KYC documents.</p>
-            <span class="action-arrow">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-
-          <a class="action-card" routerLink="/loans">
-            <div class="action-icon orange">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="action-title">Disburse a loan</h3>
-            <p class="action-desc">Review and release funds to an approved loan application.</p>
-            <span class="action-arrow">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-
-          <a class="action-card" routerLink="/reports">
-            <div class="action-icon purple">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="action-title">Generate a report</h3>
-            <p class="action-desc">Export loan performance, repayment, and collection analytics.</p>
-            <span class="action-arrow">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-
-          <a class="action-card" routerLink="/teams">
-            <div class="action-icon teal">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="action-title">Manage team</h3>
-            <p class="action-desc">Invite colleagues and configure their roles and permissions.</p>
-            <span class="action-arrow">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-
-          <a class="action-card" routerLink="/settings">
-            <div class="action-icon gray">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-            </div>
-            <h3 class="action-title">Configure settings</h3>
-            <p class="action-desc">Customise your account, branding, and integrations.</p>
-            <span class="action-arrow">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </a>
-
-        </div>
-
-      </div>
-    }
-
-  </div>
-</div>
-
-@if (showOrgModal()) {
-  <div class="modal-overlay" (click)="closeOrgModal()">
-    <div class="org-modal" (click)="$event.stopPropagation()">
-      <div class="org-modal-header">
+      <div class="qa-header">
         <div>
-          <div class="org-modal-title">Verify your organization</div>
-          <div class="org-modal-sub">Tell us a bit more about your registered business.</div>
+          <h1 class="qa-title">Quick Actions</h1>
+          <p class="qa-sub">Jump straight to what you need. Select an action to get started.</p>
         </div>
-        <button type="button" class="modal-close-btn" (click)="closeOrgModal()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
       </div>
 
-      <div class="org-modal-body">
-        <div class="field-group">
-          <label class="field-label">Organization name <span class="req">*</span></label>
-          <input class="field-input" type="text" [(ngModel)]="orgDraft.orgName" name="orgModalName" />
-        </div>
-        <div class="field-group">
-          <label class="field-label">RC number <span class="req">*</span></label>
-          <input class="field-input" type="text" placeholder="e.g. RC1234567" [(ngModel)]="orgDraft.rcNumber" name="orgModalRc" />
-        </div>
-        <div class="field-group">
-          <label class="field-label">License type <span class="req">*</span></label>
-          <select class="field-input" [(ngModel)]="orgDraft.licenseType" name="orgModalLicense">
-            <option value="" disabled>Select license type</option>
-            @for (opt of licenseTypeOptions; track opt.value) {
-              <option [value]="opt.value">{{ opt.label }}</option>
+      @for (group of groupedActions(); track group.category) {
+        <section class="qa-section">
+          <h2 class="qa-category-title">{{ group.category }}</h2>
+          <div class="action-grid">
+            @for (action of group.actions; track action.id) {
+              <a
+                class="action-card"
+                [routerLink]="action.route"
+                (click)="goTo(action.id, action.route)"
+              >
+                @if (action.badgeCount) {
+                  <span class="action-badge" [attr.aria-label]="action.badgeCount() + ' pending'">{{ action.badgeCount() }}</span>
+                }
+                <div class="action-icon" [class]="action.iconColor">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    @switch (action.icon) {
+                      @case ('disburse') {
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('lookup') {
+                        <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="m20 20-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @case ('repayment') {
+                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M6 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @case ('approvals') {
+                        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                      }
+                      @case ('flag') {
+                        <path d="M5 3v18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M5 4h11l-2.5 4L16 12H5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('restructure') {
+                        <path d="M17 2v6h-6M7 22v-6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 13a9 9 0 0 1-15.5 6.3M3 11a9 9 0 0 1 15.5-6.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('add-customer') {
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M19 8v6M22 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @case ('kyc') {
+                        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('link-account') {
+                        <path d="M9 12h6M10 6H7a5 5 0 0 0 0 10h3M14 6h3a5 5 0 0 1 0 10h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('product') {
+                        <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                        <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                        <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                        <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                      }
+                      @case ('performance') {
+                        <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('report') {
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('schedule') {
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @case ('overdue') {
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      }
+                      @case ('wallet') {
+                        <path d="M2 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                      @case ('statement') {
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      }
+                    }
+                  </svg>
+                </div>
+                <h3 class="action-title">{{ action.title }}</h3>
+                <p class="action-desc">{{ action.description }}</p>
+                <span class="action-arrow" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </a>
             }
-          </select>
-        </div>
-        @if (orgDraft.licenseType === 'Other') {
-          <div class="field-group">
-            <label class="field-label">Please specify <span class="req">*</span></label>
-            <input class="field-input" type="text" placeholder="Enter your license type" [(ngModel)]="orgDraft.licenseTypeOther" name="orgModalLicenseOther" />
           </div>
-        }
-      </div>
+        </section>
+      }
 
-      <div class="org-modal-footer">
-        <app-button variant="outline" label="Cancel" (clicked)="closeOrgModal()" />
-        <app-button variant="primary" label="Submit for verification" [disabled]="!orgFormValid" (clicked)="submitOrgVerification()" />
-      </div>
     </div>
   </div>
-}
-
-@if (toastVisible()) {
-  <app-toast type="success" title="Submitted" [message]="toastMessage()" (dismissed)="toastVisible.set(false)" />
-}
+</div>

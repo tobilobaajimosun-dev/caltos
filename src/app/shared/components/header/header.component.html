@@ -83,7 +83,8 @@
 
 <app-command-palette
   [isOpen]="commandPaletteOpen()"
-  [groups]="commandGroups"
+  [groups]="commandGroups()"
+  [recentItems]="recentItems()"
   (closed)="commandPaletteOpen.set(false)"
   (selected)="onCommandSelected($event)"
 />
