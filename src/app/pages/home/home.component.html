@@ -9,6 +9,31 @@
         <p class="page-subtitle">Your organisation's activity at a glance.</p>
       </div>
 
+      @if (!hasProducts()) {
+        <div class="panel welcome-banner">
+          <app-empty-state title="Welcome to Caltos" description="You haven't created any loan products yet. Set one up to start accepting applications and disbursing loans.">
+            <svg icon width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <rect x="10" y="16" width="44" height="36" rx="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M18 28h28M18 36h20M18 44h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <app-button cta variant="primary" label="Create your first product" (clicked)="goTo('/products/create')" />
+          </app-empty-state>
+        </div>
+      }
+
+      <!-- Quick actions -->
+      <div class="quick-actions-row">
+        @for (qa of quickActions; track qa.title) {
+          <a class="quick-action-card" [routerLink]="qa.route">
+            <span class="qa-icon">{{ qa.icon }}</span>
+            <div class="qa-text">
+              <p class="qa-title">{{ qa.title }}</p>
+              <p class="qa-desc">{{ qa.desc }}</p>
+            </div>
+          </a>
+        }
+      </div>
+
       <!-- Wallet Balance Card -->
       <div class="wallet-card">
         <div class="wallet-left">
@@ -170,6 +195,26 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Recent activity -->
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Recent activity</p>
+        </div>
+        @if (recentActivity().length) {
+          <div class="activity-feed">
+            @for (entry of recentActivity(); track entry.text) {
+              <div class="activity-row">
+                <span class="activity-icon">{{ entry.icon }}</span>
+                <span class="activity-text">{{ entry.text }}</span>
+                <span class="activity-at">{{ entry.at }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="activity-empty">No recent activity yet.</p>
+        }
       </div>
 
       <!-- 3-col row -->

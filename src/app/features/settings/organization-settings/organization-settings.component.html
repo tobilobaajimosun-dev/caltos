@@ -1,18 +1,392 @@
 <div class="page-header">
-  <h1 class="page-title">Organization Profile</h1>
-  <p class="page-subtitle">Your registered business details and regulatory information.</p>
+  <h1 class="page-title">Settings</h1>
+  <p class="page-subtitle">Configure your organization's Caltos instance.</p>
 </div>
 
-<div class="panel">
-  <div class="panel-head">
-    <p class="panel-title">Business details</p>
+<div class="settings-shell">
+  <nav class="settings-nav">
+    @for (s of sections; track s.id) {
+      <button type="button" class="settings-nav-item" [class.active]="activeSection() === s.id" (click)="setSection(s.id)">{{ s.label }}</button>
+    }
+  </nav>
+
+  <div class="settings-content">
+
+    @if (activeSection() === 'organization') {
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Business details</p></div>
+        <app-settings-row type="text" label="Organization name" [value]="orgName" (valueChange)="updateOrgName($event)" />
+        <app-settings-row type="text" label="RC number" subtitle="Your CAC registration number" [value]="rcNumber" (valueChange)="updateRcNumber($event)" />
+        <app-settings-row type="text" label="License type" [value]="licenseType" (valueChange)="updateLicenseType($event)" />
+        <app-settings-row type="text" label="Regulator name" [value]="regulatorName" (valueChange)="updateRegulatorName($event)" />
+        <app-settings-row type="text" label="Address" [value]="address" (valueChange)="updateAddress($event)" />
+        <app-settings-row type="text" label="Phone number" [value]="phone" (valueChange)="updatePhone($event)" />
+        <app-settings-row type="text" label="Website" [value]="website" (valueChange)="updateWebsite($event)" />
+        <app-settings-row type="email" label="Primary email" [value]="primaryEmail" (valueChange)="updatePrimaryEmail($event)" />
+      </div>
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Locale</p></div>
+        <div class="field-row">
+          <label>Timezone</label>
+          <app-select [options]="timezoneOptions" [value]="timezone" (valueChange)="timezone = $event" />
+        </div>
+        <div class="field-row">
+          <label>Currency</label>
+          <app-select [options]="currencyOptions" [value]="currency" (valueChange)="currency = $event" />
+        </div>
+      </div>
+      <div class="panel danger-zone">
+        <div class="panel-head"><p class="panel-title">Danger zone</p></div>
+        <p class="danger-desc">Deleting your organization permanently removes all data. This cannot be undone.</p>
+        <app-button variant="outline" label="Delete organization" (clicked)="openDeleteOrgModal()" />
+      </div>
+    }
+
+    @if (activeSection() === 'branding') {
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Brand identity</p></div>
+        <app-settings-row type="color" label="Primary color" [value]="brandColor" (valueChange)="setBrandColor($event)" />
+        <app-settings-row type="text" label="Customer-facing app name" [value]="appName" (valueChange)="updateAppName($event)" />
+        <div class="logo-upload-row">
+          <span class="field-label">Logo</span>
+          <div class="logo-placeholder" [style.background]="brandColor">{{ appName.charAt(0) }}</div>
+          <app-button variant="outline" label="Upload logo" />
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Preview</p></div>
+        <div class="offer-preview" [style.borderColor]="brandColor">
+          <div class="offer-preview-header" [style.background]="brandColor">{{ appName }}</div>
+          <p class="offer-preview-body">Dear Customer, your loan offer letter header will look like this.</p>
+        </div>
+        <div class="email-footer-preview">
+          <span [style.color]="brandColor">{{ appName }}</span> · This email was sent by {{ orgName }}.
+        </div>
+      </div>
+    }
+
+    @if (activeSection() === 'approval') {
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Approval requirement</p></div>
+        <div class="toggle-row">
+          <app-toggle [checked]="requireApproval" (checkedChange)="requireApproval = $event" />
+          <span>Require approval before disbursement</span>
+        </div>
+      </div>
+      @if (requireApproval) {
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Approval levels</p></div>
+          <app-radio-button [selected]="approvalLevel === 'single'" label="Single approver" (selectedChange)="approvalLevel = 'single'" />
+          <app-radio-button [selected]="approvalLevel === 'dual'" label="Dual approval" (selectedChange)="approvalLevel = 'dual'" />
+          <app-radio-button [selected]="approvalLevel === 'committee'" label="Committee review" (selectedChange)="approvalLevel = 'committee'" />
+        </div>
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Auto-approve conditions</p></div>
+          <div class="field-row">
+            <label>Auto-approve if amount below (₦)</label>
+            <app-input type="number" [value]="autoApproveBelow" (valueChange)="autoApproveBelow = $event" />
+          </div>
+          <app-checkbox label="Auto-approve if risk level is Low" [checked]="autoApproveLowRisk" (checkedChange)="autoApproveLowRisk = $event" />
+        </div>
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Escalation</p></div>
+          <div class="field-row">
+            <label>Auto-escalate after</label>
+            <app-input type="number" [value]="escalationHours" (valueChange)="escalationHours = $event" />
+            <span class="field-suffix">hours</span>
+          </div>
+        </div>
+      }
+    }
+
+    @if (activeSection() === 'integrations') {
+      <div class="integration-grid">
+        @for (integration of integrations(); track integration.id) {
+          <div class="integration-card">
+            <div class="integration-card-head">
+              <span class="integration-name">{{ integration.name }}</span>
+              <app-status-badge [status]="integration.status === 'connected' ? 'active' : 'inactive'" [label]="integration.status === 'connected' ? 'Connected' : 'Not Connected'" />
+            </div>
+            <p class="integration-desc">{{ integration.description }}</p>
+            <p class="integration-sync">Last synced: {{ integration.lastSynced }}</p>
+            <div class="integration-actions">
+              @if (integration.status === 'connected') {
+                <app-button variant="outline" label="Configure" />
+                <app-button variant="text" label="Disconnect" (clicked)="toggleIntegration(integration)" />
+              } @else {
+                <app-button variant="primary" label="Connect" (clicked)="toggleIntegration(integration)" />
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeSection() === 'api-webhooks') {
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">API Keys</p>
+          <app-button variant="primary" label="Generate new key" (clicked)="openNewKeyModal()" />
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Name</th><th>Created</th><th>Last used</th><th>Scope</th><th></th></tr></thead>
+          <tbody>
+            @for (key of apiKeys(); track key.id) {
+              <tr>
+                <td>{{ key.name }}</td>
+                <td>{{ key.created }}</td>
+                <td>{{ key.lastUsed }}</td>
+                <td>{{ key.scope }}</td>
+                <td class="actions-cell"><button type="button" class="row-action danger" (click)="revokeKey(key)">Revoke</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Webhooks</p>
+          <app-button variant="primary" label="Add webhook" (clicked)="openNewWebhookModal()" />
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>URL</th><th>Events</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            @for (hook of webhooks(); track hook.id) {
+              <tr>
+                <td>{{ hook.url }}</td>
+                <td>{{ hook.events.join(', ') }}</td>
+                <td><app-status-badge [status]="hook.status === 'active' ? 'active' : 'inactive'" /></td>
+                <td class="actions-cell"><button type="button" class="row-action danger" (click)="removeWebhook(hook)">Remove</button></td>
+              </tr>
+            }
+            @empty {
+              <tr><td colspan="4" class="empty-cell">No webhooks configured.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head"><p class="panel-title">Webhook delivery log</p></div>
+        <table class="ref-table">
+          <thead><tr><th>Time</th><th>Event</th><th>Status</th><th>Response</th></tr></thead>
+          <tbody>
+            @for (entry of webhookLog; track entry.at + entry.event) {
+              <tr>
+                <td>{{ entry.at }}</td>
+                <td>{{ entry.event }}</td>
+                <td><app-status-badge [status]="entry.status" [label]="entry.status === 'successful' ? 'Delivered' : 'Failed'" /></td>
+                <td>{{ entry.responseCode }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (activeSection() === 'notifications') {
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Notification matrix</p>
+          <a class="header-link" [routerLink]="['/settings/alerts']">Ops & borrower alert settings</a>
+        </div>
+        <table class="ref-table matrix-table">
+          <thead>
+            <tr><th>Event</th><th>In-App</th><th>Email</th><th>SMS</th></tr>
+          </thead>
+          <tbody>
+            @for (rule of notificationMatrix(); track rule.event) {
+              <tr>
+                <td>{{ rule.event }}</td>
+                <td><app-checkbox [checked]="rule.inApp" (checkedChange)="toggleMatrixCell(rule, 'inApp')" /></td>
+                <td><app-checkbox [checked]="rule.email" (checkedChange)="toggleMatrixCell(rule, 'email')" /></td>
+                <td><app-checkbox [checked]="rule.sms" (checkedChange)="toggleMatrixCell(rule, 'sms')" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (activeSection() === 'security') {
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Two-factor authentication</p></div>
+        <div class="toggle-row">
+          <app-toggle [checked]="twoFactorEnabled" (checkedChange)="toggle2fa($event)" />
+          <span>{{ twoFactorEnabled ? 'Enabled' : 'Disabled' }}</span>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Active sessions</p>
+          <app-button variant="outline" label="Revoke all other sessions" (clicked)="revokeOtherSessions()" />
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Device</th><th>Location</th><th>Last active</th><th></th></tr></thead>
+          <tbody>
+            @for (s of activeSessions(); track s.device) {
+              <tr>
+                <td>{{ s.device }}</td>
+                <td>{{ s.location }}</td>
+                <td>{{ s.lastActive }}</td>
+                <td>{{ s.current ? 'This device' : '' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head"><p class="panel-title">Login activity</p></div>
+        <table class="ref-table">
+          <thead><tr><th>Time</th><th>IP</th><th>Device</th><th>Location</th></tr></thead>
+          <tbody>
+            @for (l of loginHistory; track l.at) {
+              <tr><td>{{ l.at }}</td><td>{{ l.ip }}</td><td>{{ l.device }}</td><td>{{ l.location }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Change password</p></div>
+        <app-input label="Current password" type="password" [value]="currentPassword" (valueChange)="currentPassword = $event" />
+        <app-input label="New password" type="password" [value]="newPassword" (valueChange)="newPassword = $event" />
+        <app-button variant="primary" label="Update password" (clicked)="changePassword()" />
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">IP allowlist</p><span class="enterprise-tag">Enterprise</span></div>
+        <div class="ip-list">
+          @for (ip of ipAllowlist(); track ip) {
+            <span class="ip-chip">{{ ip }} <button type="button" (click)="removeIpRange(ip)">&times;</button></span>
+          }
+        </div>
+        <div class="field-row">
+          <app-input placeholder="e.g. 41.203.0.0/16" [value]="newIpRange()" (valueChange)="newIpRange.set($event)" />
+          <app-button variant="outline" label="Add range" (clicked)="addIpRange()" />
+        </div>
+      </div>
+    }
+
+    @if (activeSection() === 'billing') {
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Current plan</p></div>
+        <p class="plan-name">{{ currentPlan.name }} — {{ currentPlan.price }}</p>
+        <p class="plan-cycle">Billed {{ currentPlan.cycle }}</p>
+        <app-button variant="outline" label="Change plan" />
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Usage</p></div>
+        @for (meter of usageMeters; track meter.label) {
+          <div class="usage-row">
+            <div class="usage-head"><span>{{ meter.label }}</span><span>{{ meter.used.toLocaleString() }} / {{ meter.limit.toLocaleString() }}</span></div>
+            <div class="usage-track"><div class="usage-fill" [style.width.%]="(meter.used / meter.limit) * 100"></div></div>
+          </div>
+        }
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head"><p class="panel-title">Billing history</p></div>
+        <table class="ref-table">
+          <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            @for (inv of invoices; track inv.date) {
+              <tr>
+                <td>{{ inv.date }}</td>
+                <td>{{ inv.amount }}</td>
+                <td><app-status-badge [status]="inv.status" [label]="'Paid'" /></td>
+                <td class="actions-cell"><button type="button" class="row-action">Download PDF</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel danger-zone">
+        <div class="panel-head"><p class="panel-title">Cancel subscription</p></div>
+        <p class="danger-desc">Your account will remain active until the end of the current billing cycle.</p>
+        <app-button variant="outline" label="Cancel subscription" (clicked)="openCancelModal()" />
+      </div>
+    }
+
+    @if (activeSection() === 'team') {
+      <div class="panel">
+        <div class="panel-head"><p class="panel-title">Team & access</p></div>
+        <p class="team-redirect-desc">Manage members, roles, and permissions from the dedicated Teams page.</p>
+        <a class="header-link" [routerLink]="['/teams']">Go to Teams</a>
+      </div>
+    }
+
   </div>
-  <app-settings-row type="text" label="Organization name" [value]="orgName" (valueChange)="update('orgName', $event)" />
-  <app-settings-row type="text" label="RC number" subtitle="Your CAC registration number" [value]="rcNumber" (valueChange)="update('rcNumber', $event)" />
-  <app-settings-row type="text" label="License type" [value]="licenseType" (valueChange)="update('licenseType', $event)" />
-  <app-settings-row type="text" label="Regulator name" subtitle="The regulatory body that licenses your organization" [value]="regulatorName" (valueChange)="update('regulatorName', $event)" />
 </div>
+
+<app-modal [isOpen]="showNewKeyModal()" title="Generate API key" size="sm" (closed)="showNewKeyModal.set(false)">
+  <div class="modal-body-pad">
+    <app-input label="Key name" [value]="newKeyName()" (valueChange)="newKeyName.set($event)" />
+    <app-select [options]="keyScopeOptions" [value]="newKeyScope()" (valueChange)="newKeyScope.set($event)" />
+  </div>
+  <div modalFooter class="modal-footer-row">
+    <app-button variant="outline" label="Cancel" (clicked)="showNewKeyModal.set(false)" />
+    <app-button variant="primary" label="Generate" [disabled]="!newKeyName().trim()" (clicked)="createApiKey()" />
+  </div>
+</app-modal>
+
+<app-modal [isOpen]="showNewWebhookModal()" title="Add webhook" size="sm" (closed)="showNewWebhookModal.set(false)">
+  <div class="modal-body-pad">
+    <app-input label="Endpoint URL" [value]="newWebhookUrl()" (valueChange)="newWebhookUrl.set($event)" />
+    <p class="field-label">Events</p>
+    @for (event of availableEvents; track event) {
+      <app-checkbox [label]="event" [checked]="newWebhookEvents().includes(event)" (checkedChange)="toggleWebhookEvent(event, $event)" />
+    }
+  </div>
+  <div modalFooter class="modal-footer-row">
+    <app-button variant="outline" label="Cancel" (clicked)="showNewWebhookModal.set(false)" />
+    <app-button variant="primary" label="Add webhook" [disabled]="!newWebhookUrl().trim()" (clicked)="createWebhook()" />
+  </div>
+</app-modal>
+
+<app-modal [isOpen]="show2faSetup()" title="Set up two-factor authentication" size="sm" (closed)="show2faSetup.set(false)">
+  <div class="modal-body-pad">
+    <div class="qr-placeholder">QR CODE</div>
+    <p class="field-label">Backup codes</p>
+    <div class="backup-codes">
+      @for (code of backupCodes; track code) {
+        <span class="backup-code">{{ code }}</span>
+      }
+    </div>
+  </div>
+  <div modalFooter class="modal-footer-row">
+    <app-button variant="outline" label="Cancel" (clicked)="show2faSetup.set(false)" />
+    <app-button variant="primary" label="Confirm setup" (clicked)="confirm2faSetup()" />
+  </div>
+</app-modal>
+
+<app-modal [isOpen]="showCancelModal()" title="Cancel subscription" size="sm" (closed)="showCancelModal.set(false)">
+  <div class="modal-body-pad">
+    <p>Type <strong>{{ orgName }}</strong> to confirm cancellation.</p>
+    <app-input [value]="cancelConfirmText()" (valueChange)="cancelConfirmText.set($event)" />
+  </div>
+  <div modalFooter class="modal-footer-row">
+    <app-button variant="outline" label="Back" (clicked)="showCancelModal.set(false)" />
+    <app-button variant="primary" label="Confirm cancellation" [disabled]="!cancelConfirmMatches" (clicked)="confirmCancelSubscription()" />
+  </div>
+</app-modal>
+
+<app-modal [isOpen]="showDeleteOrgModal()" title="Delete organization" size="sm" (closed)="showDeleteOrgModal.set(false)">
+  <div class="modal-body-pad">
+    <p>This permanently deletes all data for <strong>{{ orgName }}</strong>. Type the organization name to confirm.</p>
+    <app-input [value]="deleteConfirmText()" (valueChange)="deleteConfirmText.set($event)" />
+  </div>
+  <div modalFooter class="modal-footer-row">
+    <app-button variant="outline" label="Cancel" (clicked)="showDeleteOrgModal.set(false)" />
+    <app-button variant="primary" label="Delete organization" [disabled]="!deleteConfirmMatches" (clicked)="confirmDeleteOrg()" />
+  </div>
+</app-modal>
 
 @if (toastVisible()) {
-  <app-toast type="success" title="Saved" message="Organization profile updated." (dismissed)="toastVisible.set(false)" />
+  <app-toast type="success" title="Saved" message="Settings updated." (dismissed)="toastVisible.set(false)" />
 }

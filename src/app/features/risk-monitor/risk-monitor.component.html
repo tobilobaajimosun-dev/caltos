@@ -1,0 +1,257 @@
+<div class="page-header">
+  <h1 class="page-title">Risk Monitor</h1>
+  <p class="page-subtitle">Overdue management, collections, and portfolio credit health.</p>
+</div>
+
+<div class="tab-bar">
+  <app-round-tabs [tabs]="mainTabs" [activeTab]="mainTab()" (activeTabChange)="setMainTab($event)" />
+</div>
+
+@if (mainTab() === 'overview') {
+  <div class="kpi-row par-kpi-row">
+    @for (kpi of parKpis; track kpi.label) {
+      <div class="par-kpi-card">
+        <span class="par-kpi-label">{{ kpi.label }}</span>
+        <span class="par-kpi-value" [style.color]="kpi.color">{{ kpi.value }}</span>
+      </div>
+    }
+    <div class="par-kpi-card">
+      <span class="par-kpi-label">Total NPL Value</span>
+      <span class="par-kpi-value" style="color: var(--color-error)">{{ totalNplValue }}</span>
+    </div>
+    <div class="par-kpi-card">
+      <span class="par-kpi-label">Collection Rate (30d)</span>
+      <span class="par-kpi-value" style="color: var(--color-success)">{{ collectionRate30d }}</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">PAR aging (last 6 months)</p>
+      <p class="panel-sub">Overdue loans by bucket, stacked</p>
+    </div>
+    <div class="stacked-chart">
+      @for (m of parAging; track m.month) {
+        <div class="stacked-col">
+          <div class="stacked-bar">
+            <div class="seg seg-90" [style.height.%]="(m.b90 / parAgingMax()) * 100"></div>
+            <div class="seg seg-60" [style.height.%]="(m.b60 / parAgingMax()) * 100"></div>
+            <div class="seg seg-30" [style.height.%]="(m.b30 / parAgingMax()) * 100"></div>
+            <div class="seg seg-1" [style.height.%]="(m.b1 / parAgingMax()) * 100"></div>
+          </div>
+          <span class="stacked-label">{{ m.month }}</span>
+        </div>
+      }
+    </div>
+    <div class="stacked-legend">
+      <span><i class="dot seg-1"></i>1–30d</span>
+      <span><i class="dot seg-30"></i>31–60d</span>
+      <span><i class="dot seg-60"></i>61–90d</span>
+      <span><i class="dot seg-90"></i>90+d</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Collections funnel</p>
+    </div>
+    <div class="funnel">
+      @for (stage of funnelStages; track stage.stage) {
+        <div class="funnel-row">
+          <div class="funnel-row-head">
+            <span class="funnel-stage">{{ stage.stage }}</span>
+            <span class="funnel-meta">{{ stage.count }} loans · ₦{{ stage.amount.toLocaleString() }}</span>
+          </div>
+          <div class="funnel-bar-track">
+            <div class="funnel-bar-fill" [style.width.%]="(stage.count / funnelMax) * 100"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (mainTab() === 'overdue') {
+  <div class="bucket-tab-row">
+    <app-round-tabs [tabs]="bucketTabs" [activeTab]="activeBucket()" (activeTabChange)="setBucket($event)" />
+  </div>
+
+  <div class="filter-row">
+    <app-select [options]="productOptions" [value]="productFilter()" (valueChange)="productFilter.set($event)" />
+    <app-select [options]="officerOptions" [value]="officerFilter()" (valueChange)="officerFilter.set($event)" />
+  </div>
+
+  @if (anySelected()) {
+    <div class="bulk-bar">
+      <span>{{ selectedCount() }} selected</span>
+      <div class="bulk-actions">
+        <button type="button" (click)="bulkSendSms()">Send SMS</button>
+        <button type="button" (click)="bulkAssign()">Assign to officer</button>
+        <button type="button" (click)="bulkEscalate()">Escalate</button>
+        <button type="button" class="clear" (click)="clearSelection()">Clear</button>
+      </div>
+    </div>
+  }
+
+  <div class="panel table-panel">
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Loan ID" /></th>
+          <th><app-column-title label="Product" /></th>
+          <th><app-column-title label="Overdue since" /></th>
+          <th><app-column-title label="Overdue amount" /></th>
+          <th><app-column-title label="Outstanding" /></th>
+          <th><app-column-title label="Last contact" /></th>
+          <th><app-column-title label="Stage" /></th>
+          <th><app-column-title label="Officer" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (loan of filteredLoans(); track loan.loanId) {
+          <tr>
+            <td (click)="$event.stopPropagation()"><app-checkbox [checked]="!!loan.selected" (checkedChange)="toggleSelect(loan, $event)" /></td>
+            <td><app-table-item type="user-avatar" [user]="loan.customer" /></td>
+            <td><app-table-item type="text" [text]="loan.loanId" /></td>
+            <td><app-table-item type="text" [text]="loan.product" /></td>
+            <td>
+              <span class="bucket-chip" [style.color]="bucketColor(loan.bucket)">{{ loan.overdueSinceDays }}d ({{ loan.overdueSinceDate }})</span>
+            </td>
+            <td><app-table-item type="amount" [amount]="'₦' + loan.overdueAmount.toLocaleString()" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + loan.outstandingPrincipal.toLocaleString()" /></td>
+            <td><app-table-item type="text" [text]="loan.lastContact ? (loan.lastContact.date + ' — ' + loan.lastContact.method) : 'Never contacted'" /></td>
+            <td><app-status-badge [status]="stageBadge(loan.stage).status" [label]="stageBadge(loan.stage).label" /></td>
+            <td><app-table-item type="text" [text]="loan.officer" /></td>
+            <td class="actions-cell"><button type="button" class="see-more-btn" (click)="open(loan)">Contact log</button></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="11" class="empty-cell">No overdue loans in this bucket.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (mainTab() === 'settings') {
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">PAR threshold alerts</p>
+    </div>
+    <div class="settings-row">
+      <span>Alert when any PAR bucket exceeds</span>
+      <app-input type="number" [value]="parAlertThreshold" (valueChange)="parAlertThreshold = $event" />
+      <span>% of portfolio</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Auto-assignment</p>
+    </div>
+    <div class="settings-row">
+      <span>Auto-assign overdue loans to a collections officer after</span>
+      <app-input type="number" [value]="autoAssignDays" (valueChange)="autoAssignDays = $event" />
+      <span>days</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">Write-off approval levels</p>
+    </div>
+    <div class="approval-options">
+      <app-radio-button [selected]="writeOffApprovalLevel === 'single'" label="Single approver" (selectedChange)="writeOffApprovalLevel = 'single'" />
+      <app-radio-button [selected]="writeOffApprovalLevel === 'dual'" label="Dual approval" (selectedChange)="writeOffApprovalLevel = 'dual'" />
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <p class="panel-title">SMS reminder templates (per PAR bucket)</p>
+    </div>
+    <div class="template-list">
+      @for (tpl of smsTemplatesByBucket; track tpl.bucket) {
+        <div class="template-card">
+          <p class="template-stage">{{ tpl.bucket }}</p>
+          <p class="template-text">{{ tpl.template }}</p>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<app-drawer [isOpen]="!!selected()" [title]="selected()?.loanId ?? ''" (closed)="close()">
+  @if (selected(); as loan) {
+    <div class="loan-detail">
+      <div class="detail-row"><span class="detail-label">Customer</span><span class="detail-value">{{ loan.customer.name }}</span></div>
+      <div class="detail-row"><span class="detail-label">Overdue amount</span><span class="detail-value">₦{{ loan.overdueAmount.toLocaleString() }}</span></div>
+      <div class="detail-row"><span class="detail-label">Outstanding principal</span><span class="detail-value">₦{{ loan.outstandingPrincipal.toLocaleString() }}</span></div>
+      <div class="detail-row"><span class="detail-label">Stage</span><app-status-badge [status]="stageBadge(loan.stage).status" [label]="stageBadge(loan.stage).label" /></div>
+
+      @if (loan.promiseAmount) {
+        <div class="detail-section">
+          <p class="detail-section-title">Promise-to-pay tracker</p>
+          <div class="promise-card">
+            <div class="detail-row"><span class="detail-label">Amount promised</span><span class="detail-value">₦{{ loan.promiseAmount.toLocaleString() }}</span></div>
+            <div class="detail-row"><span class="detail-label">Date promised</span><span class="detail-value">{{ loan.promiseDate }}</span></div>
+            @if (!loan.promiseFulfilled) {
+              <app-button variant="primary" label="Mark promise fulfilled" (clicked)="markPromiseFulfilled(loan)" />
+            } @else {
+              <span class="fulfilled-tag">✓ Fulfilled</span>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="detail-section">
+        <p class="detail-section-title">Contact history</p>
+        <div class="contact-log">
+          @for (entry of logsFor(loan.loanId); track entry.date + entry.outcome) {
+            <div class="contact-entry">
+              <span class="contact-date">{{ entry.date }} · {{ entry.method }}</span>
+              <span class="contact-outcome">{{ entry.outcome }}</span>
+              <span class="contact-next">Next action: {{ entry.nextAction }} · {{ entry.officer }}</span>
+            </div>
+          }
+          @empty {
+            <p class="no-contact">No contact recorded yet.</p>
+          }
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <p class="detail-section-title">Add contact record</p>
+        <app-select [options]="methodOptions" [value]="newLogMethod()" (valueChange)="newLogMethod.set($event)" />
+        <app-textarea placeholder="Outcome / notes..." [value]="newLogOutcome()" (valueChange)="newLogOutcome.set($event)" />
+        <app-input label="Next action date" type="date" [value]="newLogNextAction()" (valueChange)="newLogNextAction.set($event)" />
+        <app-button variant="outline" label="Add record" (clicked)="addContactLog(loan)" />
+      </div>
+
+      @if (loan.stage !== 'written-off') {
+        <div class="detail-actions">
+          <app-button variant="text" label="Write off loan" (clicked)="openWriteOff(loan)" />
+        </div>
+      }
+    </div>
+  }
+</app-drawer>
+
+<app-modal [isOpen]="writeOffOpen()" title="Write off loan" size="sm" (closed)="closeWriteOff()">
+  @if (writeOffLoan(); as loan) {
+    <div class="writeoff-body">
+      <p class="writeoff-loan">{{ loan.loanId }} · {{ loan.customer.name }}</p>
+      <app-select [options]="writeOffReasonOptions" [value]="writeOffReason()" (valueChange)="writeOffReason.set($event)" />
+      <app-input label="Write-off amount (₦)" type="number" [value]="writeOffAmount()" (valueChange)="writeOffAmount.set($event)" />
+      <app-input label="Authorization code (required)" [value]="writeOffAuthCode()" (valueChange)="writeOffAuthCode.set($event)" />
+      <p class="writeoff-note">This creates a permanent audit entry and moves the loan to "Written Off" status.</p>
+    </div>
+  }
+  <div modalFooter class="writeoff-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeWriteOff()" />
+    <app-button variant="primary" label="Confirm write-off" [disabled]="!writeOffAuthCode().trim()" (clicked)="confirmWriteOff()" />
+  </div>
+</app-modal>

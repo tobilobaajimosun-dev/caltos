@@ -67,9 +67,9 @@ export class SidebarComponent {
       ],
     },
     { id: 'reports',       label: 'Reports & Performance', icon: 'reports', route: '/reports' },
-    { id: 'risk',          label: 'Risk Monitor',        icon: 'risk',      route: '/collections' },
+    { id: 'risk',          label: 'Risk Monitor',        icon: 'risk',      route: '/risk-monitor' },
     { id: 'employers',     label: 'Employers',           icon: 'employers', route: '/employers' },
-    { id: 'teams',         label: 'Teams',               icon: 'teams' },
+    { id: 'teams',         label: 'Teams',               icon: 'teams',     route: '/teams' },
     { id: 'settings',      label: 'Settings',            icon: 'settings',  route: '/settings/alerts' },
   ];
 

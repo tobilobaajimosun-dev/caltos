@@ -7,11 +7,13 @@ import { ThemeService } from '../../services/theme.service';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 import { SessionService } from '../../services/session.service';
 import { AccountService } from '../../services/account.service';
+import { NotificationService } from '../../services/notification.service';
+import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [AvatarComponent, CommandPaletteComponent, ButtonComponent],
+  imports: [AvatarComponent, CommandPaletteComponent, ButtonComponent, NotificationPanelComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -25,14 +27,15 @@ export class HeaderComponent {
   readonly sidebarState = inject(SidebarStateService);
   private readonly session = inject(SessionService);
   readonly account = inject(AccountService);
+  readonly notifications = inject(NotificationService);
 
   readonly helpMenuOpen = signal(false);
   readonly userMenuOpen = signal(false);
   readonly commandPaletteOpen = signal(false);
+  readonly notificationPanelOpen = signal(false);
 
   readonly userName = 'Jesulademi Ajimosun';
   readonly userEmail = 'jesulademi.ajimosun@princepsfinance.com';
-  readonly notificationCount = 3;
 
   readonly commandGroups: CommandGroup[] = [
     { label: 'Navigate', items: [
@@ -61,6 +64,10 @@ export class HeaderComponent {
   toggleUserMenu() {
     this.userMenuOpen.update((v) => !v);
     this.helpMenuOpen.set(false);
+  }
+
+  toggleNotificationPanel() {
+    this.notificationPanelOpen.update((v) => !v);
   }
 
   closeMenus() {

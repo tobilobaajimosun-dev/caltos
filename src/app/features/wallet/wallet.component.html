@@ -3,6 +3,12 @@
   <p class="page-subtitle">Manage your organisation's funds, track top-ups, and view every transaction in one place.</p>
 </div>
 
+@if (lowBalanceActive()) {
+  <div class="panel">
+    <app-alert-banner type="warning" title="Your balance is running low" message="Top up now to avoid disbursement failures." [dismissible]="false" />
+  </div>
+}
+
 <div class="wallet-summary-row">
   <div class="panel balance-panel">
     <div class="panel-label-row">
@@ -15,9 +21,18 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
       </button>
     </div>
+    <p class="last-topup-note">Last topped up {{ topUpHistory()[0]?.date }}</p>
+
+    <div class="reserved-breakdown">
+      <div class="reserved-row"><span>Pending disbursements</span><span>₦{{ reservedDisbursements.toLocaleString() }}</span></div>
+      <div class="reserved-row"><span>Pending checks</span><span>₦{{ reservedChecks.toLocaleString() }}</span></div>
+      <div class="reserved-row total"><span>Available balance</span><span>₦{{ availableBalance().toLocaleString() }}</span></div>
+    </div>
+
     <div class="balance-actions">
-      <app-button variant="primary" label="Top up wallet" />
-      <app-button variant="secondary" label="Balance notification settings" (clicked)="openNotifSettings()" />
+      <app-button variant="primary" label="Top Up" (clicked)="openTopUp()" />
+      <app-button variant="secondary" label="Withdraw" (clicked)="openWithdrawal()" />
+      <app-button variant="outline" label="Set Auto Top-Up" (clicked)="openAutoTopUp()" />
     </div>
   </div>
 
@@ -35,6 +50,23 @@
       <span class="meta-label">Date last funded</span>
       <span class="meta-value">{{ lastFundedDate }}</span>
     </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Spend summary (this month)</p>
+  </div>
+  <div class="spend-grid">
+    @for (cat of spendCategories; track cat.label) {
+      <div class="spend-cell">
+        <span class="spend-icon">{{ cat.icon }}</span>
+        <div class="spend-info">
+          <span class="spend-label">{{ cat.label }}</span>
+          <span class="spend-amount">{{ cat.amount }}</span>
+        </div>
+      </div>
+    }
   </div>
 </div>
 
@@ -56,11 +88,38 @@
   </div>
 </div>
 
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Top-up history</p>
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Date" /></th>
+        <th><app-column-title label="Reference" /></th>
+        <th><app-column-title label="Amount" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of topUpHistory(); track row.reference) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.date" /></td>
+          <td><app-table-item type="text" [text]="row.reference" /></td>
+          <td><app-table-item type="amount" [amount]="row.amount" /></td>
+          <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Confirmed' : row.status === 'pending' ? 'Pending' : 'Failed'" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
 <div class="panel table-panel transactions-panel">
   <div class="panel-head">
     <p class="panel-title">Transactions</p>
     <div class="table-toolbar-actions">
-      <app-button variant="filter" label="Filter" />
+      <app-search placeholder="Search reference or description..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
+      <app-select [options]="typeOptions" [value]="typeFilter()" (valueChange)="typeFilter.set($any($event))" />
       <app-button variant="primary" label="Export CSV" [icon]="downloadIcon" />
     </div>
   </div>
@@ -71,14 +130,14 @@
         <th><app-column-title label="Date" /></th>
         <th><app-column-title label="Narration / Description" /></th>
         <th><app-column-title label="Transaction ID" /></th>
+        <th><app-column-title label="Type" /></th>
         <th><app-column-title label="Amount (₦)" /></th>
         <th><app-column-title label="Status" /></th>
         <th><app-column-title label="Balance After (₦)" /></th>
-        <th></th>
       </tr>
     </thead>
     <tbody>
-      @for (txn of transactions; track txn.txnId) {
+      @for (txn of filteredTransactions(); track txn.txnId) {
         <tr>
           <td>
             <div class="date-cell">
@@ -88,11 +147,14 @@
           </td>
           <td><app-table-item type="text" [text]="txn.narration" /></td>
           <td><app-table-item type="text" [text]="txn.txnId" /></td>
-          <td><app-table-item type="text" [text]="txn.amount" /></td>
+          <td><app-table-item type="text" [text]="txn.type" /></td>
+          <td><span class="amount-cell" [class.debit]="txn.amount.startsWith('-')" [class.credit]="!txn.amount.startsWith('-')">{{ txn.amount }}</span></td>
           <td><app-table-item type="status" [status]="txn.status" /></td>
           <td><app-table-item type="text" [text]="txn.balanceAfter" /></td>
-          <td><app-table-item type="more" /></td>
         </tr>
+      }
+      @empty {
+        <tr><td colspan="7" class="empty-cell">No transactions match these filters.</td></tr>
       }
     </tbody>
   </table>
@@ -100,6 +162,7 @@
   <app-pagination [currentPage]="currentPage" [totalPages]="1" [pageSize]="pageSize" (pageChange)="currentPage = $event" (pageSizeChange)="pageSize = $event" />
 </div>
 
+<!-- Balance notification settings -->
 <app-modal [isOpen]="notifSettingsOpen()" title="Balance Notification Settings" size="sm" (closed)="closeNotifSettings()">
   <div class="notif-body">
     <p class="notif-desc">Get notified when your wallet balance crosses certain limits or when funds are added.</p>
@@ -129,5 +192,92 @@
   <div modalFooter class="notif-footer">
     <app-button variant="outline" label="Cancel" (clicked)="closeNotifSettings()" />
     <app-button variant="primary" label="Save settings" (clicked)="saveNotifSettings()" />
+  </div>
+</app-modal>
+
+<!-- Top-up flow (3 steps) -->
+<app-modal [isOpen]="topUpOpen()" title="Top up wallet" size="sm" (closed)="closeTopUp()">
+  <div class="topup-steps">
+    <span [class.active]="topUpStep() >= 0">1. Amount</span>
+    <span [class.active]="topUpStep() >= 1">2. Transfer</span>
+    <span [class.active]="topUpStep() >= 2">3. Confirm</span>
+  </div>
+
+  @if (topUpStep() === 0) {
+    <div class="topup-body">
+      <p class="notif-field-label">Quick amount</p>
+      <div class="chip-row">
+        @for (chip of topUpAmountChips; track chip) {
+          <button type="button" class="amount-chip" [class.active]="topUpAmount() === chip" (click)="selectTopUpChip(chip)">{{ chip }}</button>
+        }
+      </div>
+      <app-input label="Or enter custom amount" type="number" placeholder="Custom amount" [value]="topUpCustomAmount()" (valueChange)="topUpCustomAmount.set($event); topUpAmount.set('')" />
+    </div>
+  }
+
+  @if (topUpStep() === 1) {
+    <div class="topup-body">
+      <p class="topup-amount-display">Amount: {{ topUpFinalAmount || '—' }}</p>
+      <div class="transfer-details">
+        <div class="transfer-row"><span>Account name</span><strong>Princeps Finance Ltd</strong></div>
+        <div class="transfer-row"><span>Account number</span><strong>{{ account.accountNumber() }}</strong></div>
+        <div class="transfer-row"><span>Bank name</span><strong>{{ account.bankName() }}</strong></div>
+        <div class="transfer-row"><span>Reference</span><strong>{{ topUpReference() }}</strong></div>
+      </div>
+      <p class="transfer-note">Funds reflect within 30 minutes of transfer.</p>
+    </div>
+  }
+
+  @if (topUpStep() === 2) {
+    <div class="topup-body">
+      <app-checkbox label="I have completed the transfer" [checked]="true" />
+      <app-file-upload label="Upload payment proof (optional)" (fileSelected)="onTopUpProofSelected($event)" />
+    </div>
+  }
+
+  <div modalFooter class="notif-footer">
+    @if (topUpStep() > 0) {
+      <app-button variant="outline" label="Back" (clicked)="topUpBack()" />
+    }
+    @if (topUpStep() < 2) {
+      <app-button variant="primary" label="Next" [disabled]="topUpStep() === 0 && !topUpFinalAmount" (clicked)="topUpNext()" />
+    } @else {
+      <app-button variant="primary" label="Submit — Pending confirmation" (clicked)="confirmTopUp()" />
+    }
+  </div>
+</app-modal>
+
+<!-- Withdrawal flow -->
+<app-modal [isOpen]="withdrawalOpen()" title="Withdraw funds" size="sm" (closed)="closeWithdrawal()">
+  <div class="topup-body">
+    <app-input label="Amount" type="number" placeholder="Amount to withdraw" [value]="withdrawalAmount()" (valueChange)="withdrawalAmount.set($event)" />
+    @if (withdrawalExceedsAvailable) {
+      <p class="withdrawal-error">Amount exceeds available balance (₦{{ availableBalance().toLocaleString() }}).</p>
+    }
+    <app-select [options]="withdrawalAccountOptions" [value]="withdrawalAccount()" (valueChange)="withdrawalAccount.set($event)" />
+    <app-input label="Reason" placeholder="Reason for withdrawal" [value]="withdrawalReason()" (valueChange)="withdrawalReason.set($event)" />
+  </div>
+  <div modalFooter class="notif-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeWithdrawal()" />
+    <app-button variant="primary" label="Submit for review" [disabled]="!withdrawalAmount() || withdrawalExceedsAvailable" (clicked)="submitWithdrawal()" />
+  </div>
+</app-modal>
+
+<!-- Auto top-up settings -->
+<app-modal [isOpen]="autoTopUpOpen()" title="Auto Top-Up Settings" size="sm" (closed)="closeAutoTopUp()">
+  <div class="topup-body">
+    <div class="notif-toggle-row">
+      <app-toggle [checked]="autoTopUpEnabled" (checkedChange)="autoTopUpEnabled = $event" />
+      <span>Enable Auto Top-Up</span>
+    </div>
+    @if (autoTopUpEnabled) {
+      <app-input label="Top up when balance falls below (₦)" type="number" [value]="autoTopUpThreshold" (valueChange)="autoTopUpThreshold = $event" />
+      <app-input label="Top up by (₦)" type="number" [value]="autoTopUpAmount" (valueChange)="autoTopUpAmount = $event" />
+      <app-select [options]="withdrawalAccountOptions" [value]="autoTopUpSource" (valueChange)="autoTopUpSource = $event" />
+    }
+  </div>
+  <div modalFooter class="notif-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeAutoTopUp()" />
+    <app-button variant="primary" label="Save settings" (clicked)="saveAutoTopUp()" />
   </div>
 </app-modal>

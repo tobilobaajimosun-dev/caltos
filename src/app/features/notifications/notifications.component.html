@@ -1,0 +1,57 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">All Notifications</h1>
+    <p class="page-subtitle">Full history of alerts and activity across the platform.</p>
+  </div>
+  <div class="header-actions">
+    <app-button variant="outline" label="Mark all read" (clicked)="notifications.markAllRead()" />
+  </div>
+</div>
+
+<div class="filter-row">
+  <app-select [options]="categoryOptions" [value]="categoryFilter()" (valueChange)="categoryFilter.set($any($event))" />
+  <app-select [options]="statusOptions" [value]="statusFilter()" (valueChange)="statusFilter.set($any($event))" />
+</div>
+
+@if (selectedIds().size > 0) {
+  <div class="bulk-bar">
+    <span>{{ selectedIds().size }} selected</span>
+    <div class="bulk-actions">
+      <button type="button" (click)="bulkMarkRead()">Mark as read</button>
+      <button type="button" (click)="bulkDelete()">Delete</button>
+    </div>
+  </div>
+}
+
+<div class="panel table-panel">
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th class="col-check"><input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll()" /></th>
+        <th><app-column-title label="Type" /></th>
+        <th><app-column-title label="Message" /></th>
+        <th><app-column-title label="Date" /></th>
+        <th><app-column-title label="Status" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (n of filtered(); track n.id) {
+        <tr class="clickable-row" [class.unread-row]="!n.read" (click)="open(n)">
+          <td class="col-check" (click)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="selectedIds().has(n.id)" (change)="toggleSelect(n.id, $any($event.target).checked)" />
+          </td>
+          <td class="icon-cell">{{ iconGlyph(n.icon) }}</td>
+          <td>
+            <p class="msg-title">{{ n.title }}</p>
+            <p class="msg-subtitle">{{ n.subtitle }}</p>
+          </td>
+          <td><app-table-item type="text" [text]="notifications.relativeTime(n.at)" /></td>
+          <td><span class="status-pill" [class.unread]="!n.read">{{ n.read ? 'Read' : 'Unread' }}</span></td>
+        </tr>
+      }
+      @empty {
+        <tr><td colspan="5" class="empty-cell">No notifications match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

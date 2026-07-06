@@ -1,19 +1,52 @@
-import { Component, inject } from '@angular/core';
-import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent } from '../../shared/components';
+import { Component, computed, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent, EmptyStateComponent } from '../../shared/components';
 import { AccountService } from '../../shared/services/account.service';
+import { ProductsService } from '../../shared/services/products.service';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
+
+interface ActivityEntry {
+  icon: string;
+  text: string;
+  at: string;
+}
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent],
+  imports: [RouterLink, StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent, EmptyStateComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {
   readonly account = inject(AccountService);
+  private readonly productsService = inject(ProductsService);
+  private readonly router = inject(Router);
   activePeriod = 'today';
+
+  readonly hasProducts = computed(() => this.productsService.products().length > 0);
+
+  readonly quickActions = [
+    { icon: '➕', title: 'Create product', desc: 'Launch a new loan or BNPL product.', route: '/products/create' },
+    { icon: '📋', title: 'View applications', desc: 'Review the loan processing pipeline.', route: '/loans/processing' },
+    { icon: '📊', title: 'View reports', desc: 'Portfolio performance and exports.', route: '/reports' },
+  ];
+
+  readonly recentActivity = computed<ActivityEntry[]>(() => {
+    const products = this.productsService.products();
+    const entries: ActivityEntry[] = [];
+    for (const p of products) {
+      entries.push({ icon: '🆕', text: `"${p.name}" was created`, at: p.createdAt });
+      if (p.status === 'live') entries.push({ icon: '✅', text: `"${p.name}" was published`, at: p.createdAt });
+      if (p.stats.totalApplications > 0) entries.push({ icon: '📝', text: `${p.stats.totalApplications} application${p.stats.totalApplications === 1 ? '' : 's'} received for "${p.name}"`, at: p.createdAt });
+    }
+    return entries.slice(0, 5);
+  });
+
+  goTo(route: string) {
+    this.router.navigateByUrl(route);
+  }
 
   readonly periodTabs: TabItem[] = [
     { id: 'today',     label: 'Today' },

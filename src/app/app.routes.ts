@@ -34,6 +34,9 @@ import { LandingComponent } from './pages/landing/landing.component';
 import { CustomerListComponent } from './features/customers/customer-list/customer-list.component';
 import { CustomerProfileComponent } from './features/customers/customer-profile/customer-profile.component';
 import { WalletComponent } from './features/wallet/wallet.component';
+import { NotificationsPageComponent } from './features/notifications/notifications.component';
+import { RiskMonitorComponent } from './features/risk-monitor/risk-monitor.component';
+import { TeamsComponent } from './features/teams/teams.component';
 
 export const routes: Routes = [
   // Public marketing landing page — the app's true entry point
@@ -59,6 +62,7 @@ export const routes: Routes = [
       { path: 'customers', component: CustomerListComponent },
       { path: 'customers/:id', component: CustomerProfileComponent },
       { path: 'wallet', component: WalletComponent },
+      { path: 'notifications', component: NotificationsPageComponent },
       { path: 'products', component: ProductListComponent },
       { path: 'products/create-bnpl', component: CreateBnplComponent },
       { path: 'products/:id', component: ProductDetailComponent },
@@ -74,6 +78,8 @@ export const routes: Routes = [
       { path: 'collections/exceptions', component: ExceptionsComponent },
       { path: 'collections/escalations', component: EscalationsComponent },
       { path: 'recovery', component: RecoveryPortalComponent },
+      { path: 'risk-monitor', component: RiskMonitorComponent },
+      { path: 'teams', component: TeamsComponent },
       { path: 'reports', component: ReportsComponent },
       { path: 'employers', component: EmployerPortalComponent },
       { path: 'settings', component: OrganizationSettingsComponent },

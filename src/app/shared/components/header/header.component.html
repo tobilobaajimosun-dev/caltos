@@ -41,10 +41,10 @@
       }
     </div>
 
-    <button class="icon-btn" type="button" aria-label="Notifications">
+    <button class="icon-btn" type="button" aria-label="Notifications" (click)="toggleNotificationPanel()">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      @if (notificationCount > 0) {
-        <span class="badge">{{ notificationCount }}</span>
+      @if (notifications.unreadCount() > 0) {
+        <span class="badge">{{ notifications.unreadCount() }}</span>
       }
     </button>
 
@@ -87,3 +87,5 @@
   (closed)="commandPaletteOpen.set(false)"
   (selected)="onCommandSelected($event)"
 />
+
+<app-notification-panel [isOpen]="notificationPanelOpen()" (closed)="notificationPanelOpen.set(false)" />

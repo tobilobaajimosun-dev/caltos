@@ -1,0 +1,211 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Teams</h1>
+    <p class="page-subtitle">Manage staff access — loan officers, managers, admins, and auditors.</p>
+  </div>
+  <app-button variant="primary" label="+ Invite Member" (clicked)="openInvite()" />
+</div>
+
+<div class="tab-bar">
+  <app-round-tabs [tabs]="filterTabs" [activeTab]="activeFilter()" (activeTabChange)="setFilter($event)" />
+</div>
+
+<div class="panel table-panel">
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Member" /></th>
+        <th><app-column-title label="Role" /></th>
+        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Last active" /></th>
+        <th><app-column-title label="Loans assigned" /></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (member of filteredMembers(); track member.id) {
+        <tr class="clickable-row" (click)="open(member)">
+          <td>
+            <div class="member-cell">
+              <app-avatar [name]="member.firstName + ' ' + member.lastName" size="sm" />
+              <div class="member-info">
+                <span class="member-name">{{ member.firstName }} {{ member.lastName }}</span>
+                <span class="member-email">{{ member.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="role-badge">{{ member.role }}</span></td>
+          <td><app-status-badge [status]="statusBadge(member.status).status" [label]="statusBadge(member.status).label" /></td>
+          <td>{{ relativeTime(member.lastActive) }}</td>
+          <td>{{ member.loansAssigned }}</td>
+          <td class="actions-cell" (click)="$event.stopPropagation()">
+            @if (member.status === 'pending') {
+              <button type="button" class="row-action" (click)="resendInvite(member)">Resend invite</button>
+            }
+            <button type="button" class="row-action" (click)="requestSuspend(member)">{{ member.status === 'suspended' ? 'Reactivate' : 'Suspend' }}</button>
+            <button type="button" class="row-action danger" (click)="requestRemove(member)">Remove</button>
+          </td>
+        </tr>
+      }
+      @empty {
+        <tr><td colspan="6" class="empty-cell">No team members match this filter.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- Member profile drawer -->
+<app-drawer [isOpen]="!!selected()" [title]="selected() ? (selected()!.firstName + ' ' + selected()!.lastName) : ''" width="460px" (closed)="close()">
+  @if (selected(); as member) {
+    <div class="profile-header">
+      <app-avatar [name]="member.firstName + ' ' + member.lastName" size="lg" />
+      <div>
+        <p class="profile-name">{{ member.firstName }} {{ member.lastName }}</p>
+        <span class="role-badge">{{ member.role }}</span>
+      </div>
+    </div>
+
+    <div class="profile-tab-bar">
+      <app-round-tabs [tabs]="profileTabs" [activeTab]="profileTab()" (activeTabChange)="setProfileTab($event)" />
+    </div>
+
+    @if (profileTab() === 'overview') {
+      <div class="detail-section">
+        <p class="detail-section-title">Contact info</p>
+        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ member.email }}</span></div>
+        <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">{{ member.phone || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">Joined</span><span class="detail-value">{{ member.joinedDate }}</span></div>
+        <div class="detail-row"><span class="detail-label">Last login</span><span class="detail-value">{{ relativeTime(member.lastActive) }}</span></div>
+      </div>
+      <div class="detail-section">
+        <p class="detail-section-title">Statistics</p>
+        <div class="stats-grid">
+          <div class="stat-cell"><span>Loans processed</span><strong>{{ member.statsProcessed }}</strong></div>
+          <div class="stat-cell"><span>Total disbursed</span><strong>{{ member.statsDisbursed }}</strong></div>
+          <div class="stat-cell"><span>Collection rate</span><strong>{{ member.statsCollectionRate }}%</strong></div>
+        </div>
+      </div>
+    }
+
+    @if (profileTab() === 'permissions') {
+      <p class="permission-note">Based on: {{ member.role }} role</p>
+      @for (group of member.permissionGroups; track group.groupName) {
+        <app-permission-group [groupName]="group.groupName" [permissions]="group.permissions" />
+      }
+    }
+
+    @if (profileTab() === 'activity') {
+      <div class="activity-list">
+        @for (entry of member.activity; track entry.at + entry.action) {
+          <div class="activity-row">
+            <span class="activity-at">{{ entry.at }}</span>
+            <span class="activity-text">{{ entry.action }}</span>
+          </div>
+        }
+        @empty {
+          <p class="no-activity">No activity recorded yet.</p>
+        }
+      </div>
+    }
+
+    @if (profileTab() === 'loans') {
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th><app-column-title label="Loan" /></th>
+            <th><app-column-title label="Customer" /></th>
+            <th><app-column-title label="Amount" /></th>
+            <th><app-column-title label="Status" /></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (loan of member.assignedLoans; track loan.loanId) {
+            <tr>
+              <td><app-table-item type="text" [text]="loan.loanId" /></td>
+              <td><app-table-item type="text" [text]="loan.customer" /></td>
+              <td><app-table-item type="amount" [amount]="loan.amount" /></td>
+              <td><app-table-item type="text" [text]="loan.status" /></td>
+              <td class="actions-cell"><button type="button" class="row-action" (click)="reassignLoan(member, loan)">Reassign</button></td>
+            </tr>
+          }
+          @empty {
+            <tr><td colspan="5" class="empty-cell">No loans assigned.</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</app-drawer>
+
+<!-- Invite modal (3 steps) -->
+<app-modal [isOpen]="showInviteModal()" title="Invite team member" (closed)="closeInvite()">
+  <div class="invite-steps">
+    <span [class.active]="inviteStep() >= 0">1. Basic Info</span>
+    <span [class.active]="inviteStep() >= 1">2. Role & Permissions</span>
+    <span [class.active]="inviteStep() >= 2">3. Review & Send</span>
+  </div>
+
+  @if (inviteStep() === 0) {
+    <div class="invite-body">
+      <app-input label="First name" [value]="inviteFirstName()" (valueChange)="inviteFirstName.set($event)" />
+      <app-input label="Last name" [value]="inviteLastName()" (valueChange)="inviteLastName.set($event)" />
+      <app-input label="Email" type="email" [value]="inviteEmail()" (valueChange)="inviteEmail.set($event)" />
+      <app-input label="Phone (optional)" [value]="invitePhone()" (valueChange)="invitePhone.set($event)" />
+    </div>
+  }
+
+  @if (inviteStep() === 1) {
+    <div class="invite-body">
+      <app-select [options]="roleOptions" [value]="inviteRole()" (valueChange)="setInviteRole($event)" />
+      <p class="role-desc">{{ roleDescriptions[inviteRole()] }}</p>
+
+      @if (isPredefinedRole()) {
+        <p class="predefined-note">Predefined role — permissions are locked. Switch to Custom to edit individually.</p>
+      }
+
+      @for (group of invitePermissionGroups(); track group.groupName) {
+        <app-permission-group
+          [groupName]="group.groupName"
+          [permissions]="group.permissions"
+          (permissionsChange)="isPredefinedRole() ? null : updateGroupPermissions(group.groupName, $event)" />
+      }
+    </div>
+  }
+
+  @if (inviteStep() === 2) {
+    <div class="invite-body">
+      <div class="review-summary">
+        <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">{{ inviteFirstName() }} {{ inviteLastName() }}</span></div>
+        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ inviteEmail() || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">Role</span><span class="detail-value">{{ inviteRole() }}</span></div>
+        <div class="detail-row"><span class="detail-label">Permissions</span><span class="detail-value">{{ invitePermissionSummary }}</span></div>
+      </div>
+      <p class="review-note">An email invite will be sent. The member appears as "Pending Invite" until they accept.</p>
+    </div>
+  }
+
+  <div modalFooter class="invite-footer">
+    @if (inviteStep() > 0) {
+      <app-button variant="outline" label="Back" (clicked)="inviteBack()" />
+    }
+    @if (inviteStep() < 2) {
+      <app-button variant="primary" label="Next" [disabled]="inviteStep() === 0 && !inviteEmail().trim()" (clicked)="inviteNext()" />
+    } @else {
+      <app-button variant="primary" label="Send Invite" (clicked)="sendInvite()" />
+    }
+  </div>
+</app-modal>
+
+<app-confirm-modal
+  [isOpen]="!!confirmTarget()"
+  [title]="confirmModalCopy.title"
+  [message]="confirmModalCopy.message"
+  [confirmLabel]="confirmModalCopy.confirmLabel"
+  [danger]="confirmModalCopy.danger"
+  (confirmed)="confirmActionExecute()"
+  (cancelled)="cancelConfirm()" />
+
+@if (toastVisible()) {
+  <app-toast type="success" title="Done" [message]="toastMessage()" (dismissed)="toastVisible.set(false)" />
+}
