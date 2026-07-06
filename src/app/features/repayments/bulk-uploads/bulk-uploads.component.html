@@ -1,0 +1,44 @@
+<div class="page-header">
+  <h1 class="page-title">Bulk uploads</h1>
+  <p class="page-subtitle">Upload and track batch repayment files processed for your organization.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Total uploads" [value]="totalUploads()" />
+  <app-kpi-card label="Rows processed" [value]="rowsProcessed().toLocaleString()" />
+  <app-kpi-card label="Failed uploads" [value]="failedUploads()" />
+</div>
+
+<div class="panel table-panel">
+  <div class="panel-head">
+    <p class="panel-title">Upload history</p>
+    <app-button variant="primary" label="Upload file" (clicked)="openUpload()" />
+  </div>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Filename" /></th>
+        <th><app-column-title label="Rows" /></th>
+        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Uploaded date" /></th>
+        <th><app-column-title label="Uploaded by" /></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of uploads(); track row.filename + row.uploadedDate) {
+        <tr>
+          <td><app-table-item type="text" [text]="row.filename" /></td>
+          <td><app-table-item type="text" [text]="row.rowCount.toLocaleString()" /></td>
+          <td><app-status-badge [status]="row.status" [label]="row.statusLabel" /></td>
+          <td><app-table-item type="date" [date]="row.uploadedDate" /></td>
+          <td><app-table-item type="text" [text]="row.uploadedBy" /></td>
+        </tr>
+      }
+      @empty {
+        <tr><td colspan="5" class="empty-cell">No bulk uploads yet.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<app-upload-modal [isOpen]="isUploadOpen()" (closed)="closeUpload()" (submitted)="onSubmitted($event)" />

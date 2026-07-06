@@ -1,0 +1,7 @@
+@use '../../stub-pages';
+
+.empty-cell {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-6) !important;
+}

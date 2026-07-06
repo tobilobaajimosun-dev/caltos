@@ -1,0 +1,46 @@
+<div class="page-header">
+  <h1 class="page-title">Schedules</h1>
+  <p class="page-subtitle">Upcoming repayment due dates across all active loans.</p>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Due today" [value]="dueTodayCount() + ' loans'" />
+  <app-kpi-card label="Due this week" [value]="dueThisWeekCount() + ' loans'" />
+  <app-kpi-card label="Total amount due" [value]="'₦' + totalAmountDue().toLocaleString()" />
+</div>
+
+@for (bucket of buckets(); track bucket.key) {
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">{{ bucket.label }}</p>
+      <p class="panel-sub">{{ bucket.rows.length }} loan{{ bucket.rows.length === 1 ? '' : 's' }}</p>
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Customer" /></th>
+          <th><app-column-title label="Loan ID" /></th>
+          <th><app-column-title label="Product" /></th>
+          <th><app-column-title label="Amount due" /></th>
+          <th><app-column-title label="Due date" /></th>
+          <th><app-column-title label="Channel" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of bucket.rows; track row.loanId) {
+          <tr>
+            <td><app-table-item type="user-avatar" [user]="row.customer" /></td>
+            <td><app-table-item type="text" [text]="row.loanId" /></td>
+            <td><app-table-item type="text" [text]="row.product" /></td>
+            <td><app-table-item type="amount" [amount]="'₦' + row.amountDue.toLocaleString()" /></td>
+            <td><app-table-item type="date" [date]="row.dueDate" /></td>
+            <td><app-table-item type="text" [text]="row.channel" /></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="6" class="empty-cell">Nothing due in this window.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

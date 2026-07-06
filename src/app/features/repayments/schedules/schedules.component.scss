@@ -1,0 +1,13 @@
+@use '../../stub-pages';
+
+.panel-sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.empty-cell {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-6) !important;
+}
