@@ -9,6 +9,72 @@
         <p class="page-subtitle">Your organisation's activity at a glance.</p>
       </div>
 
+      <!-- Demo state switcher: this is a frontend-only app with mock data, no real API -->
+      <div class="state-demo-switch" role="group" aria-label="Demo dashboard state">
+        <span class="state-demo-label">Demo state:</span>
+        <app-button variant="outline" [active]="dashboardState() === 'loading'" label="Loading" (clicked)="setState('loading')" />
+        <app-button variant="outline" [active]="dashboardState() === 'ready'" label="Ready" (clicked)="setState('ready')" />
+        <app-button variant="outline" [active]="dashboardState() === 'empty'" label="Empty" (clicked)="setState('empty')" />
+        <app-button variant="outline" [active]="dashboardState() === 'error'" label="Error" (clicked)="setState('error')" />
+      </div>
+
+      @switch (dashboardState()) {
+
+        @case ('loading') {
+          <div class="loading-state" aria-busy="true" aria-live="polite">
+            <div class="metrics-row">
+              @for (i of [0,1,2,3,4]; track i) {
+                <div class="metric-card">
+                  <app-skeleton variant="inline" width="60%" height="12px" />
+                  <app-skeleton variant="block" width="80%" height="24px" />
+                  <app-skeleton variant="block" width="100%" height="36px" />
+                </div>
+              }
+            </div>
+            <div class="charts-row">
+              <div class="panel wide-panel skeleton-panel">
+                <app-skeleton variant="block" width="40%" height="18px" />
+                <app-skeleton variant="block" width="100%" height="210px" />
+              </div>
+              <div class="panel narrow-panel skeleton-panel">
+                <app-skeleton variant="block" width="50%" height="18px" />
+                @for (i of [0,1,2,3,4]; track i) {
+                  <div class="skeleton-row">
+                    <app-skeleton variant="avatar" width="32px" height="32px" />
+                    <app-skeleton variant="inline" width="70%" height="14px" />
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @case ('empty') {
+          <div class="panel welcome-banner">
+            <app-empty-state title="No dashboard activity yet" description="Once you start creating products, disbursing loans, and collecting repayments, your dashboard will populate here.">
+              <svg icon width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <rect x="10" y="16" width="44" height="36" rx="4" stroke="currentColor" stroke-width="2"/>
+                <path d="M18 28h28M18 36h20M18 44h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <app-button cta variant="primary" label="Create your first product" (clicked)="goTo('/products/create')" />
+            </app-empty-state>
+          </div>
+        }
+
+        @case ('error') {
+          <div class="panel welcome-banner">
+            <app-empty-state title="Couldn't load your dashboard" description="Something went wrong while fetching your latest metrics. Please try again.">
+              <svg icon width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="22" stroke="currentColor" stroke-width="2"/>
+                <path d="M32 22v14M32 42h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <app-button cta variant="primary" label="Retry" (clicked)="retry()" />
+            </app-empty-state>
+          </div>
+        }
+
+        @default {
+
       @if (!hasProducts()) {
         <div class="panel welcome-banner">
           <app-empty-state title="Welcome to Caltos" description="You haven't created any loan products yet. Set one up to start accepting applications and disbursing loans.">
@@ -19,6 +85,15 @@
             <app-button cta variant="primary" label="Create your first product" (clicked)="goTo('/products/create')" />
           </app-empty-state>
         </div>
+      }
+
+      <!-- Overdue Alerts Banner -->
+      @if (hasOverdueLoans()) {
+        <app-alert-banner
+          type="error"
+          title="Overdue loans need attention"
+          [message]="overdueLoanCount + ' loans overdue — ' + overdueAtRiskAmount + ' at risk'"
+          [dismissible]="false" />
       }
 
       <!-- Quick actions -->
@@ -97,7 +172,16 @@
         </div>
       </div>
 
-      <!-- KPI metrics row -->
+      <!-- KPI Row (Issue #1: 5 core dashboard KPIs) -->
+      <div class="kpi-row" role="list" aria-label="Key performance indicators">
+        @for (kpi of kpiCards; track kpi.label) {
+          <div role="listitem">
+            <app-kpi-card [label]="kpi.label" [value]="kpi.value" />
+          </div>
+        }
+      </div>
+
+      <!-- Existing KPI-like metrics row (legacy) -->
       <div class="metrics-row">
         @for (m of metrics; track m.label) {
           <div class="metric-card">
@@ -129,92 +213,129 @@
         }
       </div>
 
-      <!-- Charts row: area chart + payout activity -->
+      <!-- Loan Activity Chart + Recent Activity Feed -->
       <div class="charts-row">
 
-        <!-- Area chart -->
+        <!-- Loan Activity Chart -->
         <div class="panel wide-panel">
-          <div class="panel-head">
+          <div class="panel-head loan-activity-head">
             <div>
-              <p class="panel-title">Daily Disbursement Trend</p>
-              <div class="area-hero">
-                <span class="area-val">₦3,934,199.13</span>
-                <span class="trend-chip up">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  40% vs yesterday
-                </span>
-              </div>
+              <p class="panel-title">Loan Activity</p>
+              <p class="panel-sub">Disbursements vs. repayments</p>
+            </div>
+            <app-tabs [tabs]="chartPeriodTabs" [activeTab]="chartActivePeriod()" (activeTabChange)="setChartPeriod($event)" />
+          </div>
+          <div class="loan-activity-body">
+            <div class="loan-activity-legend">
+              <span class="legend-item"><span class="legend-dot" style="background:var(--color-blue)"></span>Disbursements</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#059669"></span>Repayments</span>
+            </div>
+            <div class="loan-activity-charts">
+              <app-chart type="line" [data]="disbursementChartData()" color="var(--color-blue)" />
+              <app-chart type="line" [data]="repaymentChartData()" color="#059669" />
             </div>
           </div>
-          <div class="area-chart-wrap">
-            <div class="y-axis">
-              <span>₦45M</span><span>₦35M</span><span>₦25M</span><span>₦15M</span><span>₦10M</span><span>₦1M</span><span>₦0</span>
+          <div class="chart-summary-row">
+            <div class="chart-summary-item">
+              <span class="chart-summary-label">Avg. loan size</span>
+              <span class="chart-summary-val">{{ chartSummary.avgLoanSize }}</span>
             </div>
-            <div class="area-chart-inner">
-              <svg width="100%" height="210" viewBox="0 0 650 210" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#059669" stop-opacity="0.18"/>
-                    <stop offset="100%" stop-color="#059669" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-                <path d="M0 200 C60 196 100 190 150 178 C200 163 230 148 280 128 C320 112 360 100 410 84 C450 70 490 54 540 36 C580 22 615 12 650 4 L650 210 L0 210 Z" fill="url(#areaGrad)"/>
-                <path d="M0 200 C60 196 100 190 150 178 C200 163 230 148 280 128 C320 112 360 100 410 84 C450 70 490 54 540 36 C580 22 615 12 650 4" stroke="#059669" stroke-width="2" fill="none" stroke-linecap="round"/>
-                @for (pt of disbursementTrend; track pt.date) {
-                  <circle class="chart-point" [attr.cx]="pt.x" [attr.cy]="pt.y" r="10" fill="transparent">
-                    <title>{{ pt.date }}: {{ pt.amount }}</title>
-                  </circle>
-                  <circle class="chart-point-dot" [attr.cx]="pt.x" [attr.cy]="pt.y" r="3" fill="#059669" />
-                }
-              </svg>
-              <p class="chart-x-label">July 15, 2024</p>
+            <div class="chart-summary-item">
+              <span class="chart-summary-label">Avg. tenor</span>
+              <span class="chart-summary-val">{{ chartSummary.avgTenor }}</span>
+            </div>
+            <div class="chart-summary-item">
+              <span class="chart-summary-label">Avg. interest rate</span>
+              <span class="chart-summary-val">{{ chartSummary.avgInterestRate }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Payout Activity -->
+        <!-- Recent Activity Feed -->
         <div class="panel narrow-panel">
           <div class="panel-head space-between">
-            <p class="panel-title">Payout Activity</p>
-            <app-button variant="outline" label="See all" />
+            <p class="panel-title">Recent Activity</p>
+            <a routerLink="/loans" class="see-all-link">View all</a>
           </div>
-          <div class="person-list">
-            @for (row of payoutActivity; track row.id) {
-              <div class="person-row">
-                <app-avatar [name]="row.name" size="sm" />
-                <div class="p-info">
-                  <span class="p-name">{{ row.name }}</span>
-                  <span class="p-id">{{ row.id }}</span>
-                </div>
-                <div class="p-right">
-                  <span class="p-amount">{{ row.amount }}</span>
-                  <app-status-badge [status]="row.status" [label]="row.statusLabel" />
-                </div>
+          <div class="activity-feed-scroll">
+            @if (recentActivity().length) {
+              <div class="person-list">
+                @for (row of payoutActivity; track row.id) {
+                  <div class="person-row">
+                    <app-avatar [name]="row.name" size="sm" />
+                    <div class="p-info">
+                      <span class="p-name">{{ row.name }}</span>
+                      <span class="p-id">{{ row.id }}</span>
+                    </div>
+                    <div class="p-right">
+                      <span class="p-amount">{{ row.amount }}</span>
+                      <app-status-badge [status]="row.status" [label]="row.statusLabel" />
+                    </div>
+                  </div>
+                }
               </div>
+            } @else {
+              <p class="activity-empty">No recent activity yet.</p>
             }
           </div>
         </div>
 
       </div>
 
-      <!-- Recent activity -->
+      <!-- Pending Approvals Panel -->
       <div class="panel">
-        <div class="panel-head">
-          <p class="panel-title">Recent activity</p>
+        <div class="panel-head space-between">
+          <p class="panel-title">Pending Approvals</p>
+          <span class="pending-count-chip">{{ pendingApprovals().length }} awaiting review</span>
         </div>
-        @if (recentActivity().length) {
-          <div class="activity-feed">
-            @for (entry of recentActivity(); track entry.text) {
-              <div class="activity-row">
-                <span class="activity-icon">{{ entry.icon }}</span>
-                <span class="activity-text">{{ entry.text }}</span>
-                <span class="activity-at">{{ entry.at }}</span>
+        @if (pendingApprovals().length) {
+          <div class="approvals-list">
+            @for (item of pendingApprovals(); track item.id) {
+              <div class="approval-row">
+                <app-avatar [name]="item.name" size="sm" />
+                <div class="approval-info">
+                  <span class="approval-name">{{ item.name }}</span>
+                  <span class="approval-meta">{{ item.product }} · {{ item.id }}</span>
+                </div>
+                <span class="approval-amount">{{ item.amount }}</span>
+                <span class="approval-days">{{ item.daysInQueue }} day{{ item.daysInQueue === 1 ? '' : 's' }} in queue</span>
+                <div class="approval-actions">
+                  <app-button variant="outline" label="Reject" (clicked)="requestApproval(item, 'reject')" />
+                  <app-button variant="primary" label="Approve" (clicked)="requestApproval(item, 'approve')" />
+                </div>
               </div>
             }
           </div>
         } @else {
-          <p class="activity-empty">No recent activity yet.</p>
+          <p class="activity-empty">No loans awaiting approval.</p>
         }
+      </div>
+
+      <!-- Top Performing Products -->
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Top Performing Products</p>
+        </div>
+        <table class="top-products-table">
+          <thead>
+            <tr>
+              <th scope="col">Product</th>
+              <th scope="col">Active Loans</th>
+              <th scope="col">Total Disbursed</th>
+              <th scope="col">Avg. Collection Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of topPerformingProducts; track p.name) {
+              <tr>
+                <td>{{ p.name }}</td>
+                <td>{{ p.activeLoans }}</td>
+                <td>{{ p.totalDisbursed }}</td>
+                <td>{{ p.collectionRate }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
 
       <!-- 3-col row -->
@@ -377,6 +498,20 @@
 
       </div>
 
+        }
+      }
+
     </div>
   </div>
+
+  <app-confirm-modal
+    [isOpen]="approvalModalOpen()"
+    [title]="approvalModalTitle()"
+    [message]="approvalModalMessage()"
+    [confirmLabel]="approvalModalAction() === 'approve' ? 'Approve' : 'Reject'"
+    cancelLabel="Cancel"
+    [danger]="approvalModalAction() === 'reject'"
+    (confirmed)="confirmApproval()"
+    (cancelled)="cancelApproval()" />
+
 </div>

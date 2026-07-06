@@ -1,6 +1,20 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, TabItem, ButtonComponent, EmptyStateComponent } from '../../shared/components';
+import {
+  StatusBadgeComponent,
+  AvatarComponent,
+  ProgressBarComponent,
+  TabsComponent,
+  TabItem,
+  ButtonComponent,
+  EmptyStateComponent,
+  KpiCardComponent,
+  ChartComponent,
+  ChartDataPoint,
+  AlertBannerComponent,
+  ConfirmModalComponent,
+  SkeletonComponent,
+} from '../../shared/components';
 import { AccountService } from '../../shared/services/account.service';
 import { ProductsService } from '../../shared/services/products.service';
 
@@ -12,10 +26,42 @@ interface ActivityEntry {
   at: string;
 }
 
+type DashboardState = 'loading' | 'ready' | 'empty' | 'error';
+
+type ChartPeriod = '1W' | '1M' | '3M' | '6M' | '1Y';
+
+interface PendingApproval {
+  id: string;
+  name: string;
+  product: string;
+  amount: string;
+  daysInQueue: number;
+}
+
+interface TopProduct {
+  name: string;
+  activeLoans: number;
+  totalDisbursed: string;
+  collectionRate: number;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, StatusBadgeComponent, AvatarComponent, ProgressBarComponent, TabsComponent, ButtonComponent, EmptyStateComponent],
+  imports: [
+    RouterLink,
+    StatusBadgeComponent,
+    AvatarComponent,
+    ProgressBarComponent,
+    TabsComponent,
+    ButtonComponent,
+    EmptyStateComponent,
+    KpiCardComponent,
+    ChartComponent,
+    AlertBannerComponent,
+    ConfirmModalComponent,
+    SkeletonComponent,
+  ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -26,6 +72,18 @@ export class HomeComponent {
   activePeriod = 'today';
 
   readonly hasProducts = computed(() => this.productsService.products().length > 0);
+
+  /** Frontend-only demo state toggle — no real API, so a signal is enough. */
+  readonly dashboardState = signal<DashboardState>('ready');
+
+  setState(state: DashboardState) {
+    this.dashboardState.set(state);
+  }
+
+  retry() {
+    this.dashboardState.set('loading');
+    setTimeout(() => this.dashboardState.set('ready'), 600);
+  }
 
   readonly quickActions = [
     { icon: '➕', title: 'Create product', desc: 'Launch a new loan or BNPL product.', route: '/products/create' },
@@ -98,6 +156,145 @@ export class HomeComponent {
       sparkPoints: '',
       count: 26,
     },
+  ];
+
+  // ── Issue #1 KPI Row: 5 specific dashboard KPIs ──
+  readonly overdueLoanCount = 14;
+  readonly overdueAtRiskAmount = '₦2.3M';
+  readonly totalBookSize = 612;
+
+  readonly overduePercentOfBook = computed(() => {
+    const pct = (this.overdueLoanCount / this.totalBookSize) * 100;
+    return pct.toFixed(1);
+  });
+
+  readonly hasOverdueLoans = computed(() => this.overdueLoanCount > 0);
+
+  readonly kpiCards = [
+    { label: 'Total Portfolio Value', value: '₦412,680,000' },
+    { label: 'Disbursed Today', value: '₦18,240,000 (+12% vs yesterday)' },
+    { label: 'Repayments Due (7 days)', value: '₦64,500,000 · 231 loans' },
+    { label: 'Overdue Loans', value: '14 loans · 2.3% of book' },
+    { label: 'Collections Rate (30d)', value: '94.6%' },
+  ];
+
+  // ── Loan Activity Chart ──
+  readonly chartPeriodTabs: TabItem[] = [
+    { id: '1W', label: '1W' },
+    { id: '1M', label: '1M' },
+    { id: '3M', label: '3M' },
+    { id: '6M', label: '6M' },
+    { id: '1Y', label: '1Y' },
+  ];
+
+  readonly chartActivePeriod = signal<ChartPeriod>('1M');
+
+  setChartPeriod(period: string) {
+    this.chartActivePeriod.set(period as ChartPeriod);
+  }
+
+  private readonly disbursementSeries: Record<ChartPeriod, ChartDataPoint[]> = {
+    '1W': [
+      { label: 'Mon', value: 12 }, { label: 'Tue', value: 18 }, { label: 'Wed', value: 15 },
+      { label: 'Thu', value: 22 }, { label: 'Fri', value: 28 }, { label: 'Sat', value: 14 }, { label: 'Sun', value: 9 },
+    ],
+    '1M': [
+      { label: 'Wk 1', value: 62 }, { label: 'Wk 2', value: 74 }, { label: 'Wk 3', value: 58 }, { label: 'Wk 4', value: 91 },
+    ],
+    '3M': [
+      { label: 'May', value: 210 }, { label: 'Jun', value: 264 }, { label: 'Jul', value: 298 },
+    ],
+    '6M': [
+      { label: 'Feb', value: 180 }, { label: 'Mar', value: 205 }, { label: 'Apr', value: 190 },
+      { label: 'May', value: 210 }, { label: 'Jun', value: 264 }, { label: 'Jul', value: 298 },
+    ],
+    '1Y': [
+      { label: 'Aug', value: 140 }, { label: 'Sep', value: 155 }, { label: 'Oct', value: 168 }, { label: 'Nov', value: 172 },
+      { label: 'Dec', value: 190 }, { label: 'Jan', value: 176 }, { label: 'Feb', value: 180 }, { label: 'Mar', value: 205 },
+      { label: 'Apr', value: 190 }, { label: 'May', value: 210 }, { label: 'Jun', value: 264 }, { label: 'Jul', value: 298 },
+    ],
+  };
+
+  private readonly repaymentSeries: Record<ChartPeriod, ChartDataPoint[]> = {
+    '1W': [
+      { label: 'Mon', value: 9 }, { label: 'Tue', value: 14 }, { label: 'Wed', value: 12 },
+      { label: 'Thu', value: 18 }, { label: 'Fri', value: 21 }, { label: 'Sat', value: 11 }, { label: 'Sun', value: 7 },
+    ],
+    '1M': [
+      { label: 'Wk 1', value: 48 }, { label: 'Wk 2', value: 55 }, { label: 'Wk 3', value: 49 }, { label: 'Wk 4', value: 70 },
+    ],
+    '3M': [
+      { label: 'May', value: 168 }, { label: 'Jun', value: 202 }, { label: 'Jul', value: 231 },
+    ],
+    '6M': [
+      { label: 'Feb', value: 140 }, { label: 'Mar', value: 158 }, { label: 'Apr', value: 149 },
+      { label: 'May', value: 168 }, { label: 'Jun', value: 202 }, { label: 'Jul', value: 231 },
+    ],
+    '1Y': [
+      { label: 'Aug', value: 110 }, { label: 'Sep', value: 118 }, { label: 'Oct', value: 130 }, { label: 'Nov', value: 135 },
+      { label: 'Dec', value: 148 }, { label: 'Jan', value: 139 }, { label: 'Feb', value: 140 }, { label: 'Mar', value: 158 },
+      { label: 'Apr', value: 149 }, { label: 'May', value: 168 }, { label: 'Jun', value: 202 }, { label: 'Jul', value: 231 },
+    ],
+  };
+
+  readonly disbursementChartData = computed(() => this.disbursementSeries[this.chartActivePeriod()]);
+  readonly repaymentChartData = computed(() => this.repaymentSeries[this.chartActivePeriod()]);
+
+  readonly chartSummary = {
+    avgLoanSize: '₦462,000',
+    avgTenor: '4.2 months',
+    avgInterestRate: '3.8% / month',
+  };
+
+  // ── Pending Approvals Panel ──
+  readonly pendingApprovals = signal<PendingApproval[]>([
+    { id: 'LN-3391', name: 'Ifeoma Chukwu',  product: 'Credit Wallet', amount: '₦850,000',   daysInQueue: 1 },
+    { id: 'LN-3388', name: 'Tunde Bakare',    product: 'Credit Lite',   amount: '₦320,000',   daysInQueue: 2 },
+    { id: 'LN-3379', name: 'Grace Adeyemi',   product: 'Corper Wallet', amount: '₦1,200,000', daysInQueue: 3 },
+    { id: 'LN-3364', name: 'Musa Ibrahim',    product: 'Credit Wallet', amount: '₦540,000',   daysInQueue: 5 },
+  ]);
+
+  readonly approvalModalOpen = signal(false);
+  readonly approvalModalAction = signal<'approve' | 'reject'>('approve');
+  readonly approvalTarget = signal<PendingApproval | null>(null);
+
+  readonly approvalModalTitle = computed(() =>
+    this.approvalModalAction() === 'approve' ? 'Approve loan?' : 'Reject loan?'
+  );
+
+  readonly approvalModalMessage = computed(() => {
+    const target = this.approvalTarget();
+    if (!target) return '';
+    return this.approvalModalAction() === 'approve'
+      ? `Approve ${target.amount} for ${target.name} (${target.product})? This will move the loan to disbursement.`
+      : `Reject the ${target.amount} application from ${target.name} (${target.product})? This cannot be undone.`;
+  });
+
+  requestApproval(item: PendingApproval, action: 'approve' | 'reject') {
+    this.approvalTarget.set(item);
+    this.approvalModalAction.set(action);
+    this.approvalModalOpen.set(true);
+  }
+
+  confirmApproval() {
+    const target = this.approvalTarget();
+    if (target) {
+      this.pendingApprovals.update((list) => list.filter((a) => a.id !== target.id));
+    }
+    this.approvalModalOpen.set(false);
+    this.approvalTarget.set(null);
+  }
+
+  cancelApproval() {
+    this.approvalModalOpen.set(false);
+    this.approvalTarget.set(null);
+  }
+
+  // ── Top Performing Products ──
+  readonly topPerformingProducts: TopProduct[] = [
+    { name: 'Credit Wallet',  activeLoans: 312, totalDisbursed: '₦186,400,000', collectionRate: 96.2 },
+    { name: 'Credit Lite',    activeLoans: 204, totalDisbursed: '₦98,750,000',  collectionRate: 93.4 },
+    { name: 'Corper Wallet',  activeLoans: 96,  totalDisbursed: '₦127,530,000', collectionRate: 91.8 },
   ];
 
   readonly payoutActivity: Array<{ initials: string; name: string; id: string; amount: string; status: BadgeStatus; statusLabel: string }> = [

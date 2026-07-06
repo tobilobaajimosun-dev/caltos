@@ -935,3 +935,256 @@
   color: var(--color-header);
   flex-shrink: 0;
 }
+
+/* ── Demo state switcher (frontend-only mock states) ── */
+.state-demo-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.state-demo-label {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin-right: var(--space-1);
+}
+
+/* ── Loading skeleton state ── */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeleton-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 20px;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 0;
+}
+
+/* ── KPI Row (Issue #1) ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-4);
+}
+
+/* ── Loan Activity Chart ── */
+.loan-activity-head {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.panel-sub {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin: 2px 0 0;
+}
+
+.loan-activity-body {
+  padding: 16px 20px 0;
+}
+
+.loan-activity-legend {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-body);
+}
+
+.loan-activity-charts {
+  display: grid;
+  grid-template-columns: 1fr;
+
+  app-chart {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+.chart-summary-row {
+  display: flex;
+  gap: var(--space-6);
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-stroke);
+  background: var(--surface-overlay);
+}
+
+.chart-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart-summary-label {
+  font-size: 11px;
+  color: var(--color-grey-header);
+}
+
+.chart-summary-val {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-header);
+}
+
+.see-all-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-blue);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.activity-feed-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+/* ── Pending Approvals Panel ── */
+.pending-count-chip {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-warning, #b45309);
+  background: var(--color-warning-bg, #fef3c7);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.approvals-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.approval-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-stroke);
+
+  &:last-child { border-bottom: none; }
+}
+
+.approval-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.approval-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-header);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.approval-meta {
+  font-size: 11px;
+  color: var(--color-grey-header);
+}
+
+.approval-amount {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-header);
+  flex-shrink: 0;
+}
+
+.approval-days {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  flex-shrink: 0;
+  min-width: 96px;
+  text-align: right;
+}
+
+.approval-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ── Top Performing Products table ── */
+.top-products-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    text-align: left;
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-grey-header);
+    border-bottom: 1px solid var(--color-stroke);
+  }
+
+  td {
+    color: var(--color-body);
+    border-bottom: 1px solid var(--color-stroke);
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 1024px) {
+  .charts-row { grid-template-columns: 1fr; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .tri-row { grid-template-columns: 1fr; }
+
+  .approval-row {
+    flex-wrap: wrap;
+  }
+  .approval-days { text-align: left; min-width: 0; }
+  .approval-actions { width: 100%; justify-content: flex-end; }
+
+  .top-products-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .quick-actions-row { grid-template-columns: 1fr; }
+}
