@@ -4,7 +4,7 @@ import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  FilterIcon,
+  FilterVerticalIcon,
   RefreshIcon,
 } from '@hugeicons/core-free-icons';
 
@@ -29,7 +29,7 @@ export class ButtonComponent {
   @Output() clicked = new EventEmitter<void>();
 
   readonly backIcon: IconData = ChevronLeftIcon as IconData;
-  readonly filterIcon: IconData = FilterIcon as IconData;
+  readonly filterIcon: IconData = FilterVerticalIcon as IconData;
   readonly refreshIcon: IconData = RefreshIcon as IconData;
   readonly chevronRightIcon: IconData = ChevronRightIcon as IconData;
 

@@ -159,6 +159,10 @@ export interface LoanConfig {
   // Brand
   brandColor: string;
   brandName: string;
+  // Per-section custom fields (item 11) and custom documents (item 14) — optional
+  // so existing localStorage/fallback configs without them still satisfy the type.
+  sectionCustomFields?: Record<string, { label: string; type: string; required: string }[]>;
+  customDocs?: { name: string; types: string[] }[];
 }
 
 export const STEPS = [
@@ -360,7 +364,10 @@ export class CreateLoanComponent implements OnInit {
   private readonly wizMain = viewChild<ElementRef<HTMLElement>>('wizMain');
 
   private scrollToTop() {
-    this.wizMain()?.nativeElement.scrollTo({ top: 0 });
+    // Deferred a tick: the step's new content hasn't been rendered into the DOM yet
+    // at the point next()/back()/goToStep() run, so scrolling immediately reset the
+    // *old* view instead of the incoming one — leaving the new step mid-scroll.
+    setTimeout(() => this.wizMain()?.nativeElement.scrollTo({ top: 0 }));
   }
 
   selectLoanType(id: string) {
@@ -594,7 +601,19 @@ export class CreateLoanComponent implements OnInit {
       const created = this.productsService.create({ ...patch, status: 'live' });
       this.editingProductId = created.id;
     }
-    localStorage.setItem('caltos_published_config', JSON.stringify(this.config));
+    // Per-section custom fields and custom documents live on `collectionSections`/`customDocs`
+    // (component state, not `config`) — fold them into the published snapshot so the borrower
+    // application actually reflects what was configured here.
+    const sectionCustomFields: LoanConfig['sectionCustomFields'] = {};
+    for (const sec of this.collectionSections) {
+      if (sec.customFields.length) sectionCustomFields[sec.key] = sec.customFields;
+    }
+    const publishedConfig: LoanConfig = {
+      ...this.config,
+      sectionCustomFields,
+      customDocs: this.customDocs,
+    };
+    localStorage.setItem('caltos_published_config', JSON.stringify(publishedConfig));
     this.isPublished = true;
     this.isDraft = false;
   }

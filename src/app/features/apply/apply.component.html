@@ -244,6 +244,12 @@
                 <option>Divorced</option><option>Widowed</option>
               </select>
             </div>
+            @for (f of sectionFields('collectPersonal'); track f.label) {
+              <div class="dark-field">
+                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
+                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
+              </div>
+            }
           </div>
         </div>
       }
@@ -283,6 +289,12 @@
                 <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="altPhone" />
               </div>
             </div>
+            @for (f of sectionFields('collectContact'); track f.label) {
+              <div class="dark-field">
+                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
+                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
+              </div>
+            }
           </div>
         </div>
       }
@@ -314,6 +326,12 @@
                 @for (s of nigerianStates; track s) { <option>{{ s }}</option> }
               </select>
             </div>
+            @for (f of sectionFields('collectAddress'); track f.label) {
+              <div class="dark-field">
+                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
+                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
+              </div>
+            }
           </div>
         </div>
       }
@@ -344,6 +362,72 @@
               <label class="dark-label">Monthly net income (₦)</label>
               <input class="dark-input" type="number" placeholder="250000" [(ngModel)]="monthlyIncome" />
             </div>
+            @for (f of sectionFields('collectEmployment'); track f.label) {
+              <div class="dark-field">
+                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
+                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- BUSINESS -->
+      @if (currentStep.id === 'business') {
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Business<br>Information</h2>
+          <div class="form-stack">
+            <div class="dark-field">
+              <label class="dark-label">Business name</label>
+              <input class="dark-input" type="text" placeholder="e.g. Acme Ventures" [(ngModel)]="businessName" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">CAC number</label>
+              <input class="dark-input" type="text" placeholder="e.g. RC1234567" [(ngModel)]="cacNumber" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Business type</label>
+              <input class="dark-input" type="text" placeholder="e.g. Retail, Services" [(ngModel)]="businessType" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Annual revenue (₦)</label>
+              <input class="dark-input" type="number" placeholder="5000000" [(ngModel)]="annualRevenue" />
+            </div>
+            @for (f of sectionFields('collectBusiness'); track f.label) {
+              <div class="dark-field">
+                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
+                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- BANK ACCOUNT DETAILS -->
+      @if (currentStep.id === 'bank') {
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Bank Account<br>Details</h2>
+          <div class="form-stack">
+            <div class="dark-field">
+              <label class="dark-label">Bank name</label>
+              <input class="dark-input" type="text" placeholder="e.g. Guaranty Trust Bank" [(ngModel)]="bankName" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Account number</label>
+              <input class="dark-input" type="text" placeholder="0123456789" [(ngModel)]="bankAccountNumber" />
+            </div>
+            <div class="dark-field">
+              <label class="dark-label">Account name</label>
+              <input class="dark-input" type="text" placeholder="As it appears on your bank account" [(ngModel)]="bankAccountName" />
+            </div>
+            @for (f of sectionFields('collectBank'); track f.label) {
+              <div class="dark-field">
+                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
+                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
+              </div>
+            }
           </div>
         </div>
       }

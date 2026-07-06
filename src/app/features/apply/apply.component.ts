@@ -43,7 +43,7 @@ const FALLBACK_CONFIG: LoanConfig = {
 interface StepDef { id: string; label: string; }
 
 interface DocField {
-  key: keyof LoanConfig;
+  key: string;
   label: string;
   sub: string;
   required: boolean;
@@ -110,6 +110,20 @@ export class ApplyComponent implements OnInit {
   employmentType = '';
   monthlyIncome = '';
   staffId = '';
+
+  // ── Form state: business ────────────────────────────────────────────────────
+  businessName = '';
+  cacNumber = '';
+  businessType = '';
+  annualRevenue = '';
+
+  // ── Form state: bank account details ────────────────────────────────────────
+  bankName = '';
+  bankAccountNumber = '';
+  bankAccountName = '';
+
+  // ── Form state: per-section custom fields (item 11), keyed by field label ──
+  customFieldValues: Record<string, string> = {};
 
   // ── Form state: identity ────────────────────────────────────────────────────
   bvn = '';
@@ -193,6 +207,20 @@ export class ApplyComponent implements OnInit {
       .filter(d => this.product[d.key] !== 'none')
       .map(d => ({ ...d, required: this.product[d.key] === 'required' }));
 
+    // Custom documents added on the create-product wizard (item 14) — their required/
+    // optional/none state is stored dynamically on the config under a `custom-{i}` key.
+    const rec = this.product as unknown as Record<string, string>;
+    (this.product.customDocs ?? []).forEach((doc, i) => {
+      const key = `custom-${i}`;
+      if (rec[key] === 'none') return;
+      this.docFields.push({
+        key,
+        label: doc.name,
+        sub: `Accepted formats: ${doc.types.join(', ')}`,
+        required: rec[key] === 'required',
+      });
+    });
+
     // Pre-populate contact fields from entry if phone was used
     if (p.entryPhone && this.entryPhone) this.phone = this.entryPhone;
     if (p.entryEmail && this.entryEmail) this.email = this.entryEmail;
@@ -214,6 +242,8 @@ export class ApplyComponent implements OnInit {
     if (p.collectContact)    steps.push({ id: 'contact',    label: 'Contact' });
     if (p.collectAddress)    steps.push({ id: 'address',    label: 'Address' });
     if (p.collectEmployment) steps.push({ id: 'employment', label: 'Employment' });
+    if (p.collectBusiness)   steps.push({ id: 'business',   label: 'Business info' });
+    if (p.collectBank)       steps.push({ id: 'bank',       label: 'Bank details' });
 
     const needsIdentity = p.identityBvn || p.identityNin || p.identityPhoneOtp;
     if (needsIdentity) steps.push({ id: 'identity', label: 'Verify identity' });
@@ -225,6 +255,13 @@ export class ApplyComponent implements OnInit {
 
     steps.push({ id: 'review', label: 'Review' });
     this.steps = steps;
+  }
+
+  // Lender-defined custom fields (item 11) for a given collection section — e.g.
+  // sectionFields('collectPersonal') for the extra fields added under Personal
+  // Information on the create-product wizard.
+  sectionFields(sectionKey: string): { label: string; type: string; required: string }[] {
+    return this.product.sectionCustomFields?.[sectionKey] ?? [];
   }
 
   // ── Step helpers ────────────────────────────────────────────────────────────

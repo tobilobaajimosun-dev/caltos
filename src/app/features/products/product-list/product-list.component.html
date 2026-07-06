@@ -5,7 +5,7 @@
     <!-- Page header -->
     <div class="page-header">
       <div class="page-title-group">
-        <h1 class="page-title">Products <span class="product-count">{{ stats.all }}</span></h1>
+        <h1 class="page-title">Products<span class="product-count">({{ stats.all }})</span></h1>
         <p class="page-subtitle">Build, launch, and manage loan products your borrowers love.</p>
       </div>
       <div class="header-actions">
@@ -99,19 +99,8 @@
                   <td>₦{{ product.minAmount }} - ₦{{ product.maxAmount }}</td>
                   <td>{{ product.minTenor }}-{{ product.maxTenor }} {{ product.tenorUnit }}</td>
                   <td>{{ product.interestRate }}% {{ product.interestFrequency }}</td>
-                  <td (click)="$event.stopPropagation()">
-                    <div class="status-cell">
-                      <span class="status-badge" [class]="product.status">{{ statusLabel(product.status) }}</span>
-                      @if (product.status !== 'draft') {
-                        <label class="status-toggle">
-                          <input
-                            type="checkbox"
-                            [checked]="product.status === 'live'"
-                            (change)="requestStatusChange($event, product, product.status === 'live' ? 'deactivate' : 'activate')" />
-                          <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                        </label>
-                      }
-                    </div>
+                  <td>
+                    <span class="status-badge" [class]="product.status">{{ statusLabel(product.status) }}</span>
                   </td>
                   <td class="col-date">{{ product.createdAt }}</td>
                   <td class="col-actions" (click)="$event.stopPropagation()">

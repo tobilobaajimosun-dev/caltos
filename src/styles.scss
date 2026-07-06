@@ -7,6 +7,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Caltos Design Tokens */
 :root {
   --color-header: #121212;
@@ -20,9 +28,7 @@
 
   --font-heading: 'GD Sherpa', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body: 'Euclid Circular B', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  /* PP Mori is a licensed font (Pangram Pangram) — add @font-face files under src/assets/fonts
-     and point PP-Mori-Regular/SemiBold at them to activate; falls back to --font-heading until then. */
-  --font-hero: 'PP Mori', var(--font-heading);
+  --font-hero: 'Geist', var(--font-heading);
 
   // Status colors
   --color-success: #16a34a;
