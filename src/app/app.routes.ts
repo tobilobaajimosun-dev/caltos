@@ -37,6 +37,12 @@ import { WalletComponent } from './features/wallet/wallet.component';
 import { NotificationsPageComponent } from './features/notifications/notifications.component';
 import { RiskMonitorComponent } from './features/risk-monitor/risk-monitor.component';
 import { TeamsComponent } from './features/teams/teams.component';
+import { LoanCalculatorComponent } from './features/loans/loan-calculator/loan-calculator.component';
+import { EligibilityCalculatorComponent } from './features/loans/eligibility-calculator/eligibility-calculator.component';
+import { SchedulesComponent } from './features/repayments/schedules/schedules.component';
+import { BulkUploadsComponent } from './features/repayments/bulk-uploads/bulk-uploads.component';
+import { CollectionMethodsComponent } from './features/repayments/collection-methods/collection-methods.component';
+import { VendorManagementComponent } from './features/utilities/vendor-management/vendor-management.component';
 
 export const routes: Routes = [
   // Public marketing landing page — the app's true entry point
@@ -68,9 +74,14 @@ export const routes: Routes = [
       { path: 'products/:id', component: ProductDetailComponent },
       { path: 'loans', component: LoanListComponent },
       { path: 'loans/processing', component: LoanProcessingComponent },
+      { path: 'loans/calculator', component: LoanCalculatorComponent },
+      { path: 'loans/eligibility-calculator', component: EligibilityCalculatorComponent },
       { path: 'loans/:id', component: LoanDetailComponent },
       { path: 'loans/:id/refunds', component: RefundsComponent },
       { path: 'repayments', component: RepaymentManagementComponent },
+      { path: 'repayments/schedules', component: SchedulesComponent },
+      { path: 'repayments/bulk-uploads', component: BulkUploadsComponent },
+      { path: 'repayments/collection-methods', component: CollectionMethodsComponent },
       { path: 'repayments/mandates/bulk', component: BulkMandatesComponent },
       { path: 'repayments/mandates/:loanId', component: MandatesComponent },
       { path: 'collections', component: CollectionsDashboardComponent },
@@ -81,7 +92,9 @@ export const routes: Routes = [
       { path: 'risk-monitor', component: RiskMonitorComponent },
       { path: 'teams', component: TeamsComponent },
       { path: 'reports', component: ReportsComponent },
+      { path: 'utilities', redirectTo: 'utilities/organizations', pathMatch: 'full' },
       { path: 'utilities/organizations', component: EmployerPortalComponent },
+      { path: 'utilities/vendors', component: VendorManagementComponent },
       { path: 'settings', component: OrganizationSettingsComponent },
       { path: 'settings/alerts', component: AlertSettingsComponent },
     ],
