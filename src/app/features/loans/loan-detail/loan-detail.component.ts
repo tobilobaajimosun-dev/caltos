@@ -10,10 +10,9 @@ import {
   RoundTabsComponent,
   Tab,
 } from '../../../shared/components';
-import { MandatesComponent } from '../mandates/mandates.component';
 import { RefundsComponent } from '../refunds/refunds.component';
 
-type DetailTab = 'overview' | 'mandates' | 'repayments' | 'refunds' | 'activity';
+type DetailTab = 'overview' | 'repayments' | 'refunds' | 'activity';
 
 interface RepaymentRow {
   installment: string;
@@ -32,7 +31,7 @@ interface ActivityEvent {
   standalone: true,
   imports: [
     KpiCardComponent, ProgressBarComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent,
-    RoundTabsComponent, MandatesComponent, RefundsComponent,
+    RoundTabsComponent, RefundsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-detail.component.html',
@@ -54,7 +53,6 @@ export class LoanDetailComponent {
 
   readonly tabs: Tab[] = [
     { label: 'Overview', value: 'overview' },
-    { label: 'Mandates', value: 'mandates' },
     { label: 'Repayments', value: 'repayments' },
     { label: 'Refunds', value: 'refunds' },
     { label: 'Activity', value: 'activity' },

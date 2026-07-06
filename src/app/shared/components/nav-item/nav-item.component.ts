@@ -14,13 +14,14 @@ import {
   UserGroup03Icon,
   Settings02Icon,
   FlashIcon,
-  BriefcaseBusinessIcon,
+  CalendarCheckIn01Icon,
+  Wrench01Icon,
   ChevronDownIcon,
 } from '@hugeicons/core-free-icons';
 
 export type NavItemIcon =
   | 'dashboard' | 'home' | 'customers' | 'wallet' | 'products'
-  | 'loans' | 'reports' | 'risk' | 'teams' | 'settings' | 'employers' | 'quick-action' | 'none';
+  | 'loans' | 'reports' | 'risk' | 'teams' | 'settings' | 'repayments' | 'utilities' | 'quick-action' | 'none';
 
 @Component({
   selector: 'app-nav-item',
@@ -51,7 +52,8 @@ export class NavItemComponent {
     risk: MonitorDotIcon as IconSvgObject,
     teams: UserGroup03Icon as IconSvgObject,
     settings: Settings02Icon as IconSvgObject,
-    employers: BriefcaseBusinessIcon as IconSvgObject,
+    repayments: CalendarCheckIn01Icon as IconSvgObject,
+    utilities: Wrench01Icon as IconSvgObject,
     'quick-action': FlashIcon as IconSvgObject,
   };
 

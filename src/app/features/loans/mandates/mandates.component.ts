@@ -34,7 +34,7 @@ interface LifecycleEvent {
 })
 export class MandatesComponent {
   private readonly route = inject(ActivatedRoute);
-  readonly loanId = this.route.snapshot.paramMap.get('id') ?? 'LN-88213';
+  readonly loanId = this.route.snapshot.paramMap.get('loanId') ?? 'LN-88213';
 
   readonly loanStatus = signal<'active' | 'liquidated' | 'fully-repaid' | 'cancelled'>('active');
 

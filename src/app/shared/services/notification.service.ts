@@ -49,7 +49,7 @@ export class NotificationService {
     { id: 'n1', category: 'loans', urgency: 'normal', icon: 'approved', title: 'Loan approved', subtitle: 'MTG Logistics loan approved — ₦500,000', at: this.minutesAgo(2), read: false, link: '/loans/processing' },
     { id: 'n2', category: 'wallet', urgency: 'normal', icon: 'disbursed', title: 'Loan disbursed', subtitle: '₦200,000 disbursed to Adeniyi Kabiru', at: this.minutesAgo(40), read: false, link: '/wallet' },
     { id: 'n3', category: 'loans', urgency: 'high', icon: 'overdue', title: 'Loans overdue', subtitle: '3 loans are now overdue — ₦450,000 at risk', at: this.hoursAgo(3), read: false, link: '/collections' },
-    { id: 'n4', category: 'loans', urgency: 'normal', icon: 'repayment', title: 'Repayment received', subtitle: '₦45,000 repayment received from J. Adewale', at: this.hoursAgo(5), read: true, link: '/loans/repayments' },
+    { id: 'n4', category: 'loans', urgency: 'normal', icon: 'repayment', title: 'Repayment received', subtitle: '₦45,000 repayment received from J. Adewale', at: this.hoursAgo(5), read: true, link: '/repayments' },
     { id: 'n5', category: 'wallet', urgency: 'urgent', icon: 'wallet-low', title: 'Wallet balance low', subtitle: 'Wallet balance below ₦100,000 — top up needed', at: this.hoursAgo(6), read: false, link: '/wallet' },
     { id: 'n6', category: 'loans', urgency: 'normal', icon: 'application', title: 'New application', subtitle: 'New loan application from Fatima Suleiman', at: this.daysAgo(1), read: false, link: '/loans/processing' },
     { id: 'n7', category: 'loans', urgency: 'high', icon: 'approval-required', title: 'Approval required', subtitle: '2 loans pending your approval', at: this.daysAgo(1), read: true, link: '/loans/processing' },

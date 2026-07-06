@@ -39,7 +39,7 @@ export class QuickActionsService {
     // Loan Actions
     { id: 'disburse-loan', title: 'Disburse new loan', description: 'Review and release funds to an approved loan application.', category: 'Loan Actions', route: '/loans/processing', icon: 'disburse', iconColor: 'orange' },
     { id: 'lookup-customer', title: 'Look up customer', description: 'Search and open a customer profile.', category: 'Loan Actions', route: '/customers', icon: 'lookup', iconColor: 'green' },
-    { id: 'record-repayment', title: 'Record manual repayment', description: 'Log a repayment received outside auto-deduction.', category: 'Loan Actions', route: '/loans/repayments', icon: 'repayment', iconColor: 'blue' },
+    { id: 'record-repayment', title: 'Record manual repayment', description: 'Log a repayment received outside auto-deduction.', category: 'Loan Actions', route: '/repayments', icon: 'repayment', iconColor: 'blue' },
     { id: 'review-approvals', title: 'Review pending approvals', description: 'Work through loan applications awaiting sign-off.', category: 'Loan Actions', route: '/loans/processing', icon: 'approvals', iconColor: 'purple', badgeCount: () => this._pendingApprovalsCount() },
     { id: 'flag-loan', title: 'Flag loan for review', description: 'Escalate a loan for risk or collections attention.', category: 'Loan Actions', route: '/risk-monitor', icon: 'flag', iconColor: 'red' },
     { id: 'restructure-loan', title: 'Restructure loan', description: 'Adjust tenor, rate, or repayment plan for an existing loan.', category: 'Loan Actions', route: '/loans', icon: 'restructure', iconColor: 'teal' },
@@ -55,7 +55,7 @@ export class QuickActionsService {
 
     // Reports
     { id: 'generate-portfolio-report', title: 'Generate portfolio report', description: 'Export loan performance and collection analytics.', category: 'Reports', route: '/reports', icon: 'report', iconColor: 'purple' },
-    { id: 'export-repayment-schedule', title: 'Export repayment schedule', description: 'Download upcoming and historical repayment schedules.', category: 'Reports', route: '/loans/repayments', icon: 'schedule', iconColor: 'blue' },
+    { id: 'export-repayment-schedule', title: 'Export repayment schedule', description: 'Download upcoming and historical repayment schedules.', category: 'Reports', route: '/repayments', icon: 'schedule', iconColor: 'blue' },
     { id: 'view-overdue-report', title: 'View overdue report', description: 'See loans past due and days-overdue breakdown.', category: 'Reports', route: '/risk-monitor', icon: 'overdue', iconColor: 'red' },
 
     // Wallet

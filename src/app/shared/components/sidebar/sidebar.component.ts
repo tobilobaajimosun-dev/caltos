@@ -61,14 +61,35 @@ export class SidebarComponent {
     {
       id: 'loans', label: 'Loans', icon: 'loans', route: '/loans', hasDropdown: true,
       children: [
-        { label: 'All Loans', route: '/loans' },
-        { label: 'Pending Approval', route: '/loans', queryParams: { status: 'pending' } },
-        { label: 'Overdue', route: '/loans', queryParams: { status: 'overdue' } },
+        { label: 'All loans', route: '/loans', queryParams: { status: 'all' } },
+        { label: 'Loan requests', route: '/loans', queryParams: { status: 'requests' } },
+        { label: 'Loans in review', route: '/loans', queryParams: { status: 'in-review' } },
+        { label: 'On-hold', route: '/loans', queryParams: { status: 'on-hold' } },
+        { label: 'Cancelled', route: '/loans', queryParams: { status: 'cancelled' } },
+        { label: 'Disbursed', route: '/loans', queryParams: { status: 'disbursed' } },
+        { label: 'Loan calculator', route: '/loans/calculator' },
+        { label: 'Eligibility calculator', route: '/loans/eligibility-calculator' },
+      ],
+    },
+    {
+      id: 'repayments', label: 'Repayments', icon: 'repayments', route: '/repayments', hasDropdown: true,
+      children: [
+        { label: 'Schedules', route: '/repayments/schedules' },
+        { label: 'Bulk uploads', route: '/repayments/bulk-uploads' },
+        { label: 'All repayments', route: '/repayments' },
+        { label: 'Collection methods', route: '/repayments/collection-methods' },
+        { label: 'Mandates', route: '/repayments/mandates' },
       ],
     },
     { id: 'reports',       label: 'Reports & Performance', icon: 'reports', route: '/reports' },
     { id: 'risk',          label: 'Risk Monitor',        icon: 'risk',      route: '/risk-monitor' },
-    { id: 'employers',     label: 'Employers',           icon: 'employers', route: '/employers' },
+    {
+      id: 'utilities', label: 'Utilities', icon: 'utilities', route: '/utilities', hasDropdown: true,
+      children: [
+        { label: 'Organizations', route: '/utilities/organizations' },
+        { label: 'Vendor management', route: '/utilities/vendors' },
+      ],
+    },
     { id: 'teams',         label: 'Teams',               icon: 'teams',     route: '/teams' },
     { id: 'settings',      label: 'Settings',            icon: 'settings',  route: '/settings/alerts' },
   ];
