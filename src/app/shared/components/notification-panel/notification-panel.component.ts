@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NotificationService, NotificationCategory, NotificationItem } from '../../services/notification.service';
+import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
+import { BellIcon } from '@hugeicons/core-free-icons';
 
 @Component({
   selector: 'app-notification-panel',
   standalone: true,
+  imports: [HiIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notification-panel.component.html',
   styleUrl: './notification-panel.component.scss',
@@ -15,6 +18,8 @@ export class NotificationPanelComponent {
 
   readonly isOpen = input(false);
   readonly closed = output<void>();
+
+  readonly bellIcon: IconData = BellIcon as IconData;
 
   readonly activeCategory = signal<NotificationCategory | 'all'>('all');
 
@@ -50,20 +55,6 @@ export class NotificationPanelComponent {
 
   close() {
     this.closed.emit();
-  }
-
-  iconGlyph(icon: NotificationItem['icon']): string {
-    switch (icon) {
-      case 'approved': return '✅';
-      case 'disbursed': return '💸';
-      case 'overdue': return '⚠️';
-      case 'repayment': return '💰';
-      case 'wallet-low': return '🔴';
-      case 'application': return '📋';
-      case 'approval-required': return '🔔';
-      case 'team-invite': return '👤';
-      case 'system': return '🔧';
-    }
   }
 
   select(n: NotificationItem) {

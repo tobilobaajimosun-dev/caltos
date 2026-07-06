@@ -14,14 +14,24 @@ import {
   AlertBannerComponent,
   ConfirmModalComponent,
   SkeletonComponent,
+  IconData,
 } from '../../shared/components';
+import { HiIconComponent } from '../../shared/components/hi-icon/hi-icon.component';
+import {
+  PlusSignIcon,
+  FileValidationIcon,
+  ChartIcon,
+  NewReleasesIcon,
+  CheckmarkCircle02Icon,
+  PencilEdit02Icon,
+} from '@hugeicons/core-free-icons';
 import { AccountService } from '../../shared/services/account.service';
 import { ProductsService } from '../../shared/services/products.service';
 
 type BadgeStatus = 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed';
 
 interface ActivityEntry {
-  icon: string;
+  icon: IconData;
   text: string;
   at: string;
 }
@@ -61,6 +71,7 @@ interface TopProduct {
     AlertBannerComponent,
     ConfirmModalComponent,
     SkeletonComponent,
+    HiIconComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
@@ -85,19 +96,19 @@ export class HomeComponent {
     setTimeout(() => this.dashboardState.set('ready'), 600);
   }
 
-  readonly quickActions = [
-    { icon: '➕', title: 'Create product', desc: 'Launch a new loan or BNPL product.', route: '/products/create' },
-    { icon: '📋', title: 'View applications', desc: 'Review the loan processing pipeline.', route: '/loans/processing' },
-    { icon: '📊', title: 'View reports', desc: 'Portfolio performance and exports.', route: '/reports' },
+  readonly quickActions: { icon: IconData; title: string; desc: string; route: string }[] = [
+    { icon: PlusSignIcon as IconData, title: 'Create product', desc: 'Launch a new loan or BNPL product.', route: '/products/create' },
+    { icon: FileValidationIcon as IconData, title: 'View applications', desc: 'Review the loan processing pipeline.', route: '/loans/processing' },
+    { icon: ChartIcon as IconData, title: 'View reports', desc: 'Portfolio performance and exports.', route: '/reports' },
   ];
 
   readonly recentActivity = computed<ActivityEntry[]>(() => {
     const products = this.productsService.products();
     const entries: ActivityEntry[] = [];
     for (const p of products) {
-      entries.push({ icon: '🆕', text: `"${p.name}" was created`, at: p.createdAt });
-      if (p.status === 'live') entries.push({ icon: '✅', text: `"${p.name}" was published`, at: p.createdAt });
-      if (p.stats.totalApplications > 0) entries.push({ icon: '📝', text: `${p.stats.totalApplications} application${p.stats.totalApplications === 1 ? '' : 's'} received for "${p.name}"`, at: p.createdAt });
+      entries.push({ icon: NewReleasesIcon as IconData, text: `"${p.name}" was created`, at: p.createdAt });
+      if (p.status === 'live') entries.push({ icon: CheckmarkCircle02Icon as IconData, text: `"${p.name}" was published`, at: p.createdAt });
+      if (p.stats.totalApplications > 0) entries.push({ icon: PencilEdit02Icon as IconData, text: `${p.stats.totalApplications} application${p.stats.totalApplications === 1 ? '' : 's'} received for "${p.name}"`, at: p.createdAt });
     }
     return entries.slice(0, 5);
   });

@@ -100,7 +100,7 @@
       <div class="quick-actions-row">
         @for (qa of quickActions; track qa.title) {
           <a class="quick-action-card" [routerLink]="qa.route">
-            <span class="qa-icon">{{ qa.icon }}</span>
+            <span class="qa-icon"><hi-icon [icon]="qa.icon" size="20" aria-hidden="true" /></span>
             <div class="qa-text">
               <p class="qa-title">{{ qa.title }}</p>
               <p class="qa-desc">{{ qa.desc }}</p>

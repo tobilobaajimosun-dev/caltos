@@ -60,7 +60,7 @@
   <div class="spend-grid">
     @for (cat of spendCategories; track cat.label) {
       <div class="spend-cell">
-        <span class="spend-icon">{{ cat.icon }}</span>
+        <span class="spend-icon"><hi-icon [icon]="cat.icon" size="20" aria-hidden="true" /></span>
         <div class="spend-info">
           <span class="spend-label">{{ cat.label }}</span>
           <span class="spend-amount">{{ cat.amount }}</span>

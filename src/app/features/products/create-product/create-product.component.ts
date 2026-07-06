@@ -7,6 +7,8 @@ import {
   ToggleComponent,
   ButtonComponent,
 } from '../../../shared/components';
+import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
+import { Tick01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { AddPenaltyModalComponent, PenaltyEntry } from './add-penalty-modal/add-penalty-modal.component';
 import { AddCustomFeeModalComponent, CustomFee } from './add-custom-fee-modal/add-custom-fee-modal.component';
 
@@ -43,12 +45,15 @@ const STEPS = [
   imports: [
     FormsModule, RouterLink,
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
-    AddPenaltyModalComponent, AddCustomFeeModalComponent, ButtonComponent,
+    AddPenaltyModalComponent, AddCustomFeeModalComponent, ButtonComponent, HiIconComponent,
   ],
   templateUrl: './create-product.component.html',
   styleUrls: ['./create-product.component.scss'],
 })
 export class CreateProductComponent {
+  readonly tickIcon: IconData = Tick01Icon as IconData;
+  readonly cancelIcon: IconData = Cancel01Icon as IconData;
+
   readonly steps = STEPS;
   readonly interestFreqs = ['Daily', 'Weekly', 'Monthly', 'Yearly', 'One-time'];
   readonly repaymentFreqs = ['Weekly', 'Monthly', 'Bi-monthly', 'Quarterly', 'Yearly', 'At end of tenor'];

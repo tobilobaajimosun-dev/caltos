@@ -1,13 +1,41 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { IconData } from '../components/hi-icon/hi-icon.component';
+import {
+  CheckmarkCircle02Icon,
+  MoneySend01Icon,
+  Alert01Icon,
+  MoneyReceive01Icon,
+  Wallet01Icon,
+  FileValidationIcon,
+  BellRingIcon,
+  UserAdd01Icon,
+  Settings01Icon,
+} from '@hugeicons/core-free-icons';
 
 export type NotificationCategory = 'loans' | 'customers' | 'wallet' | 'system' | 'mentions';
 export type NotificationUrgency = 'normal' | 'high' | 'urgent';
+export type NotificationIconType =
+  | 'approved' | 'disbursed' | 'overdue' | 'repayment' | 'wallet-low'
+  | 'application' | 'approval-required' | 'team-invite' | 'system';
+
+/** Single source of truth mapping a notification type to its hugeicons icon. */
+export const NOTIFICATION_ICON_MAP: Record<NotificationIconType, IconData> = {
+  approved: CheckmarkCircle02Icon as IconData,
+  disbursed: MoneySend01Icon as IconData,
+  overdue: Alert01Icon as IconData,
+  repayment: MoneyReceive01Icon as IconData,
+  'wallet-low': Wallet01Icon as IconData,
+  application: FileValidationIcon as IconData,
+  'approval-required': BellRingIcon as IconData,
+  'team-invite': UserAdd01Icon as IconData,
+  system: Settings01Icon as IconData,
+};
 
 export interface NotificationItem {
   id: string;
   category: NotificationCategory;
   urgency: NotificationUrgency;
-  icon: 'approved' | 'disbursed' | 'overdue' | 'repayment' | 'wallet-low' | 'application' | 'approval-required' | 'team-invite' | 'system';
+  icon: NotificationIconType;
   title: string;
   subtitle: string;
   at: string;
@@ -30,6 +58,11 @@ export class NotificationService {
   ]);
 
   readonly unreadCount = computed(() => this.notifications().filter((n) => !n.read).length);
+
+  /** Resolves a notification's icon type to its hugeicons IconData. */
+  iconFor(icon: NotificationIconType): IconData {
+    return NOTIFICATION_ICON_MAP[icon];
+  }
 
   private minutesAgo(mins: number): string {
     return new Date(Date.now() - mins * 60_000).toISOString();

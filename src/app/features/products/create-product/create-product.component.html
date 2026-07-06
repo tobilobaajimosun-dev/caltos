@@ -68,10 +68,16 @@
               <input class="text-input" [(ngModel)]="productId" placeholder="Loan product ID" maxlength="6" />
               <div class="hints-row">
                 <span class="hint" [class.valid]="productId.length > 0 && productId.length <= 6">
-                  Not more than 6 characters ✓
+                  Not more than 6 characters
+                  @if (productId.length > 0 && productId.length <= 6) {
+                    <hi-icon [icon]="tickIcon" size="14" aria-hidden="true" />
+                  }
                 </span>
                 <span class="hint" [class.valid]="productId.length > 0 && productName.toLowerCase().includes(productId.toLowerCase())">
-                  Characters must be found in product name ✓
+                  Characters must be found in product name
+                  @if (productId.length > 0 && productName.toLowerCase().includes(productId.toLowerCase())) {
+                    <hi-icon [icon]="tickIcon" size="14" aria-hidden="true" />
+                  }
                 </span>
               </div>
             </div>
@@ -295,7 +301,9 @@
                   <app-checkbox [(checked)]="fee.enabled" [label]="fee.name" />
                   <div style="display: flex; align-items: center; gap: 12px;">
                     <span class="fee-meta">{{ fee.method }} · {{ fee.value || '—' }} · {{ fee.applyTo }}</span>
-                    <button class="remove-btn" (click)="removeCustomFee(fee.id)">✕</button>
+                    <button class="remove-btn" (click)="removeCustomFee(fee.id)" aria-label="Remove custom fee">
+                      <hi-icon [icon]="cancelIcon" size="14" aria-hidden="true" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -473,7 +481,9 @@
                       · Apply to: {{ p.applyTo }}
                     </span>
                   </div>
-                  <button class="remove-btn" (click)="removePenalty(p.id)">✕</button>
+                  <button class="remove-btn" (click)="removePenalty(p.id)" aria-label="Remove penalty">
+                    <hi-icon [icon]="cancelIcon" size="14" aria-hidden="true" />
+                  </button>
                 </div>
               }
 
