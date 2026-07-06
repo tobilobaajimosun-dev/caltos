@@ -1,29 +1,48 @@
 @if (isOpen()) {
   <div class="cmdk-backdrop" (click)="onBackdropClick($event)">
-    <div class="cmdk-panel" role="dialog" aria-label="Command palette">
+    <div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="Command palette" (keydown)="onTrapKeydown($event)">
       <div class="cmdk-search">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/>
           <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <input
+          #searchInput
           class="cmdk-input"
           type="text"
-          placeholder="Search customers, loans, products..."
+          placeholder="Search customers, loans, products, actions..."
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="cmdk-listbox"
+          aria-autocomplete="list"
+          [attr.aria-activedescendant]="'cmdk-option-' + activeIndex()"
           [ngModel]="query()"
           (ngModelChange)="query.set($event)"
-          autofocus
         />
         <kbd class="cmdk-esc">Esc</kbd>
       </div>
 
-      <div class="cmdk-results">
+      <div class="cmdk-results" id="cmdk-listbox" role="listbox">
         @for (group of filteredGroups(); track group.label) {
           <div class="cmdk-group">
             <p class="cmdk-group-label">{{ group.label }}</p>
             @for (item of group.items; track item.id) {
-              <button type="button" class="cmdk-item" (click)="choose(item.id)">
-                <span>{{ item.label }}</span>
+              <button
+                type="button"
+                [id]="'cmdk-option-' + indexOf(item)"
+                class="cmdk-item"
+                role="option"
+                [class.active]="isActive(indexOf(item))"
+                [attr.aria-selected]="isActive(indexOf(item))"
+                (mouseenter)="activeIndex.set(indexOf(item))"
+                (click)="choose(item.id)"
+              >
+                <span class="cmdk-item-label">
+                  {{ item.label }}
+                  @if (item.sublabel) {
+                    <span class="cmdk-item-sublabel">{{ item.sublabel }}</span>
+                  }
+                </span>
                 @if (item.shortcut) {
                   <kbd class="cmdk-shortcut">{{ item.shortcut }}</kbd>
                 }

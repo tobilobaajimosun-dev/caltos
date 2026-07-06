@@ -79,7 +79,21 @@
   cursor: pointer;
   text-align: left;
 
-  &:hover { background: var(--surface-overlay); }
+  &:hover,
+  &.active {
+    background: var(--surface-overlay);
+  }
+}
+
+.cmdk-item-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cmdk-item-sublabel {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .cmdk-shortcut {
