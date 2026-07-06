@@ -17,10 +17,11 @@
     </div>
     <div class="wiz-header-right">
       <a routerLink="/apply" target="_blank" class="wiz-preview-btn">
-        <hi-icon [icon]="eyeIcon" size="14" color="currentColor" />
+        <hugeicons-icon [icon]="viewIcon" size="14" [strokeWidth]="1.5" />
         Preview
       </a>
       <button class="wiz-save-btn" (click)="saveDraft()">
+        <hugeicons-icon [icon]="licenseDraftIcon" size="14" [strokeWidth]="1.5" />
         @if (isDraft) { Draft saved } @else { Save draft }
       </button>
       <a routerLink="/products" class="wiz-close-btn" aria-label="Close">
@@ -31,11 +32,96 @@
     </div>
   </header>
 
-  <!-- Scrollable main content -->
-  <main class="wiz-main">
-    <div class="wiz-step-meta">Step {{ currentStep + 1 }} of {{ steps.length }}</div>
+  <!-- 2-column body: left-rail stepper + scrollable content -->
+  <div class="wiz-body">
 
-    <div class="wiz-content">
+    <!-- Stripe-style left-rail stepper -->
+    <nav class="wiz-stepper" aria-label="Loan product setup steps">
+      @for (step of steps; track step.id; let i = $index) {
+        <button
+          type="button"
+          class="wiz-stepper-item"
+          [class.done]="stepStatus(i) === 'done'"
+          [class.active]="stepStatus(i) === 'active'"
+          [class.upcoming]="stepStatus(i) === 'upcoming'"
+          [attr.aria-current]="stepStatus(i) === 'active' ? 'step' : null"
+          [disabled]="stepStatus(i) === 'upcoming'"
+          (click)="goToStep(i)">
+          <span class="wiz-stepper-circle">
+            @if (stepStatus(i) === 'done') {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12.5l4.5 4.5L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            } @else {
+              {{ i + 1 }}
+            }
+          </span>
+          <span class="wiz-stepper-label">{{ step.label }}</span>
+        </button>
+      }
+    </nav>
+
+    <!-- Scrollable main content -->
+    <main class="wiz-main" #wizMain>
+      <div class="wiz-content">
+
+        <!-- ── STEP: type ── -->
+        @if (stepId === 'type') {
+          <div class="content-header">
+            <h1 class="content-title">What kind of loan product would you like to create?</h1>
+            <p class="content-sub">Choose a template to get started — or build from scratch. You can change everything later.</p>
+          </div>
+          <div class="type-grid">
+            @for (type of loanTypes; track type.id) {
+              <button
+                type="button"
+                class="type-card"
+                [class.scratch]="type.id === 'scratch'"
+                (click)="selectLoanType(type.id)">
+                <div class="type-icon" [style.background]="type.bg" [style.color]="type.color">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    @if (type.id === 'salary') {
+                      <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    }
+                    @if (type.id === 'public') {
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5"/>
+                    }
+                    @if (type.id === 'school') {
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    }
+                    @if (type.id === 'corper') {
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="1.5"/>
+                    }
+                    @if (type.id === 'sme') {
+                      <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    }
+                    @if (type.id === 'coop') {
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    }
+                    @if (type.id === 'bnpl') {
+                      <rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/>
+                    }
+                    @if (type.id === 'scratch') {
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    }
+                  </svg>
+                </div>
+                <div class="type-name">{{ type.label }}</div>
+                <div class="type-desc">{{ type.desc }}</div>
+                <div class="type-tags">
+                  @for (tag of type.tags; track tag) {
+                    <span class="type-tag">{{ tag }}</span>
+                  }
+                </div>
+                <div class="type-arrow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </button>
+            }
+          </div>
+        }
 
         <!-- ── STEP: about ── -->
         @if (stepId === 'about') {
@@ -80,27 +166,39 @@
               <div class="form-card-title">Who is this for?</div>
               <div class="field-group">
                 <label class="field-label">Target audience <span class="req">*</span></label>
-                <p class="field-sub">Select all groups eligible to apply for this product.</p>
-                <div class="audience-pills">
-                  @for (aud of audiences; track aud) {
-                    <button
-                      class="audience-pill"
-                      [class.selected]="config.targetAudiences.includes(aud)"
-                      (click)="toggleAudience(aud)">
-                      @if (config.targetAudiences.includes(aud)) {
-                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
-                          <path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      }
-                      {{ aud }}
-                    </button>
-                  }
+                <div class="audience-mode-choice">
+                  <app-radio-button
+                    label="Everyone"
+                    [selected]="config.audienceMode === 'everyone'"
+                    (selectedChange)="config.audienceMode = 'everyone'" />
+                  <app-radio-button
+                    label="Custom audience"
+                    [selected]="config.audienceMode === 'custom'"
+                    (selectedChange)="config.audienceMode = 'custom'" />
                 </div>
-                @if (config.targetAudiences.length) {
-                  <div class="audience-selected-note">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
-                    {{ config.targetAudiences.join(' · ') }}
+                @if (config.audienceMode === 'custom') {
+                  <p class="field-sub">Select all groups eligible to apply for this product.</p>
+                  <div class="audience-pills">
+                    @for (aud of audiences; track aud) {
+                      <button
+                        class="audience-pill"
+                        [class.selected]="config.targetAudiences.includes(aud)"
+                        (click)="toggleAudience(aud)">
+                        @if (config.targetAudiences.includes(aud)) {
+                          <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                            <path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                        {{ aud }}
+                      </button>
+                    }
                   </div>
+                  @if (config.targetAudiences.length) {
+                    <div class="audience-selected-note">
+                      <hugeicons-icon [icon]="infoIcon" size="12" [strokeWidth]="1.5" />
+                      {{ config.targetAudiences.join(' · ') }}
+                    </div>
+                  }
                 }
               </div>
             </div>
@@ -134,9 +232,7 @@
                 </div>
                 <div class="field-group unit-group">
                   <label class="field-label">Unit</label>
-                  <select class="select-input" [(ngModel)]="config.tenorUnit">
-                    @for (u of tenorUnits; track u) { <option [value]="u">{{ u }}</option> }
-                  </select>
+                  <app-select [options]="toOptions(tenorUnits)" [value]="config.tenorUnit" (valueChange)="config.tenorUnit = $event" />
                 </div>
               </div>
             </div>
@@ -147,9 +243,7 @@
               <div class="field-row">
                 <div class="field-group">
                   <label class="field-label">Interest model</label>
-                  <select class="select-input" [(ngModel)]="config.interestModel">
-                    @for (m of interestModels; track m) { <option [value]="m">{{ m }}</option> }
-                  </select>
+                  <app-select [options]="toOptions(interestModels)" [value]="config.interestModel" (valueChange)="config.interestModel = $event" />
                 </div>
                 <div class="field-group">
                   <label class="field-label">Interest rate <span class="req">*</span></label>
@@ -160,9 +254,7 @@
                 </div>
                 <div class="field-group">
                   <label class="field-label">Charged</label>
-                  <select class="select-input" [(ngModel)]="config.interestChargedWhen">
-                    @for (p of interestChargePeriods; track p) { <option [value]="p">{{ p }}</option> }
-                  </select>
+                  <app-select [options]="toOptions(interestChargePeriods)" [value]="config.interestChargedWhen" (valueChange)="config.interestChargedWhen = $event" />
                 </div>
               </div>
             </div>
@@ -182,7 +274,7 @@
               </div>
               @if (config.minAge || config.maxAge) {
                 <div class="info-callout" style="margin-top:12px">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                  <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
                   Borrowers will be asked for their date of birth so their age can be verified against this range.
                 </div>
               }
@@ -268,41 +360,42 @@
                         </div>
                       }
                     </div>
+
+                    @if (recommendedCustomFields.length > 0) {
+                      <div class="recommended-fields-section">
+                        <div class="recommended-fields-label">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          Recommended from past products
+                        </div>
+                        <div class="recommended-pills">
+                          @for (rf of recommendedCustomFields; track rf.label) {
+                            @if (!sec.customFields.some(f => f.label === rf.label)) {
+                              <button class="recommended-pill" (click)="addRecommendedCustomField(sec.key, rf)">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                {{ rf.label }}
+                              </button>
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+                    @for (field of sec.customFields; track field.label; let fi = $index) {
+                      <div class="custom-fee-row">
+                        <span class="custom-fee-name">{{ field.label }}</span>
+                        <span class="custom-fee-type">{{ field.type }}</span>
+                        <span class="custom-fee-rate">{{ field.required }}</span>
+                        <button class="remove-btn" (click)="confirmRemoveCustomField(sec.key, fi)">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        </button>
+                      </div>
+                    }
+                    <button class="add-field-btn" (click)="openAddCustomField(sec.key)">
+                      <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
+                      Add a custom field
+                    </button>
                   }
                 }
               </div>
-              @if (recommendedCustomFields.length > 0) {
-                <div class="recommended-fields-section">
-                  <div class="recommended-fields-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Recommended from past products
-                  </div>
-                  <div class="recommended-pills">
-                    @for (rf of recommendedCustomFields; track rf.label) {
-                      @if (!customFields.some(f => f.label === rf.label)) {
-                        <button class="recommended-pill" (click)="addRecommendedCustomField(rf)">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                          {{ rf.label }}
-                        </button>
-                      }
-                    }
-                  </div>
-                </div>
-              }
-              @for (field of customFields; track field.label) {
-                <div class="custom-fee-row">
-                  <span class="custom-fee-name">{{ field.label }}</span>
-                  <span class="custom-fee-type">{{ field.type }}</span>
-                  <span class="custom-fee-rate">{{ field.required }}</span>
-                  <button class="remove-btn" (click)="confirmRemoveCustomField($index)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                  </button>
-                </div>
-              }
-              <button class="add-field-btn" (click)="showCustomFieldModal = true">
-                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
-                Add a custom field
-              </button>
             </div>
 
             <!-- Returning applicants -->
@@ -390,13 +483,13 @@
                 </div>
                 @if (noIncomeSelected) {
                   <div class="info-callout warn" style="margin-top:14px">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                    <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
                     No income verification selected — this section will not appear in the borrower application.
                   </div>
                 }
                 @if (!noIncomeSelected && (config.incomeRemita || config.incomeIppis)) {
                   <div class="info-callout" style="margin-top:14px">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
                     {{ config.incomeRemita && config.incomeIppis ? 'Remita and IPPIS require' : config.incomeRemita ? 'Remita requires' : 'IPPIS requires' }} integration keys to function. You can provide your keys in Settings → Integrations, or our team can help you set this up.
                   </div>
                 }
@@ -472,13 +565,13 @@
               </div>
               @if (noDeductionSelected) {
                 <div class="info-callout warn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                  <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
                   No deduction channel selected. Repayments will need to be collected manually or via a channel configured later.
                 </div>
               }
               @if (config.deductIppis || config.deductRemita) {
                 <div class="info-callout">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5"/></svg>
+                  <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
                   {{ config.deductIppis && config.deductRemita ? 'IPPIS and Remita require' : config.deductIppis ? 'IPPIS requires' : 'Remita requires' }} integration keys. Configure them in Settings → Integrations before going live.
                 </div>
               }
@@ -509,7 +602,21 @@
                     </div>
                   </div>
                 }
+                @for (doc of customDocs; track doc.name; let di = $index) {
+                  <div class="doc-row">
+                    <span class="doc-name">{{ doc.name }} <span class="doc-types-hint">({{ doc.types.join(', ') }})</span></span>
+                    <div class="doc-btn-group">
+                      <button class="doc-btn" [class.selected]="getDocRequirement(customDocKey(di)) === 'required'" (click)="setDocRequirement(customDocKey(di), 'required')">Required</button>
+                      <button class="doc-btn" [class.selected]="getDocRequirement(customDocKey(di)) === 'optional'" (click)="setDocRequirement(customDocKey(di), 'optional')">Optional</button>
+                      <button class="doc-btn" [class.selected]="getDocRequirement(customDocKey(di)) === 'none'" (click)="setDocRequirement(customDocKey(di), 'none')">Don't collect</button>
+                    </div>
+                  </div>
+                }
               </div>
+              <button class="add-field-btn" (click)="showCustomDocModal = true">
+                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
+                Add a custom document
+              </button>
             </div>
 
           </div>
@@ -534,10 +641,7 @@
                 <div class="field-row">
                   <div class="field-group">
                     <label class="field-label">Fee type</label>
-                    <select class="select-input" [(ngModel)]="config.processingFeeType">
-                      <option>Percentage</option>
-                      <option>Flat Amount</option>
-                    </select>
+                    <app-select [options]="toOptions(feeTypes)" [value]="config.processingFeeType" (valueChange)="config.processingFeeType = $event" />
                   </div>
                   <div class="field-group">
                     <label class="field-label">Rate / Amount <span class="req">*</span></label>
@@ -552,11 +656,7 @@
                   </div>
                   <div class="field-group">
                     <label class="field-label">Applicable to</label>
-                    <select class="select-input" [(ngModel)]="config.processingFeeApplicableTo">
-                      <option>Loan Amount</option>
-                      <option>Disbursed Amount</option>
-                      <option>Principal</option>
-                    </select>
+                    <app-select [options]="toOptions(processingFeeApplicableToOptions)" [value]="config.processingFeeApplicableTo" (valueChange)="config.processingFeeApplicableTo = $event" />
                   </div>
                 </div>
                 <div class="fee-limits-row">
@@ -596,21 +696,21 @@
                 @if (showInsuranceFee) {
                   <div class="mini-fee-row">
                     <span class="mini-fee-name">Insurance Fee</span>
-                    <select class="select-input sm"><option>Percentage</option><option>Flat Amount</option></select>
+                    <app-select [options]="toOptions(feeTypes)" value="Percentage" />
                     <input class="text-input sm" type="number" placeholder="Rate" />
                   </div>
                 }
                 @if (showAdminFee) {
                   <div class="mini-fee-row">
                     <span class="mini-fee-name">Admin Fee</span>
-                    <select class="select-input sm"><option>Percentage</option><option>Flat Amount</option></select>
+                    <app-select [options]="toOptions(feeTypes)" value="Percentage" />
                     <input class="text-input sm" type="number" placeholder="Rate" />
                   </div>
                 }
                 @if (showMgmtFee) {
                   <div class="mini-fee-row">
                     <span class="mini-fee-name">Management Fee</span>
-                    <select class="select-input sm"><option>Percentage</option><option>Flat Amount</option></select>
+                    <app-select [options]="toOptions(feeTypes)" value="Percentage" />
                     <input class="text-input sm" type="number" placeholder="Rate" />
                   </div>
                 }
@@ -638,10 +738,7 @@
                 <div class="field-row">
                   <div class="field-group">
                     <label class="field-label">Method</label>
-                    <select class="select-input" [(ngModel)]="config.latePenaltyMethod">
-                      <option>Percentage</option>
-                      <option>Flat Amount</option>
-                    </select>
+                    <app-select [options]="toOptions(feeTypes)" [value]="config.latePenaltyMethod" (valueChange)="config.latePenaltyMethod = $event" />
                   </div>
                   <div class="field-group">
                     <label class="field-label">Rate</label>
@@ -661,11 +758,7 @@
                   </div>
                   <div class="field-group">
                     <label class="field-label">Apply to</label>
-                    <select class="select-input" [(ngModel)]="config.latePenaltyApplyTo">
-                      <option>Outstanding Balance</option>
-                      <option>Principal</option>
-                      <option>Interest</option>
-                    </select>
+                    <app-select [options]="toOptions(latePenaltyApplyToOptions)" [value]="config.latePenaltyApplyTo" (valueChange)="config.latePenaltyApplyTo = $event" />
                   </div>
                 </div>
               </div>
@@ -742,6 +835,21 @@
                     </div>
                   }
                 </div>
+                <div class="disburse-rule">
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Restrict borrowers with an active loan</div>
+                      <div class="toggle-option-sub">Control whether customers with an existing unpaid loan on this product can take out another one.</div>
+                    </div>
+                    <app-toggle [checked]="config.restrictActiveLoan" (checkedChange)="config.restrictActiveLoan = $event" />
+                  </div>
+                  @if (config.restrictActiveLoan) {
+                    <div class="field-group" style="margin-top:10px; max-width:320px">
+                      <label class="field-label">Active loan policy</label>
+                      <app-select [options]="activeLoanPolicies" [value]="config.activeLoanPolicy" (valueChange)="config.activeLoanPolicy = $event" />
+                    </div>
+                  }
+                </div>
               </div>
             </div>
 
@@ -807,11 +915,9 @@
                     Which day of the week should repayment be collected?
                   }
                 </div>
-                <select class="select-input" style="max-width:180px" [(ngModel)]="config.repaymentDay">
-                  @for (day of repaymentDayOptions; track day) {
-                    <option [value]="day">{{ day }}</option>
-                  }
-                </select>
+                <div style="max-width:180px">
+                  <app-select [options]="toOptions(repaymentDayOptions)" [value]="config.repaymentDay" (valueChange)="config.repaymentDay = $event" />
+                </div>
               </div>
             }
 
@@ -1109,25 +1215,28 @@
           </div>
         }
 
-    </div><!-- wiz-content -->
-  </main>
+      </div><!-- wiz-content -->
+    </main>
+  </div><!-- wiz-body -->
 
   <!-- Footer -->
-  <footer class="wiz-footer">
-    @if (isReview) {
-      <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
-      <span class="wiz-footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
-      <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
-    } @else {
-      @if (!isFirst) {
-        <app-button variant="back" label="Back" (clicked)="back()" />
+  @if (stepId !== 'type') {
+    <footer class="wiz-footer">
+      @if (isReview) {
+        <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
+        <span class="wiz-footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
+        <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
       } @else {
-        <a routerLink="/products" class="wiz-cancel-btn">Cancel</a>
+        @if (!isFirst) {
+          <app-button variant="back" label="Back" (clicked)="back()" />
+        } @else {
+          <a routerLink="/products" class="wiz-cancel-btn">Cancel</a>
+        }
+        <span class="wiz-footer-hint">You can change any of these settings later.</span>
+        <app-button variant="primary" label="Save & Continue" (clicked)="next()" />
       }
-      <span class="wiz-footer-hint">You can change any of these settings later.</span>
-      <app-button variant="primary" label="Save & Continue" (clicked)="next()" />
-    }
-  </footer>
+    </footer>
+  }
 
 </div>
 
@@ -1170,10 +1279,7 @@
         </div>
         <div class="field-group">
           <label class="field-label">Fee type</label>
-          <select class="select-input" [(ngModel)]="customFeeType">
-            <option>Percentage</option>
-            <option>Flat Amount</option>
-          </select>
+          <app-select [options]="toOptions(feeTypes)" [value]="customFeeType" (valueChange)="customFeeType = $event" />
         </div>
         <div class="field-group">
           <label class="field-label">Rate / Amount</label>
@@ -1200,25 +1306,46 @@
         </div>
         <div class="field-group">
           <label class="field-label">Field type</label>
-          <select class="select-input" [(ngModel)]="customFieldType">
-            <option>Text</option>
-            <option>Number</option>
-            <option>Date</option>
-            <option>File Upload</option>
-            <option>Yes / No</option>
-          </select>
+          <app-select [options]="toOptions(customFieldTypes)" [value]="customFieldType" (valueChange)="customFieldType = $event" />
         </div>
         <div class="field-group">
           <label class="field-label">Is this field required?</label>
-          <select class="select-input" [(ngModel)]="customFieldRequired">
-            <option value="required">Required</option>
-            <option value="optional">Optional</option>
-          </select>
+          <app-select [options]="customFieldRequiredOptions" [value]="customFieldRequired" (valueChange)="customFieldRequired = $event" />
         </div>
       </div>
       <div class="dialog-actions">
         <app-button variant="outline" label="Cancel" (clicked)="showCustomFieldModal = false" />
         <app-button variant="primary" label="Add Field" [disabled]="!customFieldLabel.trim()" (clicked)="addCustomField()" />
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Custom Document Modal -->
+@if (showCustomDocModal) {
+  <div class="dialog-overlay" (click)="showCustomDocModal = false">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h3 class="dialog-title">Add a custom document</h3>
+      <div class="dialog-form">
+        <div class="field-group">
+          <label class="field-label">Document name <span class="req">*</span></label>
+          <input class="text-input" type="text" placeholder="e.g. Proof of Address" [(ngModel)]="customDocName" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">File types accepted <span class="req">*</span></label>
+          <div class="doc-type-checkboxes">
+            @for (type of customDocTypeChoices; track type) {
+              <app-checkbox
+                [label]="type"
+                [checked]="customDocTypes.includes(type)"
+                (checkedChange)="toggleCustomDocType(type)" />
+            }
+          </div>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <app-button variant="outline" label="Cancel" (clicked)="showCustomDocModal = false" />
+        <app-button variant="primary" label="Add Document" [disabled]="!customDocName.trim() || customDocTypes.length === 0" (clicked)="addCustomDoc()" />
       </div>
     </div>
   </div>

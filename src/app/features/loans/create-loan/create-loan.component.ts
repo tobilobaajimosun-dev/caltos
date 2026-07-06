@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, inject } from '@angular/core';
+import { Component, OnInit, HostListener, inject, viewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,15 +7,62 @@ import {
   CheckboxComponent, RadioButtonComponent,
   ToggleComponent, TextareaComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
-  FileUploadComponent, ButtonComponent,
+  FileUploadComponent, ButtonComponent, SelectComponent, SelectOption,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
+import { HugeiconsIconComponent } from '@hugeicons/angular';
+import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
 import { ProductsService } from '../../../shared/services/products.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   PlusSignIcon, EyeIcon, Clock01Icon,
+  ViewIcon, LicenseDraftIcon, InformationCircleIcon,
 } from '@hugeicons/core-free-icons';
+
+export interface LoanTypeOption {
+  id: string;
+  label: string;
+  desc: string;
+  color: string;
+  bg: string;
+  tags: string[];
+}
+
+export const LOAN_TYPES: LoanTypeOption[] = [
+  {
+    id: 'salary', label: 'Salary Advance', desc: 'Short term loans for private salary earners',
+    color: '#0BA5EC', bg: '#E0F2FE', tags: ['Bank Statement', 'Direct Debit'],
+  },
+  {
+    id: 'public', label: 'Public Sector Loan', desc: 'Loans for government employees',
+    color: '#F79009', bg: '#FEF3C7', tags: ['Remita', 'IPPIS'],
+  },
+  {
+    id: 'school', label: 'School Fees Loan', desc: 'Help parents and students pay school fees',
+    color: '#12B76A', bg: '#D1FAE5', tags: ['School ID', 'Admission Letter'],
+  },
+  {
+    id: 'corper', label: 'Corper Loan', desc: 'Loans for NYSC members and corps members',
+    color: '#6941C6', bg: '#EDE9FE', tags: ['Remita', 'NYSC ID'],
+  },
+  {
+    id: 'sme', label: 'SME Loan', desc: 'Working capital and growth loans for businesses',
+    color: '#F04438', bg: '#FEE4E2', tags: ['CAC', 'Bank Statement'],
+  },
+  {
+    id: 'coop', label: 'Cooperative Loan', desc: 'Loans for cooperative society members',
+    color: '#0BA5EC', bg: '#E0F2FE', tags: ['Membership Verification'],
+  },
+  {
+    id: 'bnpl', label: 'Buy Now Pay Later', desc: 'Instant purchase financing for goods and services',
+    color: '#D92D20', bg: '#FEE4E2', tags: ['ID Verification', 'Affordability'],
+  },
+  {
+    id: 'scratch', label: 'Build from Scratch', desc: 'Create a completely custom loan product',
+    color: '#667085', bg: '#F2F4F7', tags: ['Start Blank'],
+  },
+];
 
 export interface LoanConfig {
   template: string;
@@ -23,6 +70,7 @@ export interface LoanConfig {
   name: string;
   description: string;
   targetAudiences: string[];
+  audienceMode: 'everyone' | 'custom';
   minAmount: string;
   maxAmount: string;
   minTenor: string;
@@ -43,6 +91,7 @@ export interface LoanConfig {
   collectAddress: boolean;
   collectEmployment: boolean;
   collectBusiness: boolean;
+  collectBank: boolean;
   allowContinue: boolean;
   recogniseExisting: boolean;
   // Step 3
@@ -87,6 +136,8 @@ export interface LoanConfig {
   videoConfirmation: boolean;
   autoDisburseEnabled: boolean;
   autoDisburseUnder: string;
+  restrictActiveLoan: boolean;
+  activeLoanPolicy: string;
   // Step 6
   repaymentFrequency: string;
   firstRepaymentDays: string;
@@ -111,6 +162,7 @@ export interface LoanConfig {
 }
 
 export const STEPS = [
+  { id: 'type',          label: 'Loan Type',               shortLabel: 'Loan Type' },
   { id: 'about',         label: 'About this Loan',         shortLabel: 'About Loan' },
   { id: 'application',   label: 'Set Up Your Application', shortLabel: 'Application' },
   { id: 'verification',  label: 'Verification',            shortLabel: 'Verification' },
@@ -236,11 +288,11 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
   standalone: true,
   imports: [
     FormsModule, RouterLink, TitleCasePipe, LowerCasePipe,
-    HiIconComponent,
+    HiIconComponent, HugeiconsIconComponent,
     CheckboxComponent, RadioButtonComponent, ToggleComponent,
     TextareaComponent, CollapsibleSectionComponent,
     CopyUrlFieldComponent, QrCodeComponent,
-    FileUploadComponent, LivePreviewComponent, ButtonComponent,
+    FileUploadComponent, LivePreviewComponent, ButtonComponent, SelectComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrls: ['./create-loan.component.scss'],
@@ -260,6 +312,7 @@ export class CreateLoanComponent implements OnInit {
   expandAddress = false;
   expandEmployment = false;
   expandBusiness = false;
+  expandBank = false;
 
   showInsuranceFee = false;
   showAdminFee = false;
@@ -276,11 +329,18 @@ export class CreateLoanComponent implements OnInit {
   customFieldLabel = '';
   customFieldType = 'Text';
   customFieldRequired = 'required';
-  customFields: { label: string; type: string; required: string }[] = [];
+  targetSectionKey: string | null = null;
 
   showRemoveCustomFieldModal = false;
+  removeCustomFieldSectionKey: string | null = null;
   removeCustomFieldIndex = -1;
   recommendedCustomFields: { label: string; type: string }[] = [];
+
+  // Custom documents added via the "Add a custom document" dialog (item 14)
+  showCustomDocModal = false;
+  customDocName = '';
+  customDocTypes: string[] = [];
+  customDocs: { name: string; types: string[] }[] = [];
 
   repaymentOrder = ['Fees', 'Interest', 'Penalty', 'Principal'];
   dragIndex = -1;
@@ -291,6 +351,31 @@ export class CreateLoanComponent implements OnInit {
   readonly plusIcon: IconData = PlusSignIcon as IconData;
   readonly eyeIcon: IconData = EyeIcon as IconData;
   readonly clockIcon: IconData = Clock01Icon as IconData;
+  readonly viewIcon: IconSvgObject = ViewIcon as IconSvgObject;
+  readonly licenseDraftIcon: IconSvgObject = LicenseDraftIcon as IconSvgObject;
+  readonly infoIcon: IconSvgObject = InformationCircleIcon as IconSvgObject;
+
+  readonly loanTypes = LOAN_TYPES;
+
+  private readonly wizMain = viewChild<ElementRef<HTMLElement>>('wizMain');
+
+  private scrollToTop() {
+    this.wizMain()?.nativeElement.scrollTo({ top: 0 });
+  }
+
+  selectLoanType(id: string) {
+    if (id === 'bnpl') {
+      this.router.navigate(['/products/create-bnpl']);
+      return;
+    }
+    const preset = TEMPLATE_PRESETS[id];
+    if (preset) {
+      this.config = { ...this.config, ...preset, template: id };
+    } else {
+      this.config = { ...this.config, template: id };
+    }
+    this.next();
+  }
 
   readonly audiences = [
     'Everyone', 'Salary Earners', 'Public Servants',
@@ -300,16 +385,35 @@ export class CreateLoanComponent implements OnInit {
 
   readonly tenorUnits = ['Days', 'Weeks', 'Months', 'Years'];
   readonly repayFreqs = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly', 'At end of tenor'];
+  readonly feeTypes = ['Percentage', 'Flat Amount'];
+  readonly processingFeeApplicableToOptions = ['Loan Amount', 'Disbursed Amount', 'Principal'];
+  readonly latePenaltyApplyToOptions = ['Outstanding Balance', 'Principal', 'Interest'];
+  readonly customFieldTypes = ['Text', 'Number', 'Date', 'File Upload', 'Yes / No'];
+  readonly customFieldRequiredOptions: SelectOption[] = [
+    { value: 'required', label: 'Required' },
+    { value: 'optional', label: 'Optional' },
+  ];
+  readonly customDocTypeChoices = ['JPEG', 'PNG', 'PDF'];
   readonly interestModels = ['Flat Rate', 'Reducing Balance', 'Percentage Based'];
   readonly interestChargePeriods = ['Daily', 'Weekly', 'Monthly', 'Yearly', 'One Time'];
 
+  readonly activeLoanPolicies: SelectOption[] = [
+    { value: 'block', label: 'Block until repaid' },
+    { value: 'allow-one', label: 'Allow up to 1 additional active loan' },
+    { value: 'unconditional', label: 'Allow unconditionally' },
+  ];
+
+  toOptions(values: string[]): SelectOption[] {
+    return values.map(v => ({ value: v, label: v }));
+  }
+
   config: LoanConfig = {
-    template: '', name: '', description: '', targetAudiences: [],
+    template: '', name: '', description: '', targetAudiences: [], audienceMode: 'everyone',
     minAmount: '', maxAmount: '', minTenor: '', maxTenor: '', tenorUnit: 'Months',
     interestModel: 'Flat Rate', interestRate: '', interestChargedWhen: 'Monthly', minAge: '18', maxAge: '',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
     collectPersonal: true, collectContact: true, collectAddress: false,
-    collectEmployment: false, collectBusiness: false,
+    collectEmployment: false, collectBusiness: false, collectBank: false,
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
@@ -324,6 +428,7 @@ export class CreateLoanComponent implements OnInit {
     disburseTo: 'bank', disburseTiming: 'instant',
     offerLetter: false, namedAccountOnly: false, repaymentDeductionFirst: false, videoConfirmation: false,
     autoDisburseEnabled: false, autoDisburseUnder: '',
+    restrictActiveLoan: false, activeLoanPolicy: 'block',
     repaymentFrequency: 'Monthly', firstRepaymentDays: '30', repaymentDay: 'Day 30',
     minRepayments: '', maxRepayments: '', moveFirstRepaymentDays: '',
     docTerms: '', docPrivacy: '', docAgreement: '', useDefaultConsent: false,
@@ -377,20 +482,36 @@ export class CreateLoanComponent implements OnInit {
     } catch {}
   }
 
-  addRecommendedCustomField(field: { label: string; type: string }) {
-    if (this.customFields.some(f => f.label === field.label)) return;
-    this.customFields.push({ label: field.label, type: field.type, required: 'required' });
+  private sectionByKey(key: string | null) {
+    return this.collectionSections.find(s => s.key === key) ?? null;
   }
 
-  confirmRemoveCustomField(i: number) {
+  addRecommendedCustomField(sectionKey: string, field: { label: string; type: string }) {
+    const section = this.sectionByKey(sectionKey);
+    if (!section) return;
+    if (section.customFields.some(f => f.label === field.label)) return;
+    section.customFields.push({ label: field.label, type: field.type, required: 'required' });
+  }
+
+  confirmRemoveCustomField(sectionKey: string, i: number) {
+    this.removeCustomFieldSectionKey = sectionKey;
     this.removeCustomFieldIndex = i;
     this.showRemoveCustomFieldModal = true;
   }
 
   executeRemoveCustomField() {
-    if (this.removeCustomFieldIndex >= 0) this.customFields.splice(this.removeCustomFieldIndex, 1);
+    const section = this.sectionByKey(this.removeCustomFieldSectionKey);
+    if (section && this.removeCustomFieldIndex >= 0) {
+      section.customFields.splice(this.removeCustomFieldIndex, 1);
+    }
     this.showRemoveCustomFieldModal = false;
+    this.removeCustomFieldSectionKey = null;
     this.removeCustomFieldIndex = -1;
+  }
+
+  openAddCustomField(sectionKey: string) {
+    this.targetSectionKey = sectionKey;
+    this.showCustomFieldModal = true;
   }
 
   onDragStart(i: number) { this.dragIndex = i; }
@@ -428,9 +549,9 @@ export class CreateLoanComponent implements OnInit {
     return i < this.currentStep ? 'done' : 'upcoming';
   }
 
-  next() { if (!this.isLast) this.currentStep++; }
-  back() { if (!this.isFirst) this.currentStep--; }
-  goToStep(i: number) { this.currentStep = i; }
+  next() { if (!this.isLast) this.currentStep++; this.scrollToTop(); }
+  back() { if (!this.isFirst) this.currentStep--; this.scrollToTop(); }
+  goToStep(i: number) { this.currentStep = i; this.scrollToTop(); }
 
   private buildProductPatch() {
     return {
@@ -589,8 +710,10 @@ export class CreateLoanComponent implements OnInit {
 
   addCustomField() {
     if (!this.customFieldLabel.trim()) return;
+    const section = this.sectionByKey(this.targetSectionKey);
+    if (!section) return;
     const newField = { label: this.customFieldLabel, type: this.customFieldType, required: this.customFieldRequired };
-    this.customFields.push(newField);
+    section.customFields.push(newField);
     // Save to history for recommendations in future sessions
     const history = this.recommendedCustomFields;
     if (!history.some(f => f.label === newField.label)) {
@@ -600,9 +723,30 @@ export class CreateLoanComponent implements OnInit {
     }
     this.customFieldLabel = ''; this.customFieldType = 'Text'; this.customFieldRequired = 'required';
     this.showCustomFieldModal = false;
+    this.targetSectionKey = null;
   }
 
-  removeCustomField(i: number) { this.customFields.splice(i, 1); }
+  removeCustomField(sectionKey: string, i: number) {
+    const section = this.sectionByKey(sectionKey);
+    section?.customFields.splice(i, 1);
+  }
+
+  // ── Custom documents (item 14) ──────────────────────────────────────────
+  toggleCustomDocType(type: string) {
+    const idx = this.customDocTypes.indexOf(type);
+    if (idx >= 0) this.customDocTypes.splice(idx, 1);
+    else this.customDocTypes.push(type);
+  }
+
+  addCustomDoc() {
+    if (!this.customDocName.trim() || this.customDocTypes.length === 0) return;
+    this.customDocs.push({ name: this.customDocName, types: [...this.customDocTypes] });
+    this.customDocName = '';
+    this.customDocTypes = [];
+    this.showCustomDocModal = false;
+  }
+
+  customDocKey(i: number): string { return `custom-${i}`; }
 
   moveRepaymentOrder(i: number, dir: -1 | 1) {
     const j = i + dir;
@@ -634,22 +778,28 @@ export class CreateLoanComponent implements OnInit {
     { id: 'entryNin',   label: 'NIN',            sub: 'Applicants start with their NIN' },
   ];
 
-  collectionSections = [
+  collectionSections: {
+    key: string; label: string; count: string; fields: string[]; expand: string;
+    customFields: { label: string; type: string; required: string }[];
+  }[] = [
     { key: 'collectPersonal',    label: 'Personal Information',    count: '5',
       fields: ['First Name', 'Middle Name', 'Last Name', 'Date of Birth', 'Gender'],
-      expand: 'expandPersonal' },
+      expand: 'expandPersonal', customFields: [] },
     { key: 'collectContact',     label: 'Contact Information',     count: '4',
       fields: ['Email Address', 'Phone Number', 'WhatsApp Number', 'Preferred Contact'],
-      expand: 'expandContact' },
+      expand: 'expandContact', customFields: [] },
     { key: 'collectAddress',     label: 'Address Information',     count: '5',
       fields: ['Street Address', 'City', 'State', 'LGA', 'Landmark'],
-      expand: 'expandAddress' },
+      expand: 'expandAddress', customFields: [] },
     { key: 'collectEmployment',  label: 'Employment Information',  count: '5',
       fields: ['Employer Name', 'Staff ID', 'Job Title', 'Monthly Salary', 'Employment Type'],
-      expand: 'expandEmployment' },
+      expand: 'expandEmployment', customFields: [] },
     { key: 'collectBusiness',    label: 'Business Information',    count: '4',
       fields: ['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue'],
-      expand: 'expandBusiness' },
+      expand: 'expandBusiness', customFields: [] },
+    { key: 'collectBank',        label: 'Bank Account Details',    count: '3',
+      fields: ['Bank Name', 'Account Number', 'Account Name'],
+      expand: 'expandBank', customFields: [] },
   ];
 
   getExpand(key: string): boolean {

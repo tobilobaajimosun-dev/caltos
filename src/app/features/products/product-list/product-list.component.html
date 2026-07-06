@@ -17,7 +17,7 @@
             </svg>
           </button>
         </app-tooltip>
-        <app-button variant="primary" label="Create a loan product" (clicked)="showLoanTypeModal = true" />
+        <app-button variant="primary" label="Create a loan product" routerLink="/products/create" />
       </div>
     </div>
 
@@ -200,7 +200,7 @@
             <path d="M54 22h8M58 18v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
           @if (!searchQuery.trim()) {
-            <app-button cta variant="primary" label="Create a loan product" (clicked)="showLoanTypeModal = true" />
+            <app-button cta variant="primary" label="Create a loan product" routerLink="/products/create" />
           }
         </app-empty-state>
       }
@@ -274,12 +274,6 @@
 
   </div>
 </div>
-
-@if (showLoanTypeModal) {
-  <app-loan-type-modal
-    (closed)="showLoanTypeModal = false"
-    (typeSelected)="showLoanTypeModal = false" />
-}
 
 <app-product-settings-modal
   [isOpen]="showSettingsDrawer"

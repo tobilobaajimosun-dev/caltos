@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
-import { LoanTypeModalComponent } from '../../loans/create-loan/loan-type-modal/loan-type-modal.component';
 import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
 import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent, RoundTabsComponent, Tab } from '../../../shared/components';
 import { ProductsService, ProductRecord, ProductStatus } from '../../../shared/services/products.service';
@@ -32,7 +31,7 @@ interface Fee {
   selector: 'app-product-list',
   standalone: true,
   imports: [
-    RouterLink, HiIconComponent, LoanTypeModalComponent, ProductSettingsModalComponent,
+    RouterLink, HiIconComponent, ProductSettingsModalComponent,
     TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, SearchComponent,
     RoundTabsComponent,
   ],
@@ -46,7 +45,6 @@ export class ProductListComponent {
 
   activeTab: ActiveTab = 'all';
   searchQuery = '';
-  showLoanTypeModal = false;
   showSettingsDrawer = false;
   openDropdownId: string | null = null;
 
