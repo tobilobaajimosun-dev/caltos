@@ -70,7 +70,7 @@ export type { SettingsRowType } from './settings-row/settings-row.component';
 export type { PermissionItem } from './permission-group/permission-group.component';
 export type { TableItemType, TableItemUser } from './table-item/table-item.component';
 export type { SideNavItem } from './sidebar/sidebar.component';
-export type { ChartType, ChartDataPoint } from './chart/chart.component';
+export type { ChartType, ChartDataPoint, ChartSeries } from './chart/chart.component';
 export type { DateRange } from './date-range-picker/date-range-picker.component';
 export type { AlertBannerType } from './alert-banner/alert-banner.component';
 export type { BreadcrumbItem } from './breadcrumb/breadcrumb.component';

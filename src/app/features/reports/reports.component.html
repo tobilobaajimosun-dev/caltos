@@ -1,11 +1,14 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Reports & Performance</h1>
-    <p class="page-subtitle">Historical data across products, team, and customers – select a period to begin.</p>
+    <p class="page-subtitle">Portfolio health, repayment performance, and business growth — select a period to begin.</p>
   </div>
-  <div class="main-tabs">
-    <button type="button" class="main-tab" [class.active]="mainTab === 'report'" (click)="mainTab = 'report'">Report</button>
-    <button type="button" class="main-tab" [class.active]="mainTab === 'export'" (click)="mainTab = 'export'">Export Data</button>
+  <div class="header-actions">
+    <app-select [options]="roleOptions" [value]="currentRole()" (valueChange)="currentRole.set($any($event))" />
+    <div class="main-tabs">
+      <button type="button" class="main-tab" [class.active]="mainTab === 'report'" (click)="mainTab = 'report'">Report</button>
+      <button type="button" class="main-tab" [class.active]="mainTab === 'export'" (click)="mainTab = 'export'">Export Data</button>
+    </div>
   </div>
 </div>
 
@@ -13,18 +16,22 @@
 
   <div class="report-toolbar">
     <app-round-tabs [tabs]="reportSubTabs" [activeTab]="reportSubTab" (activeTabChange)="reportSubTab = $event" />
-    <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod" (activeTabChange)="activePeriod = $event" />
+    <app-tabs [tabs]="periodTabs" [activeTab]="activePeriod()" (activeTabChange)="setPeriod($event)" />
   </div>
+
+  @if (currentRole() === 'Loan Officer') {
+    <p class="role-note">Showing data filtered to your assigned portfolio (Loan Officer view).</p>
+  }
 
   @if (reportSubTab === 'overview') {
 
     <div class="toolbar-actions">
       <app-button variant="filter" label="Filter" />
-      <app-button variant="primary" label="Export" (clicked)="mainTab = 'export'" />
+      <app-button variant="primary" label="Export all" (clicked)="mainTab = 'export'" />
     </div>
 
     <div class="kpi-grid">
-      @for (m of kpis; track m.label) {
+      @for (m of kpis(); track m.label) {
         <div class="metric-card">
           <div class="metric-head">
             <span class="metric-label">{{ m.label }}</span>
@@ -39,7 +46,7 @@
                 } @else {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 }
-                {{ m.trend.value }}% vs last period
+                {{ m.trend.value }}{{ m.label === 'Avg Collection Rate' ? 'pp' : '%' }} vs last period
               </span>
             </div>
           }
@@ -54,16 +61,78 @@
     <div class="charts-row">
       <div class="panel wide-panel">
         <div class="panel-head">
-          <p class="panel-title">Lending Trend</p>
-          <p class="panel-sub">Monthly disbursements vs repayments</p>
+          <p class="panel-title">Disbursement vs Repayment</p>
+          <p class="panel-sub">Monthly, grouped by disbursed / repaid</p>
         </div>
-        <p class="panel-hero-val">₦3,934,199.13 <span class="trend-chip up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>23% vs last period</span></p>
-        <app-chart type="line" [data]="lendingTrend" />
+        @if (chartsLoading()) {
+          <app-skeleton variant="block" height="240px" />
+        } @else if (!disbursementRepaymentSeries()[0].data.length) {
+          <app-empty-state title="No data yet" description="Disbursement and repayment data will appear here once available." />
+        } @else {
+          <app-chart type="grouped-bar" [series]="disbursementRepaymentSeries()" />
+          <div class="chart-legend">
+            @for (s of disbursementRepaymentSeries(); track s.name) {
+              <span class="legend-row"><span class="legend-dot" [style.background]="s.color"></span>{{ s.name }}</span>
+            }
+          </div>
+        }
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <p class="panel-title">Loan Status Split</p>
+          <p class="panel-title">Portfolio Growth</p>
+          <p class="panel-sub">Principal outstanding by risk tier</p>
+        </div>
+        @if (chartsLoading()) {
+          <app-skeleton variant="block" height="240px" />
+        } @else {
+          <app-chart type="area" [series]="portfolioGrowthSeries()" />
+          <div class="chart-legend">
+            @for (s of portfolioGrowthSeries(); track s.name) {
+              <span class="legend-row"><span class="legend-dot" [style.background]="s.color"></span>{{ s.name }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">NPL Trend</p>
+          <p class="panel-sub">Non-performing loans, % of book</p>
+        </div>
+        @if (chartsLoading()) {
+          <app-skeleton variant="block" height="240px" />
+        } @else {
+          <app-chart type="line" [data]="nplTrend()" color="#e03e3e" />
+        }
+      </div>
+    </div>
+
+    <div class="panel quick-links-panel">
+      <div class="panel-head">
+        <p class="panel-title">Quick Report Links</p>
+      </div>
+      <div class="quick-links-grid">
+        <button type="button" class="quick-link-card" (click)="goToReport('portfolio-summary')">Portfolio Summary</button>
+        <button type="button" class="quick-link-card" (click)="goToReport('overdue-collections')">Overdue Analysis</button>
+        <button type="button" class="quick-link-card" (click)="goToReport('repayment-performance')">Repayment Performance</button>
+        <button type="button" class="quick-link-card" (click)="goToReport('customer-acquisition')">Customer Acquisition</button>
+        <button type="button" class="quick-link-card" (click)="goToReport('product-performance')">Product Performance</button>
+        <button type="button" class="quick-link-card" (click)="goToReport('officer-performance')">Officer Performance</button>
+      </div>
+    </div>
+
+  } @else if (reportSubTab === 'portfolio-summary') {
+
+    <div class="toolbar-actions">
+      <app-button variant="outline" label="Export CSV" (clicked)="exportTableCsv('portfolio-summary', ['Product','Disbursed','Active','NPL %','Collection Rate','Avg Tenor','Avg Size'], productComparisonRows())" />
+      <app-button variant="primary" label="Export PDF" (clicked)="exportPdf('Portfolio Summary')" />
+    </div>
+
+    <div class="charts-row two-col">
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Loan Book by Status</p>
           <p class="panel-sub">All loans this period</p>
         </div>
         <div class="donut-wrap">
@@ -83,16 +152,341 @@
 
       <div class="panel">
         <div class="panel-head">
-          <p class="panel-title">Repayment Trend</p>
-          <p class="panel-sub">Collections · Jan - Feb 2026</p>
+          <p class="panel-title">Book by Location</p>
         </div>
-        <p class="panel-hero-val">₦1.8B <span class="trend-chip up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>23% vs last period</span></p>
-        <p class="panel-note">Total Collected</p>
+        <table class="ref-table">
+          <thead><tr><th>Location</th><th>Loans</th><th>Outstanding</th></tr></thead>
+          <tbody>
+            @for (row of portfolioByLocation; track row.location) {
+              <tr><td>{{ row.location }}</td><td>{{ row.loans }}</td><td>{{ row.outstanding }}</td></tr>
+            }
+          </tbody>
+        </table>
       </div>
     </div>
 
-  } @else {
-    <app-coming-soon title="Coming soon" [subtitle]="reportSubTab === 'products' ? 'Loan product performance breakdown is on its way.' : reportSubTab === 'referral' ? 'Referral performance tracking is on its way.' : 'Customer analytics are on their way.'" />
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Product-by-Product Breakdown</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr><th>Product</th><th>Disbursed</th><th>Active</th><th>NPL %</th><th>Collection Rate</th><th>Avg Tenor</th><th>Avg Size</th></tr>
+        </thead>
+        <tbody>
+          @for (row of portfolioByProduct; track row.product) {
+            <tr>
+              <td>{{ row.product }}</td>
+              <td>{{ row.disbursed }}</td>
+              <td>{{ row.active }}</td>
+              <td>{{ row.nplPct }}</td>
+              <td>{{ row.collectionRate }}</td>
+              <td>{{ row.avgTenor }}</td>
+              <td>{{ row.avgSize }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Book by Officer</p>
+      </div>
+      <table class="ref-table">
+        <thead><tr><th>Officer</th><th>Loans</th><th>Outstanding</th><th>NPL %</th></tr></thead>
+        <tbody>
+          @for (row of portfolioByOfficer; track row.officer) {
+            <tr><td>{{ row.officer }}</td><td>{{ row.loans }}</td><td>{{ row.outstanding }}</td><td>{{ row.nplPct }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  } @else if (reportSubTab === 'overdue-collections') {
+
+    <div class="toolbar-actions">
+      <app-button variant="outline" label="Export CSV" (clicked)="exportTableCsv('overdue-loans', ['Customer','Loan ID','Days Overdue','Amount','Last Contact'], overdueLoanRows())" />
+    </div>
+
+    <div class="charts-row two-col">
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Aging Analysis</p>
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Bucket</th><th>Loans</th><th>Amount</th><th>PAR %</th></tr></thead>
+          <tbody>
+            @for (b of agingBuckets; track b.bucket) {
+              <tr><td>{{ b.bucket }}</td><td>{{ b.count }}</td><td>{{ b.amount }}</td><td>{{ b.parPct }}%</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">PAR by Bucket</p>
+          <p class="panel-sub">Portfolio at Risk</p>
+        </div>
+        @if (chartsLoading()) {
+          <app-skeleton variant="block" height="240px" />
+        } @else {
+          <app-chart type="bar" [data]="parByBucket()" color="#e03e3e" />
+        }
+      </div>
+    </div>
+
+    @if (selectedOverdueLoans().size > 0) {
+      <div class="bulk-actions-bar">
+        <span>{{ selectedOverdueLoans().size }} selected</span>
+        <app-button variant="outline" label="Send reminder" (clicked)="bulkSendReminder()" />
+        <app-button variant="secondary" label="Assign to collections" (clicked)="bulkAssignCollections()" />
+      </div>
+    }
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Overdue Loans</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th class="checkbox-col"><span class="sr-only">Select</span></th>
+            <th>Customer</th><th>Loan ID</th><th>Days Overdue</th><th>Amount</th><th>Last Contact</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (loan of overdueLoans; track loan.loanId) {
+            <tr>
+              <td class="checkbox-col">
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="'Select loan ' + loan.loanId"
+                  [checked]="selectedOverdueLoans().has(loan.loanId)"
+                  (change)="toggleOverdueSelection(loan.loanId)"
+                />
+              </td>
+              <td>{{ loan.customer }}</td>
+              <td>{{ loan.loanId }}</td>
+              <td>{{ loan.daysOverdue }}</td>
+              <td>{{ loan.amount }}</td>
+              <td>{{ loan.lastContact }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  } @else if (reportSubTab === 'repayment-performance') {
+
+    <div class="toolbar-actions">
+      <app-button variant="outline" label="Export CSV" (clicked)="exportTableCsv('repayment-performance', ['Customer','Loans Completed','On-time Rate','Total Repaid'], topRepayerRows())" />
+    </div>
+
+    <div class="charts-row two-col">
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">On-time Repayment Rate</p>
+          <p class="panel-sub">Over time</p>
+        </div>
+        @if (chartsLoading()) {
+          <app-skeleton variant="block" height="240px" />
+        } @else {
+          <app-chart type="line" [data]="onTimeRateTrend" />
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Early vs On-time vs Late</p>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut" [style.background]="repaymentSplitGradient"></div>
+          <div class="donut-legend">
+            @for (s of repaymentSplit; track s.label) {
+              <div class="legend-row">
+                <span class="legend-dot" [style.background]="s.color"></span>
+                {{ s.label }}
+                <span class="legend-pct">{{ s.pct }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-row two-col">
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Top Repayers</p>
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Customer</th><th>Loans Completed</th><th>On-time Rate</th><th>Total Repaid</th></tr></thead>
+          <tbody>
+            @for (row of topRepayers; track row.customer) {
+              <tr><td>{{ row.customer }}</td><td>{{ row.loansCompleted }}</td><td>{{ row.onTimeRate }}</td><td>{{ row.totalRepaid }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Bottom Repayers</p>
+          <p class="panel-sub">Early warning list</p>
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Customer</th><th>Loans Completed</th><th>On-time Rate</th><th>Total Repaid</th></tr></thead>
+          <tbody>
+            @for (row of bottomRepayers; track row.customer) {
+              <tr><td>{{ row.customer }}</td><td>{{ row.loansCompleted }}</td><td>{{ row.onTimeRate }}</td><td>{{ row.totalRepaid }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  } @else if (reportSubTab === 'customer-acquisition') {
+
+    <div class="toolbar-actions">
+      <app-button variant="outline" label="Export CSV" (clicked)="exportTableCsv('customer-acquisition', ['Segment','Customers','Percent'], customerSegmentRows())" />
+    </div>
+
+    <div class="charts-row two-col">
+      <div class="panel wide-panel">
+        <div class="panel-head">
+          <p class="panel-title">New Customers Over Time</p>
+        </div>
+        @if (chartsLoading()) {
+          <app-skeleton variant="block" height="240px" />
+        } @else {
+          <app-chart type="line" [data]="newCustomersTrend" />
+        }
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <p class="panel-title">Retention</p>
+          <p class="panel-sub">Repeat vs first-time</p>
+        </div>
+        <div class="bar-list">
+          @for (r of retention; track r.label) {
+            <div class="bar-list-row">
+              <span class="bar-list-label">{{ r.label }}</span>
+              <div class="bar-list-track"><div class="bar-list-fill" [style.width.%]="r.pct" [style.background]="r.color"></div></div>
+              <span class="bar-list-pct">{{ r.pct }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-row two-col">
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Segments by Loan Size</p>
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Segment</th><th>Customers</th><th>%</th></tr></thead>
+          <tbody>
+            @for (row of customerSegmentsBySize; track row.segment) {
+              <tr><td>{{ row.segment }}</td><td>{{ row.customers }}</td><td>{{ row.pct }}%</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-head">
+          <p class="panel-title">Segments by Product</p>
+        </div>
+        <table class="ref-table">
+          <thead><tr><th>Segment</th><th>Customers</th><th>%</th></tr></thead>
+          <tbody>
+            @for (row of customerSegmentsByProduct; track row.segment) {
+              <tr><td>{{ row.segment }}</td><td>{{ row.customers }}</td><td>{{ row.pct }}%</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Geographic Distribution</p>
+        <p class="panel-sub">Mock breakdown</p>
+      </div>
+      <table class="ref-table">
+        <thead><tr><th>Location</th><th>%</th></tr></thead>
+        <tbody>
+          @for (row of geoDistribution; track row.location) {
+            <tr><td>{{ row.location }}</td><td>{{ row.pct }}%</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  } @else if (reportSubTab === 'product-performance') {
+
+    <div class="toolbar-actions">
+      <app-button variant="outline" label="Export CSV" (clicked)="exportTableCsv('product-performance', ['Product','Disbursed','Active','NPL %','Collection Rate','Avg Tenor','Avg Size'], productComparisonRows())" />
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Product Comparison</p>
+        <p class="panel-sub">Side-by-side metrics per product</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr><th>Product</th><th>Disbursed</th><th>Active</th><th>NPL %</th><th>Collection Rate</th><th>Avg Tenor</th><th>Avg Size</th></tr>
+        </thead>
+        <tbody>
+          @for (row of productComparison; track row.product) {
+            <tr>
+              <td>{{ row.product }}</td>
+              <td>{{ row.disbursed }}</td>
+              <td>{{ row.active }}</td>
+              <td>{{ row.nplPct }}</td>
+              <td>{{ row.collectionRate }}</td>
+              <td>{{ row.avgTenor }}</td>
+              <td>{{ row.avgSize }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  } @else if (reportSubTab === 'officer-performance') {
+
+    <div class="toolbar-actions">
+      <app-button variant="outline" label="Export CSV" (clicked)="exportTableCsv('officer-performance', ['Rank','Officer','Loans Disbursed','Amount','Collection Rate','Overdue Assigned'], officerLeaderboardRows())" />
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Officer Leaderboard</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr><th>Rank</th><th>Officer</th><th>Loans Disbursed</th><th>Amount</th><th>Collection Rate</th><th>Overdue Assigned</th></tr>
+        </thead>
+        <tbody>
+          @for (row of officerLeaderboard; track row.officer) {
+            <tr [class.rank-first]="row.rank === 1">
+              <td>#{{ row.rank }}</td>
+              <td>{{ row.officer }}</td>
+              <td>{{ row.loansDisbursed }}</td>
+              <td>{{ row.amount }}</td>
+              <td>{{ row.collectionRate }}</td>
+              <td>{{ row.overdueAssigned }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
   }
 
 }
