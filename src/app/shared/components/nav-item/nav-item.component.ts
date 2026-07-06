@@ -1,17 +1,18 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
+import { HugeiconsIconComponent } from '@hugeicons/angular';
+import type { IconSvgObject } from '@hugeicons/angular';
 import { TooltipComponent } from '../tooltip/tooltip.component';
 import {
-  DashboardCircleIcon,
-  HouseHeartIcon,
-  UserCircleIcon,
-  WalletCardsIcon,
-  CubeIcon,
-  BankIcon,
-  ChartBarBigIcon,
-  AlertDiamondIcon,
-  UserGroupIcon,
-  CogIcon,
+  DashboardSquare02Icon,
+  Home13Icon,
+  UserMultiple02Icon,
+  Wallet03Icon,
+  FolderCogIcon,
+  WalletDone02Icon,
+  Analytics02Icon,
+  MonitorDotIcon,
+  UserGroup03Icon,
+  Settings02Icon,
   FlashIcon,
   BriefcaseBusinessIcon,
   ChevronDownIcon,
@@ -24,7 +25,7 @@ export type NavItemIcon =
 @Component({
   selector: 'app-nav-item',
   standalone: true,
-  imports: [HiIconComponent, TooltipComponent],
+  imports: [HugeiconsIconComponent, TooltipComponent],
   templateUrl: './nav-item.component.html',
   styleUrls: ['./nav-item.component.scss']
 })
@@ -39,22 +40,22 @@ export class NavItemComponent {
   @Output() clicked = new EventEmitter<void>();
   @Output() expandedChange = new EventEmitter<boolean>();
 
-  readonly iconMap: Record<string, IconData> = {
-    dashboard: DashboardCircleIcon as IconData,
-    home: HouseHeartIcon as IconData,
-    customers: UserCircleIcon as IconData,
-    wallet: WalletCardsIcon as IconData,
-    products: CubeIcon as IconData,
-    loans: BankIcon as IconData,
-    reports: ChartBarBigIcon as IconData,
-    risk: AlertDiamondIcon as IconData,
-    teams: UserGroupIcon as IconData,
-    settings: CogIcon as IconData,
-    employers: BriefcaseBusinessIcon as IconData,
-    'quick-action': FlashIcon as IconData,
+  readonly iconMap: Record<string, IconSvgObject> = {
+    dashboard: DashboardSquare02Icon as IconSvgObject,
+    home: Home13Icon as IconSvgObject,
+    customers: UserMultiple02Icon as IconSvgObject,
+    wallet: Wallet03Icon as IconSvgObject,
+    products: FolderCogIcon as IconSvgObject,
+    loans: WalletDone02Icon as IconSvgObject,
+    reports: Analytics02Icon as IconSvgObject,
+    risk: MonitorDotIcon as IconSvgObject,
+    teams: UserGroup03Icon as IconSvgObject,
+    settings: Settings02Icon as IconSvgObject,
+    employers: BriefcaseBusinessIcon as IconSvgObject,
+    'quick-action': FlashIcon as IconSvgObject,
   };
 
-  readonly chevronIcon: IconData = ChevronDownIcon as IconData;
+  readonly chevronIcon: IconSvgObject = ChevronDownIcon as IconSvgObject;
 
   onClick() {
     if (this.hasDropdown) {
