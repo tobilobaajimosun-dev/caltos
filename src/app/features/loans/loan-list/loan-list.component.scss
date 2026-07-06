@@ -13,22 +13,76 @@
   gap: var(--space-2);
 }
 
-.header-link {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-blue);
-  background: var(--surface-overlay);
-  border: 1px solid var(--color-stroke);
-  border-radius: 8px;
-  padding: 8px 14px;
-  text-decoration: none;
-  white-space: nowrap;
-
-  &:hover { background: var(--surface-raised); }
+/* ── Stat row: 3 cards, each with its own period pill ── */
+.kpi-row {
+  display: flex;
+  gap: var(--space-4);
+  margin: var(--space-5) 0;
 }
 
-.product-filter-row {
+.stat-card {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface-base);
+  border: 0.8px solid var(--color-stroke);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-grey-header);
+  letter-spacing: -0.28px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.stat-value {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 32px;
+  color: var(--color-body);
+  letter-spacing: -0.64px;
+  margin: 0;
+}
+
+/* Compact pill visual override for the per-card period `app-select` — scoped to this file only. */
+.period-pill {
+  flex-shrink: 0;
+
+  ::ng-deep .select-trigger {
+    padding: 4px 10px;
+    border: 1px solid var(--color-stroke);
+    border-radius: 100px;
+    background: var(--surface-overlay);
+    gap: 4px;
+  }
+
+  ::ng-deep .select-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  ::ng-deep .select-menu {
+    min-width: 130px;
+  }
+}
+
+/* ── Tabs + toolbar row ── */
+.tabs-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -37,57 +91,62 @@
   margin: var(--space-5) 0;
 }
 
-.product-pills {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-.product-pill {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--surface-base);
-  border: 1.5px dashed var(--color-input-stroke);
-  border-radius: 100px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-
-  &:hover { background: var(--surface-overlay); }
-
-  &.active {
-    border-style: solid;
-    border-color: var(--color-blue);
-    color: var(--color-blue);
-    background: var(--color-info-bg);
-    font-weight: 600;
-  }
-}
-
-.product-filter-actions {
+.tabs-row-actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
 }
 
-.filter-selects {
+.filter-dropdown-wrap {
+  position: relative;
+}
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  width: 180px;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 8px;
   display: flex;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: 2px;
 }
 
-.status-tab-row {
-  padding: var(--space-6) var(--space-8) 0;
+.filter-panel-label {
+  font-size: 11px;
+  color: var(--color-grey-header);
+  margin: 4px 8px 6px;
 }
 
+.filter-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 8px;
+  border-radius: 7px;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-body);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+  &.active { color: var(--color-blue); font-weight: 600; background: var(--surface-overlay); }
+}
+
+/* ── Bulk selection bar ── */
 .bulk-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 var(--space-8) var(--space-4);
+  margin: 0 0 var(--space-4);
   padding: 10px 16px;
   border-radius: 10px;
   background: var(--color-header);
@@ -113,6 +172,101 @@
     &:hover { opacity: 1; text-decoration: underline; }
     &.clear { opacity: 0.6; }
   }
+}
+
+/* ── Table ── */
+.two-line-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.line-primary {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-body);
+}
+
+.line-secondary {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-grey-header);
+}
+
+.col-date,
+.col-id {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-grey-header);
+  white-space: nowrap;
+}
+
+.col-product,
+.col-workplace {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-body);
+}
+
+.col-actions {
+  width: 40px;
+  text-align: right;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  &:hover { background: var(--surface-overlay); }
+}
+
+.dropdown-wrap {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.row-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 160px;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  padding: 4px;
+  animation: dropdown-in 0.12s ease;
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-body);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+
+  &:hover { background: var(--surface-overlay); }
 }
 
 .empty-cell {
