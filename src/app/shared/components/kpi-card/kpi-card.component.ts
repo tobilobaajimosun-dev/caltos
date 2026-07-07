@@ -16,7 +16,6 @@ export interface KpiTrend {
 export class KpiCardComponent {
   @Input() label = '';
   @Input() value: string | number = 0;
-  @Input() subtitle = '';
   /** @deprecated use `helpText` instead. Still supported as a fallback. */
   @Input() tooltip = '';
   /** Popover heading; defaults to `label` when omitted. */

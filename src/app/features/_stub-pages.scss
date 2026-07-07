@@ -83,6 +83,7 @@ table.ref-table {
     padding: var(--space-4) var(--space-6);
     font-weight: 500;
     color: var(--text-muted);
+    border-top: 1px solid var(--color-stroke);
     border-bottom: 1px solid var(--color-stroke);
 
     // app-column-title supplies its own padding — avoid doubling up.

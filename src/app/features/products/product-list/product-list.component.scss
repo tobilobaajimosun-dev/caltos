@@ -339,7 +339,8 @@
     font-family: var(--font-body);
     font-size: 13px;
     font-weight: 500;
-    color: var(--color-grey-header);
+    color: var(--text-muted);
+    border-top: 1px solid var(--color-stroke);
     border-bottom: 1px solid var(--color-stroke);
     white-space: nowrap;
 
@@ -352,8 +353,10 @@
     padding: 20px 24px;
     text-align: left;
     vertical-align: middle;
-    font-size: 14px;
-    color: var(--color-body);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
     border-bottom: 1px solid var(--color-stroke);
     white-space: nowrap;
   }
@@ -361,11 +364,6 @@
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--surface-raised); }
   tbody tr.clickable-row { cursor: pointer; }
-}
-
-.col-name {
-  font-weight: 600;
-  color: var(--color-header) !important;
 }
 
 .pname-cell {
@@ -404,19 +402,9 @@
   &[data-color="3"] { background: #f3e8ff; color: #7c3aed; }
 }
 
-.col-id {
-  font-family: var(--font-body);
-  font-size: 12px !important;
-  color: var(--color-grey-header) !important;
-}
-
-.col-date {
-  color: var(--color-grey-header) !important;
-  font-size: 12px !important;
-}
-
 .col-actions {
-  width: 40px;
+  width: 60px;
+  min-width: 60px;
   text-align: right;
 }
 

@@ -5,9 +5,6 @@
       <app-info-popover [title]="resolvedHelpTitle" [description]="resolvedHelpText" />
     </div>
     <p class="kpi-value">{{ value }}</p>
-    @if (subtitle) {
-      <p class="kpi-subtitle">{{ subtitle }}</p>
-    }
     @if (trend) {
       <div class="kpi-trend-row">
         <span class="kpi-trend-chip" [class.up]="trend.dir === 'up'" [class.down]="trend.dir === 'down'">

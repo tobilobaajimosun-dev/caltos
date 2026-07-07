@@ -26,22 +26,18 @@
       <app-kpi-card
         label="All products"
         [value]="stats.all"
-        subtitle="across all statuses"
         tooltip="Total number of loan products created across all statuses." />
       <app-kpi-card
         label="Live Products"
         [value]="stats.live"
-        subtitle="accepting applications"
         tooltip="Products currently active and visible to borrowers on the portal." />
       <app-kpi-card
         label="Draft Products"
         [value]="stats.draft"
-        subtitle="not yet published"
         tooltip="Products still being configured — not yet visible to borrowers." />
       <app-kpi-card
         label="Deactivated Products"
         [value]="stats.deactivated"
-        subtitle="hidden from portal"
         tooltip="Products that have been turned off and are no longer accepting new applications." />
     </div>
 
