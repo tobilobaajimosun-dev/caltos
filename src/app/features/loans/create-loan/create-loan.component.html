@@ -35,31 +35,11 @@
   <!-- 2-column body: left-rail stepper + scrollable content -->
   <div class="wiz-body">
 
-    <!-- Stripe-style left-rail stepper -->
-    <nav class="wiz-stepper" aria-label="Loan product setup steps">
-      @for (step of steps; track step.id; let i = $index) {
-        <button
-          type="button"
-          class="wiz-stepper-item"
-          [class.done]="stepStatus(i) === 'done'"
-          [class.active]="stepStatus(i) === 'active'"
-          [class.upcoming]="stepStatus(i) === 'upcoming'"
-          [attr.aria-current]="stepStatus(i) === 'active' ? 'step' : null"
-          [disabled]="stepStatus(i) === 'upcoming'"
-          (click)="goToStep(i)">
-          <span class="wiz-stepper-circle">
-            @if (stepStatus(i) === 'done') {
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M5 12.5l4.5 4.5L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            } @else {
-              <span class="wiz-stepper-dot" aria-hidden="true"></span>
-            }
-          </span>
-          <span class="wiz-stepper-label">{{ step.label }}</span>
-        </button>
-      }
-    </nav>
+    <!-- Left-rail stepper -->
+    <app-wizard-stepper
+      [steps]="steps"
+      [currentIndex]="currentStep"
+      (stepClick)="goToStep($event)" />
 
     <!-- Scrollable main content -->
     <main class="wiz-main" #wizMain>
@@ -77,7 +57,7 @@
                 type="button"
                 class="type-card"
                 [class.scratch]="type.id === 'scratch'"
-                (click)="selectLoanType(type.id)">
+                (click)="openLoanTypeModal(type.id)">
                 <div class="type-icon" [style.background]="type.bg" [style.color]="type.color">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     @if (type.id === 'salary') {
@@ -353,13 +333,10 @@
                   </div>
                   @if (getExpand(sec.expand)) {
                     <div class="collection-fields">
-                      @for (field of sec.fields; track field) {
+                      @for (field of sec.fields; track field.name) {
                         <div class="field-row-item">
-                          <span class="field-row-name">{{ field }}</span>
-                          <div class="doc-btn-group">
-                            <button class="doc-btn" [class.selected]="true">Required</button>
-                            <button class="doc-btn">Optional</button>
-                          </div>
+                          <span class="field-row-name">{{ field.name }}</span>
+                          <app-select [options]="requirementOptions" [value]="field.requirement" (valueChange)="field.requirement = $event" />
                         </div>
                       }
                       <button class="add-field-btn" (click)="openAddCustomField(sec.key)">
@@ -389,8 +366,9 @@
                     @for (field of sec.customFields; track field.label; let fi = $index) {
                       <div class="custom-fee-row">
                         <span class="custom-fee-name">{{ field.label }}</span>
+                        <span class="custom-badge">Custom</span>
                         <span class="custom-fee-type">{{ field.type }}</span>
-                        <span class="custom-fee-rate">{{ field.required }}</span>
+                        <span class="custom-fee-rate">{{ requirementLabel(field.required) }}</span>
                         <button class="remove-btn" (click)="confirmRemoveCustomField(sec.key, fi)">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         </button>
@@ -420,6 +398,19 @@
                   </div>
                   <app-toggle [checked]="config.recogniseExisting" (checkedChange)="config.recogniseExisting = $event" />
                 </div>
+                <div class="toggle-option">
+                  <div class="toggle-option-text">
+                    <div class="toggle-option-title">Restrict borrowers with an active loan</div>
+                    <div class="toggle-option-sub">Control whether customers with an existing unpaid loan on this product can take out another one.</div>
+                  </div>
+                  <app-toggle [checked]="config.restrictActiveLoan" (checkedChange)="config.restrictActiveLoan = $event" />
+                </div>
+                @if (config.restrictActiveLoan) {
+                  <div class="field-group" style="margin-top:10px; max-width:320px">
+                    <label class="field-label">Active loan policy</label>
+                    <app-select [options]="activeLoanPolicies" [value]="config.activeLoanPolicy" (valueChange)="config.activeLoanPolicy = $event" />
+                  </div>
+                }
               </div>
             </div>
 
@@ -553,14 +544,26 @@
                   </div>
                 </button>
 
-                <button class="deduct-card" [class.selected]="config.deductDirectDebit" (click)="config.deductDirectDebit = !config.deductDirectDebit">
-                  <div class="deduct-check" [class.active]="config.deductDirectDebit"></div>
+                <button class="deduct-card" [class.selected]="config.deductRemitaDirectDebit" (click)="config.deductRemitaDirectDebit = !config.deductRemitaDirectDebit">
+                  <div class="deduct-check" [class.active]="config.deductRemitaDirectDebit"></div>
                   <div class="deduct-body">
-                    <div class="deduct-title">Direct Debit</div>
-                    <div class="deduct-sub">Standard debit from the borrower's bank account on the due date. Works for any bank. Useful as a fallback when payroll deduction isn't available.</div>
+                    <div class="deduct-title">Remita Direct Debit</div>
+                    <div class="deduct-sub">Direct debit mandate on the borrower's bank account, processed through Remita's rails. Works for any bank Remita supports — useful as a fallback when payroll deduction isn't available.</div>
                     <div class="deduct-tags">
                       <span class="deduct-tag">Any bank</span>
                       <span class="deduct-tag">Fallback option</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button class="deduct-card" [class.selected]="config.deductMonoDirectDebit" (click)="config.deductMonoDirectDebit = !config.deductMonoDirectDebit">
+                  <div class="deduct-check" [class.active]="config.deductMonoDirectDebit"></div>
+                  <div class="deduct-body">
+                    <div class="deduct-title">Mono Direct Debit</div>
+                    <div class="deduct-sub">Direct debit mandate authorised once via Mono, then charged automatically from the borrower's linked bank account on each due date — no manual approval needed per repayment.</div>
+                    <div class="deduct-tags">
+                      <span class="deduct-tag">Any bank</span>
+                      <span class="deduct-tag">One-time authorisation</span>
                     </div>
                   </div>
                 </button>
@@ -738,32 +741,96 @@
             @if (pricingTab === 'penalties') {
               <div class="form-card">
                 <div class="form-card-title">Late Repayment Penalty</div>
+
                 <div class="field-row">
                   <div class="field-group">
-                    <label class="field-label">Method</label>
+                    <label class="field-label">Charge Frequency</label>
+                    <app-select [options]="toOptions(chargeFrequencyOptions)" [value]="config.latePenaltyChargeFrequency" (valueChange)="config.latePenaltyChargeFrequency = $event" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Charge Type</label>
                     <app-select [options]="toOptions(feeTypes)" [value]="config.latePenaltyMethod" (valueChange)="config.latePenaltyMethod = $event" />
                   </div>
                   <div class="field-group">
-                    <label class="field-label">Rate</label>
+                    <label class="field-label">Charge Value</label>
                     <div class="input-suffix-wrap">
                       <input class="text-input" type="number" placeholder="e.g. 1" [(ngModel)]="config.latePenaltyRate" />
                       <span class="input-suffix">@if (config.latePenaltyMethod === 'Percentage') { % } @else { ₦ }</span>
                     </div>
                   </div>
                 </div>
+
                 <div class="field-row">
                   <div class="field-group">
-                    <label class="field-label">Grace period (days)</label>
+                    <label class="field-label">Grace Period</label>
                     <div class="input-suffix-wrap">
                       <input class="text-input" type="number" placeholder="3" [(ngModel)]="config.latePenaltyGraceDays" />
                       <span class="input-suffix">days</span>
                     </div>
                   </div>
                   <div class="field-group">
-                    <label class="field-label">Apply to</label>
+                    <label class="field-label">Charge Base</label>
                     <app-select [options]="toOptions(latePenaltyApplyToOptions)" [value]="config.latePenaltyApplyTo" (valueChange)="config.latePenaltyApplyTo = $event" />
                   </div>
+                  <div class="field-group">
+                    <label class="field-label">Application Timing</label>
+                    <app-select [options]="toOptions(applicationTimingOptions)" [value]="config.latePenaltyApplicationTiming" (valueChange)="config.latePenaltyApplicationTiming = $event" />
+                  </div>
                 </div>
+
+                <div class="toggle-option-list">
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Parallel schedule accrual</div>
+                      <div class="toggle-option-sub">Accrue this penalty alongside other repayment schedules instead of waiting for them to finish.</div>
+                    </div>
+                    <app-toggle [checked]="config.latePenaltyParallelAccrual" (checkedChange)="config.latePenaltyParallelAccrual = $event" />
+                  </div>
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Include grace period in recurring charges</div>
+                      <div class="toggle-option-sub">Apply the grace period again each time this penalty recurs, not just on the first charge.</div>
+                    </div>
+                    <app-toggle [checked]="config.latePenaltyIncludeGraceInRecurring" (checkedChange)="config.latePenaltyIncludeGraceInRecurring = $event" />
+                  </div>
+                </div>
+
+                <div class="field-row">
+                  <div class="field-group">
+                    <label class="field-label">Accrual Stop Condition</label>
+                    <app-select [options]="toOptions(accrualStopConditionOptions)" [value]="config.latePenaltyAccrualStopCondition" (valueChange)="config.latePenaltyAccrualStopCondition = $event" />
+                  </div>
+                </div>
+
+                <div class="toggle-option-list">
+                  <div class="toggle-option">
+                    <div class="toggle-option-text">
+                      <div class="toggle-option-title">Cap the maximum penalty</div>
+                      <div class="toggle-option-sub">Stop this penalty from accruing past a set limit, however long the loan stays overdue.</div>
+                    </div>
+                    <app-toggle [checked]="config.latePenaltyMaxCapEnabled" (checkedChange)="config.latePenaltyMaxCapEnabled = $event" />
+                  </div>
+                </div>
+
+                @if (config.latePenaltyMaxCapEnabled) {
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label class="field-label">Max Penalty Cap Charge Type</label>
+                      <app-select [options]="toOptions(feeTypes)" [value]="config.latePenaltyMaxCapChargeType" (valueChange)="config.latePenaltyMaxCapChargeType = $event" />
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Max Penalty Cap Charge Value</label>
+                      <div class="input-suffix-wrap">
+                        <input class="text-input" type="number" placeholder="e.g. 10" [(ngModel)]="config.latePenaltyMaxCapChargeValue" />
+                        <span class="input-suffix">@if (config.latePenaltyMaxCapChargeType === 'Percentage') { % } @else { ₦ }</span>
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Max Penalty Cap Charge Base</label>
+                      <app-select [options]="toOptions(latePenaltyApplyToOptions)" [value]="config.latePenaltyMaxCapChargeBase" (valueChange)="config.latePenaltyMaxCapChargeBase = $event" />
+                    </div>
+                  </div>
+                }
               </div>
 
               <button class="add-field-btn">
@@ -835,21 +902,6 @@
                       <span class="inline-label">Auto-disburse loans under</span>
                       <input class="text-input sm" type="number" placeholder="e.g. 50000" [(ngModel)]="config.autoDisburseUnder" style="max-width:140px" />
                       <span class="inline-label">₦</span>
-                    </div>
-                  }
-                </div>
-                <div class="disburse-rule">
-                  <div class="toggle-option">
-                    <div class="toggle-option-text">
-                      <div class="toggle-option-title">Restrict borrowers with an active loan</div>
-                      <div class="toggle-option-sub">Control whether customers with an existing unpaid loan on this product can take out another one.</div>
-                    </div>
-                    <app-toggle [checked]="config.restrictActiveLoan" (checkedChange)="config.restrictActiveLoan = $event" />
-                  </div>
-                  @if (config.restrictActiveLoan) {
-                    <div class="field-group" style="margin-top:10px; max-width:320px">
-                      <label class="field-label">Active loan policy</label>
-                      <app-select [options]="activeLoanPolicies" [value]="config.activeLoanPolicy" (valueChange)="config.activeLoanPolicy = $event" />
                     </div>
                   }
                 </div>
@@ -1231,7 +1283,7 @@
         <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
       } @else {
         @if (!isFirst) {
-          <app-button variant="secondary" label="Back" (clicked)="back()" />
+          <app-button variant="outline" label="Back" (clicked)="back()" />
         } @else {
           <a routerLink="/products" class="wiz-cancel-btn">Cancel</a>
         }
@@ -1313,7 +1365,7 @@
         </div>
         <div class="field-group">
           <label class="field-label">Is this field required?</label>
-          <app-select [options]="customFieldRequiredOptions" [value]="customFieldRequired" (valueChange)="customFieldRequired = $event" />
+          <app-select [options]="requirementOptions" [value]="customFieldRequired" (valueChange)="customFieldRequired = $event" />
         </div>
       </div>
       <div class="dialog-actions">
@@ -1367,6 +1419,38 @@
     </div>
   </div>
 }
+
+<!-- Loan type explainer modal -->
+<app-modal
+  [isOpen]="showLoanTypeModal"
+  [title]="pendingType?.label || ''"
+  size="sm"
+  (closed)="closeLoanTypeModal()">
+  @if (pendingType) {
+    <div class="type-modal-body">
+      <div class="type-modal-badge" [style.background]="pendingType.bg" [style.color]="pendingType.color">
+        {{ pendingType.label }}
+      </div>
+      <p class="type-modal-desc">{{ pendingType.detail }}</p>
+      <div class="type-modal-section">
+        <div class="type-modal-label">Recommended verifications</div>
+        <div class="type-modal-tags">
+          @for (tag of pendingType.tags; track tag) {
+            <span class="type-modal-tag">{{ tag }}</span>
+          }
+        </div>
+      </div>
+      <div class="type-modal-note">
+        <hugeicons-icon [icon]="infoIcon" size="14" [strokeWidth]="1.5" />
+        These are recommendations only — you can change them later.
+      </div>
+    </div>
+  }
+  <div modalFooter class="type-modal-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeLoanTypeModal()" />
+    <app-button variant="primary" label="Select & Continue" (clicked)="confirmLoanType()" />
+  </div>
+</app-modal>
 
 <!-- Unsaved dialog -->
 @if (showUnsavedDialog) {

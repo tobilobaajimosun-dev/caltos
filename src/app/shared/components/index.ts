@@ -11,6 +11,8 @@ export { PaginationComponent } from './pagination/pagination.component';
 export { KpiCardComponent } from './kpi-card/kpi-card.component';
 export { InfoPopoverComponent } from './info-popover/info-popover.component';
 export type { InfoPopoverPlacement } from './info-popover/info-popover.component';
+export { WizardStepperComponent } from './wizard-stepper/wizard-stepper.component';
+export type { WizardStep, WizardStepStatus } from './wizard-stepper/wizard-stepper.component';
 export { RoundTabsComponent } from './round-tabs/round-tabs.component';
 export { FileUploadComponent } from './file-upload/file-upload.component';
 export { InlineFileComponent } from './inline-file/inline-file.component';

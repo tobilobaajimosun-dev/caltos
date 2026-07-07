@@ -1,0 +1,98 @@
+:host { display: block; }
+
+.wiz-stepper {
+  position: relative;
+  width: 232px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 20px;
+  overflow-y: auto;
+}
+
+// Background rail — centred behind the circles, rounded ends, inset to the
+// first/last circle centres so it never touches the container edges. The
+// fill portion (below) grows over it to show completed progress.
+.wiz-stepper-rail {
+  position: absolute;
+  left: 30.5px; // padding-left (20) + circle radius (12) - half rail width (1.5)
+  top: 36px;    // padding-top (24) + circle radius (12)
+  bottom: 36px;
+  width: 3px;
+  border-radius: 1.5px;
+  background: var(--surface-overlay);
+  z-index: 0;
+}
+
+.wiz-stepper-rail-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  border-radius: 1.5px;
+  background: var(--color-blue);
+  transition: height 0.3s ease;
+}
+
+.wiz-stepper-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover:not(:disabled) .wiz-stepper-label { color: var(--color-header); }
+  &:disabled { cursor: default; }
+}
+
+.wiz-stepper-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--surface-overlay);
+  border: 1.5px solid var(--color-stroke);
+  transition: background 0.15s, border-color 0.15s;
+
+  .wiz-stepper-item.done & {
+    background: #12B76A;
+    border-color: #12B76A;
+  }
+  .wiz-stepper-item.active & {
+    background: var(--color-blue);
+    border-color: var(--color-blue);
+  }
+}
+
+.wiz-stepper-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-grey);
+
+  .wiz-stepper-item.active & { background: #fff; }
+}
+
+.wiz-stepper-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-grey-header);
+  line-height: 1.3;
+  transition: color 0.12s;
+
+  .wiz-stepper-item.done & { color: var(--color-body); }
+  .wiz-stepper-item.active & {
+    color: var(--color-header);
+    font-weight: 600;
+  }
+}

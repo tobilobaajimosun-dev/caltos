@@ -8,6 +8,7 @@ import {
   ToggleComponent, TextareaComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
   FileUploadComponent, ButtonComponent, SelectComponent, SelectOption,
+  WizardStepperComponent, ModalComponent,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { HugeiconsIconComponent } from '@hugeicons/angular';
@@ -24,6 +25,7 @@ export interface LoanTypeOption {
   id: string;
   label: string;
   desc: string;
+  detail: string;
   color: string;
   bg: string;
   tags: string[];
@@ -32,34 +34,42 @@ export interface LoanTypeOption {
 export const LOAN_TYPES: LoanTypeOption[] = [
   {
     id: 'salary', label: 'Salary Advance', desc: 'Short term loans for private salary earners',
+    detail: 'Perfect for employees who need quick access to their earned wages. Uses salary records to verify income and sets up automatic deductions for repayment.',
     color: '#0BA5EC', bg: '#E0F2FE', tags: ['Bank Statement', 'Direct Debit'],
   },
   {
     id: 'public', label: 'Public Sector Loan', desc: 'Loans for government employees',
+    detail: 'Designed for federal and state civil servants. Verifies employment through IPPIS or Remita, with deductions processed through payroll.',
     color: '#F79009', bg: '#FEF3C7', tags: ['Remita', 'IPPIS'],
   },
   {
     id: 'school', label: 'School Fees Loan', desc: 'Help parents and students pay school fees',
+    detail: 'Enables families to pay school fees in advance. Typically requires a guarantor and proof of school admission. Repayment structured around school terms.',
     color: '#12B76A', bg: '#D1FAE5', tags: ['School ID', 'Admission Letter'],
   },
   {
     id: 'corper', label: 'Corper Loan', desc: 'Loans for NYSC members and corps members',
+    detail: 'Quick loans for active NYSC corps members. Verified using NYSC call-up details and monthly allowance from Remita. Tenor capped at service duration.',
     color: '#6941C6', bg: '#EDE9FE', tags: ['Remita', 'NYSC ID'],
   },
   {
     id: 'sme', label: 'SME Loan', desc: 'Working capital and growth loans for businesses',
+    detail: 'For registered business owners seeking working capital. Requires CAC registration and 6+ months of business bank statements for income assessment.',
     color: '#F04438', bg: '#FEE4E2', tags: ['CAC', 'Bank Statement'],
   },
   {
     id: 'coop', label: 'Cooperative Loan', desc: 'Loans for cooperative society members',
+    detail: 'Exclusively for active members of a registered cooperative society. Loan size is typically tied to accumulated savings, with repayment collected monthly.',
     color: '#0BA5EC', bg: '#E0F2FE', tags: ['Membership Verification'],
   },
   {
     id: 'bnpl', label: 'Buy Now Pay Later', desc: 'Instant purchase financing for goods and services',
+    detail: 'Enables customers to purchase goods or services and pay over time. Funds disburse directly to the merchant. Designed for minimal friction at checkout.',
     color: '#D92D20', bg: '#FEE4E2', tags: ['ID Verification', 'Affordability'],
   },
   {
     id: 'scratch', label: 'Build from Scratch', desc: 'Create a completely custom loan product',
+    detail: 'Start with a blank product and configure every setting from scratch. Best for lenders with unique or non-standard loan products.',
     color: '#667085', bg: '#F2F4F7', tags: ['Start Blank'],
   },
 ];
@@ -107,7 +117,8 @@ export interface LoanConfig {
   deductRemita: boolean;       // Remita standing order / mandate
   deductDedukt: boolean;       // Dedukt third-party deduction platform
   deductWacs: boolean;         // WACS state-level payroll deduction
-  deductDirectDebit: boolean;  // Standard direct debit from borrower's account (fallback)
+  deductRemitaDirectDebit: boolean;  // Direct debit mandate on borrower's account via Remita (fallback)
+  deductMonoDirectDebit: boolean;    // Direct debit mandate on borrower's account via Mono (fallback)
   docGovId: string;
   docUtilityBill: string;
   docWorkVerification: string;
@@ -127,6 +138,15 @@ export interface LoanConfig {
   latePenaltyRate: string;
   latePenaltyGraceDays: string;
   latePenaltyApplyTo: string;
+  latePenaltyChargeFrequency: string;
+  latePenaltyApplicationTiming: string;
+  latePenaltyParallelAccrual: boolean;
+  latePenaltyIncludeGraceInRecurring: boolean;
+  latePenaltyAccrualStopCondition: string;
+  latePenaltyMaxCapEnabled: boolean;
+  latePenaltyMaxCapChargeType: string;
+  latePenaltyMaxCapChargeValue: string;
+  latePenaltyMaxCapChargeBase: string;
   // Step 5
   disburseTo: string;
   disburseTiming: string;
@@ -187,7 +207,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: true,
-    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
+    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -202,7 +222,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: true, incomeBankStatement: false,
-    deductIppis: true, deductRemita: true, deductWacs: false, deductDedukt: false, deductDirectDebit: false,
+    deductIppis: true, deductRemita: true, deductWacs: false, deductDedukt: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -217,7 +237,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'none',
     docGuarantorForm: 'required', docSchoolId: 'required', docAdmissionLetter: 'required',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -232,7 +252,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: false,
-    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductDirectDebit: false,
+    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none',
@@ -247,7 +267,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: true, deductWacs: false, deductDirectDebit: true,
+    deductIppis: false, deductRemita: false, deductDedukt: true, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'required', docWorkVerification: 'optional',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none',
@@ -262,7 +282,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required',
@@ -277,7 +297,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: true,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -297,6 +317,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     TextareaComponent, CollapsibleSectionComponent,
     CopyUrlFieldComponent, QrCodeComponent,
     FileUploadComponent, LivePreviewComponent, ButtonComponent, SelectComponent,
+    WizardStepperComponent, ModalComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrls: ['./create-loan.component.scss'],
@@ -361,6 +382,31 @@ export class CreateLoanComponent implements OnInit {
 
   readonly loanTypes = LOAN_TYPES;
 
+  showLoanTypeModal = false;
+  pendingTypeId: string | null = null;
+
+  get pendingType(): LoanTypeOption | null {
+    return this.loanTypes.find(t => t.id === this.pendingTypeId) ?? null;
+  }
+
+  openLoanTypeModal(id: string) {
+    this.pendingTypeId = id;
+    this.showLoanTypeModal = true;
+  }
+
+  closeLoanTypeModal() {
+    this.showLoanTypeModal = false;
+    this.pendingTypeId = null;
+  }
+
+  confirmLoanType() {
+    if (!this.pendingTypeId) return;
+    const id = this.pendingTypeId;
+    this.showLoanTypeModal = false;
+    this.pendingTypeId = null;
+    this.selectLoanType(id);
+  }
+
   private readonly wizMain = viewChild<ElementRef<HTMLElement>>('wizMain');
 
   private scrollToTop() {
@@ -395,11 +441,20 @@ export class CreateLoanComponent implements OnInit {
   readonly feeTypes = ['Percentage', 'Flat Amount'];
   readonly processingFeeApplicableToOptions = ['Loan Amount', 'Disbursed Amount', 'Principal'];
   readonly latePenaltyApplyToOptions = ['Outstanding Balance', 'Principal', 'Interest'];
+  readonly chargeFrequencyOptions = ['Daily', 'Weekly', 'Monthly', 'Yearly', 'One Time'];
+  readonly applicationTimingOptions = ['During Loan Tenor', 'After Loan Tenor', 'On Default'];
+  readonly accrualStopConditionOptions = ['Never', 'Until Fully Paid', 'Fixed Number of Occurrences'];
   readonly customFieldTypes = ['Text', 'Number', 'Date', 'File Upload', 'Yes / No'];
-  readonly customFieldRequiredOptions: SelectOption[] = [
+  // Shared by both the built-in field list and the "Add custom field" modal.
+  readonly requirementOptions: SelectOption[] = [
     { value: 'required', label: 'Required' },
     { value: 'optional', label: 'Optional' },
+    { value: 'none', label: "Don't collect" },
   ];
+
+  requirementLabel(value: string): string {
+    return this.requirementOptions.find(o => o.value === value)?.label ?? value;
+  }
   readonly customDocTypeChoices = ['JPEG', 'PNG', 'PDF'];
   readonly interestModels = ['Flat Rate', 'Reducing Balance', 'Percentage Based'];
   readonly interestChargePeriods = ['Daily', 'Weekly', 'Monthly', 'Yearly', 'One Time'];
@@ -424,7 +479,7 @@ export class CreateLoanComponent implements OnInit {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: false,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductDirectDebit: false,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: false,
     docGovId: 'none', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
@@ -432,6 +487,11 @@ export class CreateLoanComponent implements OnInit {
     processingFeeMin: '', processingFeeMax: '',
     latePenaltyMethod: 'Percentage', latePenaltyRate: '', latePenaltyGraceDays: '3',
     latePenaltyApplyTo: 'Outstanding Balance',
+    latePenaltyChargeFrequency: 'Daily', latePenaltyApplicationTiming: 'During Loan Tenor',
+    latePenaltyParallelAccrual: false, latePenaltyIncludeGraceInRecurring: false,
+    latePenaltyAccrualStopCondition: 'Never',
+    latePenaltyMaxCapEnabled: false, latePenaltyMaxCapChargeType: 'Percentage',
+    latePenaltyMaxCapChargeValue: '', latePenaltyMaxCapChargeBase: 'Outstanding Balance',
     disburseTo: 'bank', disburseTiming: 'instant',
     offerLetter: false, namedAccountOnly: false, repaymentDeductionFirst: false, videoConfirmation: false,
     autoDisburseEnabled: false, autoDisburseUnder: '',
@@ -663,16 +723,18 @@ export class CreateLoanComponent implements OnInit {
   }
 
   get noDeductionSelected(): boolean {
-    return !this.config.deductIppis && !this.config.deductRemita && !this.config.deductDedukt && !this.config.deductWacs && !this.config.deductDirectDebit;
+    return !this.config.deductIppis && !this.config.deductRemita && !this.config.deductDedukt && !this.config.deductWacs
+      && !this.config.deductRemitaDirectDebit && !this.config.deductMonoDirectDebit;
   }
 
   get activeDeductionChannels(): string[] {
     const ch: string[] = [];
-    if (this.config.deductIppis)       ch.push('IPPIS');
-    if (this.config.deductRemita)      ch.push('Remita');
-    if (this.config.deductDedukt)      ch.push('Dedukt');
-    if (this.config.deductWacs)        ch.push('WACS');
-    if (this.config.deductDirectDebit) ch.push('Direct Debit');
+    if (this.config.deductIppis)             ch.push('IPPIS');
+    if (this.config.deductRemita)            ch.push('Remita');
+    if (this.config.deductDedukt)            ch.push('Dedukt');
+    if (this.config.deductWacs)              ch.push('WACS');
+    if (this.config.deductRemitaDirectDebit) ch.push('Remita Direct Debit');
+    if (this.config.deductMonoDirectDebit)   ch.push('Mono Direct Debit');
     return ch;
   }
 
@@ -797,27 +859,32 @@ export class CreateLoanComponent implements OnInit {
     { id: 'entryNin',   label: 'NIN',            sub: 'Applicants start with their NIN' },
   ];
 
+  private mkFields(names: string[]): { name: string; requirement: string }[] {
+    return names.map(name => ({ name, requirement: 'required' }));
+  }
+
   collectionSections: {
-    key: string; label: string; count: string; fields: string[]; expand: string;
+    key: string; label: string; count: string;
+    fields: { name: string; requirement: string }[]; expand: string;
     customFields: { label: string; type: string; required: string }[];
   }[] = [
     { key: 'collectPersonal',    label: 'Personal Information',    count: '5',
-      fields: ['First Name', 'Middle Name', 'Last Name', 'Date of Birth', 'Gender'],
+      fields: this.mkFields(['First Name', 'Middle Name', 'Last Name', 'Date of Birth', 'Gender']),
       expand: 'expandPersonal', customFields: [] },
     { key: 'collectContact',     label: 'Contact Information',     count: '4',
-      fields: ['Email Address', 'Phone Number', 'WhatsApp Number', 'Preferred Contact'],
+      fields: this.mkFields(['Email Address', 'Phone Number', 'WhatsApp Number', 'Preferred Contact']),
       expand: 'expandContact', customFields: [] },
     { key: 'collectAddress',     label: 'Address Information',     count: '5',
-      fields: ['Street Address', 'City', 'State', 'LGA', 'Landmark'],
+      fields: this.mkFields(['Street Address', 'City', 'State', 'LGA', 'Landmark']),
       expand: 'expandAddress', customFields: [] },
     { key: 'collectEmployment',  label: 'Employment Information',  count: '5',
-      fields: ['Employer Name', 'Staff ID', 'Job Title', 'Monthly Salary', 'Employment Type'],
+      fields: this.mkFields(['Employer Name', 'Staff ID', 'Job Title', 'Monthly Salary', 'Employment Type']),
       expand: 'expandEmployment', customFields: [] },
     { key: 'collectBusiness',    label: 'Business Information',    count: '4',
-      fields: ['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue'],
+      fields: this.mkFields(['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue']),
       expand: 'expandBusiness', customFields: [] },
     { key: 'collectBank',        label: 'Bank Account Details',    count: '3',
-      fields: ['Bank Name', 'Account Number', 'Account Name'],
+      fields: this.mkFields(['Bank Name', 'Account Number', 'Account Name']),
       expand: 'expandBank', customFields: [] },
   ];
 
