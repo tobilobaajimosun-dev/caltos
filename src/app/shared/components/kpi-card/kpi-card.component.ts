@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { TooltipComponent } from '../tooltip/tooltip.component';
+import { InfoPopoverComponent } from '../info-popover/info-popover.component';
 
 export interface KpiTrend {
   dir: 'up' | 'down';
@@ -9,7 +9,7 @@ export interface KpiTrend {
 @Component({
   selector: 'app-kpi-card',
   standalone: true,
-  imports: [TooltipComponent],
+  imports: [InfoPopoverComponent],
   templateUrl: './kpi-card.component.html',
   styleUrl: './kpi-card.component.scss',
 })
@@ -17,7 +17,20 @@ export class KpiCardComponent {
   @Input() label = '';
   @Input() value: string | number = 0;
   @Input() subtitle = '';
+  /** @deprecated use `helpText` instead. Still supported as a fallback. */
   @Input() tooltip = '';
+  /** Popover heading; defaults to `label` when omitted. */
+  @Input() helpTitle = '';
+  /** Popover body copy. When empty (and `tooltip` is also empty) no info icon is rendered. */
+  @Input() helpText = '';
+
+  get resolvedHelpTitle(): string {
+    return this.helpTitle || this.label;
+  }
+
+  get resolvedHelpText(): string {
+    return this.helpText || this.tooltip;
+  }
 
   /** Optional trend chip (e.g. "40% vs yesterday") shown below the value. */
   @Input() trend: KpiTrend | null = null;

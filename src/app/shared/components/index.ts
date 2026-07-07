@@ -9,6 +9,8 @@ export { CollapsibleSectionComponent } from './collapsible-section/collapsible-s
 export { ModalComponent } from './modal/modal.component';
 export { PaginationComponent } from './pagination/pagination.component';
 export { KpiCardComponent } from './kpi-card/kpi-card.component';
+export { InfoPopoverComponent } from './info-popover/info-popover.component';
+export type { InfoPopoverPlacement } from './info-popover/info-popover.component';
 export { RoundTabsComponent } from './round-tabs/round-tabs.component';
 export { FileUploadComponent } from './file-upload/file-upload.component';
 export { InlineFileComponent } from './inline-file/inline-file.component';

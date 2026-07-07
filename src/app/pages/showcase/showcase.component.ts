@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {
   KpiCardComponent,
+  InfoPopoverComponent,
   PaginationComponent,
   RoundTabsComponent,
   FileUploadComponent,
@@ -51,6 +52,7 @@ import {
   standalone: true,
   imports: [
     KpiCardComponent,
+    InfoPopoverComponent,
     PaginationComponent,
     RoundTabsComponent,
     FileUploadComponent,

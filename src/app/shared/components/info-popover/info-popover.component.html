@@ -1,0 +1,46 @@
+@if (description) {
+  <span class="info-popover-host" cdkOverlayOrigin #origin="cdkOverlayOrigin">
+    <button
+      type="button"
+      class="info-popover-trigger"
+      [attr.aria-label]="title ? 'More info: ' + title : 'More info'"
+      [attr.aria-expanded]="isOpen()"
+      (click)="onTriggerClick($event)"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+      (keydown.escape)="close()"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" />
+        <path d="M12 11v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <circle cx="12" cy="8" r="1" fill="currentColor" />
+      </svg>
+    </button>
+  </span>
+
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="origin"
+    [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayPositions]="positions"
+    [cdkConnectedOverlayHasBackdrop]="false"
+    cdkConnectedOverlayPanelClass="info-popover-panel"
+    (overlayOutsideClick)="close()"
+    (detach)="close()"
+  >
+    <div
+      class="info-popover-panel-content"
+      [style.max-width.px]="maxWidth"
+      role="tooltip"
+      tabindex="-1"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+      (keydown.escape)="close()"
+    >
+      @if (title) {
+        <p class="info-popover-title">{{ title }}</p>
+      }
+      <p class="info-popover-description">{{ description }}</p>
+    </div>
+  </ng-template>
+}

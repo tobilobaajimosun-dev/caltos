@@ -1,0 +1,116 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-popover-host {
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-popover-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-grey-header);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--color-body);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring, var(--color-blue));
+    outline-offset: 2px;
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+// Rendered inside the CDK overlay pane (appended to <body>), so these rules
+// reach outside :host on purpose — the pane itself carries no encapsulation
+// attribute, only the innermost content element does.
+.info-popover-panel-content {
+  position: relative;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  animation: info-popover-in 150ms ease-out;
+}
+
+.info-popover-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary, var(--color-header));
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+.info-popover-description {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary, var(--color-body));
+  margin: 0;
+  line-height: 1.5;
+}
+
+@keyframes info-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popover-arrow-left .info-popover-panel-content::before,
+.popover-arrow-right .info-popover-panel-content::before,
+.popover-arrow-top .info-popover-panel-content::before,
+.popover-arrow-bottom .info-popover-panel-content::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-right: none;
+  border-bottom: none;
+}
+
+.popover-arrow-left .info-popover-panel-content::before {
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.popover-arrow-right .info-popover-panel-content::before {
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%) rotate(135deg);
+}
+
+.popover-arrow-top .info-popover-panel-content::before {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.popover-arrow-bottom .info-popover-panel-content::before {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(225deg);
+}

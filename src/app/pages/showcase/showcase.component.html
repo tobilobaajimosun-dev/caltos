@@ -8,9 +8,42 @@
     <h2 class="section-title">KPI Cards</h2>
     <div class="row">
       <app-kpi-card label="Total number of payouts (Daily)" value="0" />
-      <app-kpi-card label="Total disbursed (Monthly)" value="₦4.2M" />
+      <app-kpi-card
+        label="Total disbursed (Monthly)"
+        value="₦4.2M"
+        helpText="Sum of all successful disbursements in the current calendar month." />
       <app-kpi-card label="Active Loans" value="128" />
-      <app-kpi-card label="Overdue" value="14" />
+      <app-kpi-card
+        label="Overdue"
+        value="14"
+        subtitle="+12% from last month"
+        helpTitle="Overdue"
+        helpText="Loans with at least one repayment past its due date." />
+    </div>
+
+    <!-- ── Info Popover ──────────────────────────── -->
+    <h2 class="section-title">Info Popover</h2>
+    <div class="row" style="gap: 48px; align-items: center;">
+      <span style="display: inline-flex; align-items: center; gap: 6px;">
+        Right (default)
+        <app-info-popover title="Draft Products" description="Products that are still being configured and are not yet visible to customers." />
+      </span>
+      <span style="display: inline-flex; align-items: center; gap: 6px;">
+        Left
+        <app-info-popover placement="left" title="Left Placement" description="Repositions automatically if the viewport doesn't have room." />
+      </span>
+      <span style="display: inline-flex; align-items: center; gap: 6px;">
+        Top
+        <app-info-popover placement="top" title="Top Placement" description="Opens above the icon by default when placement is set to top." />
+      </span>
+      <span style="display: inline-flex; align-items: center; gap: 6px;">
+        Bottom
+        <app-info-popover placement="bottom" title="Bottom Placement" description="Opens below the icon by default when placement is set to bottom." />
+      </span>
+      <span style="display: inline-flex; align-items: center; gap: 6px;">
+        No description (icon hidden)
+        <app-info-popover title="Nothing to show" />
+      </span>
     </div>
 
     <!-- ── Tabs & Pills ──────────────────────────── -->
