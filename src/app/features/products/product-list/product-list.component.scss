@@ -321,13 +321,11 @@
   &:hover { text-decoration: underline; }
 }
 
-/* ── Table ── */
+/* ── Table ──
+   Edge-to-edge enterprise SaaS table: no card, no border, no shadow.
+   Only dividers are the single line under the header and between rows. */
 .table-wrap {
   margin-top: 16px;
-  background: var(--surface-base);
-  border: 1px solid var(--color-stroke);
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .data-table {
@@ -335,23 +333,25 @@
   border-collapse: collapse;
 
   th {
-    padding: 12px 16px;
+    padding: 14px 24px;
     text-align: left;
+    vertical-align: middle;
     font-family: var(--font-body);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--color-grey-header);
     border-bottom: 1px solid var(--color-stroke);
     white-space: nowrap;
 
-    // app-column-title supplies its own 10px 16px padding — avoid doubling up,
+    // app-column-title supplies its own padding — avoid doubling up,
     // which was pushing header text out of alignment with the td content below it.
     &:has(app-column-title) { padding: 0; }
   }
 
   td {
-    padding: 16px 16px;
+    padding: 20px 24px;
     text-align: left;
+    vertical-align: middle;
     font-size: 14px;
     color: var(--color-body);
     border-bottom: 1px solid var(--color-stroke);
@@ -359,7 +359,7 @@
   }
 
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface-overlay); }
+  tbody tr:hover td { background: var(--surface-raised); }
   tbody tr.clickable-row { cursor: pointer; }
 }
 
@@ -559,8 +559,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-top: 1px solid var(--color-stroke);
+  margin-top: 20px;
+  padding: 0 24px;
 }
 
 .page-size {

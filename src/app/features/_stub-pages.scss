@@ -51,13 +51,24 @@
   margin: 0;
 }
 
+// Edge-to-edge enterprise SaaS table: no card, no border, no shadow — only a
+// single divider under the header and between rows (see global "Data Tables"
+// convention). `.table-panel` is always paired with `.panel` in markup
+// (`class="panel table-panel"`); these overrides strip the boxed `.panel`
+// look back down to a flat table sitting directly on the page.
 .table-panel {
+  margin: var(--space-6) var(--space-8) 0;
   padding: 0;
   overflow-x: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+
+  &:last-child { margin-bottom: var(--space-8); }
 
   .panel-head {
-    padding: var(--space-5) var(--space-5) 0;
-    margin-bottom: var(--space-3);
+    padding: 0 0 var(--space-4);
+    margin-bottom: 0;
   }
 }
 
@@ -68,23 +79,38 @@ table.ref-table {
 
   th {
     text-align: left;
-    padding: var(--space-2) var(--space-5);
+    vertical-align: middle;
+    padding: var(--space-4) var(--space-6);
+    font-weight: 500;
+    color: var(--text-muted);
     border-bottom: 1px solid var(--color-stroke);
+
+    // app-column-title supplies its own padding — avoid doubling up.
+    &:has(app-column-title) { padding: 0; }
   }
 
   td {
-    padding: var(--space-3) var(--space-5);
+    text-align: left;
+    vertical-align: middle;
+    padding: var(--space-5) var(--space-6);
     border-bottom: 1px solid var(--color-stroke);
   }
 
   tr:last-child td { border-bottom: none; }
 }
 
+// Pagination sits directly below the table (not boxed with it) — this is the
+// last child of `.table-panel` in every feature page's markup.
+.table-panel > app-pagination {
+  display: block;
+  margin-top: var(--space-5);
+}
+
 .clickable-row {
   cursor: pointer;
   transition: background 0.12s ease;
 
-  &:hover { background: var(--surface-overlay); }
+  &:hover { background: var(--surface-raised); }
 }
 
 .progress-row {
