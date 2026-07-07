@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ChartDataPoint, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus } from '../../../shared/components';
+import { InfoPopoverComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ChartDataPoint, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus } from '../../../shared/components';
 import { ProductsService, ProductStats, ProductStatus } from '../../../shared/services/products.service';
 
 type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors';
@@ -211,7 +211,7 @@ const BNPL_SAMPLE_VENDORS: Vendor[] = [
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, TooltipComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent],
+  imports: [RouterLink, FormsModule, InfoPopoverComponent, ButtonComponent, BreadcrumbComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })

@@ -99,8 +99,8 @@
                 <div class="setup-ch-right">
                   <span class="setup-ch-pct">{{ setupPct }}% complete</span>
                   <svg width="22" height="22" viewBox="0 0 22 22" style="transform: rotate(-90deg)">
-                    <circle cx="11" cy="11" r="8" fill="none" stroke="#e5e7eb" stroke-width="2.5"/>
-                    <circle cx="11" cy="11" r="8" fill="none" stroke="#0053a6" stroke-width="2.5"
+                    <circle cx="11" cy="11" r="8" fill="none" [style.stroke]="'var(--color-stroke)'" stroke-width="2.5"/>
+                    <circle cx="11" cy="11" r="8" fill="none" [style.stroke]="'var(--color-blue)'" stroke-width="2.5"
                       [attr.stroke-dasharray]="(setupPct / 100 * 50.27) + ' 50.27'"
                       stroke-linecap="round"/>
                   </svg>
@@ -118,12 +118,12 @@
                     <div class="setup-ch-item" [class.done]="item.done" (click)="!item.done && goToTab(item.tab)">
                       @if (item.done) {
                         <svg class="check-icon" width="22" height="22" viewBox="0 0 22 22">
-                          <circle cx="11" cy="11" r="11" fill="#0053a6"/>
+                          <circle cx="11" cy="11" r="11" [style.fill]="'var(--color-blue)'"/>
                           <path d="M6.5 11l3 3 6-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                         </svg>
                       } @else {
                         <svg class="check-icon" width="22" height="22" viewBox="0 0 22 22">
-                          <circle cx="11" cy="11" r="9.5" fill="none" stroke="#c0c9d1" stroke-width="1.5" stroke-dasharray="4.5 3.5"/>
+                          <circle cx="11" cy="11" r="9.5" fill="none" [style.stroke]="'var(--color-input-stroke)'" stroke-width="1.5" stroke-dasharray="4.5 3.5"/>
                         </svg>
                       }
                       <div class="setup-ch-item-content">
@@ -352,10 +352,10 @@
               </div>
               <div class="donut-wrap">
                 <svg width="120" height="120" viewBox="0 0 130 130">
-                  <circle cx="65" cy="65" r="46" fill="none" stroke="#f3f4f6" stroke-width="18"/>
-                  <circle cx="65" cy="65" r="46" fill="none" stroke="#22c55e" stroke-width="18" stroke-dasharray="145 144" stroke-dashoffset="36" transform="rotate(-90 65 65)"/>
-                  <circle cx="65" cy="65" r="46" fill="none" stroke="#0053a6" stroke-width="18" stroke-dasharray="58 231" stroke-dashoffset="-109" transform="rotate(-90 65 65)"/>
-                  <circle cx="65" cy="65" r="46" fill="none" stroke="#f59e0b" stroke-width="18" stroke-dasharray="29 260" transform="rotate(-90 65 65)" stroke-dashoffset="-167"/>
+                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-stroke)'" stroke-width="18"/>
+                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-success)'" stroke-width="18" stroke-dasharray="145 144" stroke-dashoffset="36" transform="rotate(-90 65 65)"/>
+                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-blue)'" stroke-width="18" stroke-dasharray="58 231" stroke-dashoffset="-109" transform="rotate(-90 65 65)"/>
+                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-warning)'" stroke-width="18" stroke-dasharray="29 260" transform="rotate(-90 65 65)" stroke-dashoffset="-167"/>
                 </svg>
                 <div class="donut-center">
                   <p class="donut-sub">Total borrowers</p>
@@ -363,9 +363,9 @@
                 </div>
               </div>
               <div class="donut-legend">
-                <div class="legend-row"><span class="legend-dot" style="background:#22c55e"></span><span>Active</span><strong>7,000</strong></div>
-                <div class="legend-row"><span class="legend-dot" style="background:#0053a6"></span><span>New</span><strong>3,000</strong></div>
-                <div class="legend-row"><span class="legend-dot" style="background:#f59e0b"></span><span>Pending</span><strong>2,000</strong></div>
+                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-success)'"></span><span>Active</span><strong>7,000</strong></div>
+                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-blue)'"></span><span>New</span><strong>3,000</strong></div>
+                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-warning)'"></span><span>Pending</span><strong>2,000</strong></div>
               </div>
             </div>
 
@@ -510,9 +510,7 @@
               </div>
               <p class="field-label">
                 Who qualifies
-                <app-tooltip text="Borrowers must meet at least one of these criteria to be eligible for this product." position="right">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                </app-tooltip>
+                <app-info-popover title="Who qualifies" description="Borrowers must meet at least one of these criteria to be eligible for this product." />
               </p>
               <div class="chip-row">
                 @for (e of product.eligibility; track e) {
@@ -522,9 +520,7 @@
               <div class="field-row mt">
                 <p class="field-label">
                   Active loan policy
-                  <app-tooltip text="Controls whether borrowers who already have an active loan on this product can apply again." position="right">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                  </app-tooltip>
+                  <app-info-popover title="Active loan policy" description="Controls whether borrowers who already have an active loan on this product can apply again." />
                 </p>
                 <p class="field-value policy">{{ product.activeLoanPolicy }}</p>
               </div>
@@ -537,9 +533,7 @@
               </div>
               <p class="field-label">
                 Applicants must submit these before receiving funds
-                <app-tooltip text="These documents are verified before loan disbursement." position="right">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="info-ico"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                </app-tooltip>
+                <app-info-popover title="Required documents" description="These documents are verified before loan disbursement." />
               </p>
               <div class="doc-list">
                 @for (doc of product.kycDocs; track doc) {
@@ -836,14 +830,14 @@
                   <div class="vendor-actions">
                     <button class="va-btn" title="Copy vendor link" (click)="copyVendorLink(vendor)">
                       @if (copiedVendorId === vendor.id) {
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" [style.stroke]="'var(--color-success)'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                       } @else {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
                       }
                     </button>
                     <button class="va-btn" [title]="vendor.status === 'suspended' ? 'Re-activate' : 'Suspend'" (click)="suspendVendor(vendor)">
                       @if (vendor.status === 'suspended') {
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#027A48" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#027A48" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" [style.stroke]="'var(--color-success)'" stroke-width="1.5"/><path d="M9 12l2 2 4-4" [style.stroke]="'var(--color-success)'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                       } @else {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v6M14 9v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                       }
@@ -1005,7 +999,7 @@
           }
           @if (accountName() && accountNameVerified()) {
             <div class="ob-account-verified">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#D1FAE5"/><path d="M5 12l5 5L20 7" stroke="#027A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" [style.fill]="'var(--color-success-bg)'"/><path d="M5 12l5 5L20 7" [style.stroke]="'var(--color-success)'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               <div>
                 <div class="ob-account-name">{{ accountName() }}</div>
                 <div class="ob-account-match">Account verified — name matches business name</div>
@@ -1014,7 +1008,7 @@
           }
           @if (accountNameError()) {
             <div class="ob-account-error">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#F04438" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="#F04438" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" [style.stroke]="'var(--color-error)'" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" [style.stroke]="'var(--color-error)'" stroke-width="1.8" stroke-linecap="round"/></svg>
               {{ accountNameError() }}
             </div>
           }
