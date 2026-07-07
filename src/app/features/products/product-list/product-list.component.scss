@@ -326,6 +326,9 @@
    Only dividers are the single line under the header and between rows. */
 .table-wrap {
   margin-top: 16px;
+  // Scroll internally so wide rows never push the page past the .main
+  // gutter — matches the shared `.table-panel` pattern used elsewhere.
+  overflow-x: auto;
 }
 
 .data-table {

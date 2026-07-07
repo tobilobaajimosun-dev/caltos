@@ -1,8 +1,10 @@
-import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 
 export interface WizardStep {
   id: string;
   label: string;
+  /** Optional sub-items shown only while this step is active (see reference design). */
+  substeps?: string[];
 }
 
 export type WizardStepStatus = 'done' | 'active' | 'upcoming';
@@ -17,7 +19,10 @@ export type WizardStepStatus = 'done' | 'active' | 'upcoming';
 export class WizardStepperComponent {
   steps = input.required<WizardStep[]>();
   currentIndex = input(0);
+  /** Index of the active substep within the active step's `substeps`, if any. */
+  activeSubstepIndex = input<number | null>(null);
   stepClick = output<number>();
+  substepClick = output<{ stepIndex: number; substepIndex: number }>();
 
   status(i: number): WizardStepStatus {
     const cur = this.currentIndex();
@@ -25,14 +30,12 @@ export class WizardStepperComponent {
     return i < cur ? 'done' : 'upcoming';
   }
 
-  readonly fillPercent = computed(() => {
-    const total = this.steps().length - 1;
-    if (total <= 0) return 0;
-    return (this.currentIndex() / total) * 100;
-  });
-
   onClick(i: number) {
     if (this.status(i) === 'upcoming') return;
     this.stepClick.emit(i);
+  }
+
+  onSubstepClick(stepIndex: number, substepIndex: number) {
+    this.substepClick.emit({ stepIndex, substepIndex });
   }
 }

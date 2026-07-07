@@ -1,27 +1,39 @@
 <nav class="wiz-stepper" aria-label="Wizard steps">
-  <div class="wiz-stepper-rail">
-    <div class="wiz-stepper-rail-fill" [style.height.%]="fillPercent()"></div>
-  </div>
   @for (step of steps(); track step.id; let i = $index) {
-    <button
-      type="button"
-      class="wiz-stepper-item"
-      [class.done]="status(i) === 'done'"
-      [class.active]="status(i) === 'active'"
-      [class.upcoming]="status(i) === 'upcoming'"
-      [attr.aria-current]="status(i) === 'active' ? 'step' : null"
-      [disabled]="status(i) === 'upcoming'"
-      (click)="onClick(i)">
-      <span class="wiz-stepper-circle">
-        @if (status(i) === 'done') {
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        } @else {
-          <span class="wiz-stepper-dot" aria-hidden="true"></span>
+    <div class="wiz-stepper-group" [class.active-group]="status(i) === 'active' && !!step.substeps?.length">
+      <button
+        type="button"
+        class="wiz-stepper-item"
+        [class.done]="status(i) === 'done'"
+        [class.active]="status(i) === 'active'"
+        [class.upcoming]="status(i) === 'upcoming'"
+        [attr.aria-current]="status(i) === 'active' ? 'step' : null"
+        [disabled]="status(i) === 'upcoming'"
+        (click)="onClick(i)">
+        <span class="wiz-stepper-circle">
+          @if (status(i) === 'done') {
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12.5l4.5 4.5L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          } @else {
+            <span class="wiz-stepper-dot" aria-hidden="true"></span>
+          }
+        </span>
+        <span class="wiz-stepper-label">{{ step.label }}</span>
+      </button>
+
+      @if (status(i) === 'active' && step.substeps?.length) {
+        @for (sub of step.substeps; track sub; let si = $index) {
+          <button
+            type="button"
+            class="wiz-substep-item"
+            [class.active]="activeSubstepIndex() === si"
+            (click)="onSubstepClick(i, si)">
+            <span class="wiz-substep-dot" aria-hidden="true"></span>
+            <span class="wiz-substep-label">{{ sub }}</span>
+          </button>
         }
-      </span>
-      <span class="wiz-stepper-label">{{ step.label }}</span>
-    </button>
+      }
+    </div>
   }
 </nav>

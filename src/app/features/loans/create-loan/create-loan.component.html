@@ -9,7 +9,7 @@
   <header class="wiz-header">
     <div class="wiz-brand">
       <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-        <rect width="26" height="26" rx="7" fill="#0053a6"/>
+        <rect width="26" height="26" rx="7" [style.fill]="'var(--color-blue)'"/>
         <path d="M7 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
         <circle cx="13" cy="13" r="2" fill="white"/>
       </svg>
@@ -39,7 +39,9 @@
     <app-wizard-stepper
       [steps]="steps"
       [currentIndex]="currentStep"
-      (stepClick)="goToStep($event)" />
+      [activeSubstepIndex]="activeSubstepIndex"
+      (stepClick)="goToStep($event)"
+      (substepClick)="onSubstepClick($event)" />
 
     <!-- Scrollable main content -->
     <main class="wiz-main" #wizMain>
@@ -177,7 +179,7 @@
                   </div>
                   @if (config.targetAudiences.length) {
                     <div class="audience-selected-note">
-                      <hugeicons-icon [icon]="infoIcon" size="12" [strokeWidth]="1.5" />
+                      <hi-icon [icon]="infoIcon" size="12" color="currentColor" />
                       {{ config.targetAudiences.join(' · ') }}
                     </div>
                   }
@@ -257,7 +259,7 @@
               </div>
               @if (config.minAge || config.maxAge) {
                 <div class="info-callout" style="margin-top:12px">
-                  <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
+                  <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
                   Borrowers will be asked for their date of birth so their age can be verified against this range.
                 </div>
               }
@@ -336,7 +338,29 @@
                       @for (field of sec.fields; track field.name) {
                         <div class="field-row-item">
                           <span class="field-row-name">{{ field.name }}</span>
-                          <app-select [options]="requirementOptions" [value]="field.requirement" (valueChange)="field.requirement = $event" />
+                          <div class="req-pill-group">
+                            <button type="button" class="req-pill" [class.selected]="field.requirement === 'required'" (click)="field.requirement = 'required'">Required</button>
+                            <button type="button" class="req-pill" [class.selected]="field.requirement === 'optional'" (click)="field.requirement = 'optional'">Optional</button>
+                            <button type="button" class="req-pill" [class.selected]="field.requirement === 'none'" (click)="field.requirement = 'none'">Don't collect</button>
+                          </div>
+                        </div>
+                      }
+                      @for (field of sec.customFields; track field.label; let fi = $index) {
+                        <div class="field-row-item">
+                          <div class="custom-field-name-col">
+                            <span class="custom-badge">Custom</span>
+                            <span class="field-row-name">{{ field.label }}</span>
+                          </div>
+                          <div class="custom-field-controls">
+                            <div class="req-pill-group">
+                              <button type="button" class="req-pill" [class.selected]="field.required === 'required'" (click)="field.required = 'required'">Required</button>
+                              <button type="button" class="req-pill" [class.selected]="field.required === 'optional'" (click)="field.required = 'optional'">Optional</button>
+                              <button type="button" class="req-pill" [class.selected]="field.required === 'none'" (click)="field.required = 'none'">Don't collect</button>
+                            </div>
+                            <button class="remove-btn" (click)="confirmRemoveCustomField(sec.key, fi)">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            </button>
+                          </div>
                         </div>
                       }
                       <button class="add-field-btn" (click)="openAddCustomField(sec.key)">
@@ -344,36 +368,6 @@
                         Add a custom field
                       </button>
                     </div>
-
-                    @if (recommendedCustomFields.length > 0) {
-                      <div class="recommended-fields-section">
-                        <div class="recommended-fields-label">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                          Recommended from past products
-                        </div>
-                        <div class="recommended-pills">
-                          @for (rf of recommendedCustomFields; track rf.label) {
-                            @if (!sec.customFields.some(f => f.label === rf.label)) {
-                              <button class="recommended-pill" (click)="addRecommendedCustomField(sec.key, rf)">
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                                {{ rf.label }}
-                              </button>
-                            }
-                          }
-                        </div>
-                      </div>
-                    }
-                    @for (field of sec.customFields; track field.label; let fi = $index) {
-                      <div class="custom-fee-row">
-                        <span class="custom-fee-name">{{ field.label }}</span>
-                        <span class="custom-badge">Custom</span>
-                        <span class="custom-fee-type">{{ field.type }}</span>
-                        <span class="custom-fee-rate">{{ requirementLabel(field.required) }}</span>
-                        <button class="remove-btn" (click)="confirmRemoveCustomField(sec.key, fi)">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                        </button>
-                      </div>
-                    }
                   }
                 }
               </div>
@@ -405,12 +399,6 @@
                   </div>
                   <app-toggle [checked]="config.restrictActiveLoan" (checkedChange)="config.restrictActiveLoan = $event" />
                 </div>
-                @if (config.restrictActiveLoan) {
-                  <div class="field-group" style="margin-top:10px; max-width:320px">
-                    <label class="field-label">Active loan policy</label>
-                    <app-select [options]="activeLoanPolicies" [value]="config.activeLoanPolicy" (valueChange)="config.activeLoanPolicy = $event" />
-                  </div>
-                }
               </div>
             </div>
 
@@ -477,13 +465,13 @@
                 </div>
                 @if (noIncomeSelected) {
                   <div class="info-callout warn" style="margin-top:14px">
-                    <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
+                    <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
                     No income verification selected — this section will not appear in the borrower application.
                   </div>
                 }
                 @if (!noIncomeSelected && (config.incomeRemita || config.incomeIppis)) {
                   <div class="info-callout" style="margin-top:14px">
-                    <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
+                    <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
                     {{ config.incomeRemita && config.incomeIppis ? 'Remita and IPPIS require' : config.incomeRemita ? 'Remita requires' : 'IPPIS requires' }} integration keys to function. You can provide your keys in Settings → Integrations, or our team can help you set this up.
                   </div>
                 }
@@ -548,7 +536,7 @@
                   <div class="deduct-check" [class.active]="config.deductRemitaDirectDebit"></div>
                   <div class="deduct-body">
                     <div class="deduct-title">Remita Direct Debit</div>
-                    <div class="deduct-sub">Direct debit mandate on the borrower's bank account, processed through Remita's rails. Works for any bank Remita supports — useful as a fallback when payroll deduction isn't available.</div>
+                    <div class="deduct-sub">Fallback debit mandate on the borrower's account via Remita.</div>
                     <div class="deduct-tags">
                       <span class="deduct-tag">Any bank</span>
                       <span class="deduct-tag">Fallback option</span>
@@ -560,7 +548,7 @@
                   <div class="deduct-check" [class.active]="config.deductMonoDirectDebit"></div>
                   <div class="deduct-body">
                     <div class="deduct-title">Mono Direct Debit</div>
-                    <div class="deduct-sub">Direct debit mandate authorised once via Mono, then charged automatically from the borrower's linked bank account on each due date — no manual approval needed per repayment.</div>
+                    <div class="deduct-sub">One-time Mono mandate, auto-charged on each due date.</div>
                     <div class="deduct-tags">
                       <span class="deduct-tag">Any bank</span>
                       <span class="deduct-tag">One-time authorisation</span>
@@ -571,13 +559,13 @@
               </div>
               @if (noDeductionSelected) {
                 <div class="info-callout warn">
-                  <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
+                  <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
                   No deduction channel selected. Repayments will need to be collected manually or via a channel configured later.
                 </div>
               }
               @if (config.deductIppis || config.deductRemita) {
                 <div class="info-callout">
-                  <hugeicons-icon [icon]="infoIcon" size="13" [strokeWidth]="1.5" />
+                  <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
                   {{ config.deductIppis && config.deductRemita ? 'IPPIS and Remita require' : config.deductIppis ? 'IPPIS requires' : 'Remita requires' }} integration keys. Configure them in Settings → Integrations before going live.
                 </div>
               }
@@ -795,8 +783,8 @@
                   </div>
                 </div>
 
-                <div class="field-row">
-                  <div class="field-group">
+                <div class="field-row align-end">
+                  <div class="field-group compact">
                     <label class="field-label">Accrual Stop Condition</label>
                     <app-select [options]="toOptions(accrualStopConditionOptions)" [value]="config.latePenaltyAccrualStopCondition" (valueChange)="config.latePenaltyAccrualStopCondition = $event" />
                   </div>
@@ -832,11 +820,6 @@
                   </div>
                 }
               </div>
-
-              <button class="add-field-btn">
-                <hi-icon [icon]="plusIcon" size="14" color="var(--color-grey-header)" />
-                Add new penalty
-              </button>
             }
 
           </div>
@@ -870,6 +853,12 @@
                     </div>
                     <app-toggle [checked]="config.offerLetter" (checkedChange)="config.offerLetter = $event" />
                   </div>
+                  @if (config.offerLetter) {
+                    <div class="info-callout" style="margin-top:10px">
+                      <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
+                      Digisign is a paid integration. Configure it in Settings → Integrations before going live.
+                    </div>
+                  }
                 </div>
                 <div class="disburse-rule">
                   <div class="toggle-option">
@@ -1441,7 +1430,7 @@
         </div>
       </div>
       <div class="type-modal-note">
-        <hugeicons-icon [icon]="infoIcon" size="14" [strokeWidth]="1.5" />
+        <hi-icon [icon]="infoIcon" size="14" color="currentColor" />
         These are recommendations only — you can change them later.
       </div>
     </div>

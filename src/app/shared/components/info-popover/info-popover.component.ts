@@ -1,6 +1,8 @@
 import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConnectionPositionPair, OverlayModule } from '@angular/cdk/overlay';
+import { HiIconComponent, IconData } from '../hi-icon/hi-icon.component';
+import { InformationCircleIcon } from '@hugeicons/core-free-icons';
 
 export type InfoPopoverPlacement = 'top' | 'bottom' | 'left' | 'right';
 
@@ -36,7 +38,7 @@ const PLACEMENT_POSITIONS: Record<InfoPopoverPlacement, ConnectionPositionPair[]
 @Component({
   selector: 'app-info-popover',
   standalone: true,
-  imports: [CommonModule, OverlayModule],
+  imports: [CommonModule, OverlayModule, HiIconComponent],
   templateUrl: './info-popover.component.html',
   styleUrl: './info-popover.component.scss',
   host: {
@@ -48,6 +50,8 @@ export class InfoPopoverComponent {
   @Input() description = '';
   @Input() placement: InfoPopoverPlacement = 'right';
   @Input() maxWidth = 280;
+
+  protected readonly infoIcon: IconData = InformationCircleIcon as unknown as IconData;
 
   protected isOpen = signal(false);
   private closeTimeout?: ReturnType<typeof setTimeout>;

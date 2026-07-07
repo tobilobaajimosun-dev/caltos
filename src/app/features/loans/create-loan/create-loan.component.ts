@@ -190,7 +190,7 @@ export const STEPS = [
   { id: 'about',         label: 'About this Loan',         shortLabel: 'About Loan' },
   { id: 'application',   label: 'Set Up Your Application', shortLabel: 'Application' },
   { id: 'verification',  label: 'Verification',            shortLabel: 'Verification' },
-  { id: 'pricing',       label: 'Pricing & Fees',          shortLabel: 'Pricing' },
+  { id: 'pricing',       label: 'Pricing & Fees',          shortLabel: 'Pricing', substeps: ['Fees', 'Penalties'] },
   { id: 'disbursement',  label: 'Disbursement',            shortLabel: 'Disbursement' },
   { id: 'repayment',     label: 'Repayment',               shortLabel: 'Repayment' },
   { id: 'legal',         label: 'Legal',                   shortLabel: 'Legal' },
@@ -359,7 +359,6 @@ export class CreateLoanComponent implements OnInit {
   showRemoveCustomFieldModal = false;
   removeCustomFieldSectionKey: string | null = null;
   removeCustomFieldIndex = -1;
-  recommendedCustomFields: { label: string; type: string }[] = [];
 
   // Custom documents added via the "Add a custom document" dialog (item 14)
   showCustomDocModal = false;
@@ -378,7 +377,7 @@ export class CreateLoanComponent implements OnInit {
   readonly clockIcon: IconData = Clock01Icon as IconData;
   readonly viewIcon: IconSvgObject = ViewIcon as IconSvgObject;
   readonly licenseDraftIcon: IconSvgObject = LicenseDraftIcon as IconSvgObject;
-  readonly infoIcon: IconSvgObject = InformationCircleIcon as IconSvgObject;
+  readonly infoIcon: IconData = InformationCircleIcon as unknown as IconData;
 
   readonly loanTypes = LOAN_TYPES;
 
@@ -459,12 +458,6 @@ export class CreateLoanComponent implements OnInit {
   readonly interestModels = ['Flat Rate', 'Reducing Balance', 'Percentage Based'];
   readonly interestChargePeriods = ['Daily', 'Weekly', 'Monthly', 'Yearly', 'One Time'];
 
-  readonly activeLoanPolicies: SelectOption[] = [
-    { value: 'block', label: 'Block until repaid' },
-    { value: 'allow-one', label: 'Allow up to 1 additional active loan' },
-    { value: 'unconditional', label: 'Allow unconditionally' },
-  ];
-
   toOptions(values: string[]): SelectOption[] {
     return values.map(v => ({ value: v, label: v }));
   }
@@ -539,25 +532,10 @@ export class CreateLoanComponent implements OnInit {
         }
       }
     });
-    this.loadRecommendedCustomFields();
-  }
-
-  private loadRecommendedCustomFields() {
-    try {
-      const raw = localStorage.getItem('caltos_custom_fields_history');
-      if (raw) this.recommendedCustomFields = JSON.parse(raw);
-    } catch {}
   }
 
   private sectionByKey(key: string | null) {
     return this.collectionSections.find(s => s.key === key) ?? null;
-  }
-
-  addRecommendedCustomField(sectionKey: string, field: { label: string; type: string }) {
-    const section = this.sectionByKey(sectionKey);
-    if (!section) return;
-    if (section.customFields.some(f => f.label === field.label)) return;
-    section.customFields.push({ label: field.label, type: field.type, required: 'required' });
   }
 
   confirmRemoveCustomField(sectionKey: string, i: number) {
@@ -619,6 +597,19 @@ export class CreateLoanComponent implements OnInit {
   next() { if (!this.isLast) this.currentStep++; this.scrollToTop(); }
   back() { if (!this.isFirst) this.currentStep--; this.scrollToTop(); }
   goToStep(i: number) { this.currentStep = i; this.scrollToTop(); }
+
+  /** Index of `pricingTab` within the 'pricing' step's substeps — the only step with substeps today. */
+  get activeSubstepIndex(): number | null {
+    if (this.stepId !== 'pricing') return null;
+    return this.pricingTab === 'fees' ? 0 : 1;
+  }
+
+  onSubstepClick(event: { stepIndex: number; substepIndex: number }) {
+    this.goToStep(event.stepIndex);
+    if (this.steps[event.stepIndex].id === 'pricing') {
+      this.pricingTab = event.substepIndex === 0 ? 'fees' : 'penalties';
+    }
+  }
 
   private buildProductPatch() {
     return {
@@ -795,13 +786,6 @@ export class CreateLoanComponent implements OnInit {
     if (!section) return;
     const newField = { label: this.customFieldLabel, type: this.customFieldType, required: this.customFieldRequired };
     section.customFields.push(newField);
-    // Save to history for recommendations in future sessions
-    const history = this.recommendedCustomFields;
-    if (!history.some(f => f.label === newField.label)) {
-      history.push({ label: newField.label, type: newField.type });
-      localStorage.setItem('caltos_custom_fields_history', JSON.stringify(history));
-      this.recommendedCustomFields = [...history];
-    }
     this.customFieldLabel = ''; this.customFieldType = 'Text'; this.customFieldRequired = 'required';
     this.showCustomFieldModal = false;
     this.targetSectionKey = null;

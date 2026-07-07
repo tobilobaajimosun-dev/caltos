@@ -1,7 +1,6 @@
 :host { display: block; }
 
 .wiz-stepper {
-  position: relative;
   width: 232px;
   flex-shrink: 0;
   display: flex;
@@ -11,34 +10,22 @@
   overflow-y: auto;
 }
 
-// Background rail — centred behind the circles, rounded ends, inset to the
-// first/last circle centres so it never touches the container edges. The
-// fill portion (below) grows over it to show completed progress.
-.wiz-stepper-rail {
-  position: absolute;
-  left: 30.5px; // padding-left (20) + circle radius (12) - half rail width (1.5)
-  top: 36px;    // padding-top (24) + circle radius (12)
-  bottom: 36px;
-  width: 3px;
-  border-radius: 1.5px;
-  background: var(--surface-overlay);
-  z-index: 0;
-}
+// Contextual highlight capsule — a soft rounded background that appears only
+// around the active step (and its substeps, if any), rather than a
+// permanent rail running the full height of the stepper.
+.wiz-stepper-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 12px;
+  padding: 8px;
+  margin: -8px;
+  transition: background-color 0.18s cubic-bezier(0.23, 1, 0.32, 1);
 
-.wiz-stepper-rail-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  border-radius: 1.5px;
-  background: var(--color-blue);
-  transition: height 0.3s ease;
+  &.active-group { background: var(--color-info-bg); }
 }
 
 .wiz-stepper-item {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -93,6 +80,42 @@
   .wiz-stepper-item.done & { color: var(--color-body); }
   .wiz-stepper-item.active & {
     color: var(--color-header);
+    font-weight: 600;
+  }
+}
+
+// Substeps — shown only beneath the active step, indented past the circle.
+.wiz-substep-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 0 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover .wiz-substep-label { color: var(--color-blue); }
+}
+
+.wiz-substep-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grey);
+  flex-shrink: 0;
+
+  .wiz-substep-item.active & { background: var(--color-blue); }
+}
+
+.wiz-substep-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-grey-header);
+  transition: color 0.12s;
+
+  .wiz-substep-item.active & {
+    color: var(--color-blue);
     font-weight: 600;
   }
 }
