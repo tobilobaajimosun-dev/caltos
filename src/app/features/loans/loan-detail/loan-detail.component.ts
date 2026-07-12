@@ -1,83 +1,198 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
-  KpiCardComponent,
-  ProgressBarComponent,
-  ColumnTitleComponent,
-  TableItemComponent,
   StatusBadgeComponent,
   BadgeStatus,
   RoundTabsComponent,
   Tab,
+  ButtonComponent,
+  AvatarComponent,
+  ColumnTitleComponent,
+  ModalComponent,
+  ConfirmModalComponent,
+  ToastComponent,
+  InputComponent,
 } from '../../../shared/components';
-import { RefundsComponent } from '../refunds/refunds.component';
+import { LoansService, LoanApplication, LoanStatus } from '../../../shared/services/loans.service';
+import { ProductsService, DeductionChannelStatus } from '../../../shared/services/products.service';
 
-type DetailTab = 'overview' | 'repayments' | 'refunds' | 'activity';
+type DetailTab = 'about' | 'documents' | 'undertaking' | 'integrations' | 'payment' | 'activity';
 
 interface RepaymentRow {
   installment: string;
   dueDate: string;
-  amount: string;
+  amount: number;
   status: BadgeStatus;
-}
-
-interface ActivityEvent {
-  at: string;
-  event: string;
 }
 
 @Component({
   selector: 'app-loan-detail',
   standalone: true,
   imports: [
-    KpiCardComponent, ProgressBarComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent,
-    RoundTabsComponent, RefundsComponent,
+    RouterLink, DatePipe, StatusBadgeComponent, RoundTabsComponent, ButtonComponent, AvatarComponent,
+    ColumnTitleComponent, ModalComponent, ConfirmModalComponent, ToastComponent, InputComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-detail.component.html',
   styleUrl: './loan-detail.component.scss',
 })
-export class LoanDetailComponent {
+export class LoanDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  readonly loanId = this.route.snapshot.paramMap.get('id') ?? '';
+  private readonly loansService = inject(LoansService);
+  private readonly productsService = inject(ProductsService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  readonly customerName = 'Akpan Akporigomayen';
-  readonly product = 'Salary Advance Loan';
-  readonly principal = '₦150,000';
-  readonly outstanding = '₦62,500';
-  readonly nextDueDate = '2026-07-30';
-  readonly repaidPct = 58;
-  readonly disbursedDate = '2026-04-30';
-  readonly channel = 'Remita';
-  readonly status: BadgeStatus = 'active';
+  loanId = '';
+  loan: LoanApplication | null = null;
 
   readonly tabs: Tab[] = [
-    { label: 'Overview', value: 'overview' },
-    { label: 'Repayments', value: 'repayments' },
-    { label: 'Refunds', value: 'refunds' },
-    { label: 'Activity', value: 'activity' },
+    { label: 'About loan', value: 'about' },
+    { label: 'Documents', value: 'documents' },
+    { label: 'Undertaking', value: 'undertaking' },
+    { label: 'Integrations', value: 'integrations' },
+    { label: 'Payment', value: 'payment' },
+    { label: 'Activity Log', value: 'activity' },
   ];
-
-  readonly activeTab = signal<DetailTab>('overview');
+  readonly activeTab = signal<DetailTab>('about');
   setTab(value: string) {
     this.activeTab.set(value as DetailTab);
   }
 
-  readonly schedule: RepaymentRow[] = [
-    { installment: 'Installment 1', dueDate: '2026-05-30', amount: '₦25,000', status: 'successful' },
-    { installment: 'Installment 2', dueDate: '2026-06-30', amount: '₦25,000', status: 'successful' },
-    { installment: 'Installment 3', dueDate: '2026-06-30', amount: '₦25,000', status: 'successful' },
-    { installment: 'Installment 4', dueDate: '2026-07-30', amount: '₦25,000', status: 'pending' },
-    { installment: 'Installment 5', dueDate: '2026-08-30', amount: '₦25,000', status: 'pending' },
-    { installment: 'Installment 6', dueDate: '2026-09-30', amount: '₦25,000', status: 'pending' },
-  ];
+  toastVisible = false;
+  toastMessage = '';
 
-  readonly activity: ActivityEvent[] = [
-    { at: '2026-04-30 09:12', event: 'Loan disbursed — ₦150,000 to salary account' },
-    { at: '2026-04-30 09:12', event: 'Remita mandate activated' },
-    { at: '2026-05-30 06:00', event: 'Installment 1 collected — ₦25,000' },
-    { at: '2026-06-30 06:00', event: 'Installment 2 collected — ₦25,000' },
-    { at: '2026-06-30 06:05', event: 'Installment 3 collected — ₦25,000' },
-    { at: '2026-07-05 08:00', event: 'Status updated to Active' },
-  ];
+  showEditAmount = false;
+  editAmountValue = '';
+
+  showBlacklistConfirm = false;
+
+  ngOnInit() {
+    this.route.params.subscribe((params) => {
+      this.loanId = (params['id'] as string) ?? '';
+      this.refreshLoan();
+    });
+  }
+
+  private refreshLoan() {
+    this.loan = this.loansService.getById(this.loanId) ?? null;
+  }
+
+  get product() {
+    return this.loan ? this.productsService.getById(this.loan.productId) : undefined;
+  }
+
+  get productName(): string {
+    return this.product?.name ?? this.loan?.productId ?? '';
+  }
+
+  statusBadge(status: LoanStatus): { status: BadgeStatus; label: string } {
+    switch (status) {
+      case 'new': return { status: 'active', label: 'New' };
+      case 'declined': return { status: 'failed', label: 'Declined' };
+      case 'documents_review': return { status: 'pending', label: 'Documents Review' };
+      case 'closed': return { status: 'dormant', label: 'Closed' };
+      case 'disbursed': return { status: 'successful', label: 'Disbursed' };
+      case 'top_up_request': return { status: 'suspended', label: 'Top Up Request' };
+    }
+  }
+
+  channelStatusBadge(status: DeductionChannelStatus): { status: BadgeStatus; label: string } {
+    switch (status) {
+      case 'not_configured': return { status: 'dormant', label: 'Not configured' };
+      case 'credentials_saved': return { status: 'pending', label: 'Credentials saved' };
+      case 'test_passed': return { status: 'overdue', label: 'Test passed' };
+      case 'live': return { status: 'successful', label: 'Live' };
+      case 'needs_reverification': return { status: 'failed', label: 'Needs re-verification' };
+    }
+  }
+
+  docStatusBadge(doc: { uploaded: boolean; approved: boolean }): { status: BadgeStatus; label: string } {
+    if (doc.approved) return { status: 'successful', label: 'Approved' };
+    if (doc.uploaded) return { status: 'pending', label: 'Uploaded — pending review' };
+    return { status: 'inactive', label: 'Not uploaded' };
+  }
+
+  /** Enabled deduction rails as they were on productConfigSnapshot at the moment this
+   * application was filed — never the live ProductRecord, so a later edit to the
+   * product's channels/credentials can't retroactively change what this loan shows. */
+  get snapshotDeductionChannels() {
+    return this.loan?.productConfigSnapshot.deductionChannels.filter((c) => c.enabled) ?? [];
+  }
+
+  /** A simple repayment schedule derived from amount/tenor — installments already collected
+   * for a disbursed/closed/top-up loan are marked paid; everything else is upcoming. */
+  get repaymentSchedule(): RepaymentRow[] {
+    if (!this.loan) return [];
+    const { tenor, monthlyRepayment, status, updatedAt } = this.loan;
+    const paidCount = status === 'closed' ? tenor : status === 'disbursed' || status === 'top_up_request' ? Math.min(3, tenor) : 0;
+    const start = new Date(updatedAt);
+    return Array.from({ length: tenor }, (_, i) => {
+      const due = new Date(start);
+      due.setMonth(due.getMonth() + i + 1);
+      return {
+        installment: `Installment ${i + 1}`,
+        dueDate: due.toISOString().slice(0, 10),
+        amount: monthlyRepayment,
+        status: (i < paidCount ? 'successful' : 'pending') as BadgeStatus,
+      };
+    });
+  }
+
+  viewProfile() {
+    this.showToast('Customer profile view is coming soon.');
+  }
+
+  contactCustomer() {
+    if (!this.loan) return;
+    window.location.href = `tel:${this.loan.customerPhone}`;
+  }
+
+  openBlacklist() {
+    this.showBlacklistConfirm = true;
+  }
+
+  cancelBlacklist() {
+    this.showBlacklistConfirm = false;
+  }
+
+  confirmBlacklist() {
+    if (!this.loan) return;
+    this.loansService.addActivity(this.loan.id, `${this.loan.customerName} was blacklisted`, 'Admin');
+    this.refreshLoan();
+    this.showBlacklistConfirm = false;
+    this.showToast('Customer has been blacklisted.');
+  }
+
+  openEditAmount() {
+    if (!this.loan) return;
+    this.editAmountValue = String(this.loan.amount);
+    this.showEditAmount = true;
+  }
+
+  closeEditAmount() {
+    this.showEditAmount = false;
+  }
+
+  saveAmount() {
+    if (!this.loan) return;
+    const amount = +this.editAmountValue;
+    if (!amount || amount <= 0) return;
+    const totalRepayment = Math.ceil(amount * (1 + this.loan.interestRate / 100));
+    const monthlyRepayment = Math.ceil(totalRepayment / this.loan.tenor);
+    this.loansService.update(this.loan.id, { amount, totalRepayment, monthlyRepayment });
+    this.loansService.addActivity(this.loan.id, `Loan amount edited to ₦${amount.toLocaleString()}`, 'Admin');
+    this.refreshLoan();
+    this.showEditAmount = false;
+    this.showToast('Loan amount updated.');
+  }
+
+  private showToast(message: string) {
+    this.toastMessage = message;
+    this.toastVisible = true;
+    setTimeout(() => {
+      this.toastVisible = false;
+      this.cdr.markForCheck();
+    }, 3000);
+  }
 }

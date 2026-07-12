@@ -1,0 +1,81 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Manual review queue</h1>
+    <p class="page-subtitle">Applications flagged for verification mismatches or a borderline eligibility score.</p>
+  </div>
+</div>
+
+<div class="kpi-row">
+  <app-kpi-card label="Flagged applications" [value]="queue().length" />
+</div>
+
+<div class="panel table-panel">
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th><app-column-title label="Applicant BVN" /></th>
+        <th><app-column-title label="Product" /></th>
+        <th><app-column-title label="Status" /></th>
+        <th><app-column-title label="Reason flagged" /></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (loan of queue(); track loan.id) {
+        <tr class="clickable-row" (click)="open(loan)">
+          <td class="mono">{{ loan.applicantIdentifier || '—' }}</td>
+          <td>{{ productName(loan.productId) }}</td>
+          <td><app-status-badge [status]="statusBadge(loan).status" [label]="statusBadge(loan).label" /></td>
+          <td>
+            <div class="reason-list">
+              @for (reason of reasonsFor(loan); track reason) {
+                <span class="reason-chip">{{ reason }}</span>
+              }
+            </div>
+          </td>
+          <td class="col-actions">
+            <a [routerLink]="['/loans', loan.id]" (click)="$event.stopPropagation()">View loan</a>
+          </td>
+        </tr>
+      }
+      @empty {
+        <tr><td colspan="5" class="empty-cell">Nothing is flagged for manual review right now.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<app-drawer [isOpen]="!!selected()" title="Review application" (closed)="close()">
+  @if (selected(); as loan) {
+    <div class="review-body">
+      <div class="review-row"><span class="review-label">Applicant BVN</span><span class="review-value mono">{{ loan.applicantIdentifier || '—' }}</span></div>
+      <div class="review-row"><span class="review-label">Customer</span><span class="review-value">{{ loan.customerName }}</span></div>
+      <div class="review-row"><span class="review-label">Product</span><span class="review-value">{{ productName(loan.productId) }}</span></div>
+      <div class="review-row"><span class="review-label">Loan ID</span><span class="review-value mono">{{ loan.loanUniqueId }}</span></div>
+      <div class="review-row"><span class="review-label">Amount</span><span class="review-value">₦{{ loan.amount.toLocaleString() }}</span></div>
+      <div class="review-row"><span class="review-label">Eligibility score</span><span class="review-value">{{ loan.eligibilityScore.score }} / 100</span></div>
+
+      <div class="review-section">
+        <p class="review-section-title">Reason flagged</p>
+        <ul class="reason-list-vertical">
+          @for (reason of reasonsFor(loan); track reason) {
+            <li>{{ reason }}</li>
+          }
+        </ul>
+      </div>
+
+      <div class="review-section">
+        <app-textarea label="Note (optional)" placeholder="Add context for this decision..." [value]="note()" (valueChange)="note.set($event)" />
+      </div>
+    </div>
+  }
+  <div footer class="review-footer">
+    <app-button variant="outline" label="Request more info" (clicked)="resolve('more_info')" />
+    <app-button variant="outline" label="Decline" (clicked)="resolve('declined')" />
+    <app-button variant="primary" label="Approve" (clicked)="resolve('approved')" />
+  </div>
+</app-drawer>
+
+@if (toastVisible) {
+  <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />
+}

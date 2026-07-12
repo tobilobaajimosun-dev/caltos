@@ -4,6 +4,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
 import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, RoundTabsComponent, Tab, KpiCardComponent, ColumnTitleComponent } from '../../../shared/components';
 import { ProductsService, ProductRecord, ProductStatus } from '../../../shared/services/products.service';
+import { LoansService } from '../../../shared/services/loans.service';
 import {
   FilterIcon,
   MoreVerticalIcon,
@@ -39,6 +40,7 @@ interface Fee {
 })
 export class ProductListComponent {
   private readonly productsService = inject(ProductsService);
+  private readonly loansService = inject(LoansService);
   private readonly router = inject(Router);
 
   activeTab: ActiveTab = 'all';
@@ -184,6 +186,13 @@ export class ProductListComponent {
   requestDelete(event: Event, product: ProductRecord) {
     event.stopPropagation();
     this.openDropdownId = null;
+    // A product with any loan history (active or historical) can never be hard-deleted —
+    // deleting it would orphan those LoanApplication records' productId FK. Deactivate instead.
+    if (this.loansService.hasLoansForProduct(product.id)) {
+      const count = this.loansService.countLoansForProduct(product.id);
+      this.showToast(`"${product.name}" cannot be deleted — ${count} loan${count === 1 ? '' : 's'} reference it. Deactivate it instead to stop new applications.`);
+      return;
+    }
     this.confirmTarget = product;
     this.confirmAction = 'delete';
   }

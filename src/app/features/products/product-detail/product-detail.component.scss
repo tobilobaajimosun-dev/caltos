@@ -714,6 +714,13 @@
 
 .hero-created { font-family: var(--font-body); font-size: 13px; color: var(--color-grey-header); margin: 0; }
 
+.hero-publish-block {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-warning);
+  margin: -6px 0 4px;
+}
+
 .hero-desc-block { display: flex; flex-direction: column; gap: 4px; }
 
 .hero-desc-label { font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--color-body); margin: 0; }
@@ -1794,6 +1801,44 @@ table.ref-table {
 .integrations-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--color-header); margin: 0 0 4px; }
 
 .integrations-sub { font-family: var(--font-body); font-size: 13px; color: var(--color-grey-header); margin: 0; max-width: 480px; }
+
+.channel-status-section { margin-bottom: 24px; }
+
+.channel-status-heading {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--color-header);
+  margin: 0 0 12px;
+}
+
+.channel-status-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4);
+}
+
+.channel-status-card {
+  padding: var(--space-4);
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.channel-status-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.channel-status-name { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--color-header); margin: 0; }
+
+.channel-status-coverage { font-family: var(--font-body); font-size: 12px; color: var(--color-grey-header); margin: 0; }
+
+.channel-status-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+.channel-status-live-note { font-family: var(--font-body); font-size: 12px; color: var(--color-success); margin: 0; }
+.channel-status-stale-note { font-family: var(--font-body); font-size: 12px; color: var(--color-error); margin: 4px 0 0; width: 100%; }
+
+.channel-status-test-msg {
+  font-family: var(--font-body); font-size: 12px; color: var(--color-success); margin: 4px 0 0;
+  &.error { color: var(--color-error); }
+}
 
 .integration-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;

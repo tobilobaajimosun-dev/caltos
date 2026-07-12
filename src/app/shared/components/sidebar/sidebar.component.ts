@@ -67,6 +67,7 @@ export class SidebarComponent {
         { label: 'On-hold', route: '/loans', queryParams: { status: 'on-hold' } },
         { label: 'Cancelled', route: '/loans', queryParams: { status: 'cancelled' } },
         { label: 'Disbursed', route: '/loans', queryParams: { status: 'disbursed' } },
+        { label: 'Manual review queue', route: '/loans/manual-review' },
         { label: 'Loan calculator', route: '/loans/calculator' },
         { label: 'Eligibility calculator', route: '/loans/eligibility-calculator' },
       ],

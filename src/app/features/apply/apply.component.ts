@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoanConfig } from '../loans/create-loan/create-loan.component';
+import { LoansService } from '../../shared/services/loans.service';
+import { ProductsService } from '../../shared/services/products.service';
+import { scoreEligibility, EligibilityInput, EmploymentStabilityInput } from '../../shared/utils/eligibility-scoring';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
 const FALLBACK_CONFIG: LoanConfig = {
@@ -65,15 +68,20 @@ interface DocField {
 export class ApplyComponent implements OnInit {
   Math = Math;
 
+  private readonly loansService = inject(LoansService);
+  private readonly productsService = inject(ProductsService);
+
   // ── Product config ──────────────────────────────────────────────────────────
   product!: LoanConfig;
   configSource: 'localStorage' | 'fallback' = 'fallback';
+  /** Real ProductRecord id this application is filed against — the FK on LoanApplication. */
+  resolvedProductId = '';
 
   // ── Dynamic steps ───────────────────────────────────────────────────────────
   steps: StepDef[] = [];
   stepIndex = 0;
   submitted = false;
-  readonly refNumber = 'CLT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  refNumber = 'CLT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
   // ── Computed from config ────────────────────────────────────────────────────
   amountMin = 10000;
@@ -160,20 +168,30 @@ export class ApplyComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   // ── Load config from localStorage, keyed by the ?product= query param ──────
+  // Only a currently-'live' product's published snapshot is ever served here — a draft
+  // edit only ever touches ProductRecord (via saveDraft), never this published-config key,
+  // and if the product has since been deactivated/unpublished its stale snapshot must not
+  // keep being served to real borrowers either, so status is re-checked on every load.
   private loadProduct() {
     const productId = this.route.snapshot.queryParamMap.get('product');
+    const isLive = !!productId && this.productsService.getById(productId)?.status === 'live';
     try {
-      const raw = productId ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
-      if (raw) {
+      const raw = productId && isLive ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
+      if (raw && productId) {
         this.product = { ...FALLBACK_CONFIG, ...JSON.parse(raw) };
         this.configSource = 'localStorage';
+        this.resolvedProductId = productId;
       } else {
         this.product = FALLBACK_CONFIG;
         this.configSource = 'fallback';
+        // No ?product= (or nothing published for it) — file the application against
+        // whichever real product is live, so LoanApplication.productId is always a real FK.
+        this.resolvedProductId = productId ?? this.productsService.products().find((p) => p.status === 'live')?.id ?? '';
       }
     } catch {
       this.product = FALLBACK_CONFIG;
       this.configSource = 'fallback';
+      this.resolvedProductId = this.productsService.products().find((p) => p.status === 'live')?.id ?? '';
     }
   }
 
@@ -273,6 +291,16 @@ export class ApplyComponent implements OnInit {
     return this.product.sectionCustomFields?.[sectionKey] ?? [];
   }
 
+  /**
+   * BVN verification is an anchor rule — always required later in the flow — regardless of
+   * whether this product's wizard configured entryBvn. If it wasn't collected at entry, the
+   * applicant would otherwise be surprised by a BVN field appearing later at Verify Identity;
+   * this shows them a heads-up on the entry step instead.
+   */
+  get showBvnEntryNotice(): boolean {
+    return !this.product.entryBvn;
+  }
+
   // ── Step helpers ────────────────────────────────────────────────────────────
   get currentStep(): StepDef { return this.steps[this.stepIndex]; }
 
@@ -297,7 +325,75 @@ export class ApplyComponent implements OnInit {
     }
   }
 
-  submit() { this.submitted = true; }
+  /** Set when submit() is blocked by an in-progress duplicate application from this BVN. */
+  duplicateBlockMessage: string | null = null;
+
+  submit() {
+    const applicantIdentifier = this.bvn || this.entryBvn;
+    const duplicateReason = this.loansService.getDuplicateApplicationBlockReason(this.resolvedProductId, applicantIdentifier);
+    if (duplicateReason) {
+      this.duplicateBlockMessage = duplicateReason;
+      return;
+    }
+
+    const customerName = `${this.firstName} ${this.lastName}`.trim() || 'Applicant';
+    const phone = this.phone || this.entryPhone || this.altPhone;
+
+    const stability: EmploymentStabilityInput = /nysc|corper|corps/i.test(this.employmentType)
+      ? { type: 'nysc-corper', monthsRemaining: 9 }
+      : { type: 'mda', category: 'private-large' };
+
+    const eligibilityInput: EligibilityInput = {
+      income: { source: (this.incomeChannel as 'ippis' | 'remita' | 'deduct') || 'other', monthlyAmount: +this.monthlyIncome || 0 },
+      stability,
+      repaymentHistory: { isRepeatBorrower: false },
+      exposure: { hasActiveLoanElsewhere: false },
+    };
+    const eligibility = scoreEligibility(eligibilityInput);
+
+    const requiredDocuments = this.docFields.map((d) => ({
+      type: d.label,
+      uploaded: !!this.getDoc(d.key),
+      approved: false,
+    }));
+
+    const created = this.loansService.create({
+      productId: this.resolvedProductId,
+      applicantIdentifier,
+      customerName,
+      customerPhone: phone,
+      customerPhoto: '',
+      amount: +this.loanAmount,
+      tenor: +this.loanTenor,
+      interestRate: +(this.product.interestRate || 0),
+      totalRepayment: this.totalRepayment,
+      monthlyRepayment: this.monthlyEst,
+      workplace: this.employerName,
+      workplaceIdNumber: this.staffId,
+      telephoneNumber: phone,
+      salaryBankName: this.bankName,
+      salaryBankAccount: this.bankAccountNumber,
+      referralCode: this.route.snapshot.queryParamMap.get('ref') ?? '',
+      status: 'new',
+      verificationResults: {
+        bvnVerified: /^\d{11}$/.test(this.bvn),
+        secondaryCheckPassed: this.otpSent && !!this.otp,
+        mismatchFlags: /^\d{11}$/.test(this.bvn) ? [] : ['BVN could not be validated — expected an 11-digit number.'],
+      },
+      eligibilityScore: {
+        score: eligibility.score,
+        maxEligibleAmount: eligibility.maxEligibleAmount,
+        tenor: eligibility.tenorMonths,
+      },
+      requiredDocuments,
+      deductionChannelStatus: this.loansService.buildDeductionChannelStatus(this.resolvedProductId),
+      utmSource: this.route.snapshot.queryParamMap.get('utm_source') ?? 'direct',
+      utmMedium: this.route.snapshot.queryParamMap.get('utm_medium') ?? 'organic',
+    });
+
+    this.refNumber = created.loanUniqueId;
+    this.submitted = true;
+  }
 
   // ── OTP ─────────────────────────────────────────────────────────────────────
   sendOtp() { this.otpSent = true; }

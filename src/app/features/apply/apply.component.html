@@ -144,6 +144,9 @@
               </div>
             }
           </div>
+          @if (showBvnEntryNotice) {
+            <p class="screen-notice">You'll also need your BVN to complete this application.</p>
+          }
         </div>
       }
 
@@ -597,6 +600,10 @@
           </div>
 
           <p class="consent-note">By submitting, I confirm all information is accurate and I consent to credit checks and data processing as described in the <a href="#">Privacy Policy</a> of {{ product.brandName || 'Caltos' }}.</p>
+
+          @if (duplicateBlockMessage) {
+            <p class="screen-notice error">{{ duplicateBlockMessage }}</p>
+          }
         </div>
       }
 

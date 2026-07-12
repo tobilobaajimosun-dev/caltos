@@ -27,7 +27,7 @@
                     variant="secondary"
                     [label]="effectiveStatus === 'live' ? 'Deactivate product' : 'Activate product'"
                     [icon]="effectiveStatus === 'live' ? pauseIcon : checkIcon"
-                    [disabled]="pendingSetupCount > 0"
+                    [disabled]="pendingSetupCount > 0 || (product.status !== 'live' && !canActivate)"
                     (clicked)="togglePublish()" />
                   <div class="more-menu-wrap">
                     <button class="more-btn" (click)="toggleMoreMenu()" aria-label="More options">
@@ -42,6 +42,9 @@
                   </div>
                 </div>
               </div>
+              @if (pendingSetupCount === 0 && publishBlockedMessage) {
+                <p class="hero-publish-block">{{ publishBlockedMessage }}</p>
+              }
               <p class="hero-created">Created at: {{ product.createdAt }}</p>
 
               <div class="hero-desc-block">
@@ -183,8 +186,8 @@
                 </div>
                 <div class="bio-row">
                   <span class="bio-label">Deduction Channel</span>
-                  <span class="pill-tag" [class.active]="effectiveStatus !== 'draft' && product.deductionChannels[0]?.status === 'connected'">
-                    {{ (effectiveStatus !== 'draft' && product.deductionChannels[0]?.status === 'connected') ? 'Active' : 'Not active' }}
+                  <span class="pill-tag" [class.active]="effectiveStatus !== 'draft' && product.deductionChannels[0]?.status === 'live'">
+                    {{ (effectiveStatus !== 'draft' && product.deductionChannels[0]?.status === 'live') ? 'Active' : 'Not active' }}
                   </span>
                 </div>
               </div>
@@ -657,8 +660,48 @@
               <h3 class="integrations-title">Integrations</h3>
               <p class="integrations-sub">Connect the providers this product needs for verification, deductions, disbursements, signatures, and marketplace distribution.</p>
             </div>
-            <app-round-tabs [tabs]="integrationScopeTabs" [activeTab]="integrationScope" (activeTabChange)="setIntegrationScope($any($event))" />
           </div>
+
+          @if (product.deductionChannels.length) {
+            <div class="channel-status-section">
+              <h4 class="channel-status-heading">
+                Deduction channel status
+                <app-info-popover title="Deduction channel status" description="Every enabled channel must reach Live before this product can be published — save credentials, test the connection, then activate." />
+              </h4>
+              <div class="channel-status-grid">
+                @for (channel of product.deductionChannels; track channel.id) {
+                  <div class="channel-status-card">
+                    <div class="channel-status-top">
+                      <p class="channel-status-name">{{ channel.label }}</p>
+                      <app-status-badge [status]="channelStatusBadge(channel.status).status" [label]="channelStatusBadge(channel.status).label" />
+                    </div>
+                    <p class="channel-status-coverage">{{ channel.coverage }}</p>
+                    <div class="channel-status-actions">
+                      @if (channel.status === 'not_configured') {
+                        <app-button variant="secondary" label="Save credentials" (clicked)="openChannelCredentials(channel)" />
+                      } @else if (channel.status === 'credentials_saved') {
+                        <app-button variant="secondary" [label]="testingChannelId === channel.id ? 'Testing…' : 'Test connection'" [disabled]="testingChannelId === channel.id" (clicked)="runTestConnection(channel)" />
+                        <app-button variant="text" label="Edit credentials" (clicked)="openChannelCredentials(channel)" />
+                      } @else if (channel.status === 'test_passed') {
+                        <app-button variant="primary" label="Activate channel" (clicked)="activateChannel(channel)" />
+                        <app-button variant="text" [label]="testingChannelId === channel.id ? 'Testing…' : 'Re-test'" [disabled]="testingChannelId === channel.id" (clicked)="runTestConnection(channel)" />
+                      } @else if (channel.status === 'needs_reverification') {
+                        <app-button variant="secondary" [label]="testingChannelId === channel.id ? 'Testing…' : 'Re-verify connection'" [disabled]="testingChannelId === channel.id" (clicked)="runTestConnection(channel)" />
+                        <p class="channel-status-stale-note">Last verified over 30 days ago — re-test and reactivate to keep collecting repayments.</p>
+                      } @else {
+                        <p class="channel-status-live-note">Live and collecting repayments.</p>
+                      }
+                    </div>
+                    @if (channelTestResult[channel.id]; as result) {
+                      <p class="channel-status-test-msg" [class.error]="!result.success">{{ result.message }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <app-round-tabs [tabs]="integrationScopeTabs" [activeTab]="integrationScope" (activeTabChange)="setIntegrationScope($any($event))" />
 
           @if (integrationScope === 'active') {
             @if (activeIntegrations.length) {
@@ -770,6 +813,25 @@
       @if (integrationToastVisible) {
         <app-toast type="success" title="Integration connected" message="This provider is now active on this loan product." (dismissed)="integrationToastVisible = false" />
       }
+
+      <!-- Deduction channel credentials modal -->
+      <app-modal [isOpen]="!!channelCredentialsTarget" [title]="(channelCredentialsTarget?.status === 'not_configured' ? 'Save credentials — ' : 'Edit credentials — ') + (channelCredentialsTarget?.label || '')" size="sm" (closed)="closeChannelCredentials()">
+        @if (channelCredentialsTarget) {
+          <div class="target-form">
+            <p class="target-explainer">Enter the credentials {{ channelCredentialsTarget.label }} issued you. Saving resets this channel to "Credentials saved" — you'll need to test the connection before it can go live.</p>
+            @for (field of channelCredentialsTarget.fields; track field.key) {
+              <div class="ob-field-group">
+                <label class="ob-label">{{ field.label }}</label>
+                <input class="ob-input" type="text" [placeholder]="field.label" [(ngModel)]="channelCredentialForm[field.key]" />
+              </div>
+            }
+          </div>
+        }
+        <div modalFooter>
+          <app-button variant="outline" label="Cancel" (clicked)="closeChannelCredentials()" />
+          <app-button variant="primary" label="Save credentials" (clicked)="saveChannelCredentials()" />
+        </div>
+      </app-modal>
 
       <!-- ═══ LEGAL ═══ -->
       @if (activeTab === 'legal') {

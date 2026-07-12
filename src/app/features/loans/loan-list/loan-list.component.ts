@@ -18,13 +18,7 @@ import {
   HiIconComponent,
 } from '../../../shared/components';
 import { ProductsService } from '../../../shared/services/products.service';
-
-/**
- * The 6 statuses shown in the reference screenshot. `label` below is always the real
- * English word shown to the user — `BadgeStatus` (see statusBadge()) only controls tint.
- */
-type LoanStatus = 'new' | 'declined' | 'documents-review' | 'closed' | 'disbursed' | 'top-up-request';
-type Channel = 'IPPIS' | 'Remita' | 'Dedukt' | 'WACS' | 'Direct Debit';
+import { LoansService, LoanApplication, LoanStatus } from '../../../shared/services/loans.service';
 
 /**
  * Query-param values the sidebar's Loans dropdown links with (`/loans?status=...`).
@@ -32,25 +26,6 @@ type Channel = 'IPPIS' | 'Remita' | 'Dedukt' | 'WACS' | 'Direct Debit';
  * on `statusParamFilter()` below for the reasoning behind each mapping.
  */
 type StatusParam = 'all' | 'requests' | 'in-review' | 'on-hold' | 'cancelled' | 'disbursed';
-
-interface LoanRow {
-  id: string;
-  date: string;
-  customer: { name: string; email: string };
-  workplaceId: string;
-  product: string;
-  channel: Channel;
-  amount: string;
-  tenor: number;
-  workplace: string;
-  /** Total amount to be repaid across the full tenor. */
-  repaymentTotal: string;
-  /** Amount deducted per repayment period (e.g. per month). */
-  repaymentPerPeriod: string;
-  status: LoanStatus;
-  selected?: boolean;
-  menuOpen?: boolean;
-}
 
 @Component({
   selector: 'app-loan-list',
@@ -68,6 +43,7 @@ interface LoanRow {
 export class LoanListComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly productsService = inject(ProductsService);
+  private readonly loansService = inject(LoansService);
 
   readonly downloadIcon: IconData = Download01Icon as IconData;
   readonly giveLoanIcon: IconData = Wallet01Icon as IconData;
@@ -90,10 +66,14 @@ export class LoanListComponent {
   readonly customersServedPeriod = signal('today');
   readonly disbursedPeriod = signal('today');
 
-  // Realistic non-zero mock stats (values would normally come from a stats service).
-  readonly statActiveLoans = 128;
-  readonly statCustomersServed = 412;
-  readonly statTotalDisbursed = '₦18,400,000';
+  readonly statActiveLoans = computed(() => this.loansService.loans().filter((l) => l.status === 'disbursed' || l.status === 'top_up_request').length);
+  readonly statCustomersServed = computed(() => new Set(this.loansService.loans().map((l) => l.applicantIdentifier)).size);
+  readonly statTotalDisbursed = computed(() => {
+    const total = this.loansService.loans()
+      .filter((l) => l.status === 'disbursed' || l.status === 'top_up_request' || l.status === 'closed')
+      .reduce((sum, l) => sum + l.amount, 0);
+    return `₦${total.toLocaleString()}`;
+  });
 
   /** Status query-param filter, driven by the sidebar's Loans dropdown (/loans?status=...). */
   readonly statusParam = signal<StatusParam>('all');
@@ -119,18 +99,19 @@ export class LoanListComponent {
   private statusesForParam(param: StatusParam): LoanStatus[] | null {
     switch (param) {
       case 'requests': return ['new'];
-      case 'in-review': return ['documents-review'];
-      case 'on-hold': return ['top-up-request'];
+      case 'in-review': return ['documents_review'];
+      case 'on-hold': return ['top_up_request'];
       case 'cancelled': return ['declined', 'closed'];
       case 'disbursed': return ['disbursed'];
       default: return null;
     }
   }
 
-  // Product-based tabs, sourced from the real product catalogue (deduped by name).
+  // Product-based tabs, sourced from the real product catalogue and filtered by productId
+  // (not name) — two products can share a display name, but ids are always unique.
   readonly productTabs = computed<Tab[]>(() => {
-    const names = [...new Set(this.productsService.products().map((p) => p.name))];
-    return [{ label: 'All Products', value: 'all' }, ...names.map((name) => ({ label: name, value: name }))];
+    const products = this.productsService.products();
+    return [{ label: 'All Products', value: 'all' }, ...products.map((p) => ({ label: p.name, value: p.id }))];
   });
   readonly activeProduct = signal('all');
   setProduct(value: string) {
@@ -157,77 +138,78 @@ export class LoanListComponent {
   }
 
   readonly searchQuery = signal('');
+  readonly selectedIds = signal<Set<string>>(new Set());
 
-  readonly loans = signal<LoanRow[]>([
-    { id: 'LN-202406-001', date: '2026-06-02', customer: { name: 'Akpan Akporigomayen', email: 'akpan@princepsfinance.com' }, workplaceId: 'IPPIS/2024/00821', product: 'Corper Wallet', channel: 'Remita', amount: '₦150,000', tenor: 6, workplace: 'Federal Ministry of Works', repaymentTotal: '₦165,000', repaymentPerPeriod: '₦27,500', status: 'disbursed' },
-    { id: 'LN-202406-002', date: '2026-06-05', customer: { name: 'Bola Adebayo', email: 'bola@princepsfinance.com' }, workplaceId: 'IPPIS/2024/01143', product: 'Credit Wallet', channel: 'IPPIS', amount: '₦75,000', tenor: 3, workplace: 'Lagos State Government', repaymentTotal: '₦78,900', repaymentPerPeriod: '₦26,300', status: 'new' },
-    { id: 'LN-202406-003', date: '2026-05-28', customer: { name: 'Chika Okafor', email: 'chika@princepsfinance.com' }, workplaceId: 'IPPIS/2023/00456', product: 'Credit Alert', channel: 'Dedukt', amount: '₦320,000', tenor: 12, workplace: 'Dangote Group', repaymentTotal: '₦358,800', repaymentPerPeriod: '₦29,900', status: 'documents-review' },
-    { id: 'LN-202406-004', date: '2026-06-10', customer: { name: 'Damilola Ojo', email: 'damilola@princepsfinance.com' }, workplaceId: 'IPPIS/2024/02219', product: 'WACS', channel: 'WACS', amount: '₦45,000', tenor: 9, workplace: 'NYSC Corps Members', repaymentTotal: '₦47,700', repaymentPerPeriod: '₦5,300', status: 'declined' },
-    { id: 'LN-202406-005', date: '2026-05-15', customer: { name: 'Emeka Nwosu', email: 'emeka@princepsfinance.com' }, workplaceId: 'IPPIS/2022/00981', product: 'Corper Wallet', channel: 'Direct Debit', amount: '₦210,000', tenor: 6, workplace: 'Federal Ministry of Works', repaymentTotal: '₦231,000', repaymentPerPeriod: '₦38,500', status: 'top-up-request' },
-    { id: 'LN-202406-006', date: '2026-04-20', customer: { name: 'Fatima Abdallah', email: 'fatima@princepsfinance.com' }, workplaceId: 'IPPIS/2023/01732', product: 'Credit Wallet', channel: 'Remita', amount: '₦95,000', tenor: 6, workplace: 'Lagos State Government', repaymentTotal: '₦104,400', repaymentPerPeriod: '₦17,400', status: 'closed' },
-    { id: 'LN-202406-007', date: '2026-06-18', customer: { name: 'Gideon Mbogo', email: 'gideon@princepsfinance.com' }, workplaceId: 'IPPIS/2024/03012', product: 'Corper Wallet', channel: 'IPPIS', amount: '₦60,000', tenor: 3, workplace: 'NYSC Corps Members', repaymentTotal: '₦63,000', repaymentPerPeriod: '₦21,000', status: 'disbursed' },
-    { id: 'LN-202406-008', date: '2026-06-21', customer: { name: 'Akpan Akporigomayen', email: 'akpan@princepsfinance.com' }, workplaceId: 'IPPIS/2024/00821', product: 'Quick Buy BNPL', channel: 'Remita', amount: '₦120,000', tenor: 4, workplace: 'Federal Ministry of Works', repaymentTotal: '₦127,200', repaymentPerPeriod: '₦31,800', status: 'new' },
-  ]);
+  productName(productId: string): string {
+    return this.productsService.getById(productId)?.name ?? productId;
+  }
 
-  get filteredLoans(): LoanRow[] {
-    let list = this.loans();
+  /** The channel this loan is primarily collected through — first enabled rail on the application. */
+  primaryChannel(loan: LoanApplication): string {
+    return loan.deductionChannelStatus[0]?.rail ?? '—';
+  }
+
+  get filteredLoans(): LoanApplication[] {
+    let list = this.loansService.loans();
 
     const statuses = this.statusesForParam(this.statusParam());
     if (statuses) list = list.filter((l) => statuses.includes(l.status));
 
-    if (this.activeProduct() !== 'all') list = list.filter((l) => l.product === this.activeProduct());
-    if (this.channelFilter() !== 'all') list = list.filter((l) => l.channel === this.channelFilter());
+    if (this.activeProduct() !== 'all') list = list.filter((l) => l.productId === this.activeProduct());
+    if (this.channelFilter() !== 'all') list = list.filter((l) => this.primaryChannel(l) === this.channelFilter());
 
     const q = this.searchQuery().trim().toLowerCase();
     if (q) {
       list = list.filter((l) =>
-        l.id.toLowerCase().includes(q) ||
-        l.customer.name.toLowerCase().includes(q) ||
-        l.product.toLowerCase().includes(q),
+        l.loanUniqueId.toLowerCase().includes(q) ||
+        l.customerName.toLowerCase().includes(q) ||
+        this.productName(l.productId).toLowerCase().includes(q),
       );
     }
 
     return list;
   }
 
-  readonly anySelected = computed(() => this.loans().some((l) => l.selected));
-  readonly selectedCount = computed(() => this.loans().filter((l) => l.selected).length);
+  readonly anySelected = computed(() => this.selectedIds().size > 0);
+  readonly selectedCount = computed(() => this.selectedIds().size);
 
-  toggleSelect(loan: LoanRow, checked: boolean) {
-    this.loans.update((all) => all.map((l) => (l.id === loan.id ? { ...l, selected: checked } : l)));
+  toggleSelect(loan: LoanApplication, checked: boolean) {
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      checked ? next.add(loan.id) : next.delete(loan.id);
+      return next;
+    });
   }
 
   clearSelection() {
-    this.loans.update((all) => all.map((l) => ({ ...l, selected: false })));
+    this.selectedIds.set(new Set());
   }
 
   statusBadge(status: LoanStatus): { status: BadgeStatus; label: string } {
     switch (status) {
       case 'new': return { status: 'active', label: 'New' };
       case 'declined': return { status: 'failed', label: 'Declined' };
-      case 'documents-review': return { status: 'pending', label: 'Documents Review' };
+      case 'documents_review': return { status: 'pending', label: 'Documents Review' };
       case 'closed': return { status: 'dormant', label: 'Closed' };
       case 'disbursed': return { status: 'successful', label: 'Disbursed' };
-      case 'top-up-request': return { status: 'suspended', label: 'Top Up Request' };
+      case 'top_up_request': return { status: 'suspended', label: 'Top Up Request' };
     }
   }
 
-  toggleRowMenu(event: Event, loan: LoanRow) {
+  readonly menuOpenId = signal<string | null>(null);
+
+  toggleRowMenu(event: Event, loan: LoanApplication) {
     event.stopPropagation();
-    const wasOpen = loan.menuOpen;
-    this.loans.update((all) => all.map((l) => ({ ...l, menuOpen: false })));
-    if (!wasOpen) {
-      this.loans.update((all) => all.map((l) => (l.id === loan.id ? { ...l, menuOpen: true } : l)));
-    }
+    this.menuOpenId.update((id) => (id === loan.id ? null : loan.id));
   }
 
   closeMenus() {
     this.filterPanelOpen.set(false);
-    this.loans.update((all) => (all.some((l) => l.menuOpen) ? all.map((l) => ({ ...l, menuOpen: false })) : all));
+    this.menuOpenId.set(null);
   }
 
   bulkExport() {
-    const selected = this.loans().filter((l) => l.selected);
+    const selected = this.loansService.loans().filter((l) => this.selectedIds().has(l.id));
     this.downloadCsv(selected);
     this.clearSelection();
   }
@@ -240,10 +222,10 @@ export class LoanListComponent {
     this.downloadCsv(this.filteredLoans);
   }
 
-  private downloadCsv(rows: LoanRow[]) {
-    const header = 'Loan ID,Date,Customer,Workplace ID,Product,Workplace,Channel,Amount,Tenor,Repayment Total,Repayment Per Period,Status\n';
+  private downloadCsv(rows: LoanApplication[]) {
+    const header = 'Loan Unique ID,Date,Customer,Phone,Product,Workplace,Amount,Tenor,Total Repayment,Monthly Repayment,Referral Code,Status\n';
     const body = rows
-      .map((l) => `${l.id},${l.date},${l.customer.name},${l.workplaceId},${l.product},${l.workplace},${l.channel},${l.amount},${l.tenor} months,${l.repaymentTotal},${l.repaymentPerPeriod},${this.statusBadge(l.status).label}`)
+      .map((l) => `${l.loanUniqueId},${l.appliedAt.slice(0, 10)},${l.customerName},${l.customerPhone},${this.productName(l.productId)},${l.workplace},₦${l.amount.toLocaleString()},${l.tenor} months,₦${l.totalRepayment.toLocaleString()},₦${l.monthlyRepayment.toLocaleString()},${l.referralCode},${this.statusBadge(l.status).label}`)
       .join('\n');
     const blob = new Blob([header + body], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);

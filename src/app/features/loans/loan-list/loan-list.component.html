@@ -14,21 +14,21 @@
       <p class="stat-label">Total Active loans</p>
       <app-select class="period-pill" [options]="periodOptions" [value]="activeLoansPeriod()" (valueChange)="activeLoansPeriod.set($event)" />
     </div>
-    <p class="stat-value">{{ statActiveLoans }}</p>
+    <p class="stat-value">{{ statActiveLoans() }}</p>
   </div>
   <div class="stat-card">
     <div class="stat-card-head">
       <p class="stat-label">Customers Served</p>
       <app-select class="period-pill" [options]="periodOptions" [value]="customersServedPeriod()" (valueChange)="customersServedPeriod.set($event)" />
     </div>
-    <p class="stat-value">{{ statCustomersServed }}</p>
+    <p class="stat-value">{{ statCustomersServed() }}</p>
   </div>
   <div class="stat-card">
     <div class="stat-card-head">
       <p class="stat-label">Total Disbursed Amount</p>
       <app-select class="period-pill" [options]="periodOptions" [value]="disbursedPeriod()" (valueChange)="disbursedPeriod.set($event)" />
     </div>
-    <p class="stat-value">{{ statTotalDisbursed }}</p>
+    <p class="stat-value">{{ statTotalDisbursed() }}</p>
   </div>
 </div>
 
@@ -69,11 +69,12 @@
         <th></th>
         <th><app-column-title label="Date" /></th>
         <th><app-column-title label="Loan ID" /></th>
-        <th><app-column-title label="Name & Workplace ID" /></th>
+        <th><app-column-title label="Name & Phone" /></th>
         <th><app-column-title label="Loan Amount & Tenor" /></th>
         <th><app-column-title label="Product" /></th>
         <th><app-column-title label="Workplace" /></th>
         <th><app-column-title label="Repayment" /></th>
+        <th><app-column-title label="Referral Code" /></th>
         <th><app-column-title label="Status" /></th>
         <th></th>
       </tr>
@@ -81,36 +82,39 @@
     <tbody>
       @for (loan of filteredLoans; track loan.id) {
         <tr class="clickable-row">
-          <td (click)="$event.stopPropagation()"><app-checkbox [checked]="!!loan.selected" (checkedChange)="toggleSelect(loan, $event)" /></td>
-          <td [routerLink]="['/loans', loan.id]" class="col-date">{{ loan.date }}</td>
-          <td [routerLink]="['/loans', loan.id]" class="col-id">{{ loan.id }}</td>
+          <td (click)="$event.stopPropagation()"><app-checkbox [checked]="selectedIds().has(loan.id)" (checkedChange)="toggleSelect(loan, $event)" /></td>
+          <td [routerLink]="['/loans', loan.id]" class="col-date">{{ loan.appliedAt.slice(0, 10) }}</td>
+          <td [routerLink]="['/loans', loan.id]" class="col-id">{{ loan.loanUniqueId }}</td>
           <td [routerLink]="['/loans', loan.id]">
             <div class="two-line-cell">
-              <span class="line-primary">{{ loan.customer.name }}</span>
-              <span class="line-secondary">IPPIS No: {{ loan.workplaceId }}</span>
+              <span class="line-primary">{{ loan.customerName }}</span>
+              <span class="line-secondary">{{ loan.customerPhone }}</span>
             </div>
           </td>
           <td [routerLink]="['/loans', loan.id]">
             <div class="two-line-cell">
-              <span class="line-primary">{{ loan.amount }}</span>
+              <span class="line-primary">₦{{ loan.amount.toLocaleString() }}</span>
               <span class="line-secondary">For {{ loan.tenor }} months</span>
             </div>
           </td>
-          <td [routerLink]="['/loans', loan.id]" class="col-product">{{ loan.product }}</td>
+          <td class="col-product">
+            <a class="product-link" [routerLink]="['/products', loan.productId]" (click)="$event.stopPropagation()">{{ productName(loan.productId) }}</a>
+          </td>
           <td [routerLink]="['/loans', loan.id]" class="col-workplace">{{ loan.workplace }}</td>
           <td [routerLink]="['/loans', loan.id]">
             <div class="two-line-cell">
-              <span class="line-primary">{{ loan.repaymentTotal }}</span>
-              <span class="line-secondary">{{ loan.repaymentPerPeriod }} p/m</span>
+              <span class="line-primary">₦{{ loan.totalRepayment.toLocaleString() }}</span>
+              <span class="line-secondary">₦{{ loan.monthlyRepayment.toLocaleString() }} p/m</span>
             </div>
           </td>
+          <td [routerLink]="['/loans', loan.id]" class="col-referral">{{ loan.referralCode || '—' }}</td>
           <td [routerLink]="['/loans', loan.id]"><app-status-badge [status]="statusBadge(loan.status).status" [label]="statusBadge(loan.status).label" /></td>
           <td class="col-actions" (click)="$event.stopPropagation()">
             <div class="dropdown-wrap">
               <button type="button" class="more-btn" (click)="toggleRowMenu($event, loan)">
                 <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
               </button>
-              @if (loan.menuOpen) {
+              @if (menuOpenId() === loan.id) {
                 <div class="row-dropdown" (click)="$event.stopPropagation()">
                   <a class="dropdown-item" [routerLink]="['/loans', loan.id]">
                     <hi-icon [icon]="viewIcon" size="15" color="currentColor" />
@@ -123,7 +127,7 @@
         </tr>
       }
       @empty {
-        <tr><td colspan="10" class="empty-cell">No loans match these filters.</td></tr>
+        <tr><td colspan="11" class="empty-cell">No loans match these filters.</td></tr>
       }
     </tbody>
   </table>

@@ -1,89 +1,247 @@
-<div class="page-header">
-  <div>
-    <h1 class="page-title">{{ product }}</h1>
-    <p class="page-subtitle">{{ customerName }} · {{ loanId }}</p>
-  </div>
-  <app-status-badge [status]="status" />
-</div>
+@if (!loan) {
+  <div class="panel"><p>Loan not found.</p></div>
+} @else {
+  <div class="loan-detail-grid">
 
-<div class="tab-bar">
-  <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
-</div>
+    <!-- ── LEFT PANEL ── -->
+    <div class="loan-left">
+      <div class="panel customer-card">
+        <app-avatar [name]="loan.customerName" size="lg" />
+        <div class="customer-info">
+          <p class="customer-name">{{ loan.customerName }}</p>
+          <p class="customer-applied">Applied at {{ loan.appliedAt | date: 'medium' }}</p>
+        </div>
+        <div class="customer-actions">
+          <app-button variant="secondary" label="View profile" (clicked)="viewProfile()" />
+          <app-button variant="secondary" label="Contact customer" (clicked)="contactCustomer()" />
+          <app-button variant="outline" label="Blacklist customer" (clicked)="openBlacklist()" />
+        </div>
+      </div>
 
-@if (activeTab() === 'overview') {
-  <div class="kpi-row">
-    <app-kpi-card label="Principal" [value]="principal" />
-    <app-kpi-card label="Outstanding balance" [value]="outstanding" />
-    <app-kpi-card label="Next repayment due" [value]="nextDueDate" />
-  </div>
+      <div class="tab-bar">
+        <app-round-tabs [tabs]="tabs" [activeTab]="activeTab()" (activeTabChange)="setTab($event)" />
+      </div>
 
-  <div class="panel">
-    <div class="panel-head">
-      <p class="panel-title">Loan summary</p>
-    </div>
-    <div class="summary-grid">
-      <div class="summary-row"><span class="summary-label">Disbursed date</span><span class="summary-value">{{ disbursedDate }}</span></div>
-      <div class="summary-row"><span class="summary-label">Deduction channel</span><span class="summary-value">{{ channel }}</span></div>
-      <div class="summary-row"><span class="summary-label">Borrower</span><span class="summary-value">{{ customerName }}</span></div>
-      <div class="summary-row"><span class="summary-label">Product</span><span class="summary-value">{{ product }}</span></div>
-    </div>
-  </div>
+      <!-- ABOUT LOAN -->
+      @if (activeTab() === 'about') {
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Work information</p></div>
+          <div class="summary-grid">
+            <div class="summary-row"><span class="summary-label">Workplace</span><span class="summary-value">{{ loan.workplace || '—' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Workplace ID number</span><span class="summary-value">{{ loan.workplaceIdNumber || '—' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Telephone number</span><span class="summary-value">{{ loan.telephoneNumber || '—' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Salary bank</span><span class="summary-value">{{ loan.salaryBankName || '—' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Salary account</span><span class="summary-value">{{ loan.salaryBankAccount || '—' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Applicant BVN</span><span class="summary-value">{{ loan.applicantIdentifier || '—' }}</span></div>
+          </div>
+        </div>
 
-  <div class="panel">
-    <div class="panel-head">
-      <p class="panel-title">Repayment progress</p>
-    </div>
-    <app-progress-bar [value]="repaidPct" label="Repaid to date" />
-  </div>
-}
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Verification results</p></div>
+          <div class="summary-grid">
+            <div class="summary-row">
+              <span class="summary-label">BVN verified</span>
+              <app-status-badge [status]="loan.verificationResults.bvnVerified ? 'successful' : 'failed'" [label]="loan.verificationResults.bvnVerified ? 'Verified' : 'Not verified'" />
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Secondary check</span>
+              <app-status-badge [status]="loan.verificationResults.secondaryCheckPassed ? 'successful' : 'pending'" [label]="loan.verificationResults.secondaryCheckPassed ? 'Passed' : 'Pending'" />
+            </div>
+          </div>
+          @if (loan.verificationResults.mismatchFlags.length) {
+            <ul class="mismatch-list">
+              @for (flag of loan.verificationResults.mismatchFlags; track flag) {
+                <li>{{ flag }}</li>
+              }
+            </ul>
+          }
+        </div>
 
-@if (activeTab() === 'repayments') {
-  <div class="panel table-panel">
-    <div class="panel-head">
-      <p class="panel-title">Repayment schedule</p>
-      <p class="panel-sub">Schedule vs. actual — variance per period</p>
-    </div>
-    <table class="ref-table">
-      <thead>
-        <tr>
-          <th><app-column-title label="Installment" /></th>
-          <th><app-column-title label="Due date" /></th>
-          <th><app-column-title label="Amount" /></th>
-          <th><app-column-title label="Status" /></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of schedule; track row.installment) {
-          <tr>
-            <td><app-table-item type="text" [text]="row.installment" /></td>
-            <td><app-table-item type="date" [date]="row.dueDate" /></td>
-            <td><app-table-item type="amount" [amount]="row.amount" /></td>
-            <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Paid' : 'Upcoming'" /></td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-}
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Eligibility score</p></div>
+          <div class="summary-grid">
+            <div class="summary-row"><span class="summary-label">Score</span><span class="summary-value">{{ loan.eligibilityScore.score }} / 100</span></div>
+            <div class="summary-row"><span class="summary-label">Max eligible amount</span><span class="summary-value">₦{{ loan.eligibilityScore.maxEligibleAmount.toLocaleString() }}</span></div>
+            <div class="summary-row"><span class="summary-label">Eligible tenor</span><span class="summary-value">{{ loan.eligibilityScore.tenor }} months</span></div>
+          </div>
+        </div>
+      }
 
-@if (activeTab() === 'refunds') {
-  <div class="embedded-tab">
-    <app-refunds />
-  </div>
-}
+      <!-- DOCUMENTS -->
+      @if (activeTab() === 'documents') {
+        <div class="panel table-panel embedded-tab">
+          <div class="panel-head">
+            <p class="panel-title">Required documents</p>
+          </div>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th><app-column-title label="Document" /></th>
+                <th><app-column-title label="Status" /></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (doc of loan.requiredDocuments; track doc.type) {
+                <tr>
+                  <td>{{ doc.type }}</td>
+                  <td><app-status-badge [status]="docStatusBadge(doc).status" [label]="docStatusBadge(doc).label" /></td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="2" class="empty-cell">No documents required for this product.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
 
-@if (activeTab() === 'activity') {
-  <div class="panel">
-    <div class="panel-head">
-      <p class="panel-title">Activity timeline</p>
-    </div>
-    <div class="activity-timeline">
-      @for (entry of activity; track entry.at + entry.event) {
-        <div class="timeline-row">
-          <span class="timeline-at">{{ entry.at }}</span>
-          <span class="timeline-event">{{ entry.event }}</span>
+      <!-- UNDERTAKING -->
+      @if (activeTab() === 'undertaking') {
+        <div class="panel">
+          <div class="panel-head">
+            <p class="panel-title">Consent record</p>
+            <app-status-badge status="successful" label="Accepted" />
+          </div>
+          <p class="undertaking-meta">Accepted by {{ loan.customerName }} at {{ loan.appliedAt | date: 'medium' }}</p>
+          <p class="undertaking-text">{{ loan.productConfigSnapshot.policyText || 'No consent text was configured for this product.' }}</p>
+        </div>
+      }
+
+      <!-- INTEGRATIONS -->
+      @if (activeTab() === 'integrations') {
+        <div class="panel table-panel embedded-tab">
+          <div class="panel-head">
+            <p class="panel-title">Deduction channel status</p>
+            <p class="panel-sub">Live status for each rail enabled on this product, at the time this application was filed.</p>
+          </div>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th><app-column-title label="Rail" /></th>
+                <th><app-column-title label="Status" /></th>
+                <th><app-column-title label="Coverage" /></th>
+                <th><app-column-title label="Priority" /></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ch of snapshotDeductionChannels; track ch.id) {
+                <tr>
+                  <td>{{ ch.name }}</td>
+                  <td><app-status-badge [status]="channelStatusBadge(ch.status).status" [label]="channelStatusBadge(ch.status).label" /></td>
+                  <td>{{ ch.coverage || '—' }}</td>
+                  <td>{{ ch.priority }}</td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="4" class="empty-cell">No deduction channels enabled on this product.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- PAYMENT -->
+      @if (activeTab() === 'payment') {
+        <div class="panel table-panel embedded-tab">
+          <div class="panel-head">
+            <p class="panel-title">Repayment schedule</p>
+          </div>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th><app-column-title label="Installment" /></th>
+                <th><app-column-title label="Due date" /></th>
+                <th><app-column-title label="Amount" /></th>
+                <th><app-column-title label="Status" /></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of repaymentSchedule; track row.installment) {
+                <tr>
+                  <td>{{ row.installment }}</td>
+                  <td>{{ row.dueDate }}</td>
+                  <td>₦{{ row.amount.toLocaleString() }}</td>
+                  <td><app-status-badge [status]="row.status" [label]="row.status === 'successful' ? 'Collected' : 'Upcoming'" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- ACTIVITY LOG -->
+      @if (activeTab() === 'activity') {
+        <div class="panel embedded-tab">
+          <div class="panel-head"><p class="panel-title">Activity log</p></div>
+          <div class="activity-timeline">
+            @for (entry of loan.activityLog; track entry.timestamp + entry.event) {
+              <div class="timeline-row">
+                <span class="timeline-at">{{ entry.timestamp | date: 'medium' }}</span>
+                <span class="timeline-event">{{ entry.event }} <span class="timeline-actor">— {{ entry.actor }}</span></span>
+              </div>
+            }
+          </div>
         </div>
       }
     </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <div class="loan-right">
+      <div class="panel right-summary">
+        <div class="right-row right-status-row">
+          <app-status-badge [status]="statusBadge(loan.status).status" [label]="statusBadge(loan.status).label" />
+        </div>
+
+        <div class="right-row"><span class="right-label">Loan Unique ID</span><span class="right-value mono">{{ loan.loanUniqueId }}</span></div>
+
+        <div class="right-row right-amount-row">
+          <span class="right-label">Amount</span>
+          <span class="right-value">₦{{ loan.amount.toLocaleString() }}</span>
+          <button type="button" class="edit-amount-link" (click)="openEditAmount()">Edit Loan Amount</button>
+        </div>
+
+        <div class="right-row"><span class="right-label">Tenor</span><span class="right-value">{{ loan.tenor }} months</span></div>
+        <div class="right-row"><span class="right-label">Interest rate</span><span class="right-value">{{ loan.interestRate }}%</span></div>
+        <div class="right-row"><span class="right-label">Total repayment</span><span class="right-value">₦{{ loan.totalRepayment.toLocaleString() }}</span></div>
+        <div class="right-row"><span class="right-label">Monthly repayment</span><span class="right-value">₦{{ loan.monthlyRepayment.toLocaleString() }}</span></div>
+
+        <div class="right-row">
+          <span class="right-label">Product</span>
+          <a class="right-value link" [routerLink]="['/products', loan.productId]">{{ productName }}</a>
+        </div>
+
+        <div class="right-row"><span class="right-label">Loan ID</span><span class="right-value mono">{{ loan.id }}</span></div>
+
+        <div class="right-divider"></div>
+
+        <div class="right-row"><span class="right-label">UTM Source</span><span class="right-value">{{ loan.utmSource || '—' }}</span></div>
+        <div class="right-row"><span class="right-label">UTM Medium</span><span class="right-value">{{ loan.utmMedium || '—' }}</span></div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- Edit amount modal -->
+  <app-modal [isOpen]="showEditAmount" title="Edit loan amount" size="sm" (closed)="closeEditAmount()">
+    <div class="edit-amount-body">
+      <app-input label="Loan amount" type="number" [(value)]="editAmountValue" placeholder="Amount" />
+    </div>
+    <div modalFooter>
+      <app-button variant="outline" label="Cancel" (clicked)="closeEditAmount()" />
+      <app-button variant="primary" label="Save" (clicked)="saveAmount()" />
+    </div>
+  </app-modal>
+
+  <app-confirm-modal
+    [isOpen]="showBlacklistConfirm"
+    title="Blacklist customer?"
+    [message]="'This flags ' + loan.customerName + ' as blacklisted. This action is logged on the loan\'s activity log.'"
+    confirmLabel="Blacklist"
+    [danger]="true"
+    (confirmed)="confirmBlacklist()"
+    (cancelled)="cancelBlacklist()" />
+
+  @if (toastVisible) {
+    <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />
+  }
 }

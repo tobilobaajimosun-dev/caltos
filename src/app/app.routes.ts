@@ -12,6 +12,7 @@ import { ApplyComponent } from './features/apply/apply.component';
 import { RepaymentPortalComponent } from './features/portal/repayment-portal/repayment-portal.component';
 import { LoanListComponent } from './features/loans/loan-list/loan-list.component';
 import { LoanDetailComponent } from './features/loans/loan-detail/loan-detail.component';
+import { ManualReviewComponent } from './features/loans/manual-review/manual-review.component';
 import { RefundsComponent } from './features/loans/refunds/refunds.component';
 import { MandatesComponent } from './features/loans/mandates/mandates.component';
 import { RepaymentManagementComponent } from './features/loans/repayment-management/repayment-management.component';
@@ -76,6 +77,7 @@ export const routes: Routes = [
       { path: 'loans/processing', component: LoanProcessingComponent },
       { path: 'loans/calculator', component: LoanCalculatorComponent },
       { path: 'loans/eligibility-calculator', component: EligibilityCalculatorComponent },
+      { path: 'loans/manual-review', component: ManualReviewComponent },
       { path: 'loans/:id', component: LoanDetailComponent },
       { path: 'loans/:id/refunds', component: RefundsComponent },
       { path: 'repayments', component: RepaymentManagementComponent },

@@ -15,6 +15,17 @@ export interface ProductStats {
 
 export type ChannelStatus = 'connected' | 'pending' | 'not-configured';
 
+/**
+ * Lifecycle of a single deduction rail's integration, in the order a lender
+ * moves through it: save credentials → test the connection → activate.
+ * Only 'live' counts toward canActivate/publish gating below. 'needs_reverification'
+ * is never persisted directly — it's what effectiveChannelStatus() computes for a
+ * channel that's been 'live' longer than REVERIFICATION_PERIOD_DAYS since its last
+ * successful testConnection call, and is treated as not-live for gating purposes
+ * until a fresh test/activate cycle clears it.
+ */
+export type DeductionChannelStatus = 'not_configured' | 'credentials_saved' | 'test_passed' | 'live' | 'needs_reverification';
+
 export interface DeductionChannelField {
   key: string;
   label: string;
@@ -58,11 +69,15 @@ export interface DeductionChannelConfig {
   id: string;
   name: string;
   enabled: boolean;
-  status: ChannelStatus;
+  status: DeductionChannelStatus;
   coverage: string;
   priority: number;
   /** Required credential fields for this rail — sourced from DEDUCTION_CHANNEL_DEFS. */
   fields: DeductionChannelField[];
+  /** Saved credential values, keyed by field.key — set once by saveChannelCredentials(). */
+  credentials?: Record<string, string>;
+  /** ISO timestamp of the last successful testConnection() call — drives effectiveChannelStatus(). */
+  lastVerifiedAt?: string;
 }
 
 export interface IncomeChannelConfig {
@@ -171,6 +186,47 @@ export interface ProductRecord {
   config: ProductConfig;
 }
 
+/** Days a 'live' channel is trusted after its last successful testConnection() before it needs re-verification. */
+export const REVERIFICATION_PERIOD_DAYS = 30;
+
+/**
+ * A 'live' channel doesn't stay trusted forever — if it's been longer than
+ * REVERIFICATION_PERIOD_DAYS since its last successful test, treat it as
+ * 'needs_reverification' (not live) for gating/display, even though the
+ * persisted status field still says 'live'. Every other status passes through.
+ */
+export function effectiveChannelStatus(channel: DeductionChannelConfig, now: Date = new Date()): DeductionChannelStatus {
+  if (channel.status !== 'live') return channel.status;
+  if (!channel.lastVerifiedAt) return 'needs_reverification';
+  const ageDays = (now.getTime() - new Date(channel.lastVerifiedAt).getTime()) / (1000 * 60 * 60 * 24);
+  return ageDays >= REVERIFICATION_PERIOD_DAYS ? 'needs_reverification' : 'live';
+}
+
+function channelStatusBlockReason(status: DeductionChannelStatus): string {
+  switch (status) {
+    case 'not_configured': return 'needs credentials before it can go live';
+    case 'credentials_saved': return 'pending test connection';
+    case 'test_passed': return 'passed testing — activate it to go live';
+    case 'needs_reverification': return `hasn't been re-verified in over ${REVERIFICATION_PERIOD_DAYS} days — re-test and reactivate it`;
+    default: return 'is not ready';
+  }
+}
+
+/** True only when every enabled deduction channel has reached (and still holds) 'live'. Gates publish(). */
+export function computeCanActivate(config: ProductConfig, now: Date = new Date()): boolean {
+  const enabled = config.deductionChannels.filter((c) => c.enabled);
+  return enabled.length > 0 && enabled.every((c) => effectiveChannelStatus(c, now) === 'live');
+}
+
+/** Human-readable reason publish() would be blocked, or null if it wouldn't be. */
+export function publishBlockReason(config: ProductConfig, now: Date = new Date()): string | null {
+  if (computeCanActivate(config, now)) return null;
+  const enabled = config.deductionChannels.filter((c) => c.enabled);
+  if (!enabled.length) return 'Enable at least one deduction channel before publishing.';
+  const blocker = enabled.find((c) => effectiveChannelStatus(c, now) !== 'live')!;
+  return `${blocker.name} integration ${channelStatusBlockReason(effectiveChannelStatus(blocker, now))}.`;
+}
+
 const STORAGE_KEY = 'caltos_products';
 
 const DEFAULT_STATS: ProductStats = {
@@ -197,9 +253,9 @@ function seedProducts(): ProductRecord[] {
       { id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'connected' },
     ],
     deductionChannels: [
-      { id: 'ippis', name: 'IPPIS', enabled: true, status: 'pending', coverage: 'Federal MDAs only', priority: 1, fields: DEDUCTION_CHANNEL_DEFS['ippis'].fields },
-      { id: 'remita', name: 'Remita', enabled: true, status: 'connected', coverage: 'Federal + some states', priority: 2, fields: DEDUCTION_CHANNEL_DEFS['remita'].fields },
-      { id: 'remita-direct-debit', name: 'Direct Debit', enabled: true, status: 'not-configured', coverage: 'Any bank', priority: 3, fields: DEDUCTION_CHANNEL_DEFS['remita-direct-debit'].fields },
+      { id: 'ippis', name: 'IPPIS', enabled: true, status: 'test_passed', coverage: 'Federal MDAs only', priority: 1, fields: DEDUCTION_CHANNEL_DEFS['ippis'].fields, credentials: { username: 'princeps-ops', password: '••••••••', agencyCode: 'FMH-001' } },
+      { id: 'remita', name: 'Remita', enabled: true, status: 'live', coverage: 'Federal + some states', priority: 2, fields: DEDUCTION_CHANNEL_DEFS['remita'].fields, credentials: { merchantId: 'RM-2291', apiKey: '••••••••', serviceTypeId: '4430731', apiToken: '••••••••' }, lastVerifiedAt: '2026-07-01T09:00:00.000Z' },
+      { id: 'remita-direct-debit', name: 'Direct Debit', enabled: true, status: 'not_configured', coverage: 'Any bank', priority: 3, fields: DEDUCTION_CHANNEL_DEFS['remita-direct-debit'].fields },
     ],
     repaymentFrequency: 'Monthly',
     minRepayments: '3',
@@ -225,7 +281,7 @@ function seedProducts(): ProductRecord[] {
     videoConfirmation: 'No',
     incomeChannels: [{ id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'connected' }],
     deductionChannels: [
-      { id: 'mono-direct-debit', name: 'Direct Debit', enabled: true, status: 'connected', coverage: 'Any bank', priority: 1, fields: DEDUCTION_CHANNEL_DEFS['mono-direct-debit'].fields },
+      { id: 'mono-direct-debit', name: 'Direct Debit', enabled: true, status: 'live', coverage: 'Any bank', priority: 1, fields: DEDUCTION_CHANNEL_DEFS['mono-direct-debit'].fields, credentials: { secretKey: '••••••••', publicKey: 'pk_live_mono_qb001' }, lastVerifiedAt: '2026-07-01T09:00:00.000Z' },
     ],
     repaymentFrequency: 'Monthly',
     minRepayments: '1',
@@ -279,7 +335,7 @@ function seedProducts(): ProductRecord[] {
       config: {
         ...corperWalletConfig,
         deductionChannels: [
-          { id: 'wacs', name: 'WACS', enabled: true, status: 'connected', coverage: 'State MDAs on the WACS platform', priority: 1, fields: DEDUCTION_CHANNEL_DEFS['wacs'].fields },
+          { id: 'wacs', name: 'WACS', enabled: true, status: 'credentials_saved', coverage: 'State MDAs on the WACS platform', priority: 1, fields: DEDUCTION_CHANNEL_DEFS['wacs'].fields, credentials: { username: 'princeps-wacs', password: '••••••••', secretKey: '••••••••' } },
         ],
       },
     },
@@ -374,11 +430,102 @@ export class ProductsService {
       name: `${source.name} (Copy)`,
       status: 'draft',
       stats: DEFAULT_STATS,
+      config: {
+        ...source.config,
+        // A copy must earn its own 'live' channels — credentials belong to the original
+        // integration account and a status of 'live'/'test_passed' would otherwise let the
+        // new draft claim canActivate without ever running its own save-credentials/test cycle.
+        deductionChannels: source.config.deductionChannels.map((c) => ({
+          id: c.id,
+          name: c.name,
+          enabled: c.enabled,
+          status: 'not_configured',
+          coverage: c.coverage,
+          priority: c.priority,
+          fields: c.fields,
+        })),
+      },
     });
   }
 
   remove(id: string) {
     this._products.update((list) => list.filter((p) => p.id !== id));
     this.persist();
+  }
+
+  /** True only when every enabled deduction channel on this product is 'live'. */
+  canActivate(id: string): boolean {
+    const record = this.getById(id);
+    return !!record && computeCanActivate(record.config);
+  }
+
+  /** Reason publish() would currently be blocked for this product, or null if it wouldn't be. */
+  getPublishBlockReason(id: string): string | null {
+    const record = this.getById(id);
+    return record ? publishBlockReason(record.config) : null;
+  }
+
+  /** Sets the product live, but only if canActivate — a product cannot publish while any enabled channel is below 'live'. */
+  publish(id: string): { success: boolean; reason?: string } {
+    const record = this.getById(id);
+    if (!record) return { success: false, reason: 'Product not found.' };
+    const reason = publishBlockReason(record.config);
+    if (reason) return { success: false, reason };
+    this.setStatus(id, 'live');
+    return { success: true };
+  }
+
+  private updateChannel(productId: string, channelId: string, fn: (c: DeductionChannelConfig) => DeductionChannelConfig) {
+    this._products.update((list) => list.map((p) => (p.id !== productId ? p : {
+      ...p,
+      config: {
+        ...p.config,
+        deductionChannels: p.config.deductionChannels.map((c) => (c.id === channelId ? fn(c) : c)),
+      },
+    })));
+    this.persist();
+  }
+
+  saveChannelCredentials(productId: string, channelId: string, credentials: Record<string, string>) {
+    this.updateChannel(productId, channelId, (c) => ({ ...c, credentials, status: 'credentials_saved' }));
+  }
+
+  /**
+   * Simulates pinging the rail's endpoint with its saved credentials — there's no real backend
+   * here, so failure is driven by a "fail"/"invalid" marker in a credential value rather than
+   * chance, letting testers deliberately exercise the failure path on demand.
+   */
+  async testConnection(productId: string, channelId: string): Promise<{ success: boolean; message: string }> {
+    const record = this.getById(productId);
+    const channel = record?.config.deductionChannels.find((c) => c.id === channelId);
+    if (!channel) return { success: false, message: 'Channel not found.' };
+    if (channel.status === 'not_configured') {
+      return { success: false, message: `Save ${channel.name} credentials before testing the connection.` };
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const values = Object.values(channel.credentials ?? {});
+    const success = !values.some((v) => /fail|invalid/i.test(v));
+    this.updateChannel(productId, channelId, (c) => ({
+      ...c,
+      status: success ? 'test_passed' : 'credentials_saved',
+      lastVerifiedAt: success ? new Date().toISOString() : c.lastVerifiedAt,
+    }));
+    return {
+      success,
+      message: success
+        ? `${channel.name} connection verified.`
+        : `${channel.name} rejected the saved credentials — check them and try again.`,
+    };
+  }
+
+  /** Promotes a rail to 'live', but only once it has actually passed a connection test. */
+  activateChannel(productId: string, channelId: string): boolean {
+    const record = this.getById(productId);
+    const channel = record?.config.deductionChannels.find((c) => c.id === channelId);
+    if (!channel || channel.status !== 'test_passed') return false;
+    this.updateChannel(productId, channelId, (c) => ({ ...c, status: 'live' }));
+    return true;
   }
 }

@@ -15,6 +15,7 @@ import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
 import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS } from '../../../shared/services/products.service';
+import { LoansService } from '../../../shared/services/loans.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   PlusSignIcon, EyeIcon, Clock01Icon,
@@ -500,6 +501,7 @@ export class CreateLoanComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly productsService = inject(ProductsService);
+  private readonly loansService = inject(LoansService);
 
   editingProductId: string | null = null;
 
@@ -516,6 +518,12 @@ export class CreateLoanComponent implements OnInit {
         const record = this.productsService.getById(id);
         if (record) {
           this.editingProductId = id;
+          // Deduction channel checkboxes must reflect what's actually enabled on the record —
+          // buildDeductionChannels() preserves a channel's live status/credentials when it stays
+          // checked, but only if it starts out checked correctly. Without this, opening any
+          // product not originally created through this wizard (e.g. a seeded product) would
+          // show every channel unchecked, and saving would silently drop them all.
+          const enabledChannelIds = new Set(record.config.deductionChannels.filter((c) => c.enabled).map((c) => c.id));
           this.config = {
             ...this.config,
             name: record.name,
@@ -528,6 +536,12 @@ export class CreateLoanComponent implements OnInit {
             interestModel: record.interestType,
             interestRate: record.interestRate,
             interestChargedWhen: record.interestFrequency,
+            deductIppis: enabledChannelIds.has('ippis'),
+            deductRemita: enabledChannelIds.has('remita'),
+            deductDedukt: enabledChannelIds.has('dedukt'),
+            deductWacs: enabledChannelIds.has('wacs'),
+            deductRemitaDirectDebit: enabledChannelIds.has('remita-direct-debit'),
+            deductMonoDirectDebit: enabledChannelIds.has('mono-direct-debit'),
           };
         }
       }
@@ -665,6 +679,13 @@ export class CreateLoanComponent implements OnInit {
    * DEDUCTION_CHANNEL_DEFS so this rail's required credential fields (e.g. WACS's
    * username/password/secret key) are part of the saved record — the same fields
    * product-detail's Integrations tab will ask for when someone connects it.
+   *
+   * When editing an existing product, a channel that stays checked keeps whatever
+   * progress it already had (status/credentials/lastVerifiedAt) instead of being
+   * reset to 'not_configured' — every prior edit silently wiped a rail's connected/
+   * live state back to scratch, which would have also violated the "can't disable a
+   * channel active loans depend on" rule the moment you re-saved the product at all.
+   * Only a channel that's newly checked for the first time starts fresh.
    */
   private buildDeductionChannels(): DeductionChannelConfig[] {
     const selected: { id: string; enabled: boolean }[] = [
@@ -675,17 +696,25 @@ export class CreateLoanComponent implements OnInit {
       { id: 'remita-direct-debit', enabled: this.config.deductRemitaDirectDebit },
       { id: 'mono-direct-debit', enabled: this.config.deductMonoDirectDebit },
     ];
+    const existing = this.editingProductId
+      ? (this.productsService.getById(this.editingProductId)?.config.deductionChannels ?? [])
+      : [];
     return selected
       .filter((s) => s.enabled)
-      .map((s, i) => ({
-        id: s.id,
-        name: DEDUCTION_CHANNEL_DEFS[s.id].name,
-        enabled: true,
-        status: 'not-configured' as const,
-        coverage: this.deductionChannelCoverage[s.id] ?? '',
-        priority: i + 1,
-        fields: DEDUCTION_CHANNEL_DEFS[s.id].fields,
-      }));
+      .map((s, i) => {
+        const prior = existing.find((c) => c.id === s.id);
+        return {
+          id: s.id,
+          name: DEDUCTION_CHANNEL_DEFS[s.id].name,
+          enabled: true,
+          status: prior?.status ?? ('not_configured' as const),
+          coverage: this.deductionChannelCoverage[s.id] ?? '',
+          priority: i + 1,
+          fields: DEDUCTION_CHANNEL_DEFS[s.id].fields,
+          credentials: prior?.credentials,
+          lastVerifiedAt: prior?.lastVerifiedAt,
+        };
+      });
   }
 
   private buildProductConfig(): ProductConfig {
@@ -746,7 +775,61 @@ export class CreateLoanComponent implements OnInit {
     };
   }
 
+  /** Blocking dialog message when a save would disable a channel active loans depend on. */
+  saveBlockMessage: string | null = null;
+
+  /**
+   * If editing an existing product, diffs its currently-enabled channels against what this
+   * save is about to persist. Any channel being dropped that active loans still depend on
+   * blocks the save — those loans would otherwise lose the rail they're relying on to collect
+   * repayment. Returns the first blocking reason found, or null if the save is safe.
+   */
+  private findChannelDisableBlockReason(newChannels: DeductionChannelConfig[]): string | null {
+    if (!this.editingProductId) return null;
+    const live = this.productsService.getById(this.editingProductId);
+    if (!live) return null;
+    const newIds = new Set(newChannels.map((c) => c.id));
+    const dropped = live.config.deductionChannels.filter((c) => c.enabled && !newIds.has(c.id));
+    for (const channel of dropped) {
+      const reason = this.loansService.getChannelDisableBlockReason(this.editingProductId, channel.id, channel.name);
+      if (reason) return reason;
+    }
+    return null;
+  }
+
+  /**
+   * minAmount/maxAmount/minTenor/maxTenor/interestRate must be non-negative, and the
+   * min of each range must not exceed its max — otherwise the product is unusable
+   * (e.g. a borrower can never land in an empty amount range) or nonsensical.
+   */
+  private findFieldValidationError(): string | null {
+    const num = (v: string) => +String(v).replace(/,/g, '');
+    const minAmount = num(this.config.minAmount);
+    const maxAmount = num(this.config.maxAmount);
+    const minTenor = num(this.config.minTenor);
+    const maxTenor = num(this.config.maxTenor);
+    const interestRate = num(this.config.interestRate);
+
+    if ([minAmount, maxAmount, minTenor, maxTenor, interestRate].some((v) => Number.isNaN(v) || v < 0)) {
+      return 'Amount, tenor, and interest rate fields must be zero or positive numbers.';
+    }
+    if (minAmount > maxAmount) return 'Minimum amount cannot be greater than maximum amount.';
+    if (minTenor > maxTenor) return 'Minimum tenor cannot be greater than maximum tenor.';
+    return null;
+  }
+
   saveDraft() {
+    const fieldError = this.findFieldValidationError();
+    if (fieldError) {
+      this.saveBlockMessage = fieldError;
+      return;
+    }
+    const deductionChannels = this.buildDeductionChannels();
+    const blockReason = this.findChannelDisableBlockReason(deductionChannels);
+    if (blockReason) {
+      this.saveBlockMessage = blockReason;
+      return;
+    }
     const patch = this.buildProductPatch();
     if (this.editingProductId) {
       this.productsService.update(this.editingProductId, patch);
@@ -764,6 +847,17 @@ export class CreateLoanComponent implements OnInit {
   }
 
   publish() {
+    const fieldError = this.findFieldValidationError();
+    if (fieldError) {
+      this.saveBlockMessage = fieldError;
+      return;
+    }
+    const deductionChannels = this.buildDeductionChannels();
+    const blockReason = this.findChannelDisableBlockReason(deductionChannels);
+    if (blockReason) {
+      this.saveBlockMessage = blockReason;
+      return;
+    }
     const patch = this.buildProductPatch();
     if (this.editingProductId) {
       this.productsService.update(this.editingProductId, { ...patch, status: 'live' });

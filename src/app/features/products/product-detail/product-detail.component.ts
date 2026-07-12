@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent } from '../../../shared/components';
-import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DEDUCTION_CHANNEL_DEFS } from '../../../shared/services/products.service';
+import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
 import {
   ArrowLeft02Icon,
   PauseIcon,
@@ -285,7 +285,7 @@ interface ProductData {
   autoDeductions: string;
   videoConfirmation: string;
   incomeChannels: { id: string; label: string; desc: string; status: 'connected' | 'pending' | 'not-configured' }[];
-  deductionChannels: { id: string; label: string; desc: string; coverage: string; status: 'connected' | 'pending' | 'not-configured'; priority: number }[];
+  deductionChannels: { id: string; label: string; desc: string; coverage: string; status: DeductionChannelStatus; enabled: boolean; priority: number; fields: { key: string; label: string }[] }[];
   repaymentFrequency: string;
   minRepayments: string;
   maxRepayments: string;
@@ -373,8 +373,10 @@ function mapRecordToProductData(record: ProductRecord): ProductData {
       label: dc.name,
       desc: DEDUCTION_CHANNEL_DEFS[dc.id]?.fields.map((f) => f.label).join(', ') ?? '',
       coverage: dc.coverage,
-      status: dc.status,
+      status: effectiveChannelStatus(dc),
+      enabled: dc.enabled,
       priority: dc.priority,
+      fields: dc.fields,
     })),
     repaymentFrequency: c.repaymentFrequency,
     minRepayments: c.minRepayments,
@@ -402,6 +404,7 @@ const BNPL_SAMPLE_VENDORS: Vendor[] = [
 export class ProductDetailComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   activeTab: DetailTab = 'overview';
   statPeriod: 'today' | 'week' | 'month' | 'all' = 'month';
@@ -450,11 +453,18 @@ export class ProductDetailComponent implements OnInit {
     activeCustomers: { current: 0, target: 0 },
   };
 
-  readonly setupSteps = [
-    { id: 'identity',  title: 'Identity verification setup', description: 'Setup the 2 identity verification channels you selected', done: false },
-    { id: 'income',    title: 'Income verification setup',   description: 'Setup the 2 identity verification channels you selected', done: false },
-    { id: 'deduction', title: 'Deduction Channel Setup',     description: 'Setup the 2 identity verification channels you selected', done: false },
-  ];
+  /** Identity/income verification is "done" once every selected channel has moved past not-configured. */
+  private get incomeChannelsConfigured(): boolean {
+    return this.product.incomeChannels.length > 0 && this.product.incomeChannels.every((c) => c.status !== 'not-configured');
+  }
+
+  get setupSteps() {
+    return [
+      { id: 'identity', title: 'Identity verification setup', description: 'Setup the identity verification channels you selected', done: this.incomeChannelsConfigured },
+      { id: 'income', title: 'Income verification setup', description: 'Setup the income verification channels you selected', done: this.incomeChannelsConfigured },
+      { id: 'deduction', title: 'Deduction Channel Setup', description: 'Setup the deduction channels you selected', done: this.canActivate },
+    ];
+  }
 
   get pendingSetupCount() { return this.setupSteps.filter(s => !s.done).length; }
 
@@ -677,6 +687,64 @@ export class ProductDetailComponent implements OnInit {
     setTimeout(() => (this.integrationToastVisible = false), 3500);
   }
 
+  // ── Deduction channel status (real per-rail lifecycle, gates publish) ──
+  channelCredentialsTarget: ProductData['deductionChannels'][number] | null = null;
+  channelCredentialForm: Record<string, string> = {};
+  testingChannelId: string | null = null;
+  channelTestResult: Record<string, { success: boolean; message: string }> = {};
+
+  channelStatusBadge(status: DeductionChannelStatus): { status: BadgeStatus; label: string } {
+    switch (status) {
+      case 'not_configured': return { status: 'dormant', label: 'Not configured' };
+      case 'credentials_saved': return { status: 'pending', label: 'Credentials saved' };
+      case 'test_passed': return { status: 'overdue', label: 'Test passed' };
+      case 'live': return { status: 'successful', label: 'Live' };
+      case 'needs_reverification': return { status: 'failed', label: 'Needs re-verification' };
+    }
+  }
+
+  openChannelCredentials(channel: ProductData['deductionChannels'][number]) {
+    const { [channel.id]: _removed, ...rest } = this.channelTestResult;
+    this.channelTestResult = rest;
+    const record = this.productsService.getById(this.productId);
+    const saved = record?.config.deductionChannels.find((c) => c.id === channel.id)?.credentials ?? {};
+    this.channelCredentialForm = Object.fromEntries(channel.fields.map((f) => [f.key, saved[f.key] ?? '']));
+    this.channelCredentialsTarget = channel;
+  }
+
+  closeChannelCredentials() { this.channelCredentialsTarget = null; }
+
+  saveChannelCredentials() {
+    if (!this.channelCredentialsTarget) return;
+    const target = this.channelCredentialsTarget;
+    const allFilled = target.fields.every((f) => this.channelCredentialForm[f.key]?.trim());
+    if (!allFilled) return;
+    this.productsService.saveChannelCredentials(this.productId, target.id, { ...this.channelCredentialForm });
+    this.channelCredentialsTarget = null;
+    this.refreshProduct();
+  }
+
+  async runTestConnection(channel: ProductData['deductionChannels'][number]) {
+    this.testingChannelId = channel.id;
+    const result = await this.productsService.testConnection(this.productId, channel.id);
+    this.channelTestResult = { ...this.channelTestResult, [channel.id]: result };
+    this.testingChannelId = null;
+    this.refreshProduct();
+    // This app runs zoneless — the continuation after `await` isn't an Angular-tracked
+    // event, so nothing repaints the view on its own without an explicit nudge here.
+    this.cdr.markForCheck();
+  }
+
+  activateChannel(channel: ProductData['deductionChannels'][number]) {
+    this.productsService.activateChannel(this.productId, channel.id);
+    this.refreshProduct();
+  }
+
+  private refreshProduct() {
+    const record = this.productsService.getById(this.productId);
+    if (record) this.product = mapRecordToProductData(record);
+  }
+
   // ── "See more" row action dialog ──
   loanActionRow: ActiveLoanRow | null = null;
 
@@ -777,7 +845,7 @@ export class ProductDetailComponent implements OnInit {
       this.vendors = this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : [];
       this.activeTab = 'overview';
       this.connectedIntegrationIds = new Set(
-        record.config.deductionChannels.filter((c) => c.status === 'connected').map((c) => c.id),
+        record.config.deductionChannels.filter((c) => c.status === 'live').map((c) => c.id),
       );
 
       this.activeLoans = this.buildMockActiveLoans();
@@ -789,10 +857,10 @@ export class ProductDetailComponent implements OnInit {
   private buildCollectionsData() {
     this.channelPerformance = this.product.deductionChannels.map((ch, i) => {
       const expected = 1_500_000 + i * 620_000;
-      const variancePct = ch.status === 'connected' ? 0.92 - i * 0.05 : 0.6;
+      const variancePct = ch.status === 'live' ? 0.92 - i * 0.05 : 0.6;
       return {
         channel: ch.label,
-        status: ch.status === 'connected' ? 'connected' : 'pending',
+        status: ch.status === 'live' ? 'connected' : 'pending',
         expected,
         collected: Math.round(expected * variancePct),
         successRateTrend: [
@@ -844,11 +912,27 @@ export class ProductDetailComponent implements OnInit {
     this.router.navigate(['/products/create'], { queryParams: { id: this.productId } });
   }
 
+  /** True once every enabled deduction channel is 'live' — required to publish. */
+  get canActivate(): boolean {
+    return this.productsService.canActivate(this.productId);
+  }
+
+  /** Explains why the Publish button is disabled, or null when publishing is allowed. */
+  get publishBlockedMessage(): string | null {
+    if (this.product.status === 'live') return null;
+    return this.productsService.getPublishBlockReason(this.productId);
+  }
+
   togglePublish() {
     if (this.pendingSetupCount > 0) return;
-    const next: ProductStatus = this.product.status === 'live' ? 'deactivated' : 'live';
-    this.productsService.setStatus(this.productId, next);
-    this.product = { ...this.product, status: next };
+    if (this.product.status === 'live') {
+      this.productsService.setStatus(this.productId, 'deactivated');
+      this.product = { ...this.product, status: 'deactivated' };
+      return;
+    }
+    const result = this.productsService.publish(this.productId);
+    if (!result.success) return;
+    this.product = { ...this.product, status: 'live' };
   }
 
   toggleMoreMenu() { this.moreMenuOpen = !this.moreMenuOpen; }
