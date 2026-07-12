@@ -82,6 +82,7 @@ export interface LoanApplication {
   applicantIdentifier: string;
   customerName: string;
   customerPhone: string;
+  customerEmail: string;
   customerPhoto: string;
   amount: number;
   tenor: number;
@@ -100,6 +101,9 @@ export interface LoanApplication {
   requiredDocuments: RequiredDocument[];
   deductionChannelStatus: DeductionChannelStatusEntry[];
   productConfigSnapshot: ProductTermsSnapshot;
+  /** Set once a reviewer approves this loan from the manual review queue — keeps it from
+   * reappearing in the queue just because its score/mismatch flags are still technically borderline. */
+  manualReviewCleared?: boolean;
   activityLog: ActivityLogEntry[];
   utmSource: string;
   utmMedium: string;
@@ -123,9 +127,9 @@ export function manualReviewReasons(loan: LoanApplication): string[] {
   return reasons;
 }
 
-/** Only still-pipeline loans (not already resolved) with an active flag belong in the queue. */
+/** Only still-pipeline, not-yet-cleared loans with an active flag belong in the queue. */
 export function needsManualReview(loan: LoanApplication): boolean {
-  return UNRESOLVED_STATUSES.includes(loan.status) && manualReviewReasons(loan).length > 0;
+  return !loan.manualReviewCleared && UNRESOLVED_STATUSES.includes(loan.status) && manualReviewReasons(loan).length > 0;
 }
 
 const STORAGE_KEY = 'caltos_loans';
@@ -134,7 +138,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
   const rows: Omit<LoanApplication, 'productConfigSnapshot'>[] = [
     {
       id: 'LN0001', loanUniqueId: 'CW001-0001', productId: 'CW001',
-      applicantIdentifier: '22190034561', customerName: 'Akpan Akporigomayen', customerPhone: '08034760349', customerPhoto: '',
+      applicantIdentifier: '22190034561', customerName: 'Akpan Akporigomayen', customerPhone: '08034760349', customerEmail: 'akpan.akporigomayen@example.com', customerPhoto: '',
       amount: 150_000, tenor: 6, interestRate: 7.5, totalRepayment: 165_000, monthlyRepayment: 27_500,
       workplace: 'Federal Ministry of Works', workplaceIdNumber: 'IPPIS/2024/00821', telephoneNumber: '08034760349',
       salaryBankName: 'GTBank', salaryBankAccount: '0234567891', referralCode: 'REF-AKP20',
@@ -159,7 +163,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
     },
     {
       id: 'LN0002', loanUniqueId: 'CRI02-0001', productId: 'CRI02',
-      applicantIdentifier: '22190045672', customerName: 'Bola Adebayo', customerPhone: '08123456780', customerPhoto: '',
+      applicantIdentifier: '22190045672', customerName: 'Bola Adebayo', customerPhone: '08123456780', customerEmail: 'bola.adebayo@example.com', customerPhoto: '',
       amount: 75_000, tenor: 3, interestRate: 7.5, totalRepayment: 78_900, monthlyRepayment: 26_300,
       workplace: 'Lagos State Government', workplaceIdNumber: 'IPPIS/2024/01143', telephoneNumber: '08123456780',
       salaryBankName: 'Access Bank', salaryBankAccount: '0198765432', referralCode: '',
@@ -181,7 +185,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
     },
     {
       id: 'LN0003', loanUniqueId: 'CA100-0001', productId: 'CA100',
-      applicantIdentifier: '22190098213', customerName: 'Chika Okafor', customerPhone: '08098765432', customerPhoto: '',
+      applicantIdentifier: '22190098213', customerName: 'Chika Okafor', customerPhone: '08098765432', customerEmail: 'chika.okafor@example.com', customerPhoto: '',
       amount: 320_000, tenor: 12, interestRate: 7.5, totalRepayment: 358_800, monthlyRepayment: 29_900,
       workplace: 'Dangote Group', workplaceIdNumber: 'IPPIS/2023/00456', telephoneNumber: '08098765432',
       salaryBankName: 'Zenith Bank', salaryBankAccount: '0221334455', referralCode: 'REF-CHK09',
@@ -206,7 +210,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
     },
     {
       id: 'LN0004', loanUniqueId: 'WCR03-0001', productId: 'WCR03',
-      applicantIdentifier: '22190011209', customerName: 'Damilola Ojo', customerPhone: '08145678901', customerPhoto: '',
+      applicantIdentifier: '22190011209', customerName: 'Damilola Ojo', customerPhone: '08145678901', customerEmail: 'damilola.ojo@example.com', customerPhoto: '',
       amount: 45_000, tenor: 9, interestRate: 7.5, totalRepayment: 47_700, monthlyRepayment: 5_300,
       workplace: 'NYSC Corps Members', workplaceIdNumber: 'IPPIS/2024/02219', telephoneNumber: '08145678901',
       salaryBankName: 'UBA', salaryBankAccount: '0209988776', referralCode: '',
@@ -228,7 +232,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
     },
     {
       id: 'LN0005', loanUniqueId: 'CW001-0002', productId: 'CW001',
-      applicantIdentifier: '22190076554', customerName: 'Emeka Nwosu', customerPhone: '08011122233', customerPhoto: '',
+      applicantIdentifier: '22190076554', customerName: 'Emeka Nwosu', customerPhone: '08011122233', customerEmail: 'emeka.nwosu@example.com', customerPhoto: '',
       amount: 210_000, tenor: 6, interestRate: 7.5, totalRepayment: 231_000, monthlyRepayment: 38_500,
       workplace: 'Federal Ministry of Works', workplaceIdNumber: 'IPPIS/2022/00981', telephoneNumber: '08011122233',
       salaryBankName: 'First Bank', salaryBankAccount: '0301122334', referralCode: 'REF-EME77',
@@ -251,7 +255,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
     },
     {
       id: 'LN0006', loanUniqueId: 'CRI02-0002', productId: 'CRI02',
-      applicantIdentifier: '22190088342', customerName: 'Fatima Abdallah', customerPhone: '08056677889', customerPhoto: '',
+      applicantIdentifier: '22190088342', customerName: 'Fatima Abdallah', customerPhone: '08056677889', customerEmail: 'fatima.abdallah@example.com', customerPhoto: '',
       amount: 95_000, tenor: 6, interestRate: 7.5, totalRepayment: 104_400, monthlyRepayment: 17_400,
       workplace: 'Lagos State Government', workplaceIdNumber: 'IPPIS/2023/01732', telephoneNumber: '08056677889',
       salaryBankName: 'Fidelity Bank', salaryBankAccount: '0344556677', referralCode: '',
@@ -274,7 +278,7 @@ function seedLoans(productsService: ProductsService): LoanApplication[] {
     },
     {
       id: 'LN0007', loanUniqueId: 'QB001-0001', productId: 'QB001',
-      applicantIdentifier: '22190099887', customerName: 'Gideon Mbogo', customerPhone: '08076655443', customerPhoto: '',
+      applicantIdentifier: '22190099887', customerName: 'Gideon Mbogo', customerPhone: '08076655443', customerEmail: 'gideon.mbogo@example.com', customerPhoto: '',
       amount: 120_000, tenor: 4, interestRate: 5.0, totalRepayment: 127_200, monthlyRepayment: 31_800,
       workplace: 'Self-employed', workplaceIdNumber: '', telephoneNumber: '08076655443',
       salaryBankName: 'Moniepoint', salaryBankAccount: '0455667788', referralCode: 'REF-GID44',
@@ -394,6 +398,9 @@ export class LoansService {
     if (!loan) return;
     if (decision === 'approved') {
       const nextStatus: LoanStatus = loan.status === 'new' ? 'documents_review' : 'disbursed';
+      // Cleared explicitly — otherwise a still-borderline score would put it right back in the
+      // queue the moment a reviewer approves it, which reads as "did that even work?"
+      this.update(id, { manualReviewCleared: true });
       this.setStatus(id, nextStatus, actor);
       this.addActivity(id, `Manual review: approved${note ? ' — ' + note : ''}`, actor);
     } else if (decision === 'declined') {
@@ -415,7 +422,7 @@ export class LoansService {
     if (!loan) return;
     const result = this.deliveryService.send(
       'loan-status-update',
-      { phone: loan.customerPhone },
+      { phone: loan.customerPhone, email: loan.customerEmail },
       `Your application ${loan.loanUniqueId} status: ${status.replace(/_/g, ' ')}`,
     );
     if (!result.delivered) {

@@ -362,6 +362,7 @@ export class ApplyComponent implements OnInit {
       applicantIdentifier,
       customerName,
       customerPhone: phone,
+      customerEmail: this.email || this.entryEmail,
       customerPhoto: '',
       amount: +this.loanAmount,
       tenor: +this.loanTenor,

@@ -31,7 +31,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export class NotificationDeliveryService {
   /** Per-event channel priority, tried in order until one succeeds. */
   private readonly channelPriority: Record<string, DeliveryChannel[]> = {
-    'loan-status-update': ['sms', 'push'],
+    'loan-status-update': ['sms', 'email', 'push'],
     default: ['sms', 'email', 'push'],
   };
 
