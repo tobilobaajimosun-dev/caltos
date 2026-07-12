@@ -4,547 +4,434 @@
 
     <div class="content">
 
-      <!-- ── PRODUCT HEADER ── -->
-      <div class="product-header">
+      <!-- ── BACK LINK ── -->
+      <app-button variant="secondary" label="Back to products" [icon]="backIcon" (clicked)="goBack()" />
 
-        <app-breadcrumb [items]="[{ label: 'Products', link: '/products' }, { label: product.name }]" />
+      <div class="tab-body ov2">
 
-        <div class="ph-top">
-          <div class="ph-top-left">
-            <p class="ph-type">Loan Product</p>
-            <div class="ph-name-row">
-              <h1 class="ph-name">{{ product.name }}</h1>
-              <span class="status-pill" [class]="product.status">
-                <span class="status-dot"></span>{{ statusLabel(product.status) }}
-              </span>
+          <!-- ── HERO (always visible, regardless of active tab) ── -->
+          <div class="hero-card">
+            <div class="hero-image">
+              <p class="hero-image-headline">Do More With Up to <strong>₦1.5 Million</strong></p>
             </div>
-            <p class="ph-desc">{{ product.description }}</p>
-          </div>
-          <div class="ph-top-right">
-            <button class="more-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
-            </button>
-            <app-button
-              variant="outline"
-              [label]="product.status === 'live' ? 'Unpublish' : 'Publish'"
-              (clicked)="togglePublish()" />
-            <app-button variant="primary" label="Edit product" (clicked)="editProduct()" />
-          </div>
-        </div>
+            <div class="hero-info">
+              <div class="hero-info-top">
+                <div class="hero-title-row">
+                  <h2 class="hero-name">{{ product.name }}</h2>
+                  <span class="status-pill-sm" [class]="effectiveStatus">
+                    <span class="status-dot"></span>{{ statusLabel(effectiveStatus) }}
+                  </span>
+                </div>
+                <div class="hero-actions">
+                  <app-button
+                    variant="secondary"
+                    [label]="effectiveStatus === 'live' ? 'Deactivate product' : 'Activate product'"
+                    [icon]="effectiveStatus === 'live' ? pauseIcon : checkIcon"
+                    [disabled]="pendingSetupCount > 0"
+                    (clicked)="togglePublish()" />
+                  <div class="more-menu-wrap">
+                    <button class="more-btn" (click)="toggleMoreMenu()" aria-label="More options">
+                      <hi-icon [icon]="moreIcon" size="18" />
+                    </button>
+                    @if (moreMenuOpen) {
+                      <div class="more-menu-backdrop" (click)="moreMenuOpen = false"></div>
+                      <div class="row-dropdown" (click)="$event.stopPropagation()">
+                        <button class="dropdown-item" (click)="editProduct(); moreMenuOpen = false">Edit product</button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+              <p class="hero-created">Created at: {{ product.createdAt }}</p>
 
-        <div class="ph-link-bar">
-          <div class="ph-link-inner">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span class="ph-link-url">{{ product.websiteLink }}</span>
-            <button class="ph-link-copy" (click)="copyLink()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
-          </div>
-          <div class="ph-link-actions">
-            <app-button variant="outline" label="Copy link" (clicked)="copyLink()" />
-            <a class="ph-link-btn" [href]="product.applyRoute" target="_blank">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Preview portal
-            </a>
-            <button class="ph-link-btn ph-link-more">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
-            </button>
-          </div>
-        </div>
+              <div class="hero-desc-block">
+                <p class="hero-desc-label">Product Description:</p>
+                <p class="hero-desc">{{ product.description }}</p>
+              </div>
 
-        <div class="ph-tabs">
-          <button class="ph-tab" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
-          <button class="ph-tab" [class.active]="activeTab === 'performance'" (click)="setTab('performance')">Performance</button>
-          <button class="ph-tab" [class.active]="activeTab === 'active-loans'" (click)="setTab('active-loans')">Active Loans</button>
-          @if (isBnpl) {
-            <button class="ph-tab bnpl-tab" [class.active]="activeTab === 'vendors'" (click)="setTab('vendors')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
-              Vendors
-              <span class="vendor-count-badge">{{ vendors.length }}</span>
-            </button>
+              <div class="hero-links">
+                <div class="hero-link-chip">
+                  <hi-icon [icon]="linkIcon" size="16" />
+                  <span class="hero-link-url">{{ product.websiteLink }}</span>
+                  <button class="hero-link-copy" (click)="copyLink()" aria-label="Copy product link">
+                    <hi-icon [icon]="copyIcon" size="14" />
+                  </button>
+                </div>
+                <a class="hero-link-chip-btn" [href]="product.applyRoute" target="_blank">
+                  Preview portal
+                  <hi-icon [icon]="externalLinkIcon" size="14" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="ov2-divider"></div>
+
+          <!-- ── PRODUCT TARGETS ── -->
+          <div class="targets-block">
+            <div class="targets-head">
+              <div>
+                <h3 class="targets-title">Product Targets</h3>
+                <p class="targets-sub">This is the target set for the product; this can be changed at anytime.</p>
+              </div>
+              <app-button variant="secondary" [label]="targetsSet ? 'Edit target' : 'Set target'" [icon]="targetIcon" (clicked)="openTargetModal()" />
+            </div>
+
+            <div class="targets-period-row">
+              <app-round-tabs
+                [tabs]="frequencyOptions"
+                [activeTab]="targetPeriod"
+                (activeTabChange)="targetPeriod = $any($event)" />
+            </div>
+
+            <div class="target-stat-grid">
+              <div class="target-stat">
+                <div class="target-stat-head">
+                  <span class="target-stat-label">Loan Counts</span>
+                  <hi-icon [icon]="loanCountIcon" size="20" class="target-stat-icon" />
+                </div>
+                <div class="target-stat-val-row">
+                  <span class="target-stat-val">{{ targets.loanCount.current }}</span>
+                  <span class="target-stat-sub">out of {{ targets.loanCount.target | number }}</span>
+                </div>
+                <div class="target-stat-bar"><div class="target-stat-fill" [style.width]="targetPct(targets.loanCount.current, targets.loanCount.target) + '%'"></div></div>
+              </div>
+
+              <div class="target-stat">
+                <div class="target-stat-head">
+                  <span class="target-stat-label">Disbursement Amount</span>
+                  <hi-icon [icon]="disbursementIcon" size="20" class="target-stat-icon" />
+                </div>
+                <div class="target-stat-val-row">
+                  <span class="target-stat-val">{{ targets.disbursementAmount.current }}</span>
+                  <span class="target-stat-sub">out of ₦{{ targets.disbursementAmount.target | number }}</span>
+                </div>
+                <div class="target-stat-bar"><div class="target-stat-fill" [style.width]="targetPct(targets.disbursementAmount.current, targets.disbursementAmount.target) + '%'"></div></div>
+              </div>
+
+              <div class="target-stat">
+                <div class="target-stat-head">
+                  <span class="target-stat-label">Active Customers</span>
+                  <hi-icon [icon]="activeCustomersIcon" size="20" class="target-stat-icon" />
+                </div>
+                <div class="target-stat-val-row">
+                  <span class="target-stat-val">{{ targets.activeCustomers.current }}</span>
+                  <span class="target-stat-sub">out of {{ targets.activeCustomers.target | number }}</span>
+                </div>
+                <div class="target-stat-bar"><div class="target-stat-fill" [style.width]="targetPct(targets.activeCustomers.current, targets.activeCustomers.target) + '%'"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ov2-divider"></div>
+
+          <!-- ── PRODUCT SETUP ── -->
+          @if (pendingSetupCount > 0) {
+            <div class="setup-alert">
+              <span class="setup-alert-icon">
+                <hi-icon [icon]="alertIcon" size="13" color="#fff" />
+              </span>
+              <span class="setup-alert-text"><strong>Product Setup:</strong> Complete the remaining <span class="setup-alert-count">{{ pendingSetupCount }}</span> setup steps to publish your loan product.</span>
+            </div>
+
+            <div class="setup-cards-grid">
+              @for (step of setupSteps; track step.id) {
+                <div class="setup-card">
+                  <hi-icon [icon]="step.id === 'identity' ? identityIcon : incomeIcon" size="24" class="setup-card-icon" />
+                  <div class="setup-card-body">
+                    <p class="setup-card-title">{{ step.title }}</p>
+                    <p class="setup-card-desc">{{ step.description }}</p>
+                  </div>
+                  <app-button [fullWidth]="true" variant="secondary" label="Configure" [icon]="targetIcon" (clicked)="goToTab('integrations')" />
+                </div>
+              }
+            </div>
+
+            <div class="ov2-divider"></div>
           }
-          <button class="ph-tab" [class.active]="activeTab === 'eligibility'" (click)="setTab('eligibility')">
-            Who can apply
-            @if (!checklist[1].done) { <span class="tab-dot"></span> }
-          </button>
-          <button class="ph-tab" [class.active]="activeTab === 'fees'" (click)="setTab('fees')">Pricing & Fees</button>
-          <button class="ph-tab" [class.active]="activeTab === 'disbursement'" (click)="setTab('disbursement')">
-            Payouts & Repayments
-            @if (!checklist[3].done) { <span class="tab-dot"></span> }
-          </button>
-          <button class="ph-tab" [class.active]="activeTab === 'collections'" (click)="setTab('collections')">Collections</button>
-          <button class="ph-tab" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal & Consent</button>
-          <button class="ph-tab" [class.active]="activeTab === 'activity'" (click)="setTab('activity')">Activity</button>
-        </div>
+
+          <!-- ── TABS (underline style, always visible) ── -->
+          <app-tabs [tabs]="overviewTabItems" [activeTab]="activeTab" (activeTabChange)="setTab($any($event))" />
+
+          <div class="ov2-divider"></div>
 
       </div>
 
       <!-- ═══ OVERVIEW ═══ -->
       @if (activeTab === 'overview') {
-        <div class="overview-layout">
-
-          <!-- ── LEFT COLUMN ── -->
-          <div class="ov-left">
-
-            <!-- Setup checklist accordion -->
-            <div class="setup-checklist" [class.expanded]="setupExpanded">
-              <div class="setup-ch-header" (click)="setupExpanded = !setupExpanded">
-                <div class="setup-ch-left">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <span class="setup-ch-title">Get this product live</span>
-                  <span class="setup-ch-badge">{{ completedCount }} of {{ checklist.length }} done</span>
-                </div>
-                <div class="setup-ch-right">
-                  <span class="setup-ch-pct">{{ setupPct }}% complete</span>
-                  <svg width="22" height="22" viewBox="0 0 22 22" style="transform: rotate(-90deg)">
-                    <circle cx="11" cy="11" r="8" fill="none" [style.stroke]="'var(--color-stroke)'" stroke-width="2.5"/>
-                    <circle cx="11" cy="11" r="8" fill="none" [style.stroke]="'var(--color-blue)'" stroke-width="2.5"
-                      [attr.stroke-dasharray]="(setupPct / 100 * 50.27) + ' 50.27'"
-                      stroke-linecap="round"/>
-                  </svg>
-                  <svg class="setup-ch-chevron" [class.open]="setupExpanded" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="setup-progress-bar">
-                <div class="setup-progress-fill" [style.width]="setupPct + '%'"></div>
-              </div>
-              @if (setupExpanded) {
-                <div class="setup-ch-items">
-                  @for (item of checklist; track item.id) {
-                    <div class="setup-ch-item" [class.done]="item.done" (click)="!item.done && goToTab(item.tab)">
-                      @if (item.done) {
-                        <svg class="check-icon" width="22" height="22" viewBox="0 0 22 22">
-                          <circle cx="11" cy="11" r="11" [style.fill]="'var(--color-blue)'"/>
-                          <path d="M6.5 11l3 3 6-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        </svg>
-                      } @else {
-                        <svg class="check-icon" width="22" height="22" viewBox="0 0 22 22">
-                          <circle cx="11" cy="11" r="9.5" fill="none" [style.stroke]="'var(--color-input-stroke)'" stroke-width="1.5" stroke-dasharray="4.5 3.5"/>
-                        </svg>
-                      }
-                      <div class="setup-ch-item-content">
-                        <span class="setup-ch-item-label">{{ item.label }}</span>
-                        <span class="setup-ch-item-desc">{{ item.description }}</span>
-                      </div>
-                      @if (!item.done) {
-                        <span class="setup-ch-item-cta">Complete →</span>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-
-            <!-- Products section (like Stripe) -->
-            <div class="ov-section">
-              <div class="ov-section-hd">
-                <h3 class="ov-section-title">Your loan offering</h3>
-                <app-button variant="text" label="Edit" />
-              </div>
-              <table class="ov-table">
-                <thead>
-                  <tr>
-                    <th>PRODUCT</th>
-                    <th>FROM</th>
-                    <th>UP TO</th>
-                    <th>INTEREST RATE</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <div class="ov-product-cell">
-                        <div class="ov-product-icon">CW</div>
-                        <div>
-                          <p class="ov-product-name">{{ product.name }}</p>
-                          <p class="ov-product-sub">{{ product.minTenor }}–{{ product.maxTenor }}-month terms · percentage interest</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td>₦{{ product.minAmount }}</td>
-                    <td>₦{{ product.maxAmount }}</td>
-                    <td>{{ product.interestRate }}% / {{ product.interestFrequency }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Channels section -->
-            <div class="ov-section">
-              <div class="ov-section-hd">
-                <h3 class="ov-section-title">Repayment channels</h3>
-                <app-button variant="text" label="Configure" (clicked)="goToTab('disbursement')" />
-              </div>
-              <p class="ov-section-note">How repayments are collected — ordered by priority.</p>
-              <div class="channel-list">
-                @for (ch of product.deductionChannels; track ch.id) {
-                  <div class="channel-row">
-                    <div class="channel-priority">{{ ch.priority }}</div>
-                    <div class="channel-info">
-                      <span class="channel-name">{{ ch.label }}</span>
-                      <span class="channel-desc">{{ ch.desc }} · <em>{{ ch.coverage }}</em></span>
-                    </div>
-                    <span class="channel-status-pill"
-                      [class.connected]="ch.status === 'connected'"
-                      [class.pending]="ch.status === 'pending'"
-                      [class.not-configured]="ch.status === 'not-configured'">
-                      {{ ch.status === 'connected' ? 'Connected' : ch.status === 'pending' ? 'Pending' : 'Not set up' }}
-                    </span>
-                  </div>
-                }
-              </div>
-
-              <div class="channel-divider"></div>
-
-              <p class="ov-section-note muted">Income verification channels:</p>
-              <div class="channel-list slim">
-                @for (ch of product.incomeChannels; track ch.id) {
-                  <div class="channel-row">
-                    <div class="channel-info">
-                      <span class="channel-name">{{ ch.label }}</span>
-                      <span class="channel-desc">{{ ch.desc }}</span>
-                    </div>
-                    <span class="channel-status-pill"
-                      [class.connected]="ch.status === 'connected'"
-                      [class.pending]="ch.status === 'pending'"
-                      [class.not-configured]="ch.status === 'not-configured'">
-                      {{ ch.status === 'connected' ? 'Connected' : ch.status === 'pending' ? 'Pending' : 'Not set up' }}
-                    </span>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Eligibility & disbursement section (like Stripe Payment methods) -->
-            <div class="ov-section">
-              <div class="ov-section-hd">
-                <h3 class="ov-section-title">Who can apply</h3>
-                <app-button variant="text" label="Edit requirements" (clicked)="goToTab('eligibility')" />
-              </div>
-              <p class="ov-section-note">Borrowers must qualify through at least one of the following channels.</p>
-              <p class="ov-section-note muted">Qualifying channels:</p>
-              <div class="ov-method-row">
-                @for (e of product.eligibility; track e) {
-                  <div class="ov-method-chip">{{ e }}</div>
-                }
-              </div>
-              <div class="ov-method-divider"></div>
-              <p class="ov-section-note muted" style="padding: 0 16px 8px;">Required documents from applicants:</p>
-              <div class="ov-method-row">
-                @for (doc of product.kycDocs; track doc) {
-                  <div class="ov-method-chip doc">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
-                    {{ doc }}
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Details section (like Stripe) -->
-            <div class="ov-section">
-              <div class="ov-section-hd">
-                <h3 class="ov-section-title">Details</h3>
-              </div>
-              <div class="ov-details-grid">
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Status</span>
-                  <span class="status-pill-sm live">
-                    <span class="status-dot"></span>Active
+        <div class="tab-body">
+          <!-- ── BIO DETAILS ── -->
+          <div class="bio-grid">
+            <div class="bio-card">
+              <h4 class="bio-title">Loan Product Details</h4>
+              <div class="bio-rows">
+                <div class="bio-row"><span class="bio-label">Created</span><span class="bio-val">{{ product.createdAt }}</span></div>
+                <div class="bio-row"><span class="bio-label">Product ID</span><span class="bio-val mono">{{ product.productId }}</span></div>
+                <div class="bio-row"><span class="bio-label">Interest Type</span><span class="bio-val">{{ product.interestType }}</span></div>
+                <div class="bio-row"><span class="bio-label">Interest Charged</span><span class="bio-val">{{ product.interestFrequency }}</span></div>
+                <div class="bio-row">
+                  <span class="bio-label">Identity Verification</span>
+                  <span class="pill-tag" [class.active]="effectiveStatus !== 'draft' && product.incomeChannels[0]?.status === 'connected'">
+                    {{ (effectiveStatus !== 'draft' && product.incomeChannels[0]?.status === 'connected') ? 'Active' : 'Not active' }}
                   </span>
                 </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Created</span>
-                  <span class="ov-detail-val">{{ product.createdAt }}</span>
+                <div class="bio-row">
+                  <span class="bio-label">Income Verification</span>
+                  <span class="pill-tag" [class.active]="effectiveStatus !== 'draft' && product.incomeChannels[1]?.status === 'connected'">
+                    {{ (effectiveStatus !== 'draft' && product.incomeChannels[1]?.status === 'connected') ? 'Active' : 'Not active' }}
+                  </span>
                 </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Product ID</span>
-                  <span class="ov-detail-val mono">{{ product.productId }}</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Interest type</span>
-                  <span class="ov-detail-val">{{ product.interestType }}</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Charged</span>
-                  <span class="ov-detail-val">{{ product.interestFrequency }}</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Repayment schedule</span>
-                  <span class="ov-detail-val">{{ product.repaymentFrequency }}</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">First payment due</span>
-                  <span class="ov-detail-val">{{ product.firstPaymentOffset }}</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Re-apply rule</span>
-                  <span class="ov-detail-val">Restricted</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Offer letter</span>
-                  <span class="ov-detail-val">{{ product.offerLetter }}</span>
-                </div>
-                <div class="ov-detail-row">
-                  <span class="ov-detail-label">Video verification</span>
-                  <span class="ov-detail-val">{{ product.videoConfirmation }}</span>
+                <div class="bio-row">
+                  <span class="bio-label">Deduction Channel</span>
+                  <span class="pill-tag" [class.active]="effectiveStatus !== 'draft' && product.deductionChannels[0]?.status === 'connected'">
+                    {{ (effectiveStatus !== 'draft' && product.deductionChannels[0]?.status === 'connected') ? 'Active' : 'Not active' }}
+                  </span>
                 </div>
               </div>
             </div>
 
+            <div class="bio-card">
+              <h4 class="bio-title">At a glance</h4>
+              <div class="bio-rows">
+                <div class="bio-row"><span class="bio-label">Loan amount</span><span class="bio-val">₦{{ product.minAmount }} – ₦{{ product.maxAmount }}</span></div>
+                <div class="bio-row"><span class="bio-label">Loan term</span><span class="bio-val">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }}</span></div>
+                <div class="bio-row"><span class="bio-label">Interest rate</span><span class="bio-val">{{ product.interestRate }}% / {{ product.interestFrequency }}</span></div>
+                <div class="bio-row"><span class="bio-label">Repayment rate</span><span class="bio-val">0%</span></div>
+                <div class="bio-row"><span class="bio-label">Total borrowers</span><span class="bio-val">0</span></div>
+              </div>
+            </div>
           </div>
 
-          <!-- ── RIGHT SIDEBAR ── -->
-          <div class="ov-right">
-
-            <!-- Stats card -->
-            <div class="sidebar-card">
-              <div class="stat-filter-row">
-                <button class="sfr-btn" [class.active]="statPeriod === 'today'" (click)="statPeriod = 'today'">Today</button>
-                <button class="sfr-btn" [class.active]="statPeriod === 'week'" (click)="statPeriod = 'week'">Week</button>
-                <button class="sfr-btn" [class.active]="statPeriod === 'month'" (click)="statPeriod = 'month'">Month</button>
-                <button class="sfr-btn" [class.active]="statPeriod === 'all'" (click)="statPeriod = 'all'">All time</button>
+          <div class="bio-grid">
+            <div class="bio-card">
+              <h4 class="bio-title">Eligibility &amp; requirements</h4>
+              <div class="bio-rows">
+                <div class="bio-row"><span class="bio-label">Who can apply</span><span class="bio-val">{{ product.eligibility.join(', ') }}</span></div>
+                <div class="bio-row"><span class="bio-label">Re-apply policy</span><span class="bio-val">{{ product.activeLoanPolicy.split(' — ')[0] }}</span></div>
+                <div class="bio-row"><span class="bio-label">Offer letter</span><span class="bio-val">{{ product.offerLetter }}</span></div>
               </div>
-              <div class="sidebar-stat-list">
-                <div class="sidebar-stat">
-                  <p class="ss-label">Disbursed this month</p>
-                  <div class="ss-row">
-                    <span class="ss-val">₦42.3M</span>
-                    <span class="trend-pill up">↑ 12%</span>
-                  </div>
-                  <p class="ss-sub">vs last month</p>
-                </div>
-                <div class="sidebar-stat">
-                  <p class="ss-label">Active loans</p>
-                  <div class="ss-row">
-                    <span class="ss-val">7,841</span>
-                    <span class="trend-pill up">↑ 8%</span>
-                  </div>
-                  <p class="ss-sub">this month</p>
-                </div>
-                <div class="sidebar-stat">
-                  <p class="ss-label">Applications</p>
-                  <div class="ss-row">
-                    <span class="ss-val">1,203</span>
-                    <span class="trend-pill neutral">— 0%</span>
-                  </div>
-                  <p class="ss-sub">same as last month</p>
-                </div>
-                <div class="sidebar-stat">
-                  <p class="ss-label">Overdue</p>
-                  <div class="ss-row">
-                    <span class="ss-val danger">284</span>
-                    <span class="trend-pill down">↑ 3%</span>
-                  </div>
-                  <p class="ss-sub">needs attention</p>
-                </div>
+              <p class="bio-subhead">Required documents from applicants</p>
+              <div class="doc-pill-list">
+                @for (doc of product.kycDocs; track doc) {
+                  <span class="doc-pill">{{ doc }}</span>
+                }
               </div>
             </div>
 
-            <!-- Customer breakdown -->
-            <div class="sidebar-card">
-              <div class="sc-hd">
-                <p class="sc-title">Your borrowers</p>
+            <!-- Portal activity — draft product, no traffic yet -->
+            <div class="bio-card">
+              <h4 class="bio-title">Portal activity</h4>
+              <div class="bio-rows">
+                <div class="bio-row"><span class="bio-label">Page visits</span><span class="bio-val">0</span></div>
+                <div class="bio-row"><span class="bio-label">Applications started</span><span class="bio-val">0</span></div>
+                <div class="bio-row"><span class="bio-label">Applications submitted</span><span class="bio-val">0</span></div>
+                <div class="bio-row"><span class="bio-label">Link shares</span><span class="bio-val">0</span></div>
+              </div>
+              <p class="bio-note">This product hasn't been published yet, so its apply portal has no visitors.</p>
+            </div>
+          </div>
+
+          <div class="bio-grid">
+            <!-- Customer breakdown — 0 until the product goes live and takes applicants -->
+            <div class="bio-card">
+              <div class="sc-hd no-pad">
+                <p class="sc-title">Total number of customers</p>
                 <button class="period-btn">Today <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
               </div>
               <div class="donut-wrap">
                 <svg width="120" height="120" viewBox="0 0 130 130">
                   <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-stroke)'" stroke-width="18"/>
-                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-success)'" stroke-width="18" stroke-dasharray="145 144" stroke-dashoffset="36" transform="rotate(-90 65 65)"/>
-                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-blue)'" stroke-width="18" stroke-dasharray="58 231" stroke-dashoffset="-109" transform="rotate(-90 65 65)"/>
-                  <circle cx="65" cy="65" r="46" fill="none" [style.stroke]="'var(--color-warning)'" stroke-width="18" stroke-dasharray="29 260" transform="rotate(-90 65 65)" stroke-dashoffset="-167"/>
                 </svg>
                 <div class="donut-center">
-                  <p class="donut-sub">Total borrowers</p>
-                  <p class="donut-val">12,000</p>
+                  <p class="donut-sub">All Customers</p>
+                  <p class="donut-val">0</p>
                 </div>
               </div>
-              <div class="donut-legend">
-                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-success)'"></span><span>Active</span><strong>7,000</strong></div>
-                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-blue)'"></span><span>New</span><strong>3,000</strong></div>
-                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-warning)'"></span><span>Pending</span><strong>2,000</strong></div>
-              </div>
-            </div>
-
-            <!-- Key parameters -->
-            <div class="sidebar-card">
-              <div class="sc-hd">
-                <p class="sc-title">At a glance</p>
-              </div>
-              <div class="sc-params">
-                <div class="sc-param-row">
-                  <span class="sc-param-label">Loan amount</span>
-                  <span class="sc-param-val">₦{{ product.minAmount }} – ₦{{ product.maxAmount }}</span>
-                </div>
-                <div class="sc-param-row">
-                  <span class="sc-param-label">Loan term</span>
-                  <span class="sc-param-val">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }}</span>
-                </div>
-                <div class="sc-param-row">
-                  <span class="sc-param-label">Interest rate</span>
-                  <span class="sc-param-val">{{ product.interestRate }}% / {{ product.interestFrequency }}</span>
-                </div>
-                <div class="sc-param-row">
-                  <span class="sc-param-label">Repayment rate</span>
-                  <span class="sc-param-val good">91.4%</span>
-                </div>
-                <div class="sc-param-row">
-                  <span class="sc-param-label">Total borrowers</span>
-                  <span class="sc-param-val">12,000</span>
-                </div>
+              <div class="donut-legend row">
+                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-success)'"></span><span>Active: 0</span></div>
+                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-blue)'"></span><span>Inactive: 0</span></div>
+                <div class="legend-row"><span class="legend-dot" [style.background]="'var(--color-warning)'"></span><span>Overdue: 0</span></div>
               </div>
             </div>
-
           </div>
+
         </div>
       }
 
       <!-- ═══ PERFORMANCE ═══ -->
       @if (activeTab === 'performance') {
         <div class="tab-body">
+
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Performance</h3>
+            <p class="tab-page-sub">How this product is performing — applications, approvals, disbursement volume, and repayment health for the selected period.</p>
+          </div>
+
+          <div class="perf-filter-row">
+            <app-round-tabs [tabs]="perfFilterTabs" [activeTab]="perfFilter" (activeTabChange)="setPerfFilter($any($event))" />
+          </div>
+
           <div class="perf-kpi-row">
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">Total Applications</span>
-              <span class="perf-kpi-val">{{ productStats.totalApplications }}</span>
+            <app-kpi-card label="Total Applications" [value]="displayedStats.totalApplications" helpText="Total number of loan applications submitted for this product in the selected period." />
+            <app-kpi-card label="Approval Rate" [value]="displayedStats.approvalRate + '%'" helpText="Share of applications that were approved in the selected period." />
+            <app-kpi-card label="Average loan amount" [value]="displayedStats.avgLoanSize" helpText="Average disbursed amount per loan in the selected period." />
+            <app-kpi-card label="Active Loans" [value]="displayedStats.activeLoans" helpText="Loans currently outstanding and being repaid under this product." />
+            <app-kpi-card label="Total Disbursed" [value]="displayedStats.totalDisbursed" helpText="Total value of funds disbursed under this product in the selected period." />
+            <app-kpi-card label="Collection Rate" [value]="displayedStats.collectionRate + '%'" helpText="Share of scheduled repayments successfully collected in the selected period." />
+            <app-kpi-card label="NPL Rate" [value]="displayedStats.nplRate + '%'" helpText="Share of the portfolio classified as non-performing (90+ days overdue)." />
+          </div>
+
+          <div class="detail-card mt">
+            <div class="card-header">
+              <p class="card-title">Disbursements vs repayments</p>
+              <app-round-tabs [tabs]="chartFilterTabs" [activeTab]="chartFilter" (activeTabChange)="setChartFilter($any($event))" />
             </div>
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">Approval Rate</span>
-              <span class="perf-kpi-val">{{ productStats.approvalRate }}%</span>
+            <div class="chart-legend">
+              <span class="legend-chip"><span class="legend-dot" [style.background]="'var(--color-blue)'"></span>Disbursed (₦M)</span>
+              <span class="legend-chip"><span class="legend-dot" [style.background]="'var(--color-success)'"></span>Repaid (₦M)</span>
             </div>
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">Avg Loan Size</span>
-              <span class="perf-kpi-val">{{ productStats.avgLoanSize }}</span>
-            </div>
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">Active Loans</span>
-              <span class="perf-kpi-val">{{ productStats.activeLoans }}</span>
-            </div>
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">Total Disbursed</span>
-              <span class="perf-kpi-val">{{ productStats.totalDisbursed }}</span>
-            </div>
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">Collection Rate</span>
-              <span class="perf-kpi-val">{{ productStats.collectionRate }}%</span>
-            </div>
-            <div class="perf-kpi-card">
-              <span class="perf-kpi-label">NPL Rate</span>
-              <span class="perf-kpi-val danger">{{ productStats.nplRate }}%</span>
+            <div class="chart-with-axis">
+              <div class="chart-y-axis">
+                <span>₦{{ disbursementMax }}M</span>
+                <span>₦0</span>
+              </div>
+              <div class="chart-plot">
+                <app-chart type="grouped-bar" [series]="disbursementSeries" />
+                <div class="chart-x-axis">
+                  @for (label of disbursementLabels; track label) { <span>{{ label }}</span> }
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="detail-card mt">
             <div class="card-header">
-              <p class="card-title">Monthly disbursements vs repayments (last 6 months)</p>
+              <p class="card-title">Loan status breakdown</p>
             </div>
-            <app-chart type="line" [data]="disbursementTrend" />
-          </div>
-
-          <div class="detail-card mt">
-            <div class="card-header">
-              <p class="card-title">Top customers by loan size</p>
+            <div class="status-breakdown-grid">
+              <div class="status-breakdown-item">
+                <span class="status-breakdown-dot" [style.background]="'var(--color-success)'"></span>
+                <span class="status-breakdown-label">Active</span>
+                <span class="status-breakdown-val">{{ loanStatusCount('active') }}</span>
+              </div>
+              <div class="status-breakdown-item">
+                <span class="status-breakdown-dot" [style.background]="'var(--color-error)'"></span>
+                <span class="status-breakdown-label">Overdue</span>
+                <span class="status-breakdown-val">{{ loanStatusCount('overdue') }}</span>
+              </div>
+              <div class="status-breakdown-item">
+                <span class="status-breakdown-dot" [style.background]="'var(--color-warning)'"></span>
+                <span class="status-breakdown-label">Suspended</span>
+                <span class="status-breakdown-val">{{ loanStatusCount('suspended') }}</span>
+              </div>
             </div>
-            <table class="data-table">
-              <thead><tr><th>Customer</th><th>Loan ID</th><th>Amount</th><th>Status</th></tr></thead>
-              <tbody>
-                @for (loan of activeLoans; track loan.id) {
-                  <tr>
-                    <td>{{ loan.customer.name }}</td>
-                    <td class="mono">{{ loan.id }}</td>
-                    <td class="bold">{{ loan.amount }}</td>
-                    <td><span class="status-badge" [class]="loan.status === 'active' ? 'live' : 'deactivated'">{{ loan.status }}</span></td>
-                  </tr>
-                }
-              </tbody>
-            </table>
           </div>
         </div>
       }
 
-      <!-- ═══ ACTIVE LOANS ═══ -->
+      <!-- Loan row actions dialog -->
+      <app-modal [isOpen]="!!loanActionRow" title="Loan actions" size="sm" (closed)="closeLoanActions()">
+        @if (loanActionRow) {
+          <div class="loan-action-list">
+            <button class="dropdown-item" (click)="viewCustomer(loanActionRow)">
+              <hi-icon [icon]="identityIcon" size="16" />
+              View customer
+            </button>
+            <button class="dropdown-item" (click)="viewLoanDetails(loanActionRow)">
+              <hi-icon [icon]="externalLinkIcon" size="16" />
+              View loan details
+            </button>
+          </div>
+        }
+      </app-modal>
+
+      <!-- ═══ LOANS ═══ -->
       @if (activeTab === 'active-loans') {
         <div class="tab-body">
-          <div class="detail-card">
-            <div class="card-header">
-              <p class="card-title">Active loans under this product</p>
-            </div>
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Loans</h3>
+            <p class="tab-page-sub">Every loan disbursed under this product, with its current repayment status.</p>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><app-column-title label="Date" /></th>
+                <th><app-column-title label="Name" /></th>
+                <th><app-column-title label="Phone number" /></th>
+                <th><app-column-title label="Loan ID" /></th>
+                <th><app-column-title label="Amount" /></th>
+                <th><app-column-title label="Tenor" /></th>
+                <th><app-column-title label="Status" /></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (loan of activeLoans; track loan.id) {
+                <tr>
+                  <td><app-table-item type="date" [date]="loan.disbursedDate" /></td>
+                  <td><app-table-item type="user" [user]="loan.customer" /></td>
+                  <td>{{ loan.phone }}</td>
+                  <td class="mono">{{ loan.id }}</td>
+                  <td class="bold">{{ loan.amount }}</td>
+                  <td>{{ loan.tenor }}</td>
+                  <td><app-table-item type="status" [status]="loan.status" /></td>
+                  <td class="col-actions">
+                    <div class="dropdown-wrap">
+                      <button class="more-btn" (click)="openLoanActions(loan)" aria-label="More actions">
+                        <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- ═══ CUSTOMERS ═══ -->
+      @if (activeTab === 'eligibility') {
+        <div class="tab-body">
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Customers</h3>
+            <p class="tab-page-sub">Everyone who has applied for or taken this loan product, and where they stand on repayment.</p>
+          </div>
+
+          <div class="customer-filter-row">
+            <app-round-tabs [tabs]="customerFilterTabs" [activeTab]="customerFilter" (activeTabChange)="setCustomerFilter($any($event))" />
+          </div>
+
+          @if (filteredCustomers.length) {
             <table class="data-table">
               <thead>
                 <tr>
-                  <th><app-column-title label="Customer" /></th>
-                  <th><app-column-title label="Loan ID" /></th>
-                  <th><app-column-title label="Amount" /></th>
-                  <th><app-column-title label="Disbursed" /></th>
-                  <th><app-column-title label="Outstanding" /></th>
+                  <th class="col-check"><app-checkbox [checked]="false" /></th>
+                  <th><app-column-title label="Name" /></th>
+                  <th><app-column-title label="Email" /></th>
+                  <th><app-column-title label="Phone number" /></th>
                   <th><app-column-title label="Status" /></th>
+                  <th><app-column-title label="Application date" /></th>
                 </tr>
               </thead>
               <tbody>
-                @for (loan of activeLoans; track loan.id) {
-                  <tr class="clickable-row" [routerLink]="['/loans', loan.id]">
-                    <td><app-table-item type="user-avatar" [user]="loan.customer" /></td>
-                    <td class="mono">{{ loan.id }}</td>
-                    <td class="bold">{{ loan.amount }}</td>
-                    <td>{{ loan.disbursedDate }}</td>
-                    <td>{{ loan.outstanding }}</td>
-                    <td><app-table-item type="status" [status]="loan.status" /></td>
+                @for (customer of filteredCustomers; track customer.id) {
+                  <tr>
+                    <td class="col-check">
+                      <app-checkbox [checked]="selectedCustomerIds.has(customer.id)" (checkedChange)="toggleCustomerSelected(customer.id)" />
+                    </td>
+                    <td>{{ customer.user.name }}</td>
+                    <td>{{ customer.user.email }}</td>
+                    <td>{{ customer.phone }}</td>
+                    <td><app-table-item type="status" [status]="customer.status" /></td>
+                    <td>{{ customer.appliedAt }}</td>
                   </tr>
                 }
               </tbody>
             </table>
-          </div>
-        </div>
-      }
-
-      <!-- ═══ ELIGIBILITY & KYC ═══ -->
-      @if (activeTab === 'eligibility') {
-        <div class="tab-body">
-          <div class="section-grid">
-            <div class="detail-card">
-              <div class="card-header">
-                <p class="card-title">Qualifying criteria</p>
-                <app-button variant="outline" label="Edit" />
-              </div>
-              <p class="field-label">
-                Who qualifies
-                <app-info-popover title="Who qualifies" description="Borrowers must meet at least one of these criteria to be eligible for this product." />
-              </p>
-              <div class="chip-row">
-                @for (e of product.eligibility; track e) {
-                  <span class="chip">{{ e }}</span>
-                }
-              </div>
-              <div class="field-row mt">
-                <p class="field-label">
-                  Active loan policy
-                  <app-info-popover title="Active loan policy" description="Controls whether borrowers who already have an active loan on this product can apply again." />
-                </p>
-                <p class="field-value policy">{{ product.activeLoanPolicy }}</p>
-              </div>
-            </div>
-
-            <div class="detail-card">
-              <div class="card-header">
-                <p class="card-title">Required documents</p>
-                <app-button variant="outline" label="Edit" />
-              </div>
-              <p class="field-label">
-                Applicants must submit these before receiving funds
-                <app-info-popover title="Required documents" description="These documents are verified before loan disbursement." />
-              </p>
-              <div class="doc-list">
-                @for (doc of product.kycDocs; track doc) {
-                  <div class="doc-item">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" class="doc-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
-                    {{ doc }}
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
+          } @else {
+            <app-empty-state title="No customers yet" description="Nobody has applied for this product yet." />
+          }
         </div>
       }
 
@@ -676,29 +563,36 @@
       <!-- ═══ COLLECTIONS ═══ -->
       @if (activeTab === 'collections') {
         <div class="tab-body">
-          <div class="detail-card">
-            <div class="card-header">
-              <p class="card-title">Channel performance</p>
-              <p class="card-sub">This month — expected vs. collected per deduction channel enabled on this product</p>
-            </div>
-            <div class="channel-tile-grid">
-              @for (ch of channelPerformance; track ch.channel) {
-                <div class="channel-tile">
-                  <div class="channel-tile-head">
-                    <p class="channel-tile-name">{{ ch.channel }}</p>
-                    <app-status-badge [status]="ch.status === 'connected' ? 'active' : 'pending'" [label]="ch.status === 'connected' ? 'Connected' : 'Pending'" />
-                  </div>
-                  <p class="channel-tile-figures">₦{{ ch.collected.toLocaleString() }} <span>/ ₦{{ ch.expected.toLocaleString() }}</span></p>
-                  <app-chart type="line" [data]="ch.successRateTrend" />
-                </div>
-              }
-            </div>
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">
+              Channel performance
+              <app-info-popover title="Channel performance" description="Each card tracks one repayment channel enabled on this product. The Connected / Pending badge shows whether that channel's integration is fully set up and actively collecting repayments — a Pending channel is still being configured and may miss scheduled deductions." />
+            </h3>
+            <p class="tab-page-sub">This month — expected vs. collected per deduction channel enabled on this product.</p>
           </div>
+          <div class="channel-tile-grid">
+            @for (ch of channelPerformance; track ch.channel) {
+              <div class="channel-tile">
+                <div class="channel-tile-head">
+                  <p class="channel-tile-name">{{ ch.channel }}</p>
+                  <app-status-badge [status]="ch.status === 'connected' ? 'active' : 'pending'" [label]="ch.status === 'connected' ? 'Connected' : 'Pending'" />
+                </div>
+                <p class="channel-tile-figures">₦{{ ch.collected.toLocaleString() }} <span>/ ₦{{ ch.expected.toLocaleString() }}</span></p>
+                <app-chart type="line" [data]="ch.successRateTrend" />
+                <p class="channel-tile-caption">Collection rate trend, last 3 months</p>
+              </div>
+            }
+          </div>
+
+          <div class="ov2-divider"></div>
 
           <div class="section-grid">
             <div class="detail-card">
               <div class="card-header">
-                <p class="card-title">Portfolio health</p>
+                <p class="card-title">
+                  Portfolio health
+                  <app-info-popover title="Portfolio health" description="A snapshot of how many loans on this product are overdue, bucketed by how many days late, plus the average time before a borrower first misses a payment." />
+                </p>
               </div>
               <div class="config-grid">
                 <div class="config-row"><span class="config-label">Active loans</span><span class="config-value">{{ activeLoans.length }}</span></div>
@@ -753,6 +647,128 @@
             </table>
           </div>
         </div>
+      }
+
+      <!-- ═══ INTEGRATIONS ═══ -->
+      @if (activeTab === 'integrations') {
+        <div class="tab-body">
+          <div class="integrations-head">
+            <div>
+              <h3 class="integrations-title">Integrations</h3>
+              <p class="integrations-sub">Connect the providers this product needs for verification, deductions, disbursements, signatures, and marketplace distribution.</p>
+            </div>
+            <app-round-tabs [tabs]="integrationScopeTabs" [activeTab]="integrationScope" (activeTabChange)="setIntegrationScope($any($event))" />
+          </div>
+
+          @if (integrationScope === 'active') {
+            @if (activeIntegrations.length) {
+              <div class="integration-grid">
+                @for (integration of activeIntegrations; track integration.id) {
+                  <button class="integration-card" (click)="openIntegrationInfo(integration)">
+                    <span class="integration-logo" [style.background]="integration.color">{{ integration.initials }}</span>
+                    <div class="integration-card-body">
+                      <p class="integration-name">{{ integration.name }}</p>
+                      <div class="integration-tags">
+                        @for (tag of integration.tags; track tag) { <span class="integration-tag">{{ tag }}</span> }
+                      </div>
+                    </div>
+                    <span class="integration-status connected">Connected</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <app-empty-state title="No integrations active yet" description="Nothing has been connected for this product. Select providers from the Marketplace tab." />
+            }
+          } @else {
+            <div class="integration-grid">
+              @for (integration of allIntegrations; track integration.id) {
+                <button class="integration-card" (click)="openIntegrationInfo(integration)">
+                  <span class="integration-logo" [style.background]="integration.color">{{ integration.initials }}</span>
+                  <div class="integration-card-body">
+                    <p class="integration-name">{{ integration.name }}</p>
+                    <div class="integration-tags">
+                      @for (tag of integration.tags; track tag) { <span class="integration-tag">{{ tag }}</span> }
+                    </div>
+                  </div>
+                  <span class="integration-status" [class.connected]="isIntegrationConnected(integration.id)">
+                    {{ isIntegrationConnected(integration.id) ? 'Connected' : 'Not connected' }}
+                  </span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Integration info modal -->
+      <app-modal [isOpen]="!!infoIntegration" title="" size="sm" (closed)="closeIntegrationInfo()">
+        @if (infoIntegration) {
+          <div class="integration-info-body">
+            <div class="integration-info-head centered">
+              <span class="integration-logo xl" [style.background]="infoIntegration.color">{{ infoIntegration.initials }}</span>
+              <p class="integration-info-name">{{ infoIntegration.name }}</p>
+              <div class="integration-tags">
+                @for (tag of infoIntegration.tags; track tag) { <span class="integration-tag">{{ tag }}</span> }
+              </div>
+            </div>
+
+            <div class="integration-info-section">
+              <h4 class="integration-info-heading">What this integration does</h4>
+              <p class="integration-info-desc">{{ infoIntegration.whatItDoes }}</p>
+            </div>
+
+            <div class="integration-info-section">
+              <h4 class="integration-info-heading">What you'll need before connecting</h4>
+              <ul class="integration-info-list">
+                @for (item of infoIntegration.whatYouNeed; track item) { <li>{{ item }}</li> }
+              </ul>
+            </div>
+
+            <div class="integration-info-section">
+              <h4 class="integration-info-heading">What happens after connection</h4>
+              <ul class="integration-info-list">
+                @for (item of infoIntegration.whatHappensAfter; track item) { <li>{{ item }}</li> }
+              </ul>
+            </div>
+
+            @if (infoIntegration.notes) {
+              <div class="integration-info-section">
+                <h4 class="integration-info-heading">Notes</h4>
+                <p class="integration-info-desc">{{ infoIntegration.notes }}</p>
+              </div>
+            }
+          </div>
+        }
+        <div modalFooter class="integration-info-footer">
+          @if (infoIntegration && isIntegrationConnected(infoIntegration.id)) {
+            <app-button [fullWidth]="true" variant="outline" label="Connected" [icon]="checkIcon" [disabled]="true" />
+          } @else {
+            <app-button [fullWidth]="true" variant="primary" [label]="'Proceed to connect ' + infoIntegration?.name" [icon]="plugIcon" (clicked)="openConnectIntegration(infoIntegration!)" />
+          }
+        </div>
+      </app-modal>
+
+      <!-- Integration connect (credentials) modal -->
+      <app-modal [isOpen]="!!connectIntegrationTarget" [title]="'Connect ' + (connectIntegrationTarget?.name || '')" size="sm" (closed)="closeConnectIntegration()">
+        @if (connectIntegrationTarget) {
+          <div class="target-form">
+            <p class="target-explainer">Enter the credentials {{ connectIntegrationTarget.name }} issued you. These are stored securely and used only to authenticate requests for this product.</p>
+            @for (field of connectIntegrationTarget.fields; track field.key) {
+              <div class="ob-field-group">
+                <label class="ob-label">{{ field.label }}</label>
+                <input class="ob-input" type="text" [placeholder]="field.label" [(ngModel)]="credentialForm[field.key]" />
+              </div>
+            }
+          </div>
+        }
+        <div modalFooter>
+          <app-button variant="outline" label="Cancel" (clicked)="closeConnectIntegration()" />
+          <app-button variant="primary" label="Save & connect" (clicked)="submitConnectIntegration()" />
+        </div>
+      </app-modal>
+
+      @if (integrationToastVisible) {
+        <app-toast type="success" title="Integration connected" message="This provider is now active on this loan product." (dismissed)="integrationToastVisible = false" />
       }
 
       <!-- ═══ LEGAL ═══ -->
@@ -1068,4 +1084,55 @@
 
     </div>
   </div>
+}
+
+<!-- ═══ SET TARGET MODAL ═══ -->
+<app-modal [isOpen]="showTargetModal" [title]="targetsSet ? 'Edit target' : 'Set target'" size="sm" (closed)="showTargetModal = false">
+  <div class="target-form">
+    <p class="target-explainer">
+      Targets help you track how this product is performing against a goal you set — a loan count, disbursement volume, or active-customer count for the period below. Switch tabs to set a goal for each metric; anything left blank keeps its current value.
+    </p>
+
+    <div class="ob-field-group">
+      <label class="ob-label">Target frequency</label>
+      <app-select [options]="frequencyOptions" [value]="targetForm.frequency" (valueChange)="targetForm.frequency = $event" />
+    </div>
+
+    <app-tabs [tabs]="targetModalTabs" [activeTab]="targetModalTab" (activeTabChange)="targetModalTab = $any($event)" />
+
+    <div class="target-tab-panel">
+      @switch (targetModalTab) {
+        @case ('loanCount') {
+          <div class="ob-field-group">
+            <label class="ob-label">Loan count target</label>
+            <input class="ob-input" type="number" min="1" placeholder="e.g. 2000" [(ngModel)]="targetForm.loanCount" />
+          </div>
+        }
+        @case ('disbursementAmount') {
+          <div class="ob-field-group">
+            <label class="ob-label">Disbursement amount target (₦)</label>
+            <input class="ob-input" type="number" min="1" placeholder="e.g. 2000000" [(ngModel)]="targetForm.disbursementAmount" />
+          </div>
+        }
+        @case ('activeCustomers') {
+          <div class="ob-field-group">
+            <label class="ob-label">Active customers target</label>
+            <input class="ob-input" type="number" min="1" placeholder="e.g. 2000" [(ngModel)]="targetForm.activeCustomers" />
+          </div>
+        }
+      }
+    </div>
+  </div>
+  <div modalFooter>
+    <app-button variant="outline" label="Cancel" (clicked)="showTargetModal = false" />
+    <app-button variant="primary" [label]="targetsSet ? 'Save changes' : 'Save target'" (clicked)="saveTarget()" />
+  </div>
+</app-modal>
+
+@if (targetToastVisible) {
+  <app-toast type="success" title="Target set successfully" message="Your product targets have been updated and will be tracked from this period onward." (dismissed)="targetToastVisible = false" />
+}
+
+@if (linkCopiedToastVisible) {
+  <app-toast type="success" title="Link copied" message="You can now share it everywhere." (dismissed)="linkCopiedToastVisible = false" />
 }

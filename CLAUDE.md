@@ -17,14 +17,15 @@ Loan SaaS app. Angular 21 standalone components. Deployed at https://caltos-rho.
 --color-stroke: #ecf0f3      (borders, dividers)
 --color-grey: #bbbbcb        (inactive UI elements)
 --color-input-stroke: #c0c9d1 (input borders)
---font-heading: 'Switzer'
---font-body: 'Euclid Circular B'
+--font-heading: 'Geist'     (card/section headers — use semi-bold (600), not bold, for header copy)
+--font-body: 'DM Sans'      (loaded via Google Fonts link in src/index.html; paragraph copy is 13px, not 12.5px)
 
 // Status colors
 --color-success / --color-success-bg
 --color-warning / --color-warning-bg
 --color-error / --color-error-bg
 --color-info / --color-info-bg
+--color-critical / --color-critical-bg  (#ED254E — higher-alarm banners, distinct from --color-error)
 
 // Surface hierarchy
 --surface-base / --surface-raised / --surface-overlay
@@ -66,6 +67,8 @@ All components are exported from the barrel: `import { X } from './shared/compon
 | Component | Selector | Key Inputs |
 |---|---|---|
 | `ButtonComponent` | `app-button` | `variant: 'primary'|'secondary'|'outline'|'back'|'filter'|'round'|'dropdown'|'text'`, `label`, `disabled`, `active`, `dark` |
+
+`secondary` is `border-radius: 8px` (not a pill) — don't reintroduce `border-radius: 100px` on it. Small buttons/dropdown triggers that sit on cards (e.g. a period selector like "Today ▾") should be 28–32px tall with 13px font, matching `.period-btn` in `product-detail.component.scss`.
 | `IconButtonComponent` | `app-icon-button` | `icon: 'edit'|'check'|'close'|'delete'|'more'|'edit-open'|'info'|'view'|'expand'`, `color: 'default'|'blue'|'green'|'red'`, `label`, `filled` |
 
 ### Navigation
@@ -101,17 +104,21 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 ### Data Display
 | Component | Selector | Key Inputs |
 |---|---|---|
-| `KpiCardComponent` | `app-kpi-card` | `label`, `value: string|number` |
+| `KpiCardComponent` | `app-kpi-card` | `label`, `value: string|number` | — the value renders at 24px (`.kpi-value`), not 32px; keep other in-card numeric displays at 24px too for consistency |
 | `StatusBadgeComponent` | `app-status-badge` | `status: 'active'|'inactive'|'suspended'|'pending'|'overdue'|'dormant'|'successful'|'failed'`, `label` |
 | `HeaderPillComponent` | `app-header-pill` | `label`, `active` | `clicked` |
 | `BadgeCardComponent` | `app-badge-card` | `title`, `description` | `actioned` |
 | `ToastComponent` | `app-toast` | `type: 'success'|'error'`, `title`, `message` | `dismissed` |
+
+**Toasts always render top-right.** `ToastComponent`'s `:host` is `position: fixed; top/right: var(--space-5)` (collapses to left+right on mobile) — do not wrap it in a positioned container per-usage, and do not build a bespoke inline confirmation banner instead of it.
 
 ### Table
 | Component | Selector | Key Inputs |
 |---|---|---|
 | `ColumnTitleComponent` | `app-column-title` | `label`, `sortable`, `sorted: 'asc'|'desc'|null` | `sortChange` |
 | `TableItemComponent` | `app-table-item` | `type: 'user-avatar'|'user'|'date'|'status'|'text'|'tags'|'amount'|'actions'|'more'`, `user`, `status`, `tags`, `amount`, `date`, `linkLabel` | |
+
+**This is the only table pattern to use anywhere in the app** — a header row of `app-column-title` + body rows of `app-table-item` cells (see `product-list.component.html` for the reference layout). Several older tabs still render raw `<table>` markup (pre-dating this pair); don't copy those, and migrate them opportunistically when touched rather than adding new raw `<table>` usage.
 
 ### Settings & Permissions
 | Component | Selector | Key Inputs |
@@ -131,6 +138,8 @@ NavItemIcon values: `'dashboard'|'home'|'customers'|'wallet'|'products'|'loans'|
 | Component | Selector | Key Inputs |
 |---|---|---|
 | `ModalComponent` | `app-modal` | `isOpen`, `title`, `size: 'sm'|'md'|'lg'` (content slot `[modalFooter]` for footer actions — see `UI-COMPONENTS.md`) | `closed` |
+
+**`.modal-body` has zero built-in horizontal padding on purpose** — every consumer wraps its projected content in its own div and adds `padding: 0 var(--space-6)` (or similar) there. Don't add default padding to the shared component; it would double up on every existing usage. `.modal-footer` already has `gap: var(--space-3)` between footer buttons.
 | `PaginationComponent` | `app-pagination` | `currentPage`, `totalPages`, `pageSize` | `pageChange`, `pageSizeChange` |
 | `RoundTabsComponent` | `app-round-tabs` | `tabs: Tab[]`, `activeTab` | `activeTabChange` |
 

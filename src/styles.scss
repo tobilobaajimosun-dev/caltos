@@ -18,7 +18,7 @@
   --color-count: #ACB2BA;
 
   --font-heading: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body: 'Euclid Circular B', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-hero: 'Geist', var(--font-heading);
 
   // Status colors
@@ -30,6 +30,8 @@
   --color-error-bg: #fee2e2;
   --color-info: #2563eb;
   --color-info-bg: #dbeafe;
+  --color-critical: #ED254E;
+  --color-critical-bg: #fce7ec;
 
   // Surface hierarchy
   --surface-base: #ffffff;
@@ -86,6 +88,7 @@
   --color-warning-bg: #3a2a08;
   --color-error-bg: #3a1414;
   --color-info-bg: #10233a;
+  --color-critical-bg: #3a1420;
 
   background: var(--surface-raised);
   color-scheme: dark;

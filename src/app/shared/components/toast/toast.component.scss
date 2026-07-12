@@ -1,4 +1,21 @@
-:host { display: block; }
+:host {
+  display: block;
+  position: fixed;
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: 1000;
+  animation: toast-in 0.2s ease;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  :host { left: var(--space-4); right: var(--space-4); top: var(--space-4); }
+  .toast { max-width: none; }
+}
 
 .toast {
   display: flex;

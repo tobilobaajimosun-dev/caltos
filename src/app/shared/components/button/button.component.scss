@@ -45,14 +45,14 @@
   &:hover:not(:disabled) { background: #1149c7; }
 }
 
-/* Secondary / outline pill */
+/* Secondary */
 .btn.secondary {
   height: 36px;
   padding: 0 16px;
-  border-radius: 100px;
+  border-radius: 8px;
   background: var(--surface-base);
   border: 1.5px solid var(--color-stroke);
-  color: var(--color-header);
+  color: var(--text-primary);
   font-size: 13px;
 
   &:hover:not(:disabled) { background: var(--surface-overlay); }

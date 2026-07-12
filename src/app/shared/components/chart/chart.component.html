@@ -3,12 +3,16 @@
     @case ('line') {
       <path [attr.d]="linePath()" fill="none" [attr.stroke]="color()" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       @for (p of points(); track p.label) {
-        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3" [attr.fill]="color()" />
+        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3" [attr.fill]="color()">
+          <title>{{ p.label }}: {{ p.value }}</title>
+        </circle>
       }
     }
     @case ('grouped-bar') {
       @for (b of groupedBars(); track b.x) {
-        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="b.color" rx="2" />
+        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="b.color" rx="2">
+          <title>{{ b.label }}: {{ b.value }}</title>
+        </rect>
       }
     }
     @case ('area') {
@@ -18,7 +22,9 @@
     }
     @default {
       @for (b of bars(); track b.label) {
-        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="color()" rx="3" />
+        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="color()" rx="3">
+          <title>{{ b.label }}: {{ b.value }}</title>
+        </rect>
       }
     }
   }
