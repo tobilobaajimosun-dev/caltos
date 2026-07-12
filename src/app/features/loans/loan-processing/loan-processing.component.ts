@@ -15,9 +15,11 @@ import {
   BadgeStatus,
   RoundTabsComponent,
   Tab,
+  AlertBannerComponent,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { Tick01Icon } from '@hugeicons/core-free-icons';
+import { scoreEligibility, DEFAULT_ELIGIBILITY_CONFIG, EligibilityResult, MdaCategory } from '../../../shared/utils/eligibility-scoring';
 
 type Stage = 'review' | 'credit' | 'approval' | 'offer' | 'disbursement' | 'disbursed' | 'rejected';
 type OfferStatus = 'not-sent' | 'sent' | 'signed' | 'expired';
@@ -73,7 +75,7 @@ interface Application {
   imports: [
     KpiCardComponent, AvatarComponent, DrawerComponent, ModalComponent, SelectComponent,
     InputComponent, TextareaComponent, CheckboxComponent, RadioButtonComponent, ButtonComponent,
-    StatusBadgeComponent, RoundTabsComponent, HiIconComponent,
+    StatusBadgeComponent, RoundTabsComponent, HiIconComponent, AlertBannerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-processing.component.html',
@@ -159,6 +161,31 @@ export class LoanProcessingComponent {
     if (level === 'Low') return 'var(--color-success)';
     if (level === 'Medium') return 'var(--color-warning)';
     return 'var(--color-error)';
+  }
+
+  /** Maps this screen's mock employer string to the eligibility scorer's MDA category. */
+  private mdaCategoryFor(employer: string): MdaCategory {
+    const e = employer.toLowerCase();
+    if (e.includes('federal') || e.includes('police') || e.includes('national')) return 'federal';
+    if (e.includes('state')) return 'state';
+    if (e.includes('private')) return 'private-large';
+    return 'sme';
+  }
+
+  /** Runs the rules-based eligibility scorer against this application's credit data. */
+  eligibilityFor(app: Application): EligibilityResult {
+    const isCorper = app.credit.employer.toLowerCase().includes('nysc');
+    return scoreEligibility(
+      {
+        income: { source: 'remita', monthlyAmount: app.credit.netSalary },
+        stability: isCorper
+          ? { type: 'nysc-corper', monthsRemaining: app.tenor }
+          : { type: 'mda', category: this.mdaCategoryFor(app.credit.employer) },
+        repaymentHistory: { isRepeatBorrower: false },
+        exposure: { hasActiveLoanElsewhere: false },
+      },
+      DEFAULT_ELIGIBILITY_CONFIG,
+    );
   }
 
   private update(id: string, fn: (a: Application) => Application) {

@@ -144,6 +144,21 @@
           </div>
         </div>
         <div class="detail-section">
+          <p class="detail-section-title">Eligibility score (rules-based)</p>
+          @let eligibility = eligibilityFor(app);
+          <app-alert-banner
+            [type]="eligibility.decision === 'approved' ? 'success' : 'error'"
+            [title]="eligibility.decision === 'approved' ? 'Approved — eligible for ₦' + eligibility.maxEligibleAmount.toLocaleString() + ' over ' + eligibility.tenorMonths + ' months' : 'Declined by rules engine'"
+            [message]="eligibility.reasons.length ? eligibility.reasons.join(' ') : 'Score ' + eligibility.score + '/100 based on income, employment stability, repayment history, and internal exposure.'"
+            [dismissible]="false" />
+          <div class="credit-grid mt">
+            <app-kpi-card label="Overall score" [value]="eligibility.score + '/100'" helpText="Weighted average of the four signals below." />
+            <app-kpi-card label="Income" [value]="eligibility.breakdown.incomeScore + '/100'" helpText="How verified monthly income compares to this product's target income." />
+            <app-kpi-card label="Employment stability" [value]="eligibility.breakdown.stabilityScore + '/100'" helpText="MDA category stability, or months remaining for NYSC corps members." />
+            <app-kpi-card label="Repayment history" [value]="eligibility.breakdown.repaymentHistoryScore + '/100'" helpText="Internal on-time vs. late/defaulted repayment history for repeat borrowers." />
+          </div>
+        </div>
+        <div class="detail-section">
           <p class="detail-section-title">Manual override (optional)</p>
           <app-textarea placeholder="Reason for overriding the automated assessment..." [value]="app.credit.overrideReason" (valueChange)="setOverrideReason(app, $event)" />
         </div>

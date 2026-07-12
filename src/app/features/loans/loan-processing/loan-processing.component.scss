@@ -200,6 +200,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
+
+  &.mt { margin-top: var(--space-3); }
 }
 
 .credit-cell {
