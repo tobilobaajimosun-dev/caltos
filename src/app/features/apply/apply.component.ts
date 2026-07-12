@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoanConfig } from '../loans/create-loan/create-loan.component';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
@@ -157,10 +157,13 @@ export class ApplyComponent implements OnInit {
     this.buildSteps();
   }
 
-  // ── Load config from localStorage ───────────────────────────────────────────
+  private readonly route = inject(ActivatedRoute);
+
+  // ── Load config from localStorage, keyed by the ?product= query param ──────
   private loadProduct() {
+    const productId = this.route.snapshot.queryParamMap.get('product');
     try {
-      const raw = localStorage.getItem('caltos_published_config');
+      const raw = productId ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
       if (raw) {
         this.product = { ...FALLBACK_CONFIG, ...JSON.parse(raw) };
         this.configSource = 'localStorage';

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent } from '../../../shared/components';
-import { ProductsService, ProductStats, ProductStatus } from '../../../shared/services/products.service';
+import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DEDUCTION_CHANNEL_DEFS } from '../../../shared/services/products.service';
 import {
   ArrowLeft02Icon,
   PauseIcon,
@@ -66,22 +66,6 @@ const ALL_INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: 'secretKey', label: 'Secret key' }, { key: 'publicKey', label: 'Public key' }],
   },
   {
-    id: 'remita', name: 'Remita', initials: 'RM', color: '#00A651',
-    tags: ['deduction'],
-    whatItDoes: 'Enables salary-based deductions for federal and state government workers — the primary rail for at-source loan repayment collection.',
-    whatYouNeed: ['A registered Remita merchant profile', 'Merchant ID, API Key, Service Type ID, and API Token from Remita'],
-    whatHappensAfter: ['Eligible borrowers are matched against Remita payroll records', 'Repayments are deducted at source before salary is paid out', 'Deduction results post back to this product\'s repayment ledger'],
-    fields: [{ key: 'merchantId', label: 'Merchant ID' }, { key: 'apiKey', label: 'API Key' }, { key: 'serviceTypeId', label: 'Service Type ID' }, { key: 'apiToken', label: 'API Token' }],
-  },
-  {
-    id: 'dedukt', name: 'Dedukt', initials: 'DK', color: '#6B4EFF',
-    tags: ['deduction'],
-    whatItDoes: 'Automates payroll deductions for participating employers, giving you a direct channel to collect repayments from a borrower\'s salary.',
-    whatYouNeed: ['An active Dedukt account', 'An API Key from your Dedukt dashboard'],
-    whatHappensAfter: ['Borrowers on a Dedukt-connected payroll are flagged as eligible', 'Deduction instructions are sent to the employer\'s payroll each cycle', 'Confirmed deductions are reconciled against the loan schedule'],
-    fields: [{ key: 'apiKey', label: 'API Key' }],
-  },
-  {
     id: 'dedukt-v2', name: 'Dedukt v2', initials: 'D2', color: '#5A3FE0',
     tags: ['deduction'],
     whatItDoes: 'The newer OAuth-based Dedukt integration — the same payroll-deduction rail, authenticated with client credentials instead of a single API key.',
@@ -97,14 +81,6 @@ const ALL_INTEGRATIONS: IntegrationDef[] = [
     whatYouNeed: ['A registered Remita Salary merchant profile', 'Merchant ID, API Key, and API Token'],
     whatHappensAfter: ['Salary-earner status is verified before approval', 'A deduction mandate is set up against the borrower\'s salary account', 'Repayment status updates flow back automatically'],
     fields: [{ key: 'merchantId', label: 'Merchant ID' }, { key: 'apiKey', label: 'API Key' }, { key: 'apiToken', label: 'API Token' }],
-  },
-  {
-    id: 'wacs', name: 'WACS', initials: 'WC', color: '#B8860B',
-    tags: ['deduction'],
-    whatItDoes: 'The Web Account Clearing System routes salary deductions for select public-sector workplaces not covered by Remita or IPPIS.',
-    whatYouNeed: ['WACS platform credentials (username and password)', 'A secret key issued by WACS'],
-    whatHappensAfter: ['Borrowers at supported workplaces are matched against WACS records', 'Deduction requests are submitted each payroll cycle', 'Cleared deductions are posted to the repayment schedule'],
-    fields: [{ key: 'username', label: 'Username' }, { key: 'password', label: 'Password' }, { key: 'secretKey', label: 'Secret key' }],
   },
   {
     id: 'monnify', name: 'Monnify', initials: 'MN', color: '#0033A0',
@@ -140,6 +116,76 @@ const ALL_INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: 'apiKey', label: 'API Key' }, { key: 'baseUrl', label: 'Base URL' }, { key: 'workplaceId', label: 'Workplace ID' }],
   },
 ];
+
+/**
+ * Descriptive copy for the deduction rails a lender can pick in the create-loan wizard
+ * (Verification step). The required-fields for each rail come from the single
+ * DEDUCTION_CHANNEL_DEFS source of truth in products.service.ts — the wizard writes
+ * that shape when a product is published, and this map only supplies the marketing-style
+ * prose the wizard itself never needs to show.
+ */
+const DEDUCTION_CHANNEL_PROSE: Record<string, { color: string; whatItDoes: string; whatYouNeed: string[]; whatHappensAfter: string[] }> = {
+  ippis: {
+    color: '#1B4F72',
+    whatItDoes: 'Deducts repayments at source from federal-MDA payroll via the Integrated Payroll and Personnel Information System.',
+    whatYouNeed: ['An approved IPPIS integration profile', 'Username, Password, and Agency Code'],
+    whatHappensAfter: ['Eligible borrowers are matched against IPPIS payroll records', 'Repayments are deducted before salary is paid out', 'Deduction confirmations post back to the repayment ledger'],
+  },
+  remita: {
+    color: '#00A651',
+    whatItDoes: 'Enables salary-based deductions for federal and state government workers — the primary rail for at-source loan repayment collection.',
+    whatYouNeed: ['A registered Remita merchant profile', 'Merchant ID, API Key, Service Type ID, and API Token from Remita'],
+    whatHappensAfter: ['Eligible borrowers are matched against Remita payroll records', 'Repayments are deducted at source before salary is paid out', 'Deduction results post back to this product\'s repayment ledger'],
+  },
+  dedukt: {
+    color: '#6B4EFF',
+    whatItDoes: 'Automates payroll deductions for participating employers, giving you a direct channel to collect repayments from a borrower\'s salary.',
+    whatYouNeed: ['An active Dedukt account', 'An API Key from your Dedukt dashboard'],
+    whatHappensAfter: ['Borrowers on a Dedukt-connected payroll are flagged as eligible', 'Deduction instructions are sent to the employer\'s payroll each cycle', 'Confirmed deductions are reconciled against the loan schedule'],
+  },
+  wacs: {
+    color: '#B8860B',
+    whatItDoes: 'The Web Account Clearing System routes salary deductions for select public-sector workplaces not covered by Remita or IPPIS.',
+    whatYouNeed: ['WACS platform credentials (username and password)', 'A secret key issued by WACS'],
+    whatHappensAfter: ['Borrowers at supported workplaces are matched against WACS records', 'Deduction requests are submitted each payroll cycle', 'Cleared deductions are posted to the repayment schedule'],
+  },
+  'remita-direct-debit': {
+    color: '#2E7D32',
+    whatItDoes: 'A direct-debit mandate on the borrower\'s bank account via Remita, used as a fallback when at-source payroll deduction isn\'t available.',
+    whatYouNeed: ['A registered Remita merchant profile', 'Merchant ID, API Key, and a Mandate Reference'],
+    whatHappensAfter: ['Borrowers authorize a debit mandate at loan signup', 'Scheduled repayments are auto-debited from their account', 'Failed debits are retried and logged as exceptions'],
+  },
+  'mono-direct-debit': {
+    color: '#1F2A44',
+    whatItDoes: 'A direct-debit mandate on the borrower\'s bank account via Mono, used as a fallback when at-source payroll deduction isn\'t available.',
+    whatYouNeed: ['A Mono business account', 'Secret key and public key from your Mono dashboard'],
+    whatHappensAfter: ['Borrowers authorize a debit mandate at loan signup', 'Scheduled repayments are auto-debited from their account', 'Failed debits are retried and logged as exceptions'],
+  },
+};
+
+/**
+ * Builds an IntegrationDef for every known deduction rail, using the canonical
+ * required-fields from DEDUCTION_CHANNEL_DEFS and marking it connected/pending
+ * based on what's actually saved on this product's config — no more hardcoded
+ * per-product WACS entry disconnected from what the wizard captured.
+ */
+function buildDeductionChannelIntegrations(): IntegrationDef[] {
+  return Object.entries(DEDUCTION_CHANNEL_DEFS).map(([id, def]) => {
+    const prose = DEDUCTION_CHANNEL_PROSE[id];
+    const initials = def.name.replace(/[^A-Z]/g, '').slice(0, 2) || def.name.slice(0, 2).toUpperCase();
+    return {
+      id,
+      name: def.name,
+      initials,
+      color: prose.color,
+      tags: ['deduction'],
+      whatItDoes: prose.whatItDoes,
+      whatYouNeed: prose.whatYouNeed,
+      whatHappensAfter: prose.whatHappensAfter,
+      fields: def.fields,
+    };
+  });
+}
 
 interface ChannelPerformance {
   channel: string;
@@ -250,103 +296,96 @@ interface ProductData {
   policyText: string;
 }
 
-const LOAN_PRODUCT_BASE: ProductData = {
-  name: 'Corper Wallet',
+const EMPTY_PRODUCT_DATA: ProductData = {
+  name: '',
   type: 'loan',
-  status: 'live',
-  createdAt: 'Aug 29, 2024, 3:52:12 PM GMT',
-  description: 'Short-term cash advance for active NYSC corps members. Verified through NYSC call-up details and Remita salary data, with monthly deductions from stipend.',
-  websiteLink: 'apply.caltos.co/princeps/corper-wallet',
+  status: 'draft',
+  createdAt: '',
+  description: '',
+  websiteLink: '',
   applyRoute: '/apply',
-  productId: 'CW001',
-  minAmount: '30,000',
-  maxAmount: '100,000',
-  minTenor: '3',
-  maxTenor: '9',
+  productId: '',
+  minAmount: '0',
+  maxAmount: '0',
+  minTenor: '1',
+  maxTenor: '12',
   tenorUnit: 'Months',
   interestType: 'Flat Rate',
   interestFrequency: 'Monthly',
-  interestRate: '7.5',
-  minInterest: '500',
-  maxInterest: '5,000',
-  eligibility: ['Remita', 'IPPIS', 'Salary Earner'],
-  activeLoanPolicy: 'Restricted — borrowers must repay their active loan before reapplying.',
-  kycDocs: ['National ID (NIN)', 'Utility Bill', 'Last 3 months payslip', 'Bank statement (6 months)'],
-  processingFee: { enabled: true, method: 'Percentage', value: '1.5%', applyTo: 'Loan Amount', min: '₦750', max: '₦1,550' },
-  customFees: [{ name: 'Admin Fee', method: 'Flat Fee', value: '₦2,500', applyTo: 'Per Loan' }],
-  offerLetter: 'Digital signature required',
-  disburseToSalary: 'Yes',
+  interestRate: '0',
+  minInterest: '0',
+  maxInterest: '0',
+  eligibility: [],
+  activeLoanPolicy: '',
+  kycDocs: [],
+  processingFee: { enabled: false, method: 'Percentage', value: '0%', applyTo: 'Loan Amount', min: '₦0', max: '₦0' },
+  customFees: [],
+  offerLetter: 'Not required',
+  disburseToSalary: 'No',
   autoDeductions: 'No',
   videoConfirmation: 'No',
-  incomeChannels: [
-    { id: 'remita',   label: 'Remita',        desc: 'Salary verification via Remita',           status: 'connected' },
-    { id: 'ippis',    label: 'IPPIS',          desc: 'Federal payroll verification',             status: 'pending' },
-    { id: 'bank',     label: 'Bank Statement', desc: 'Automated bank statement analysis',        status: 'connected' },
-  ],
-  deductionChannels: [
-    { id: 'ippis',   label: 'IPPIS',        desc: 'At-source payroll deduction',       coverage: 'Federal MDAs only',    status: 'pending',       priority: 1 },
-    { id: 'remita',  label: 'Remita',       desc: 'Standing order / salary mandate',   coverage: 'Federal + some states', status: 'connected',     priority: 2 },
-    { id: 'direct',  label: 'Direct Debit', desc: 'Bank account debit on due date',    coverage: 'Any bank',             status: 'not-configured', priority: 3 },
-  ],
+  incomeChannels: [],
+  deductionChannels: [],
   repaymentFrequency: 'Monthly',
-  minRepayments: '3',
-  maxRepayments: '9',
+  minRepayments: '1',
+  maxRepayments: '12',
   firstPaymentOffset: '30 days after disbursement',
   repaymentOrder: ['Fees', 'Interest', 'Penalty', 'Principal'],
   activateImmediately: true,
-  latePenalty: { enabled: true, type: 'Percentage', value: '2%', frequency: 'Daily', gracePeriod: '3 days' },
-  policyText: `By applying, you agree that Princeps Finance may verify your employment, salary, and credit history from third-party sources to assess your eligibility. If approved, your monthly repayments will be automatically deducted from your salary before funds are credited to your account. Any outstanding balance in the event of default may be recovered from your other linked accounts.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
+  latePenalty: { enabled: false, type: 'Percentage', value: '0%', frequency: 'Daily', gracePeriod: '0 days' },
+  policyText: '',
 };
 
-const MOCK_PRODUCTS: Record<string, ProductData> = {
-  CW001: LOAN_PRODUCT_BASE,
-  CRI02: { ...LOAN_PRODUCT_BASE, name: 'Credit Wallet', productId: 'CRI02', minTenor: '6', maxTenor: '12', websiteLink: 'apply.caltos.co/princeps/credit-wallet' },
-  CA100: { ...LOAN_PRODUCT_BASE, name: 'Credit Alert', productId: 'CA100', minTenor: '12', maxTenor: '24', interestFrequency: 'Daily', websiteLink: 'apply.caltos.co/princeps/credit-alert' },
-  WCR03: { ...LOAN_PRODUCT_BASE, name: 'WACS', productId: 'WCR03', status: 'deactivated', minTenor: '24', maxTenor: '52', websiteLink: 'apply.caltos.co/princeps/wacs' },
-  QB001: {
-    name: 'Quick Buy BNPL',
-    type: 'bnpl',
-    status: 'live',
-    createdAt: 'Jun 12, 2025, 10:14:22 AM GMT',
-    description: 'Instant purchase financing for goods and services. Customers shop now and repay in instalments. Funds go directly to vendor settlement accounts.',
-    websiteLink: 'apply.caltos.co/princeps/bnpl/quick-buy/[vendor-slug]',
-    applyRoute: '/apply',
-    productId: 'QB001',
-    minAmount: '20,000',
-    maxAmount: '500,000',
-    minTenor: '1',
-    maxTenor: '12',
-    tenorUnit: 'Months',
-    interestType: 'Flat Rate',
-    interestFrequency: 'Monthly',
-    interestRate: '5.0',
-    minInterest: '500',
-    maxInterest: '10,000',
-    eligibility: ['BVN', 'Phone OTP'],
-    activeLoanPolicy: 'Allowed — borrowers may have multiple active BNPL plans.',
-    kycDocs: ['Government Issued ID (Required)', 'Utility Bill (Optional)'],
-    processingFee: { enabled: true, method: 'Percentage', value: '1.5%', applyTo: 'Purchase Amount', min: '₦500', max: '₦5,000' },
-    customFees: [],
-    offerLetter: 'Not required',
-    disburseToSalary: 'No — funds go to vendor settlement account',
-    autoDeductions: 'No',
-    videoConfirmation: 'No',
-    incomeChannels: [
-      { id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'connected' },
-    ],
-    deductionChannels: [
-      { id: 'direct', label: 'Direct Debit', desc: 'Bank account debit on due date', coverage: 'Any bank', status: 'connected', priority: 1 },
-    ],
-    repaymentFrequency: 'Monthly',
-    minRepayments: '1',
-    maxRepayments: '12',
-    firstPaymentOffset: '30 days after purchase',
-    repaymentOrder: ['Fees', 'Interest', 'Penalty', 'Principal'],
-    activateImmediately: true,
-    latePenalty: { enabled: true, type: 'Percentage', value: '1.5%', frequency: 'Daily', gracePeriod: '3 days' },
-    policyText: `By proceeding with this purchase, you agree that Princeps Finance will finance this transaction on your behalf. Repayment will be made in equal monthly instalments as agreed. Failure to repay may result in reporting to credit bureaus and recovery action.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and BNPL Terms & Conditions.`,
-  },
-};
+/** Maps a persisted ProductRecord (real or newly created) into the shape the template renders. */
+function mapRecordToProductData(record: ProductRecord): ProductData {
+  const c = record.config;
+  return {
+    name: record.name,
+    type: record.type,
+    status: record.status,
+    createdAt: record.createdAt,
+    description: record.description,
+    websiteLink: record.websiteLink,
+    applyRoute: `/apply?product=${record.id}`,
+    productId: record.id,
+    minAmount: record.minAmount,
+    maxAmount: record.maxAmount,
+    minTenor: record.minTenor,
+    maxTenor: record.maxTenor,
+    tenorUnit: record.tenorUnit,
+    interestType: record.interestType,
+    interestFrequency: record.interestFrequency,
+    interestRate: record.interestRate,
+    minInterest: c.minInterest,
+    maxInterest: c.maxInterest,
+    eligibility: c.eligibility,
+    activeLoanPolicy: c.activeLoanPolicy,
+    kycDocs: c.kycDocs,
+    processingFee: c.processingFee,
+    customFees: c.customFees,
+    offerLetter: c.offerLetter,
+    disburseToSalary: c.disburseToSalary,
+    autoDeductions: c.autoDeductions,
+    videoConfirmation: c.videoConfirmation,
+    incomeChannels: c.incomeChannels,
+    deductionChannels: c.deductionChannels.map((dc) => ({
+      id: dc.id,
+      label: dc.name,
+      desc: DEDUCTION_CHANNEL_DEFS[dc.id]?.fields.map((f) => f.label).join(', ') ?? '',
+      coverage: dc.coverage,
+      status: dc.status,
+      priority: dc.priority,
+    })),
+    repaymentFrequency: c.repaymentFrequency,
+    minRepayments: c.minRepayments,
+    maxRepayments: c.maxRepayments,
+    firstPaymentOffset: c.firstPaymentOffset,
+    repaymentOrder: c.repaymentOrder,
+    activateImmediately: c.activateImmediately,
+    latePenalty: c.latePenalty,
+    policyText: c.policyText,
+  };
+}
 
 const BNPL_SAMPLE_VENDORS: Vendor[] = [
   { id: 'v1', businessName: 'TechHub Electronics', category: 'Electronics & Gadgets', status: 'active', settlementBank: 'Access Bank', settlementAccount: '0123456789', dateAdded: 'Jun 12, 2025', slug: 'techhub-electronics' },
@@ -596,14 +635,14 @@ export class ProductDetailComponent implements OnInit {
   }
 
   // ── Integrations tab ──
-  readonly allIntegrations = ALL_INTEGRATIONS;
+  readonly allIntegrations: IntegrationDef[] = [...ALL_INTEGRATIONS, ...buildDeductionChannelIntegrations()];
   readonly integrationScopeTabs: Tab[] = [
     { label: 'Active on this loan', value: 'active' },
     { label: 'Marketplace', value: 'marketplace' },
   ];
   integrationScope: 'active' | 'marketplace' = 'active';
-  /** Ids of integrations selected/connected for this specific product. */
-  connectedIntegrationIds = new Set<string>(['remita-salary', 'mono']);
+  /** Ids of integrations connected for this specific product — seeded in ngOnInit from its saved deduction-channel config. */
+  connectedIntegrationIds = new Set<string>();
 
   infoIntegration: IntegrationDef | null = null;
   connectIntegrationTarget: IntegrationDef | null = null;
@@ -696,7 +735,7 @@ export class ProductDetailComponent implements OnInit {
     'Travel & Experiences', 'Agricultural Inputs', 'Building Materials', 'Automotive Parts',
   ];
 
-  product: ProductData = MOCK_PRODUCTS['CW001'];
+  product: ProductData = EMPTY_PRODUCT_DATA;
 
   checklist: ChecklistItem[] = [
     { id: 'details',      label: 'Set loan terms',              description: 'Set your loan name, amount limits, tenor range, and interest structure.',       done: true,  tab: 'overview'     },
@@ -723,17 +762,23 @@ export class ProductDetailComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      const id = (params['id'] as string) ?? 'CW001';
+      const id = (params['id'] as string) ?? '';
       this.productId = id;
-      this.product = MOCK_PRODUCTS[id] ?? MOCK_PRODUCTS['CW001'];
-      this.vendors = this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : [];
-      this.activeTab = 'overview';
 
       const record = this.productsService.getById(id);
-      if (record) {
-        this.product = { ...this.product, name: record.name, status: record.status, createdAt: record.createdAt };
-        this.productStats = record.stats;
+      if (!record) {
+        // No fallback to mock data — an id that doesn't exist has nothing to show.
+        this.router.navigate(['/products']);
+        return;
       }
+
+      this.product = mapRecordToProductData(record);
+      this.productStats = record.stats;
+      this.vendors = this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : [];
+      this.activeTab = 'overview';
+      this.connectedIntegrationIds = new Set(
+        record.config.deductionChannels.filter((c) => c.status === 'connected').map((c) => c.id),
+      );
 
       this.activeLoans = this.buildMockActiveLoans();
       this.customers = this.buildMockCustomers();

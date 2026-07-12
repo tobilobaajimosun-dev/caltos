@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS } from '../../../shared/services/products.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   PlusSignIcon, EyeIcon, Clock01Icon,
@@ -611,6 +611,124 @@ export class CreateLoanComponent implements OnInit {
     }
   }
 
+  /** Human-readable eligibility labels derived from the identity/income toggles picked in Verification. */
+  private buildEligibilityLabels(): string[] {
+    const labels: string[] = [];
+    if (this.config.identityBvn) labels.push('BVN');
+    if (this.config.identityNin) labels.push('NIN');
+    if (this.config.identityPhoneOtp) labels.push('Phone OTP');
+    if (this.config.identityEmailOtp) labels.push('Email OTP');
+    if (this.config.incomeRemita) labels.push('Remita');
+    if (this.config.incomeIppis) labels.push('IPPIS');
+    if (this.config.incomeBankStatement) labels.push('Bank Statement');
+    return labels;
+  }
+
+  /** Required-document labels derived from the doc-requirement selects in Verification. */
+  private buildKycDocs(): string[] {
+    const docs: { value: string; label: string }[] = [
+      { value: this.config.docGovId, label: 'Government ID' },
+      { value: this.config.docUtilityBill, label: 'Utility Bill' },
+      { value: this.config.docWorkVerification, label: 'Work Verification' },
+      { value: this.config.docGuarantorForm, label: 'Guarantor Form' },
+      { value: this.config.docSchoolId, label: 'School ID' },
+      { value: this.config.docAdmissionLetter, label: 'Admission Letter' },
+      { value: this.config.docNyscLetter, label: 'NYSC Letter' },
+      { value: this.config.docCacCert, label: 'CAC Certificate' },
+      { value: this.config.docMembershipCert, label: 'Membership Certificate' },
+    ];
+    return docs
+      .filter((d) => d.value === 'required' || d.value === 'optional')
+      .map((d) => (d.value === 'required' ? `${d.label} (Required)` : `${d.label} (Optional)`));
+  }
+
+  /** The income-verification channels selected — newly created, so none are connected yet. */
+  private buildIncomeChannels(): IncomeChannelConfig[] {
+    const channels: IncomeChannelConfig[] = [];
+    if (this.config.incomeRemita) channels.push({ id: 'remita', label: 'Remita', desc: 'Salary verification via Remita', status: 'pending' });
+    if (this.config.incomeIppis) channels.push({ id: 'ippis', label: 'IPPIS', desc: 'Federal payroll verification', status: 'pending' });
+    if (this.config.incomeBankStatement) channels.push({ id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'pending' });
+    return channels;
+  }
+
+  private readonly deductionChannelCoverage: Record<string, string> = {
+    ippis: 'Federal MDAs only',
+    remita: 'Federal + some states',
+    dedukt: 'Participating employers',
+    wacs: 'State MDAs on the WACS platform',
+    'remita-direct-debit': 'Any bank',
+    'mono-direct-debit': 'Any bank',
+  };
+
+  /**
+   * The deduction channels selected in Verification, resolved against the canonical
+   * DEDUCTION_CHANNEL_DEFS so this rail's required credential fields (e.g. WACS's
+   * username/password/secret key) are part of the saved record — the same fields
+   * product-detail's Integrations tab will ask for when someone connects it.
+   */
+  private buildDeductionChannels(): DeductionChannelConfig[] {
+    const selected: { id: string; enabled: boolean }[] = [
+      { id: 'ippis', enabled: this.config.deductIppis },
+      { id: 'remita', enabled: this.config.deductRemita },
+      { id: 'dedukt', enabled: this.config.deductDedukt },
+      { id: 'wacs', enabled: this.config.deductWacs },
+      { id: 'remita-direct-debit', enabled: this.config.deductRemitaDirectDebit },
+      { id: 'mono-direct-debit', enabled: this.config.deductMonoDirectDebit },
+    ];
+    return selected
+      .filter((s) => s.enabled)
+      .map((s, i) => ({
+        id: s.id,
+        name: DEDUCTION_CHANNEL_DEFS[s.id].name,
+        enabled: true,
+        status: 'not-configured' as const,
+        coverage: this.deductionChannelCoverage[s.id] ?? '',
+        priority: i + 1,
+        fields: DEDUCTION_CHANNEL_DEFS[s.id].fields,
+      }));
+  }
+
+  private buildProductConfig(): ProductConfig {
+    return {
+      minInterest: '0',
+      maxInterest: '0',
+      eligibility: this.buildEligibilityLabels(),
+      activeLoanPolicy: this.config.restrictActiveLoan
+        ? 'Restricted — borrowers must repay their active loan before reapplying.'
+        : 'Allowed — borrowers may have multiple active loans.',
+      kycDocs: this.buildKycDocs(),
+      processingFee: {
+        enabled: !!this.config.processingFeeRate && this.config.processingFeeRate !== '0',
+        method: this.config.processingFeeType,
+        value: this.config.processingFeeRate,
+        applyTo: this.config.processingFeeApplicableTo,
+        min: this.config.processingFeeMin,
+        max: this.config.processingFeeMax,
+      },
+      customFees: [],
+      offerLetter: this.config.offerLetter ? 'Digital signature required' : 'Not required',
+      disburseToSalary: this.config.disburseTo === 'third-party' ? 'No — funds go to vendor settlement account' : 'No',
+      autoDeductions: this.config.repaymentDeductionFirst ? 'Yes' : 'No',
+      videoConfirmation: this.config.videoConfirmation ? 'Yes' : 'No',
+      incomeChannels: this.buildIncomeChannels(),
+      deductionChannels: this.buildDeductionChannels(),
+      repaymentFrequency: this.config.repaymentFrequency,
+      minRepayments: this.config.minRepayments || '1',
+      maxRepayments: this.config.maxRepayments || '12',
+      firstPaymentOffset: `${this.config.firstRepaymentDays || '30'} days after disbursement`,
+      repaymentOrder: ['Fees', 'Interest', 'Penalty', 'Principal'],
+      activateImmediately: this.config.autoDisburseEnabled,
+      latePenalty: {
+        enabled: !!this.config.latePenaltyRate && this.config.latePenaltyRate !== '0',
+        type: this.config.latePenaltyMethod,
+        value: this.config.latePenaltyRate,
+        frequency: this.config.latePenaltyChargeFrequency,
+        gracePeriod: `${this.config.latePenaltyGraceDays || '0'} days`,
+      },
+      policyText: `By applying for ${this.config.name || 'this product'}, you agree that we may verify your employment, salary, and credit history from third-party sources to assess your eligibility. By checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
+    };
+  }
+
   private buildProductPatch() {
     return {
       name: this.config.name || 'Untitled Product',
@@ -624,6 +742,7 @@ export class CreateLoanComponent implements OnInit {
       interestType: this.config.interestModel,
       interestRate: this.config.interestRate,
       interestFrequency: this.config.interestChargedWhen,
+      config: this.buildProductConfig(),
     };
   }
 
@@ -664,7 +783,9 @@ export class CreateLoanComponent implements OnInit {
       sectionCustomFields,
       customDocs: this.customDocs,
     };
-    localStorage.setItem('caltos_published_config', JSON.stringify(publishedConfig));
+    // Keyed by product id — previously a single global key, so publishing a second
+    // product silently overwrote the first one's preview config.
+    localStorage.setItem(`caltos_published_config_${this.editingProductId}`, JSON.stringify(publishedConfig));
     this.isPublished = true;
     this.isDraft = false;
   }
