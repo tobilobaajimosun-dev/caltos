@@ -57,6 +57,7 @@ export { SkeletonComponent } from './skeleton/skeleton.component';
 export { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 export { ConfirmModalComponent } from './confirm-modal/confirm-modal.component';
 export { AlertBannerComponent } from './alert-banner/alert-banner.component';
+export { RowMenuComponent } from './row-menu/row-menu.component';
 export { CommandPaletteComponent } from './command-palette/command-palette.component';
 export { DrawerComponent } from './drawer/drawer.component';
 export { AvatarComponent } from './avatar/avatar.component';

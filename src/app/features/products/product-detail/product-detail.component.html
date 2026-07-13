@@ -29,17 +29,16 @@
                     [icon]="effectiveStatus === 'live' ? pauseIcon : checkIcon"
                     [disabled]="pendingSetupCount > 0 || (product.status !== 'live' && !canActivate)"
                     (clicked)="togglePublish()" />
-                  <div class="more-menu-wrap">
-                    <button class="more-btn" (click)="toggleMoreMenu()" aria-label="More options">
+                  <app-row-menu #moreMenu [open]="moreMenuOpen" (openChange)="moreMenuOpen = $event">
+                    <button trigger #trigger class="more-btn" (click)="moreMenu.toggle($event)" aria-label="More options">
                       <hi-icon [icon]="moreIcon" size="18" />
                     </button>
-                    @if (moreMenuOpen) {
-                      <div class="more-menu-backdrop" (click)="moreMenuOpen = false"></div>
-                      <div class="row-dropdown" (click)="$event.stopPropagation()">
+                    <ng-template>
+                      <div class="row-dropdown">
                         <button class="dropdown-item" (click)="editProduct(); moreMenuOpen = false">Edit product</button>
                       </div>
-                    }
-                  </div>
+                    </ng-template>
+                  </app-row-menu>
                 </div>
               </div>
               @if (pendingSetupCount === 0 && publishBlockedMessage) {

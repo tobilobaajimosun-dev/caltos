@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { ProductSettingsModalComponent } from '../product-settings-modal/product-settings-modal.component';
-import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, RoundTabsComponent, Tab, KpiCardComponent, ColumnTitleComponent } from '../../../shared/components';
+import { TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent, RoundTabsComponent, Tab, KpiCardComponent, ColumnTitleComponent, RowMenuComponent } from '../../../shared/components';
 import { ProductsService, ProductRecord, ProductStatus } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import {
@@ -23,7 +23,6 @@ interface Fee {
   minFee: string;
   maxFee: string;
   createdAt: string;
-  menuOpen?: boolean;
 }
 
 @Component({
@@ -32,7 +31,7 @@ interface Fee {
   imports: [
     RouterLink, HiIconComponent, ProductSettingsModalComponent,
     TooltipComponent, EmptyStateComponent, ButtonComponent, ConfirmModalComponent, ToastComponent,
-    RoundTabsComponent, KpiCardComponent, ColumnTitleComponent,
+    RoundTabsComponent, KpiCardComponent, ColumnTitleComponent, RowMenuComponent,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.scss'],
@@ -47,6 +46,7 @@ export class ProductListComponent {
   searchQuery = '';
   showSettingsDrawer = false;
   openDropdownId: string | null = null;
+  openFeeMenuName: string | null = null;
 
   readonly filterIcon: IconData = FilterIcon as IconData;
   readonly moreIcon: IconData = MoreVerticalIcon as IconData;
@@ -110,20 +110,13 @@ export class ProductListComponent {
     this.typeFilter = type;
   }
 
-  toggleFeeMenu(event: Event, fee: Fee) {
-    event.stopPropagation();
-    const wasOpen = fee.menuOpen;
-    this.fees.forEach((f) => (f.menuOpen = false));
-    fee.menuOpen = !wasOpen;
-  }
-
   editFee(fee: Fee) {
-    fee.menuOpen = false;
+    this.openFeeMenuName = null;
     this.showToast(`Editing "${fee.name}" is coming soon.`);
   }
 
   deleteFee(fee: Fee) {
-    fee.menuOpen = false;
+    this.openFeeMenuName = null;
     this.showToast(`"${fee.name}" removed.`);
   }
 
@@ -168,7 +161,7 @@ export class ProductListComponent {
   closeDropdown() {
     this.openDropdownId = null;
     this.filterPanelOpen = false;
-    this.fees.forEach((f) => (f.menuOpen = false));
+    this.openFeeMenuName = null;
   }
 
   toggleDropdown(event: Event, productId: string) {

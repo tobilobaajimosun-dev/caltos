@@ -657,6 +657,73 @@ $red:         #F04438;
   &.yellow { color: $yellow; background: rgba(247,144,9,0.12); }
 }
 
+// ── Video confirmation ────────────────────────────────────────────────────────
+.video-capture-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 420px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: $surface;
+  border: 1px solid $border;
+}
+
+.video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-rec-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.video-rec-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $red;
+  animation: recPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes recPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.video-capture-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.back-btn-wide {
+  flex: 1;
+  height: 56px;
+  border-radius: 20px;
+  border: 1px solid $border;
+  background: $surface;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: $text-1;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: $surface-2; }
+}
+
 // ── Document upload ───────────────────────────────────────────────────────────
 .doc-stack {
   display: flex;
@@ -874,6 +941,7 @@ $red:         #F04438;
 
   &:hover { background: var(--brand-hover); }
   &:active { transform: scale(0.98); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; &:hover { background: var(--brand); } }
 }
 
 .submit-btn {

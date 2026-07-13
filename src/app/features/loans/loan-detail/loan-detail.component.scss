@@ -60,6 +60,13 @@
   margin: 4px 0 0;
 }
 
+.video-confirmation-player {
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--space-3);
+  background: #000;
+}
+
 .mismatch-list {
   margin: var(--space-3) 0 0;
   padding-left: var(--space-5);

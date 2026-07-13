@@ -545,14 +545,14 @@
             <td>{{ record.type }}</td>
             <td>{{ record.size }}</td>
             <td class="actions-cell">
-              <div class="dropdown-wrap">
-                <button type="button" class="see-more-btn" (click)="toggleExportMenu($event, record)">See more</button>
-                @if (record.menuOpen) {
-                  <div class="row-dropdown" (click)="$event.stopPropagation()">
+              <app-row-menu #exportMenu [open]="openExportMenuDate === record.date" (openChange)="openExportMenuDate = $event ? record.date : null">
+                <button trigger #trigger type="button" class="see-more-btn" (click)="exportMenu.toggle($event)">See more</button>
+                <ng-template>
+                  <div class="row-dropdown">
                     <button type="button" class="dropdown-item">Download again</button>
                   </div>
-                }
-              </div>
+                </ng-template>
+              </app-row-menu>
             </td>
           </tr>
         }

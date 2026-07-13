@@ -14,6 +14,7 @@ import {
   InputComponent,
   SkeletonComponent,
   EmptyStateComponent,
+  RowMenuComponent,
 } from '../../shared/components';
 
 type ReportFrequency = 'Daily' | 'Weekly' | 'Monthly' | 'On demand';
@@ -43,7 +44,6 @@ interface ExportRecord {
   date: string;
   type: string;
   size: string;
-  menuOpen?: boolean;
 }
 
 interface AgingBucket {
@@ -106,6 +106,7 @@ interface SegmentRow {
     InputComponent,
     SkeletonComponent,
     EmptyStateComponent,
+    RowMenuComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reports.component.html',
@@ -502,14 +503,9 @@ export class ReportsComponent {
     { date: '2026-06-01 08:15', type: 'Product Mix', size: '1.6 MB' },
   ];
 
-  toggleExportMenu(event: Event, record: ExportRecord) {
-    event.stopPropagation();
-    const wasOpen = record.menuOpen;
-    this.exportHistory.forEach((r) => (r.menuOpen = false));
-    record.menuOpen = !wasOpen;
-  }
+  openExportMenuDate: string | null = null;
 
   closeExportMenus() {
-    this.exportHistory.forEach((r) => (r.menuOpen = false));
+    this.openExportMenuDate = null;
   }
 }

@@ -561,6 +561,42 @@
         </div>
       }
 
+      <!-- VIDEO CONFIRMATION -->
+      @if (currentStep.id === 'video') {
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">Record a short<br>video confirmation</h2>
+          <p class="screen-body-sm">Confirm out loud that you understand and agree to this loan's terms. Takes less than a minute.</p>
+
+          @if (cameraError) {
+            <p class="screen-notice error">{{ cameraError }}</p>
+          }
+
+          <div class="video-capture-frame">
+            @if (videoPlaybackUrl) {
+              <video #videoPlayback [src]="videoPlaybackUrl" controls playsinline class="video-el"></video>
+            } @else {
+              <video #videoPreview autoplay muted playsinline class="video-el"></video>
+              @if (isRecording) {
+                <div class="video-rec-badge"><span class="video-rec-dot"></span>Recording</div>
+              }
+            }
+          </div>
+
+          <div class="video-capture-actions">
+            @if (!cameraStream && !videoPlaybackUrl) {
+              <button class="cta-btn" (click)="startCamera()">Enable camera</button>
+            } @else if (videoPlaybackUrl) {
+              <button class="back-btn-wide" (click)="retakeVideo()">Retake video</button>
+            } @else if (!isRecording) {
+              <button class="cta-btn" (click)="startRecording()">Start recording</button>
+            } @else {
+              <button class="cta-btn submit-btn" (click)="stopRecording()">Stop recording</button>
+            }
+          </div>
+        </div>
+      }
+
       <!-- REVIEW -->
       @if (currentStep.id === 'review') {
         <div class="screen">
@@ -636,7 +672,7 @@
       @if (isLast) {
         <button class="cta-btn submit-btn" (click)="submit()">Submit Application</button>
       } @else {
-        <button class="cta-btn" (click)="next()">
+        <button class="cta-btn" [disabled]="currentStep.id === 'video' && !videoConfirmationDataUrl" (click)="next()">
           {{ currentStep.id === 'welcome' ? 'Get Started' : 'Continue' }}
         </button>
       }

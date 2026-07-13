@@ -8,11 +8,11 @@
   <!-- Minimal header strip -->
   <header class="wiz-header">
     <div class="wiz-brand">
-      <app-avatar [name]="orgName" [color]="orgAvatarColor" size="sm" />
+      <app-avatar [name]="orgAvatarName" [color]="orgAvatarColor" size="sm" />
       <span class="wiz-brand-label">Create loan product</span>
     </div>
     <div class="wiz-header-right">
-      <a routerLink="/apply" target="_blank" class="wiz-preview-btn">
+      <a routerLink="/apply" [queryParams]="editingProductId ? { product: editingProductId } : {}" target="_blank" class="wiz-preview-btn">
         <hugeicons-icon [icon]="viewIcon" size="14" [strokeWidth]="1.5" />
         Preview
       </a>
@@ -234,9 +234,11 @@
                 </div>
                 <div class="field-group">
                   <label class="field-label">Interest rate <span class="req">*</span></label>
-                  <div class="input-suffix-wrap">
+                  <div [class.input-suffix-wrap]="config.interestModel === 'Percentage Based'">
                     <input class="text-input" type="number" placeholder="e.g. 5" [(ngModel)]="config.interestRate" />
-                    <span class="input-suffix">%</span>
+                    @if (config.interestModel === 'Percentage Based') {
+                      <span class="input-suffix">%</span>
+                    }
                   </div>
                 </div>
                 <div class="field-group">
@@ -791,11 +793,9 @@
                   </div>
                 </div>
 
-                <div class="field-row align-end">
-                  <div class="field-group compact">
-                    <label class="field-label">Accrual Stop Condition</label>
-                    <app-select [options]="toOptions(accrualStopConditionOptions)" [value]="config.latePenaltyAccrualStopCondition" (valueChange)="config.latePenaltyAccrualStopCondition = $event" />
-                  </div>
+                <div class="field-group">
+                  <label class="field-label">Accrual Stop Condition</label>
+                  <app-select [options]="toOptions(accrualStopConditionOptions)" [value]="config.latePenaltyAccrualStopCondition" (valueChange)="config.latePenaltyAccrualStopCondition = $event" />
                 </div>
 
                 <div class="toggle-option-list">
@@ -856,7 +856,7 @@
                 <div class="disburse-rule">
                   <div class="toggle-option">
                     <div class="toggle-option-text">
-                      <div class="toggle-option-title">Send offer letter via Digisign before disbursement <span class="paid-badge">PAID</span></div>
+                      <div class="toggle-option-title">Send offer letter via Caltos Verify before disbursement <span class="paid-badge">PAID</span></div>
                       <div class="toggle-option-sub">Applicant must sign the offer letter before funds are released.</div>
                     </div>
                     <app-toggle [checked]="config.offerLetter" (checkedChange)="config.offerLetter = $event" />
@@ -864,7 +864,7 @@
                   @if (config.offerLetter) {
                     <div class="info-callout" style="margin-top:10px">
                       <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
-                      Digisign is a paid integration. Configure it in Settings → Integrations before going live.
+                      Caltos Verify is a paid integration. Configure it in Settings → Integrations before going live.
                     </div>
                   }
                 </div>
@@ -1331,7 +1331,7 @@
       }
       <div class="publish-actions">
         <a routerLink="/products" class="publish-btn-secondary">Back to Products</a>
-        <a routerLink="/apply" class="publish-btn-primary">
+        <a routerLink="/apply" [queryParams]="{ product: editingProductId }" class="publish-btn-primary">
           Preview Borrower Portal
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
             <path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1448,9 +1448,6 @@
   (closed)="closeLoanTypeModal()">
   @if (pendingType) {
     <div class="type-modal-body">
-      <div class="type-modal-badge" [style.background]="pendingType.bg" [style.color]="pendingType.color">
-        {{ pendingType.label }}
-      </div>
       <p class="type-modal-desc">{{ pendingType.detail }}</p>
       <div class="type-modal-section">
         <div class="type-modal-label">Recommended verifications</div>

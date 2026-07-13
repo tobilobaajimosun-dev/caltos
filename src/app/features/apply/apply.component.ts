@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -66,7 +66,7 @@ interface DocField {
   templateUrl: './apply.component.html',
   styleUrls: ['./apply.component.scss'],
 })
-export class ApplyComponent implements OnInit {
+export class ApplyComponent implements OnInit, OnDestroy {
   Math = Math;
 
   private readonly loansService = inject(LoansService);
@@ -281,6 +281,8 @@ export class ApplyComponent implements OnInit {
 
     if (this.docFields.length) steps.push({ id: 'documents', label: 'Documents' });
 
+    if (p.videoConfirmation) steps.push({ id: 'video', label: 'Video confirmation' });
+
     steps.push({ id: 'review', label: 'Review' });
     this.steps = steps;
   }
@@ -319,14 +321,18 @@ export class ApplyComponent implements OnInit {
 
   next() {
     if (this.stepIndex < this.steps.length - 1) {
+      if (this.currentStep.id === 'video') this.stopCameraTracks();
       this.stepIndex++;
+      if (this.currentStep.id === 'video' && !this.videoConfirmationDataUrl) this.startCamera();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   back() {
     if (this.stepIndex > 0) {
+      if (this.currentStep.id === 'video') this.stopCameraTracks();
       this.stepIndex--;
+      if (this.currentStep.id === 'video' && !this.videoConfirmationDataUrl) this.startCamera();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -394,6 +400,7 @@ export class ApplyComponent implements OnInit {
       },
       requiredDocuments,
       deductionChannelStatus: this.loansService.buildDeductionChannelStatus(this.resolvedProductId),
+      videoConfirmationDataUrl: this.videoConfirmationDataUrl ?? undefined,
       utmSource: this.route.snapshot.queryParamMap.get('utm_source') ?? 'direct',
       utmMedium: this.route.snapshot.queryParamMap.get('utm_medium') ?? 'organic',
     });
@@ -417,6 +424,79 @@ export class ApplyComponent implements OnInit {
   }
 
   getDoc(key: string) { return this.uploadedDocs[key] ?? null; }
+
+  // ── Video confirmation ───────────────────────────────────────────────────────
+  // Recorded in-browser via MediaRecorder, then stored as a data URL on the
+  // LoanApplication record itself (videoConfirmationDataUrl) — same pattern as the
+  // banner-image/document uploads elsewhere in this app, since there's no backend
+  // to upload a Blob to. A lender reviews it from the loan's detail page.
+  @ViewChild('videoPreview') videoPreviewRef?: ElementRef<HTMLVideoElement>;
+  @ViewChild('videoPlayback') videoPlaybackRef?: ElementRef<HTMLVideoElement>;
+
+  cameraStream: MediaStream | null = null;
+  cameraError: string | null = null;
+  isRecording = false;
+  recordedChunks: Blob[] = [];
+  mediaRecorder: MediaRecorder | null = null;
+  videoPlaybackUrl: string | null = null;
+  videoConfirmationDataUrl: string | null = null;
+
+  async startCamera() {
+    this.cameraError = null;
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      if (this.videoPreviewRef) {
+        this.videoPreviewRef.nativeElement.srcObject = this.cameraStream;
+      }
+    } catch {
+      this.cameraError = 'Camera and microphone access is needed to record your confirmation. Please allow access and try again.';
+    }
+  }
+
+  startRecording() {
+    if (!this.cameraStream) return;
+    this.recordedChunks = [];
+    const recorder = new MediaRecorder(this.cameraStream);
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) this.recordedChunks.push(e.data); };
+    recorder.onstop = () => this.onRecordingStopped();
+    recorder.start();
+    this.mediaRecorder = recorder;
+    this.isRecording = true;
+  }
+
+  stopRecording() {
+    this.mediaRecorder?.stop();
+    this.isRecording = false;
+  }
+
+  private onRecordingStopped() {
+    const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+    if (this.videoPlaybackUrl) URL.revokeObjectURL(this.videoPlaybackUrl);
+    this.videoPlaybackUrl = URL.createObjectURL(blob);
+    this.stopCameraTracks();
+
+    const reader = new FileReader();
+    reader.onload = () => { this.videoConfirmationDataUrl = reader.result as string; };
+    reader.readAsDataURL(blob);
+  }
+
+  retakeVideo() {
+    if (this.videoPlaybackUrl) URL.revokeObjectURL(this.videoPlaybackUrl);
+    this.videoPlaybackUrl = null;
+    this.videoConfirmationDataUrl = null;
+    this.recordedChunks = [];
+    this.startCamera();
+  }
+
+  private stopCameraTracks() {
+    this.cameraStream?.getTracks().forEach((t) => t.stop());
+    this.cameraStream = null;
+  }
+
+  ngOnDestroy() {
+    this.stopCameraTracks();
+    if (this.videoPlaybackUrl) URL.revokeObjectURL(this.videoPlaybackUrl);
+  }
 
   // ── Loan summary ────────────────────────────────────────────────────────────
   get monthlyEst(): number {

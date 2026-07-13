@@ -633,15 +633,11 @@
 }
 
 .row-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
   width: 180px;
   background: var(--surface-base);
   border: 1px solid var(--color-stroke);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  z-index: 50;
   padding: 4px;
 }
 
@@ -702,10 +698,6 @@
 .hero-name { font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-header); margin: 0; }
 
 .hero-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-.more-menu-wrap { position: relative; }
-
-.more-menu-backdrop { position: fixed; inset: 0; z-index: 40; }
 
 .condensed-header {
   display: flex; align-items: center; gap: 10px;

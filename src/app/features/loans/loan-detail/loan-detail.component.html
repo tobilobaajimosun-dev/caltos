@@ -94,6 +94,12 @@
             </tbody>
           </table>
         </div>
+        @if (loan.videoConfirmationDataUrl) {
+          <div class="panel">
+            <div class="panel-head"><p class="panel-title">Video confirmation</p></div>
+            <video [src]="loan.videoConfirmationDataUrl" controls class="video-confirmation-player"></video>
+          </div>
+        }
       }
 
       <!-- UNDERTAKING -->

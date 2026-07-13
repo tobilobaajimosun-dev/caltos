@@ -110,19 +110,19 @@
           <td [routerLink]="['/loans', loan.id]" class="col-referral">{{ loan.referralCode || '—' }}</td>
           <td [routerLink]="['/loans', loan.id]"><app-status-badge [status]="statusBadge(loan.status).status" [label]="statusBadge(loan.status).label" /></td>
           <td class="col-actions" (click)="$event.stopPropagation()">
-            <div class="dropdown-wrap">
-              <button type="button" class="more-btn" (click)="toggleRowMenu($event, loan)">
+            <app-row-menu #rowMenu [open]="menuOpenId() === loan.id" (openChange)="menuOpenId.set($event ? loan.id : null)">
+              <button trigger #trigger type="button" class="more-btn" (click)="rowMenu.toggle($event)">
                 <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
               </button>
-              @if (menuOpenId() === loan.id) {
-                <div class="row-dropdown" (click)="$event.stopPropagation()">
+              <ng-template>
+                <div class="row-dropdown">
                   <a class="dropdown-item" [routerLink]="['/loans', loan.id]">
                     <hi-icon [icon]="viewIcon" size="15" color="currentColor" />
                     View loan
                   </a>
                 </div>
-              }
-            </div>
+              </ng-template>
+            </app-row-menu>
           </td>
         </tr>
       }

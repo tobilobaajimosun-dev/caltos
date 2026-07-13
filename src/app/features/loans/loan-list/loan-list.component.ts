@@ -16,6 +16,7 @@ import {
   CheckboxComponent,
   StatusBadgeComponent,
   HiIconComponent,
+  RowMenuComponent,
 } from '../../../shared/components';
 import { ProductsService } from '../../../shared/services/products.service';
 import { LoansService, LoanApplication, LoanStatus } from '../../../shared/services/loans.service';
@@ -33,7 +34,7 @@ type StatusParam = 'all' | 'requests' | 'in-review' | 'on-hold' | 'cancelled' | 
   imports: [
     RouterLink, ChartComponent, ColumnTitleComponent, ButtonComponent,
     RoundTabsComponent, SelectComponent, SearchComponent, CheckboxComponent, StatusBadgeComponent,
-    HiIconComponent,
+    HiIconComponent, RowMenuComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-list.component.html',

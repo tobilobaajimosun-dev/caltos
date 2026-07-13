@@ -100,6 +100,8 @@ export interface LoanApplication {
   eligibilityScore: EligibilityScoreResult;
   requiredDocuments: RequiredDocument[];
   deductionChannelStatus: DeductionChannelStatusEntry[];
+  /** Data URL of the borrower's recorded video confirmation, when the product requires one. */
+  videoConfirmationDataUrl?: string;
   productConfigSnapshot: ProductTermsSnapshot;
   /** Set once a reviewer approves this loan from the manual review queue — keeps it from
    * reappearing in the queue just because its score/mismatch flags are still technically borderline. */

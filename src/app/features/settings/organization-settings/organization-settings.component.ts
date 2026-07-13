@@ -144,7 +144,7 @@ export class OrganizationSettingsComponent {
   readonly integrations = signal<Integration[]>([
     { id: 'remita', name: 'Remita', description: 'Salary verification and payroll deductions.', status: 'connected', lastSynced: '2026-07-06 06:00' },
     { id: 'ippis', name: 'IPPIS', description: 'Federal payroll integration for public sector loans.', status: 'connected', lastSynced: '2026-07-05 22:00' },
-    { id: 'digisign', name: 'Digisign', description: 'Digital signature for offer letters.', status: 'connected', lastSynced: '2026-07-04 10:00' },
+    { id: 'caltos-verify', name: 'Caltos Verify', description: 'Digital signature for offer letters.', status: 'connected', lastSynced: '2026-07-04 10:00' },
     { id: 'mono', name: 'Mono', description: 'Bank statement analysis for credit assessment.', status: 'not-connected', lastSynced: '—' },
     { id: 'paystack', name: 'Paystack', description: 'Card and bank payment processing.', status: 'not-connected', lastSynced: '—' },
     { id: 'termii', name: 'Termii', description: 'SMS delivery for borrower notifications.', status: 'connected', lastSynced: '2026-07-06 05:30' },

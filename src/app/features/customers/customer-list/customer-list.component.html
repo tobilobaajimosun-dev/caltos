@@ -116,12 +116,12 @@
             <td>{{ relativeTime(customer.lastActivity) }}</td>
             <td><span class="status-badge" [class]="customer.status">{{ statusLabel(customer.status) }}</span></td>
             <td class="col-actions" (click)="$event.stopPropagation()">
-              <div class="dropdown-wrap">
-                <button type="button" class="more-btn" (click)="toggleDropdown($event, customer.id)">
+              <app-row-menu #rowMenu [open]="openDropdownId === customer.id" (openChange)="openDropdownId = $event ? customer.id : null">
+                <button trigger #trigger type="button" class="more-btn" (click)="rowMenu.toggle($event)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
                 </button>
-                @if (openDropdownId === customer.id) {
-                  <div class="row-dropdown" (click)="$event.stopPropagation()">
+                <ng-template>
+                  <div class="row-dropdown">
                     <a class="dropdown-item" [routerLink]="['/customers', customer.id]">View profile</a>
                     <button type="button" class="dropdown-item" (click)="openEditCustomer($event, customer)">Edit</button>
                     <div class="dropdown-divider"></div>
@@ -132,8 +132,8 @@
                     }
                     <button type="button" class="dropdown-item danger" (click)="requestDelete($event, customer)">Remove</button>
                   </div>
-                }
-              </div>
+                </ng-template>
+              </app-row-menu>
             </td>
           </tr>
         }

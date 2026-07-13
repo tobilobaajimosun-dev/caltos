@@ -215,7 +215,7 @@
         </div>
         <div class="detail-actions">
           @if (app.offerStatus === 'not-sent') {
-            <app-button variant="primary" label="Send via Digisign" (clicked)="sendOfferLetter(app)" />
+            <app-button variant="primary" label="Send via Caltos Verify" (clicked)="sendOfferLetter(app)" />
           } @else if (app.offerStatus === 'sent') {
             <app-button variant="primary" label="Mark as signed" (clicked)="markSigned(app)" />
             <app-button variant="outline" label="Upload physically signed copy" />

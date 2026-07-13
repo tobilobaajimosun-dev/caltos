@@ -100,17 +100,17 @@
                   </td>
                   <td class="col-date">{{ product.createdAt }}</td>
                   <td class="col-actions" (click)="$event.stopPropagation()">
-                    <div class="dropdown-wrap">
-                      <button class="more-btn" (click)="toggleDropdown($event, product.id)">
+                    <app-row-menu #rowMenu [open]="openDropdownId === product.id" (openChange)="openDropdownId = $event ? product.id : null">
+                      <button trigger #trigger class="more-btn" (click)="rowMenu.toggle($event)">
                         <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
                       </button>
-                      @if (openDropdownId === product.id) {
-                        <div class="row-dropdown" (click)="$event.stopPropagation()">
+                      <ng-template>
+                        <div class="row-dropdown">
                           <a class="dropdown-item" [routerLink]="['/products', product.id]">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
                             View product
                           </a>
-                          <button class="dropdown-item" (click)="editProduct(product); $event.stopPropagation()">
+                          <button class="dropdown-item" (click)="editProduct(product); openDropdownId = null">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             Edit product
                           </button>
@@ -135,8 +135,8 @@
                             Delete product
                           </button>
                         </div>
-                      }
-                    </div>
+                      </ng-template>
+                    </app-row-menu>
                   </td>
                 </tr>
               }
@@ -187,18 +187,18 @@
                 <td>{{ fee.minFee }}</td>
                 <td>{{ fee.maxFee }}</td>
                 <td class="col-date">{{ fee.createdAt }}</td>
-                <td class="col-actions">
-                  <div class="dropdown-wrap">
-                    <button class="more-btn" (click)="toggleFeeMenu($event, fee)">
+                <td class="col-actions" (click)="$event.stopPropagation()">
+                  <app-row-menu #feeMenu [open]="openFeeMenuName === fee.name" (openChange)="openFeeMenuName = $event ? fee.name : null">
+                    <button trigger #trigger class="more-btn" (click)="feeMenu.toggle($event)">
                       <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
                     </button>
-                    @if (fee.menuOpen) {
-                      <div class="row-dropdown" (click)="$event.stopPropagation()">
+                    <ng-template>
+                      <div class="row-dropdown">
                         <button class="dropdown-item" (click)="editFee(fee)">Edit fee</button>
                         <button class="dropdown-item danger" (click)="deleteFee(fee)">Delete fee</button>
                       </div>
-                    }
-                  </div>
+                    </ng-template>
+                  </app-row-menu>
                 </td>
               </tr>
             }

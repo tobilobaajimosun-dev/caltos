@@ -402,6 +402,11 @@ export class CreateLoanComponent implements OnInit {
   // OrgService exists yet, so these mirror sidebar.component.html's hardcoded values.
   readonly orgName = 'Princeps Finance';
   readonly orgAvatarColor = '#E55A2B';
+  // AvatarComponent derives initials from first+last word of `name` ("Princeps Finance" → "PF"),
+  // but the sidebar's org avatar shows a single letter ("P", via OrgProfileComponent's
+  // avatarLetter input). Pass just the first word here so this avatar matches that, rather
+  // than showing a different-looking identity for the same organization.
+  readonly orgAvatarName = 'Princeps';
 
   showLoanTypeModal = false;
   pendingTypeId: string | null = null;
@@ -647,9 +652,13 @@ export class CreateLoanComponent implements OnInit {
     return i < this.currentStep ? 'done' : 'upcoming';
   }
 
-  next() { if (!this.isLast) this.currentStep++; this.scrollToTop(); }
+  next() { if (!this.isLast) this.currentStep++; this.ensureDraftIdOnReview(); this.scrollToTop(); }
   back() { if (!this.isFirst) this.currentStep--; this.scrollToTop(); }
-  goToStep(i: number) { this.currentStep = i; this.scrollToTop(); }
+  goToStep(i: number) { this.currentStep = i; this.ensureDraftIdOnReview(); this.scrollToTop(); }
+
+  private ensureDraftIdOnReview() {
+    if (this.stepId === 'review') this.ensureDraftId();
+  }
 
   /** Index of `pricingTab` within the 'pricing' step's substeps — the only step with substeps today. */
   get activeSubstepIndex(): number | null {
@@ -905,8 +914,36 @@ export class CreateLoanComponent implements OnInit {
       const created = this.productsService.create({ ...patch, status: 'draft' });
       this.editingProductId = created.id;
     }
+    this.syncWebsiteLink();
     this.isDraft = true;
     this.showUnsavedDialog = false;
+  }
+
+  /**
+   * The Review step shows the borrower application link before the user has ever
+   * clicked Save/Publish — but that link needs a real product id to point anywhere,
+   * and a brand-new product has no id until its first save. Silently create the
+   * underlying draft record (skipping the field-validation gate, since this isn't
+   * a real "save" action the user asked for) so the link that's about to render
+   * is genuinely live rather than a fake placeholder.
+   */
+  private ensureDraftId() {
+    if (this.editingProductId) return;
+    const patch = this.buildProductPatch();
+    const created = this.productsService.create({ ...patch, status: 'draft' });
+    this.editingProductId = created.id;
+    this.syncWebsiteLink();
+  }
+
+  /**
+   * product-detail's hero section reads `product.websiteLink` directly — it was
+   * never populated for products created through this wizard (only hardcoded on
+   * seeded demo data), so real products showed a blank link there. Keep it in sync
+   * with the same /apply route the wizard's own "Shareable link" field shows.
+   */
+  private syncWebsiteLink() {
+    if (!this.editingProductId) return;
+    this.productsService.update(this.editingProductId, { websiteLink: this.publishUrl });
   }
 
   discardAndLeave() {
@@ -933,6 +970,7 @@ export class CreateLoanComponent implements OnInit {
       const created = this.productsService.create({ ...patch, status: 'live' });
       this.editingProductId = created.id;
     }
+    this.syncWebsiteLink();
     // Per-section custom fields and custom documents live on `collectionSections`/`customDocs`
     // (component state, not `config`) — fold them into the published snapshot so the borrower
     // application actually reflects what was configured here.
@@ -1076,9 +1114,12 @@ export class CreateLoanComponent implements OnInit {
     return 4;
   }
 
+  // Was a fake placeholder domain (apply.caltos.co) that didn't correspond to any
+  // real route — the borrower application actually lives at this app's own /apply
+  // route, keyed by product id (see ApplyComponent, which reads ?product= from the URL).
   get publishUrl(): string {
-    const slug = (this.config.name || 'my-loan').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    return `https://apply.caltos.co/${slug}`;
+    if (!this.editingProductId) return '';
+    return `${window.location.origin}/apply?product=${this.editingProductId}`;
   }
 
   get descLength(): number { return this.config.description?.length ?? 0; }

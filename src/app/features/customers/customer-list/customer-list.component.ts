@@ -5,7 +5,7 @@ import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, TableItemUser,
   EmptyStateComponent, PaginationComponent, ConfirmModalComponent, ToastComponent,
   SplitButtonComponent, SplitButtonItem, IconData, HiIconComponent, Tab, RoundTabsComponent,
-  SearchComponent, SelectComponent, SelectOption, KpiCardComponent,
+  SearchComponent, SelectComponent, SelectOption, KpiCardComponent, RowMenuComponent,
 } from '../../../shared/components';
 import { CustomersService, CustomerRecord, CustomerStatus } from '../../../shared/services/customers.service';
 import { AddEditCustomerModalComponent } from '../add-edit-customer-modal/add-edit-customer-modal.component';
@@ -20,7 +20,7 @@ type CustomerTab = 'all' | 'active' | 'dormant' | 'overdue';
     RouterLink, ButtonComponent, ColumnTitleComponent, TableItemComponent, EmptyStateComponent,
     PaginationComponent, ConfirmModalComponent, ToastComponent, AddEditCustomerModalComponent,
     SplitButtonComponent, HiIconComponent, RoundTabsComponent, SearchComponent, SelectComponent,
-    KpiCardComponent,
+    KpiCardComponent, RowMenuComponent,
   ],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss',

@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
-import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent } from '../../../shared/components';
+import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent } from '../../../shared/components';
 import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
 import {
   ArrowLeft02Icon,
@@ -108,10 +108,10 @@ const ALL_INTEGRATIONS: IntegrationDef[] = [
     fields: [{ key: 'baseUrl', label: 'Base URL' }, { key: 'lenderCode', label: 'Lender Code' }, { key: 'username', label: 'Username' }, { key: 'password', label: 'Password' }, { key: 'userAgent', label: 'User Agent' }, { key: 'agentUsername', label: 'Agent Login Username' }, { key: 'agentPassword', label: 'Agent login password' }],
   },
   {
-    id: 'digisign', name: 'Digisign', initials: 'DS', color: '#4A4A4A',
+    id: 'caltos-verify', name: 'Caltos Verify', initials: 'CV', color: '#0053A6',
     tags: ['signature'],
     whatItDoes: 'Captures a legally-binding digital signature on the loan offer letter before funds are disbursed.',
-    whatYouNeed: ['A Digisign workplace account', 'API Key, Base URL, and Workplace ID'],
+    whatYouNeed: ['A Caltos Verify workspace', 'API Key, Base URL, and Workplace ID'],
     whatHappensAfter: ['Borrowers are prompted to sign the offer letter digitally', 'A signed, timestamped copy is stored against the loan', 'Disbursement is blocked until signature is confirmed'],
     fields: [{ key: 'apiKey', label: 'API Key' }, { key: 'baseUrl', label: 'Base URL' }, { key: 'workplaceId', label: 'Workplace ID' }],
   },
@@ -397,7 +397,7 @@ const BNPL_SAMPLE_VENDORS: Vendor[] = [
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe, HiIconComponent, InfoPopoverComponent, ButtonComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, RoundTabsComponent, ModalComponent, SelectComponent, TabsComponent, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent],
+  imports: [RouterLink, FormsModule, DecimalPipe, HiIconComponent, InfoPopoverComponent, ButtonComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, RoundTabsComponent, ModalComponent, SelectComponent, TabsComponent, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
@@ -805,16 +805,26 @@ export class ProductDetailComponent implements OnInit {
 
   product: ProductData = EMPTY_PRODUCT_DATA;
 
-  checklist: ChecklistItem[] = [
-    { id: 'details',      label: 'Set loan terms',              description: 'Set your loan name, amount limits, tenor range, and interest structure.',       done: true,  tab: 'overview'     },
-    { id: 'eligibility',  label: 'Define who qualifies',        description: 'Define who qualifies and the documents they need to provide.',                  done: false, tab: 'eligibility'  },
-    { id: 'fees',         label: 'Set your pricing',           description: 'Add processing fees, custom charges, and late payment penalties.',               done: true,  tab: 'fees'         },
-    { id: 'disbursement', label: 'Configure payouts',          description: 'Configure how funds go out and repayments come in.',                             done: false, tab: 'disbursement' },
-    { id: 'integration',  label: 'Connect your channels',      description: 'Connect Remita or NIBSS to enable automated salary deductions.',                 done: false, tab: 'disbursement' },
-    { id: 'target',       label: 'Set a disbursement goal',    description: 'Set a disbursement target and track your portfolio performance.',                 done: false, tab: 'overview'     },
-    { id: 'legal',        label: 'Add consent text',           description: 'Add consent language so borrowers know exactly what they\'re agreeing to.',       done: true,  tab: 'legal'        },
-    { id: 'portal',       label: 'Go live',                    description: 'Your product is live and accepting applications.',                                done: true,  tab: 'overview'     },
-  ];
+  /**
+   * 'integration' and 'portal' used to be hardcoded `done: false`/`true` regardless of the
+   * actual product — every product showed the exact same fake 4/8 progress, and "Go live"
+   * always read as complete even when its deduction channels genuinely weren't live yet,
+   * which is exactly backwards from the publish-time warning this checklist is supposed to
+   * reinforce. Both now derive from ProductsService.canActivate, the same real source of
+   * truth the publish button itself is gated on.
+   */
+  get checklist(): ChecklistItem[] {
+    return [
+      { id: 'details',      label: 'Set loan terms',              description: 'Set your loan name, amount limits, tenor range, and interest structure.',       done: true,  tab: 'overview'     },
+      { id: 'eligibility',  label: 'Define who qualifies',        description: 'Define who qualifies and the documents they need to provide.',                  done: false, tab: 'eligibility'  },
+      { id: 'fees',         label: 'Set your pricing',           description: 'Add processing fees, custom charges, and late payment penalties.',               done: true,  tab: 'fees'         },
+      { id: 'disbursement', label: 'Configure payouts',          description: 'Configure how funds go out and repayments come in.',                             done: false, tab: 'disbursement' },
+      { id: 'integration',  label: 'Connect your channels',      description: 'Connect Remita or NIBSS to enable automated salary deductions.',                 done: this.canActivate, tab: 'disbursement' },
+      { id: 'target',       label: 'Set a disbursement goal',    description: 'Set a disbursement target and track your portfolio performance.',                 done: false, tab: 'overview'     },
+      { id: 'legal',        label: 'Add consent text',           description: 'Add consent language so borrowers know exactly what they\'re agreeing to.',       done: true,  tab: 'legal'        },
+      { id: 'portal',       label: 'Go live',                    description: 'Your product is live and accepting applications.',                                done: this.product.status === 'live' && this.canActivate, tab: 'overview'     },
+    ];
+  }
 
   setupExpanded = true;
 
