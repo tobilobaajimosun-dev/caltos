@@ -453,9 +453,13 @@ export class ProductDetailComponent implements OnInit {
     activeCustomers: { current: 0, target: 0 },
   };
 
-  /** Identity/income verification is "done" once every selected channel has moved past not-configured. */
+  /**
+   * Identity/income verification is "done" once every selected channel has moved past
+   * not-configured — or trivially done if the product doesn't use any (not every template
+   * requires income verification, so an empty list shouldn't block activation forever).
+   */
   private get incomeChannelsConfigured(): boolean {
-    return this.product.incomeChannels.length > 0 && this.product.incomeChannels.every((c) => c.status !== 'not-configured');
+    return this.product.incomeChannels.every((c) => c.status !== 'not-configured');
   }
 
   get setupSteps() {
