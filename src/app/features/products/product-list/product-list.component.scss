@@ -610,6 +610,13 @@
   gap: 8px;
 }
 
+.empty-cta-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .empty-illustration {
   margin-bottom: 8px;
   opacity: 0.7;

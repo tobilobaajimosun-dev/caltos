@@ -134,7 +134,8 @@ export function needsManualReview(loan: LoanApplication): boolean {
 
 const STORAGE_KEY = 'caltos_loans';
 
-function seedLoans(productsService: ProductsService): LoanApplication[] {
+/** Sample data for a "Load demo data" action — never auto-seeded, so a fresh browser starts empty. */
+export function demoLoans(productsService: ProductsService): LoanApplication[] {
   const rows: Omit<LoanApplication, 'productConfigSnapshot'>[] = [
     {
       id: 'LN0001', loanUniqueId: 'CW001-0001', productId: 'CW001',
@@ -321,7 +322,13 @@ export class LoansService {
         );
       }
     } catch {}
-    return seedLoans(this.productsService);
+    return [];
+  }
+
+  /** Replaces everything with the sample loan set — an explicit, opt-in action (see product-list's empty state). */
+  loadDemoData() {
+    this._loans.set(demoLoans(this.productsService));
+    this.persist();
   }
 
   private persist() {

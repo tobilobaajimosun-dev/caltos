@@ -234,7 +234,8 @@ const DEFAULT_STATS: ProductStats = {
   totalDisbursed: '₦0', collectionRate: 0, nplRate: 0,
 };
 
-function seedProducts(): ProductRecord[] {
+/** Sample data for a "Load demo data" action — never auto-seeded, so a fresh browser starts empty. */
+export function demoProducts(): ProductRecord[] {
   const corperWalletConfig: ProductConfig = {
     minInterest: '500',
     maxInterest: '5,000',
@@ -376,11 +377,17 @@ export class ProductsService {
         return parsed.map((p) => ({ ...p, config: p.config ?? DEFAULT_PRODUCT_CONFIG }));
       }
     } catch {}
-    return seedProducts();
+    return [];
   }
 
   private persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this._products()));
+  }
+
+  /** Replaces everything with the sample product set — an explicit, opt-in action (see product-list's empty state). */
+  loadDemoData() {
+    this._products.set(demoProducts());
+    this.persist();
   }
 
   getById(id: string): ProductRecord | undefined {

@@ -150,6 +150,13 @@ export class ProductListComponent {
 
   setTab(tab: string) { this.activeTab = tab as ActiveTab; }
 
+  /** Opt-in only — nothing auto-seeds mock data anymore, so this is the one deliberate way back in. */
+  loadDemoData() {
+    this.productsService.loadDemoData();
+    this.loansService.loadDemoData();
+    this.showToast('Demo products and loans loaded.');
+  }
+
   navigateTo(id: string) {
     this.router.navigate(['/products', id]);
   }
