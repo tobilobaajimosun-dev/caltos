@@ -19,7 +19,7 @@
             <span class="wiz-stepper-dot" aria-hidden="true"></span>
           }
         </span>
-        <span class="wiz-stepper-label">{{ step.label }}</span>
+        <span class="wiz-stepper-label">{{ step.shortLabel ?? step.label }}</span>
       </button>
 
       @if (status(i) === 'active' && step.substeps?.length) {

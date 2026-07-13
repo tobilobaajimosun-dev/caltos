@@ -47,6 +47,15 @@
   width: 208px;
 }
 
+.drop-preview {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--color-stroke);
+  flex-shrink: 0;
+}
+
 .drop-title {
   font-family: var(--font-heading);
   font-weight: 500;

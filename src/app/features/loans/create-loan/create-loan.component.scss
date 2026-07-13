@@ -8,6 +8,21 @@
   box-sizing: border-box;
 }
 
+// app-select's host is inline-block by default, so it shrinks to its label's
+// content width — inside a modal's field-group that reads as visually
+// misaligned against the full-width text inputs stacked above/below it.
+// Stretch it to match wherever it shares a field-group with those inputs.
+.dialog-form app-select,
+.field-group app-select {
+  display: block;
+  width: 100%;
+
+  ::ng-deep .select-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 .wiz-shell {
   display: flex;
   flex-direction: column;
@@ -307,7 +322,7 @@
 .wiz-cancel-btn {
   display: inline-flex;
   align-items: center;
-  height: 40px;
+  height: 36px;
   padding: 0 18px;
   border-radius: 8px;
   font-family: var(--font-body);
@@ -603,7 +618,7 @@
 }
 
 .text-input {
-  height: 40px;
+  height: 36px;
   padding: 0 12px;
   border: 1px solid var(--color-input-stroke);
   border-radius: 8px;
@@ -620,7 +635,7 @@
 }
 
 .select-input {
-  height: 40px;
+  height: 36px;
   padding: 0 10px;
   border: 1px solid var(--color-input-stroke);
   border-radius: 8px;
@@ -632,31 +647,39 @@
   width: 100%;
   cursor: pointer;
   &:focus { border-color: var(--color-blue); }
-  &.sm { height: 36px; font-size: 12px; }
+  &.sm { font-size: 12px; }
 }
 
-.input-suffix-wrap {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--color-input-stroke);
-  border-radius: 8px;
-  background: var(--surface-base);
-  overflow: hidden;
-  &:focus-within { border-color: var(--color-blue); }
-  input { border: none; outline: none; box-shadow: none; height: 40px; flex: 1; min-width: 0; }
+// Inline affix pattern — a plain 36px input with a muted-token symbol (₦, %, "days")
+// overlaid inside its edge, instead of the old two-part boxed suffix (bordered
+// segment with its own background). Same box model for prefix and suffix; which
+// side the symbol sits on is just which wrapper class you use.
+.input-suffix-wrap,
+.input-prefix-wrap {
+  position: relative;
+  display: block;
+
+  input { height: 36px; box-sizing: border-box; }
 }
 
-.input-suffix {
-  font-size: 12px;
-  color: var(--color-grey-header);
-  padding: 0 12px;
-  background: var(--surface-overlay);
-  border-left: 1px solid var(--color-input-stroke);
+.input-suffix-wrap input { padding-right: 32px; }
+.input-prefix-wrap input { padding-left: 28px; }
+
+.input-suffix,
+.input-prefix {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  pointer-events: none;
   white-space: nowrap;
-  display: flex;
-  align-items: center;
-  height: 40px;
 }
+
+.input-suffix { right: 12px; }
+.input-prefix { left: 12px; }
 
 // Entry options
 .entry-options {
@@ -693,7 +716,9 @@
   color: var(--color-body);
 }
 
-.selected .entry-icon { background: var(--color-info); color: var(--color-blue); }
+// Light tint + a saturated icon color — not a solid fill matching the icon's own
+// color, which made the icon strokes disappear against their own background.
+.selected .entry-icon { background: var(--color-info-bg); color: var(--color-blue); }
 
 .entry-text { flex: 1; }
 .entry-label { font-size: 13px; font-weight: 600; color: var(--color-header); }
@@ -1108,6 +1133,26 @@
 
 .inline-label { font-size: 13px; color: var(--color-body); }
 
+.day-range-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+
+  .field-group.compact { flex: none; width: 80px; }
+}
+
+.day-range-sep {
+  font-size: 14px;
+  color: var(--text-muted);
+  padding-bottom: 8px;
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--color-error);
+  font-weight: 500;
+}
+
 // Legal
 .legal-uploads { display: flex; flex-direction: column; gap: 14px; }
 
@@ -1502,7 +1547,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
+  height: 36px;
   padding: 0 22px;
   border-radius: 8px;
   border: none;
@@ -1520,7 +1565,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
+  height: 36px;
   padding: 0 22px;
   border-radius: 8px;
   border: none;
@@ -1576,7 +1621,7 @@
 }
 
 .dialog-btn {
-  height: 40px;
+  height: 36px;
   padding: 0 20px;
   border-radius: 8px;
   border: none;
@@ -1840,16 +1885,21 @@
   margin: 0 0 32px;
 }
 
+// Stacked, full-width — a two-up row squeezed "Preview Borrower Portal" enough
+// to truncate its label. Full width still respects the card's own 40px side
+// padding, since these sit inside .publish-success-card, not the viewport.
 .publish-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  justify-content: center;
 }
 
 .publish-btn-secondary {
   display: inline-flex;
   align-items: center;
-  height: 40px;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
   padding: 0 20px;
   border-radius: 8px;
   border: 1.5px solid var(--color-stroke);
@@ -1860,14 +1910,17 @@
   color: var(--color-header);
   text-decoration: none;
   cursor: pointer;
+  box-sizing: border-box;
   &:hover { background: var(--surface-overlay); }
 }
 
 .publish-btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 8px;
-  height: 40px;
+  height: 36px;
   padding: 0 20px;
   border-radius: 8px;
   border: none;
@@ -1878,6 +1931,7 @@
   color: #fff;
   text-decoration: none;
   cursor: pointer;
+  box-sizing: border-box;
   &:hover { background: #003d7a; }
 }
 

@@ -12,6 +12,10 @@ export class InputComponent {
   @Input() type = 'text';
   @Input() label = '';
   @Input() disabled = false;
+  /** Text shown fixed inside the input's left edge, e.g. '₦' on amount fields. */
+  @Input() prefix = '';
+  /** Text shown fixed inside the input's right edge, e.g. '%' on rate fields. */
+  @Input() suffix = '';
   @Output() valueChange = new EventEmitter<string>();
 
   focused = false;

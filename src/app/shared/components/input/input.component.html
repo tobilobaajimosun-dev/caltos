@@ -1,14 +1,24 @@
 @if (label) {
   <label class="label">{{ label }}</label>
 }
-<input
-  class="input"
-  [class.focused]="focused"
-  [type]="type"
-  [placeholder]="placeholder"
-  [value]="value"
-  [disabled]="disabled"
-  (input)="onInput($event)"
-  (focus)="focused = true"
-  (blur)="focused = false"
-/>
+<div class="input-wrap">
+  @if (prefix) {
+    <span class="input-affix input-affix-prefix">{{ prefix }}</span>
+  }
+  <input
+    class="input"
+    [class.focused]="focused"
+    [class.has-prefix]="!!prefix"
+    [class.has-suffix]="!!suffix"
+    [type]="type"
+    [placeholder]="placeholder"
+    [value]="value"
+    [disabled]="disabled"
+    (input)="onInput($event)"
+    (focus)="focused = true"
+    (blur)="focused = false"
+  />
+  @if (suffix) {
+    <span class="input-affix input-affix-suffix">{{ suffix }}</span>
+  }
+</div>

@@ -8,18 +8,20 @@ import {
   ToggleComponent, TextareaComponent,
   CollapsibleSectionComponent, CopyUrlFieldComponent, QrCodeComponent,
   FileUploadComponent, ButtonComponent, SelectComponent, SelectOption,
-  WizardStepperComponent, ModalComponent,
+  WizardStepperComponent, ModalComponent, AvatarComponent, AlertBannerComponent,
 } from '../../../shared/components';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   PlusSignIcon, EyeIcon, Clock01Icon,
   ViewIcon, LicenseDraftIcon, InformationCircleIcon,
+  SmartPhone01Icon, Mail01Icon, IdentityCardIcon, UserIdVerificationIcon,
+  Upload01Icon,
 } from '@hugeicons/core-free-icons';
 
 export interface LoanTypeOption {
@@ -163,9 +165,14 @@ export interface LoanConfig {
   repaymentFrequency: string;
   firstRepaymentDays: string;
   repaymentDay: string;
+  // Only used for a Monthly cadence, in place of a single "Day 30" pick — a range lets
+  // collection retry automatically on any day within the window instead of failing outright
+  // on one fixed date (e.g. the 30th doesn't exist in February).
+  repaymentDayRangeStart: string;
+  repaymentDayRangeEnd: string;
   minRepayments: string;
   maxRepayments: string;
-  moveFirstRepaymentDays: string;
+  moveFirstRepaymentDayOfMonth: string;
   // Step 7
   docTerms: string;
   docPrivacy: string;
@@ -184,6 +191,8 @@ export interface LoanConfig {
   // so existing localStorage/fallback configs without them still satisfy the type.
   sectionCustomFields?: Record<string, { label: string; type: string; required: string }[]>;
   customDocs?: { name: string; types: string[] }[];
+  /** Data URL of the uploaded product banner image, shown on the borrower application portal. */
+  bannerImageDataUrl?: string;
 }
 
 export const STEPS = [
@@ -318,7 +327,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     TextareaComponent, CollapsibleSectionComponent,
     CopyUrlFieldComponent, QrCodeComponent,
     FileUploadComponent, LivePreviewComponent, ButtonComponent, SelectComponent,
-    WizardStepperComponent, ModalComponent,
+    WizardStepperComponent, ModalComponent, AvatarComponent, AlertBannerComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrls: ['./create-loan.component.scss'],
@@ -345,6 +354,8 @@ export class CreateLoanComponent implements OnInit {
   showMgmtFee = false;
 
   isPublished = false;
+  /** Names of deduction channels selected but not yet live (credentials/testing pending) — shown on the publish-success screen. */
+  pendingSetupChannelNames: string[] = [];
   showCustomFeeModal = false;
   customFeeName = '';
   customFeeType = 'Percentage';
@@ -379,8 +390,18 @@ export class CreateLoanComponent implements OnInit {
   readonly viewIcon: IconSvgObject = ViewIcon as IconSvgObject;
   readonly licenseDraftIcon: IconSvgObject = LicenseDraftIcon as IconSvgObject;
   readonly infoIcon: IconData = InformationCircleIcon as unknown as IconData;
+  readonly entryPhoneIcon: IconSvgObject = SmartPhone01Icon as IconSvgObject;
+  readonly entryEmailIcon: IconSvgObject = Mail01Icon as IconSvgObject;
+  readonly entryBvnIcon: IconSvgObject = IdentityCardIcon as IconSvgObject;
+  readonly entryNinIcon: IconSvgObject = UserIdVerificationIcon as IconSvgObject;
+  readonly uploadIcon: IconSvgObject = Upload01Icon as IconSvgObject;
 
   readonly loanTypes = LOAN_TYPES;
+
+  // Matches the org identity shown in the sidebar (OrgProfileComponent) — no shared
+  // OrgService exists yet, so these mirror sidebar.component.html's hardcoded values.
+  readonly orgName = 'Princeps Finance';
+  readonly orgAvatarColor = '#E55A2B';
 
   showLoanTypeModal = false;
   pendingTypeId: string | null = null;
@@ -491,7 +512,8 @@ export class CreateLoanComponent implements OnInit {
     autoDisburseEnabled: false, autoDisburseUnder: '',
     restrictActiveLoan: false, activeLoanPolicy: 'block',
     repaymentFrequency: 'Monthly', firstRepaymentDays: '30', repaymentDay: 'Day 30',
-    minRepayments: '', maxRepayments: '', moveFirstRepaymentDays: '',
+    repaymentDayRangeStart: '28', repaymentDayRangeEnd: '31',
+    minRepayments: '', maxRepayments: '', moveFirstRepaymentDayOfMonth: '',
     docTerms: '', docPrivacy: '', docAgreement: '', useDefaultConsent: false,
     welcomeMessage: '', thankYouMessage: '', supportEmail: 'hello@yourcompany.ng',
     supportPhone: '', whatsappContact: '',
@@ -524,18 +546,7 @@ export class CreateLoanComponent implements OnInit {
           // product not originally created through this wizard (e.g. a seeded product) would
           // show every channel unchecked, and saving would silently drop them all.
           const enabledChannelIds = new Set(record.config.deductionChannels.filter((c) => c.enabled).map((c) => c.id));
-          this.config = {
-            ...this.config,
-            name: record.name,
-            description: record.description,
-            minAmount: record.minAmount.replace(/,/g, ''),
-            maxAmount: record.maxAmount.replace(/,/g, ''),
-            minTenor: record.minTenor,
-            maxTenor: record.maxTenor,
-            tenorUnit: record.tenorUnit,
-            interestModel: record.interestType,
-            interestRate: record.interestRate,
-            interestChargedWhen: record.interestFrequency,
+          const deductionOverrides = {
             deductIppis: enabledChannelIds.has('ippis'),
             deductRemita: enabledChannelIds.has('remita'),
             deductDedukt: enabledChannelIds.has('dedukt'),
@@ -543,6 +554,34 @@ export class CreateLoanComponent implements OnInit {
             deductRemitaDirectDebit: enabledChannelIds.has('remita-direct-debit'),
             deductMonoDirectDebit: enabledChannelIds.has('mono-direct-debit'),
           };
+          if (record.wizardConfig) {
+            // Lossless path: restore the exact form state this product was last saved with,
+            // so every step (verification, fees, disbursement, repayment, legal, customisation)
+            // reflects the saved product instead of resetting to template defaults.
+            const wizardConfig = record.wizardConfig as unknown as LoanConfig;
+            this.config = { ...this.config, ...wizardConfig, ...deductionOverrides };
+            for (const sec of this.collectionSections) {
+              sec.customFields = wizardConfig.sectionCustomFields?.[sec.key] ?? [];
+            }
+            this.customDocs = wizardConfig.customDocs ?? [];
+          } else {
+            // Fallback for products with no wizard snapshot (e.g. seeded demo data) —
+            // only the headline fields can be recovered from the display-oriented config.
+            this.config = {
+              ...this.config,
+              name: record.name,
+              description: record.description,
+              minAmount: record.minAmount.replace(/,/g, ''),
+              maxAmount: record.maxAmount.replace(/,/g, ''),
+              minTenor: record.minTenor,
+              maxTenor: record.maxTenor,
+              tenorUnit: record.tenorUnit,
+              interestModel: record.interestType,
+              interestRate: record.interestRate,
+              interestChargedWhen: record.interestFrequency,
+              ...deductionOverrides,
+            };
+          }
         }
       }
     });
@@ -758,6 +797,19 @@ export class CreateLoanComponent implements OnInit {
     };
   }
 
+  /**
+   * Lossless snapshot of the wizard's own form state, persisted on the record so
+   * re-opening it for edit can prefill every step instead of only the fields
+   * buildProductConfig() happens to project into ProductConfig for display.
+   */
+  private buildWizardConfigSnapshot(): LoanConfig {
+    const sectionCustomFields: LoanConfig['sectionCustomFields'] = {};
+    for (const sec of this.collectionSections) {
+      if (sec.customFields.length) sectionCustomFields[sec.key] = sec.customFields;
+    }
+    return { ...this.config, sectionCustomFields, customDocs: this.customDocs };
+  }
+
   private buildProductPatch() {
     return {
       name: this.config.name || 'Untitled Product',
@@ -772,6 +824,7 @@ export class CreateLoanComponent implements OnInit {
       interestRate: this.config.interestRate,
       interestFrequency: this.config.interestChargedWhen,
       config: this.buildProductConfig(),
+      wizardConfig: this.buildWizardConfigSnapshot() as unknown as Record<string, unknown>,
     };
   }
 
@@ -815,6 +868,21 @@ export class CreateLoanComponent implements OnInit {
     }
     if (minAmount > maxAmount) return 'Minimum amount cannot be greater than maximum amount.';
     if (minTenor > maxTenor) return 'Minimum tenor cannot be greater than maximum tenor.';
+
+    const isDayOfMonth = (v: string) => !v || (num(v) >= 1 && num(v) <= 31 && Number.isInteger(num(v)));
+    if (!isDayOfMonth(this.config.moveFirstRepaymentDayOfMonth)) {
+      return 'The "move first repayment" day must be a whole number between 1 and 31.';
+    }
+    if (this.config.repaymentFrequency === 'Monthly') {
+      const rangeStart = this.config.repaymentDayRangeStart;
+      const rangeEnd = this.config.repaymentDayRangeEnd;
+      if (!isDayOfMonth(rangeStart) || !isDayOfMonth(rangeEnd)) {
+        return 'Repayment day range must use whole numbers between 1 and 31.';
+      }
+      if (rangeStart && rangeEnd && num(rangeStart) > num(rangeEnd)) {
+        return 'Repayment day "From" cannot be later than "To".';
+      }
+    }
     return null;
   }
 
@@ -880,6 +948,13 @@ export class CreateLoanComponent implements OnInit {
     // Keyed by product id — previously a single global key, so publishing a second
     // product silently overwrote the first one's preview config.
     localStorage.setItem(`caltos_published_config_${this.editingProductId}`, JSON.stringify(publishedConfig));
+    // A selected deduction channel isn't actually usable until its credentials are set up
+    // and it passes connection testing (see effectiveChannelStatus) — publishing the product
+    // record doesn't do that automatically, so applicants could apply for a loan whose
+    // repayment channel isn't live yet. Surface that instead of implying it's fully ready.
+    this.pendingSetupChannelNames = deductionChannels
+      .filter((c) => effectiveChannelStatus(c) !== 'live')
+      .map((c) => c.name);
     this.isPublished = true;
     this.isDraft = false;
   }
@@ -908,6 +983,30 @@ export class CreateLoanComponent implements OnInit {
 
   setConfig(key: string, value: unknown) {
     (this.config as unknown as Record<string, unknown>)[key] = value;
+  }
+
+  /** Strips non-digits and re-inserts thousand separators live as the user types an amount. */
+  onAmountInput(key: string, raw: string) {
+    const digits = raw.replace(/[^\d]/g, '');
+    this.setConfig(key, digits ? Number(digits).toLocaleString('en-US') : '');
+  }
+
+  /**
+   * Persisted as a data URL (not a File — the whole config, including this, is what
+   * gets JSON.stringify'd into localStorage for both the draft/product record and the
+   * published snapshot the borrower portal reads) so the banner survives a reload and
+   * shows up on the borrower application portal, not just live in this editing session.
+   */
+  onBannerFileSelected(file: File | null) {
+    if (!file) {
+      this.config.bannerImageDataUrl = undefined;
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.config.bannerImageDataUrl = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   toggleBoolConfig(key: string) {
@@ -1062,27 +1161,29 @@ export class CreateLoanComponent implements OnInit {
     return names.map(name => ({ name, requirement: 'required' }));
   }
 
+  // `count` is no longer a stored field — the template derives it live from
+  // fields.length + customFields.length so it grows as custom fields are added.
   collectionSections: {
-    key: string; label: string; count: string;
+    key: string; label: string;
     fields: { name: string; requirement: string }[]; expand: string;
     customFields: { label: string; type: string; required: string }[];
   }[] = [
-    { key: 'collectPersonal',    label: 'Personal Information',    count: '5',
+    { key: 'collectPersonal',    label: 'Personal Information',
       fields: this.mkFields(['First Name', 'Middle Name', 'Last Name', 'Date of Birth', 'Gender']),
       expand: 'expandPersonal', customFields: [] },
-    { key: 'collectContact',     label: 'Contact Information',     count: '4',
+    { key: 'collectContact',     label: 'Contact Information',
       fields: this.mkFields(['Email Address', 'Phone Number', 'WhatsApp Number', 'Preferred Contact']),
       expand: 'expandContact', customFields: [] },
-    { key: 'collectAddress',     label: 'Address Information',     count: '5',
+    { key: 'collectAddress',     label: 'Address Information',
       fields: this.mkFields(['Street Address', 'City', 'State', 'LGA', 'Landmark']),
       expand: 'expandAddress', customFields: [] },
-    { key: 'collectEmployment',  label: 'Employment Information',  count: '5',
+    { key: 'collectEmployment',  label: 'Employment Information',
       fields: this.mkFields(['Employer Name', 'Staff ID', 'Job Title', 'Monthly Salary', 'Employment Type']),
       expand: 'expandEmployment', customFields: [] },
-    { key: 'collectBusiness',    label: 'Business Information',    count: '4',
+    { key: 'collectBusiness',    label: 'Business Information',
       fields: this.mkFields(['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue']),
       expand: 'expandBusiness', customFields: [] },
-    { key: 'collectBank',        label: 'Bank Account Details',    count: '3',
+    { key: 'collectBank',        label: 'Bank Account Details',
       fields: this.mkFields(['Bank Name', 'Account Number', 'Account Name']),
       expand: 'expandBank', customFields: [] },
   ];

@@ -3,6 +3,8 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
 export interface WizardStep {
   id: string;
   label: string;
+  /** Rendered in the rail instead of `label` when set — keeps each row to one line in the fixed-width rail. */
+  shortLabel?: string;
   /** Optional sub-items shown only while this step is active (see reference design). */
   substeps?: string[];
 }

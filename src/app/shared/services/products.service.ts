@@ -184,6 +184,17 @@ export interface ProductRecord {
   websiteLink: string;
   stats: ProductStats;
   config: ProductConfig;
+  /**
+   * Raw snapshot of the create-loan wizard's own form state (LoanConfig, kept as
+   * an untyped record here to avoid a circular import with the wizard component).
+   * `config` above is a derived, lossy projection built for display/preview — it
+   * collapses booleans into label lists and drops fields like late-penalty max-cap
+   * settings, disbursement timing, legal text, and branding entirely. Re-opening
+   * the wizard to edit needs the lossless original, so this is captured on every
+   * save and used to prefill the form instead of trying to reverse the projection.
+   * Optional because products seeded outside the wizard (e.g. demo data) won't have it.
+   */
+  wizardConfig?: Record<string, unknown>;
 }
 
 /** Days a 'live' channel is trusted after its last successful testConnection() before it needs re-verification. */
@@ -413,6 +424,7 @@ export class ProductsService {
       websiteLink: partial.websiteLink ?? '',
       stats: partial.stats ?? DEFAULT_STATS,
       config: partial.config ?? DEFAULT_PRODUCT_CONFIG,
+      wizardConfig: partial.wizardConfig,
     };
     this._products.update((list) => [...list, record]);
     this.persist();

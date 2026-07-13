@@ -8,11 +8,7 @@
   <!-- Minimal header strip -->
   <header class="wiz-header">
     <div class="wiz-brand">
-      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-        <rect width="26" height="26" rx="7" [style.fill]="'var(--color-blue)'"/>
-        <path d="M7 13c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="13" cy="13" r="2" fill="white"/>
-      </svg>
+      <app-avatar [name]="orgName" [color]="orgAvatarColor" size="sm" />
       <span class="wiz-brand-label">Create loan product</span>
     </div>
     <div class="wiz-header-right">
@@ -194,11 +190,17 @@
               <div class="field-row">
                 <div class="field-group">
                   <label class="field-label">Minimum amount (₦)</label>
-                  <input class="text-input" type="number" placeholder="e.g. 10,000" [(ngModel)]="config.minAmount" />
+                  <div class="input-prefix-wrap">
+                    <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 10,000" [ngModel]="config.minAmount" (ngModelChange)="onAmountInput('minAmount', $event)" />
+                    <span class="input-prefix">₦</span>
+                  </div>
                 </div>
                 <div class="field-group">
                   <label class="field-label">Maximum amount (₦)</label>
-                  <input class="text-input" type="number" placeholder="e.g. 5,000,000" [(ngModel)]="config.maxAmount" />
+                  <div class="input-prefix-wrap">
+                    <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 5,000,000" [ngModel]="config.maxAmount" (ngModelChange)="onAmountInput('maxAmount', $event)" />
+                    <span class="input-prefix">₦</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -288,16 +290,16 @@
                     (click)="toggleBoolConfig(opt.id)">
                     <div class="entry-icon">
                       @if (opt.id === 'entryPhone') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+                        <hugeicons-icon [icon]="entryPhoneIcon" size="16" [strokeWidth]="1.5" />
                       }
                       @if (opt.id === 'entryEmail') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="m2 7 10 7 10-7" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <hugeicons-icon [icon]="entryEmailIcon" size="16" [strokeWidth]="1.5" />
                       }
                       @if (opt.id === 'entryBvn') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h5M7 13h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        <hugeicons-icon [icon]="entryBvnIcon" size="16" [strokeWidth]="1.5" />
                       }
                       @if (opt.id === 'entryNin') {
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        <hugeicons-icon [icon]="entryNinIcon" size="16" [strokeWidth]="1.5" />
                       }
                     </div>
                     <div class="entry-text">
@@ -324,7 +326,7 @@
                     <div class="collection-info">
                       <div class="collection-label">{{ sec.label }}</div>
                     </div>
-                    <div class="collection-count">{{ sec.count }} fields</div>
+                    <div class="collection-count">{{ sec.fields.length + sec.customFields.length }} fields</div>
                     <button class="expand-btn" (click)="toggleExpand(sec.expand)">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                         [style.transform]="getExpand(sec.expand) ? 'rotate(90deg)' : 'none'"
@@ -656,11 +658,17 @@
                 <div class="fee-limits-row">
                   <div class="field-group">
                     <label class="field-label">Min amount (optional)</label>
-                    <input class="text-input" type="number" placeholder="₦ 0" [(ngModel)]="config.processingFeeMin" />
+                    <div class="input-prefix-wrap">
+                      <input class="text-input" type="text" inputmode="numeric" placeholder="0" [ngModel]="config.processingFeeMin" (ngModelChange)="onAmountInput('processingFeeMin', $event)" />
+                      <span class="input-prefix">₦</span>
+                    </div>
                   </div>
                   <div class="field-group">
                     <label class="field-label">Max amount (optional)</label>
-                    <input class="text-input" type="number" placeholder="No limit" [(ngModel)]="config.processingFeeMax" />
+                    <div class="input-prefix-wrap">
+                      <input class="text-input" type="text" inputmode="numeric" placeholder="No limit" [ngModel]="config.processingFeeMax" (ngModelChange)="onAmountInput('processingFeeMax', $event)" />
+                      <span class="input-prefix">₦</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -889,8 +897,10 @@
                   @if (config.autoDisburseEnabled) {
                     <div class="inline-days" style="margin-top: 10px">
                       <span class="inline-label">Auto-disburse loans under</span>
-                      <input class="text-input sm" type="number" placeholder="e.g. 50000" [(ngModel)]="config.autoDisburseUnder" style="max-width:140px" />
-                      <span class="inline-label">₦</span>
+                      <div class="input-prefix-wrap" style="max-width:140px">
+                        <input class="text-input sm" type="text" inputmode="numeric" placeholder="e.g. 50,000" [ngModel]="config.autoDisburseUnder" (ngModelChange)="onAmountInput('autoDisburseUnder', $event)" style="max-width:140px" />
+                        <span class="input-prefix">₦</span>
+                      </div>
                     </div>
                   }
                 </div>
@@ -934,10 +944,10 @@
             <div class="form-card">
               <div class="form-card-title">Repayment Schedule</div>
               <div class="field-group">
-                <label class="field-label">Move first repayment date, if date of loan disbursement is later than:</label>
+                <label class="field-label">Move first repayment date, if the loan was disbursed later than this day of the month:</label>
                 <div class="inline-days">
-                  <input class="text-input sm" type="number" placeholder="e.g. 5" [(ngModel)]="config.moveFirstRepaymentDays" />
-                  <span class="inline-label">days</span>
+                  <input class="text-input sm" type="number" min="1" max="31" placeholder="e.g. 16" [(ngModel)]="config.moveFirstRepaymentDayOfMonth" />
+                  <span class="inline-label">of the month</span>
                 </div>
               </div>
               <div class="field-group" style="margin-top:14px">
@@ -952,16 +962,29 @@
             @if (showRepaymentDay) {
               <div class="form-card">
                 <div class="form-card-title">Repayment Day</div>
-                <div class="form-card-sub">
-                  @if (config.repaymentFrequency === 'Monthly') {
-                    Which day of the month should repayment be collected?
-                  } @else {
-                    Which day of the week should repayment be collected?
+                @if (config.repaymentFrequency === 'Monthly') {
+                  <div class="form-card-sub">Which window of days should repayment be collected in? Collection retries automatically on any day within the range.</div>
+                  <div class="day-range-row">
+                    <div class="field-group compact">
+                      <label class="field-label">From</label>
+                      <input class="text-input sm" type="number" min="1" max="31" placeholder="e.g. 28" [(ngModel)]="config.repaymentDayRangeStart" />
+                    </div>
+                    <span class="day-range-sep">–</span>
+                    <div class="field-group compact">
+                      <label class="field-label">To</label>
+                      <input class="text-input sm" type="number" min="1" max="31" placeholder="e.g. 31" [(ngModel)]="config.repaymentDayRangeEnd" />
+                    </div>
+                    <span class="inline-label">of the month</span>
+                  </div>
+                  @if (config.repaymentDayRangeStart && config.repaymentDayRangeEnd && +config.repaymentDayRangeStart > +config.repaymentDayRangeEnd) {
+                    <div class="field-error" style="margin-top:8px">"From" day must not be later than "To" day.</div>
                   }
-                </div>
-                <div style="max-width:180px">
-                  <app-select [options]="toOptions(repaymentDayOptions)" [value]="config.repaymentDay" (valueChange)="config.repaymentDay = $event" />
-                </div>
+                } @else {
+                  <div class="form-card-sub">Which day of the week should repayment be collected?</div>
+                  <div style="max-width:180px">
+                    <app-select [options]="toOptions(repaymentDayOptions)" [value]="config.repaymentDay" (valueChange)="config.repaymentDay = $event" />
+                  </div>
+                }
               </div>
             }
 
@@ -1089,7 +1112,7 @@
 
             <div class="form-card">
               <div class="form-card-title">Product Banner</div>
-              <app-file-upload label="Upload banner image" />
+              <app-file-upload label="Upload banner image" [initialPreviewUrl]="config.bannerImageDataUrl" (fileSelected)="onBannerFileSelected($event)" />
               <p class="upload-hint">Recommended: 1200 × 400px. JPG or PNG.</p>
             </div>
 
@@ -1298,6 +1321,14 @@
       <p class="publish-sub">
         <strong>{{ config.name }}</strong> is now live and available to applicants.
       </p>
+      @if (pendingSetupChannelNames.length) {
+        <app-alert-banner
+          type="warning"
+          title="Not fully live yet"
+          [message]="'Applicants can start applying, but repayment can\'t be collected until you finish setup for: ' + compact(pendingSetupChannelNames) + '. Go to this product\'s Integrations tab to add credentials and connect them.'"
+          [dismissible]="false"
+          style="text-align:left; display:block; margin-bottom:24px" />
+      }
       <div class="publish-actions">
         <a routerLink="/products" class="publish-btn-secondary">Back to Products</a>
         <a routerLink="/apply" class="publish-btn-primary">

@@ -71,10 +71,15 @@
 }
 
 .wiz-stepper-label {
+  flex: 1;
+  min-width: 0;
   font-size: 14px;
   font-weight: 400;
   color: var(--color-grey-header);
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 0.12s;
 
   .wiz-stepper-item.done & { color: var(--color-body); }

@@ -73,6 +73,9 @@
               Preview mode — no published product found. Create and publish a loan product first.
             </div>
           }
+          @if (product.bannerImageDataUrl) {
+            <img class="welcome-banner" [src]="product.bannerImageDataUrl" alt="" />
+          }
           <div class="welcome-badge">{{ product.targetAudiences[0] || 'Loan Application' }}</div>
           <h1 class="screen-headline">{{ product.name }}</h1>
           <p class="screen-body">
