@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, computeCanActivate } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
@@ -354,6 +354,8 @@ export class CreateLoanComponent implements OnInit {
   showMgmtFee = false;
 
   isPublished = false;
+  /** Whether publish() actually flipped the product to 'live' — false means it saved as a draft pending channel setup. */
+  isProductLive = false;
   /** Names of deduction channels selected but not yet live (credentials/testing pending) — shown on the publish-success screen. */
   pendingSetupChannelNames: string[] = [];
   showCustomFeeModal = false;
@@ -964,10 +966,15 @@ export class CreateLoanComponent implements OnInit {
       return;
     }
     const patch = this.buildProductPatch();
+    // Applicants must not be able to apply until every enabled deduction channel is actually
+    // live — otherwise a loan could be approved with no working repayment rail. Only flip the
+    // record to 'live' (which is what the /apply portal gates on) once that's true; otherwise
+    // it stays a 'draft' the user can activate from product-detail once channels are connected.
+    const status = computeCanActivate(patch.config) ? 'live' : 'draft';
     if (this.editingProductId) {
-      this.productsService.update(this.editingProductId, { ...patch, status: 'live' });
+      this.productsService.update(this.editingProductId, { ...patch, status });
     } else {
-      const created = this.productsService.create({ ...patch, status: 'live' });
+      const created = this.productsService.create({ ...patch, status });
       this.editingProductId = created.id;
     }
     this.syncWebsiteLink();
@@ -993,6 +1000,7 @@ export class CreateLoanComponent implements OnInit {
     this.pendingSetupChannelNames = deductionChannels
       .filter((c) => effectiveChannelStatus(c) !== 'live')
       .map((c) => c.name);
+    this.isProductLive = status === 'live';
     this.isPublished = true;
     this.isDraft = false;
   }

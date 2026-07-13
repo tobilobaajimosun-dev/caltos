@@ -655,7 +655,17 @@
   input { height: 36px; box-sizing: border-box; }
 }
 
-.input-suffix-wrap input { padding-right: 32px; }
+.input-suffix-wrap input {
+  padding-right: 40px;
+  // Suffix text (e.g. "days") sits where the native number-input spinner arrows would
+  // render, so they'd overlap it — the affix pattern replaces those controls entirely.
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
 .input-prefix-wrap input { padding-left: 28px; }
 
 .input-suffix,

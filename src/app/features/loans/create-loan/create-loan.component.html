@@ -1317,15 +1317,19 @@
           <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <h2 class="publish-title">Loan Product Published!</h2>
+      <h2 class="publish-title">{{ isProductLive ? 'Loan Product Published!' : 'Loan Product Saved!' }}</h2>
       <p class="publish-sub">
-        <strong>{{ config.name }}</strong> is now live and available to applicants.
+        @if (isProductLive) {
+          <strong>{{ config.name }}</strong> is now live and available to applicants.
+        } @else {
+          <strong>{{ config.name }}</strong> has been created, but isn't live yet — applicants can't apply until it is.
+        }
       </p>
-      @if (pendingSetupChannelNames.length) {
+      @if (!isProductLive) {
         <app-alert-banner
           type="warning"
-          title="Not fully live yet"
-          [message]="'Applicants can start applying, but repayment can\'t be collected until you finish setup for: ' + compact(pendingSetupChannelNames) + '. Go to this product\'s Integrations tab to add credentials and connect them.'"
+          title="Not live yet"
+          [message]="'Applicants can\'t apply until you finish setup for: ' + compact(pendingSetupChannelNames.length ? pendingSetupChannelNames : ['at least one deduction channel']) + '. Go to this product\'s Integrations tab to add credentials and connect them, then activate it from the product page.'"
           [dismissible]="false"
           style="text-align:left; display:block; margin-bottom:24px" />
       }
