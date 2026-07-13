@@ -302,6 +302,11 @@ export class ApplyComponent implements OnInit {
     return !this.product.entryBvn;
   }
 
+  /** The lender's own brand color, driving every accent in this portal (CTA, progress, focus rings) — falls back to the original signature purple for products created before branding existed. */
+  get brandColor(): string {
+    return this.product.brandColor || '#7C5CEB';
+  }
+
   // ── Step helpers ────────────────────────────────────────────────────────────
   get currentStep(): StepDef { return this.steps[this.stepIndex]; }
 

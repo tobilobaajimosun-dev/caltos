@@ -1,11 +1,12 @@
 // ── Design tokens ─────────────────────────────────────────────────────────────
+// $purple is the fallback only — the live accent is --brand, set per-lender from
+// product.brandColor via [style.--brand] on .apply-shell (Cash-App direction: one
+// bold, saturated accent color driving every CTA/focus/progress state).
 $bg:          #0C0D10;
 $surface:     #161820;
 $surface-2:   #1E2028;
 $border:      rgba(255, 255, 255, 0.07);
-$border-focus: #7C5CEB;
 $purple:      #7C5CEB;
-$purple-glow: rgba(124, 92, 235, 0.18);
 $text-1:      #FFFFFF;
 $text-2:      #A0A4B8;
 $text-3:      #5A5F72;
@@ -18,6 +19,13 @@ $red:         #F04438;
 
 // ── Shell ─────────────────────────────────────────────────────────────────────
 .apply-shell {
+  --brand: #{$purple};
+  --brand-glow: color-mix(in srgb, var(--brand) 18%, transparent);
+  --brand-glow-strong: color-mix(in srgb, var(--brand) 30%, transparent);
+  --brand-soft-bg: color-mix(in srgb, var(--brand) 12%, transparent);
+  --brand-border: color-mix(in srgb, var(--brand) 45%, transparent);
+  --brand-hover: color-mix(in srgb, var(--brand) 85%, black);
+
   min-height: 100dvh;
   background: $bg;
   display: flex;
@@ -75,9 +83,9 @@ $red:         #F04438;
 
 .progress-fill {
   height: 100%;
-  background: $purple;
+  background: var(--brand);
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 8px $purple-glow;
+  box-shadow: 0 0 8px var(--brand-glow);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -147,7 +155,7 @@ $red:         #F04438;
   width: 100%;
   max-height: 180px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 18px;
 }
 
 .welcome-badge {
@@ -156,39 +164,65 @@ $red:         #F04438;
   height: 26px;
   padding: 0 12px;
   border-radius: 20px;
-  background: $purple-glow;
-  border: 1px solid rgba(124, 92, 235, 0.3);
+  background: var(--brand-glow);
+  border: 1px solid var(--brand-border);
   font-size: 11px;
   font-weight: 600;
-  color: $purple;
+  color: var(--brand);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   align-self: flex-start;
 }
 
-.feature-list {
+// Cash-App-style bold stat tiles + Luma-style clear info grouping — replaces the
+// old thin dot-and-text list with tappable-looking cards that carry more visual weight.
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat-tile {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid $border;
+  background: $surface;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.feature-item {
+.stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  color: $text-2;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+  &.brand  { color: var(--brand); background: var(--brand-soft-bg); }
+  &.green  { color: $green;  background: rgba(18, 183, 106, 0.12); }
+  &.blue   { color: $blue;   background: rgba(46, 144, 250, 0.12); }
+  &.yellow { color: $yellow; background: rgba(247, 144, 9, 0.12); }
 }
 
-.feature-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  &.green  { background: $green;  box-shadow: 0 0 6px rgba(18, 183, 106, 0.5); }
-  &.blue   { background: $blue;   box-shadow: 0 0 6px rgba(46, 144, 250, 0.5); }
-  &.purple { background: $purple; box-shadow: 0 0 6px rgba(124, 92, 235, 0.5); }
-  &.yellow { background: $yellow; box-shadow: 0 0 6px rgba(247, 144, 9, 0.5); }
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: $text-3;
+}
+
+.stat-value {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: $text-1;
+  letter-spacing: -0.2px;
+  line-height: 1.25;
 }
 
 .legal-note {
@@ -246,7 +280,7 @@ $red:         #F04438;
   appearance: none;
   background: linear-gradient(
     to right,
-    $purple calc(var(--val, 50%)),
+    var(--brand) calc(var(--val, 50%)),
     $surface-2 calc(var(--val, 50%))
   );
   cursor: pointer;
@@ -301,7 +335,7 @@ $red:         #F04438;
   align-items: center;
   justify-content: center;
   height: 52px;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid $border;
   background: $surface;
   font-family: var(--font-heading);
@@ -314,11 +348,11 @@ $red:         #F04438;
   .tenor-unit { font-size: 10px; font-weight: 500; color: $text-3; font-family: var(--font-body); }
 
   &.active {
-    background: $purple-glow;
-    border-color: $purple;
+    background: var(--brand-glow);
+    border-color: var(--brand);
     color: $text-1;
-    box-shadow: 0 0 0 1px $purple;
-    .tenor-unit { color: $purple; }
+    box-shadow: 0 0 0 1px var(--brand);
+    .tenor-unit { color: var(--brand); }
   }
 
   &:hover:not(.active) { border-color: rgba(255,255,255,0.15); color: $text-1; }
@@ -328,9 +362,10 @@ $red:         #F04438;
   display: flex;
   align-items: center;
   background: $surface;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid $border;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .loan-est-item {
@@ -394,7 +429,7 @@ $red:         #F04438;
   width: 100%;
   height: 48px;
   padding: 0 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid $border;
   background: $surface;
   font-family: var(--font-body);
@@ -405,7 +440,7 @@ $red:         #F04438;
   transition: border-color 0.15s, box-shadow 0.15s;
 
   &::placeholder { color: $text-3; }
-  &:focus { border-color: $border-focus; box-shadow: 0 0 0 3px $purple-glow; }
+  &:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
 
   &[type="date"] {
     color-scheme: dark;
@@ -457,8 +492,8 @@ $red:         #F04438;
   transition: all 0.15s;
 
   &.active {
-    background: $purple-glow;
-    border-color: $purple;
+    background: var(--brand-glow);
+    border-color: var(--brand);
     color: $text-1;
     font-weight: 600;
   }
@@ -470,11 +505,11 @@ $red:         #F04438;
   display: flex;
   align-items: stretch;
   border: 1px solid $border;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   background: $surface;
   transition: border-color 0.15s, box-shadow 0.15s;
-  &:focus-within { border-color: $border-focus; box-shadow: 0 0 0 3px $purple-glow; }
+  &:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
 }
 
 .dark-phone-prefix {
@@ -517,7 +552,7 @@ $red:         #F04438;
   justify-content: space-between;
   height: 48px;
   padding: 0 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid $border;
   background: $surface;
   font-family: var(--font-body);
@@ -537,7 +572,7 @@ $red:         #F04438;
 .otp-resend {
   height: 48px;
   padding: 0 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid $border;
   background: $surface;
   font-family: var(--font-body);
@@ -561,18 +596,19 @@ $red:         #F04438;
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid $border;
   background: $surface;
   cursor: pointer;
   text-align: left;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.15s;
 
   &.active {
-    border-color: $purple;
-    background: rgba(124, 92, 235, 0.12);
-    box-shadow: 0 0 0 1px rgba(124, 92, 235, 0.3);
+    border-color: var(--brand);
+    background: var(--brand-soft-bg);
+    box-shadow: 0 0 0 1px var(--brand-border);
   }
   &:hover:not(.active) { border-color: rgba(255,255,255,0.12); }
 }
@@ -630,7 +666,7 @@ $red:         #F04438;
 
 .doc-card {
   display: block;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px dashed $border;
   background: $surface;
   cursor: pointer;
@@ -731,7 +767,7 @@ $red:         #F04438;
   margin-left: auto;
   font-size: 12px;
   font-weight: 600;
-  color: $purple;
+  color: var(--brand);
   flex-shrink: 0;
 }
 
@@ -755,9 +791,10 @@ $red:         #F04438;
 
 .review-card {
   background: $surface;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid $border;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .review-card-title {
@@ -807,7 +844,7 @@ $red:         #F04438;
 .back-btn {
   width: 52px;
   height: 56px;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid $border;
   background: $surface;
   display: flex;
@@ -823,22 +860,27 @@ $red:         #F04438;
 .cta-btn {
   flex: 1;
   height: 56px;
-  border-radius: 14px;
+  border-radius: 20px;
   border: none;
-  background: $purple;
+  background: var(--brand);
   font-family: var(--font-body);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: #fff;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   letter-spacing: -0.2px;
+  box-shadow: 0 8px 24px var(--brand-glow-strong);
 
-  &:hover { background: #6A4CD6; }
+  &:hover { background: var(--brand-hover); }
   &:active { transform: scale(0.98); }
 }
 
-.submit-btn { background: $green; &:hover { background: #0CA058; } }
+.submit-btn {
+  background: $green;
+  box-shadow: 0 8px 24px rgba(18, 183, 106, 0.35);
+  &:hover { background: #0CA058; }
+}
 
 // ── Success screen ────────────────────────────────────────────────────────────
 .success-screen {
@@ -926,7 +968,7 @@ $red:         #F04438;
   gap: 6px;
   background: $surface;
   border: 1px solid $border;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 16px 32px;
   width: 100%;
 }
@@ -953,7 +995,7 @@ $red:         #F04438;
   justify-content: center;
   width: 100%;
   height: 56px;
-  border-radius: 14px;
+  border-radius: 18px;
   background: $surface;
   border: 1px solid $border;
   font-family: var(--font-body);
@@ -982,8 +1024,8 @@ $red:         #F04438;
   background: $surface-2;
   transition: all 0.25s;
 
-  &.done   { background: rgba(124, 92, 235, 0.4); }
-  &.active { background: $purple; width: 20px; border-radius: 3px; }
+  &.done   { background: color-mix(in srgb, var(--brand) 40%, transparent); }
+  &.active { background: var(--brand); width: 20px; border-radius: 3px; }
 }
 
 // ── Header product label ──────────────────────────────────────────────────────
