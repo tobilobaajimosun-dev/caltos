@@ -358,6 +358,8 @@ export class CreateLoanComponent implements OnInit {
   isProductLive = false;
   /** Names of deduction channels selected but not yet live (credentials/testing pending) — shown on the publish-success screen. */
   pendingSetupChannelNames: string[] = [];
+  /** Set when the browser couldn't actually persist this save (e.g. localStorage quota exceeded) — shown on the publish-success screen. */
+  persistErrorMessage: string | null = null;
   showCustomFeeModal = false;
   customFeeName = '';
   customFeeType = 'Percentage';
@@ -919,6 +921,8 @@ export class CreateLoanComponent implements OnInit {
     this.syncWebsiteLink();
     this.isDraft = true;
     this.showUnsavedDialog = false;
+    const persistError = this.productsService.persistError();
+    if (persistError) this.saveBlockMessage = persistError;
   }
 
   /**
@@ -991,8 +995,14 @@ export class CreateLoanComponent implements OnInit {
       customDocs: this.customDocs,
     };
     // Keyed by product id — previously a single global key, so publishing a second
-    // product silently overwrote the first one's preview config.
-    localStorage.setItem(`caltos_published_config_${this.editingProductId}`, JSON.stringify(publishedConfig));
+    // product silently overwrote the first one's preview config. A quota error here must
+    // not abort the rest of publish() (the success modal below, etc.) the way an uncaught
+    // exception would — same failure mode as ProductsService.persist().
+    try {
+      localStorage.setItem(`caltos_published_config_${this.editingProductId}`, JSON.stringify(publishedConfig));
+    } catch (e) {
+      console.error('Failed to persist published config to localStorage', e);
+    }
     // A selected deduction channel isn't actually usable until its credentials are set up
     // and it passes connection testing (see effectiveChannelStatus) — publishing the product
     // record doesn't do that automatically, so applicants could apply for a loan whose
@@ -1003,6 +1013,7 @@ export class CreateLoanComponent implements OnInit {
     this.isProductLive = status === 'live';
     this.isPublished = true;
     this.isDraft = false;
+    this.persistErrorMessage = this.productsService.persistError();
   }
 
   toggleAudience(aud: string) {

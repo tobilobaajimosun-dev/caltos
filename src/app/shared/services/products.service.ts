@@ -379,6 +379,14 @@ export class ProductsService {
   private readonly _products = signal<ProductRecord[]>(this.load());
   readonly products = this._products.asReadonly();
 
+  /**
+   * Set whenever the last persist() call failed (almost always a localStorage quota error —
+   * products carry inline base64 banner images plus duplicated wizard/published-config
+   * snapshots, so the ~5-10MB origin quota fills up faster than you'd expect). Cleared on
+   * the next successful persist(). Callers should surface this so a failed save isn't silent.
+   */
+  readonly persistError = signal<string | null>(null);
+
   private load(): ProductRecord[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -392,7 +400,18 @@ export class ProductsService {
   }
 
   private persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._products()));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this._products()));
+      this.persistError.set(null);
+    } catch (e) {
+      // Don't rethrow — callers (create/update/publish/saveDraft) are synchronous and an
+      // uncaught error here would abort them partway through, silently skipping everything
+      // after the persist() call (e.g. setting editingProductId, showing the success modal).
+      // In-memory state (the signal) is already updated, so the current session keeps working;
+      // we just can't survive a reload. Surface it via persistError instead.
+      console.error('Failed to persist products to localStorage', e);
+      this.persistError.set('Your browser storage is full, so this change could not be saved permanently. Delete some old draft products (they carry banner images) to free up space.');
+    }
   }
 
   /** Replaces everything with the sample product set — an explicit, opt-in action (see product-list's empty state). */

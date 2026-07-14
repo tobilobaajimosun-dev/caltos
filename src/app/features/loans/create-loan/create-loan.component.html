@@ -1333,6 +1333,14 @@
           [dismissible]="false"
           style="text-align:left; display:block; margin-bottom:24px" />
       }
+      @if (persistErrorMessage) {
+        <app-alert-banner
+          type="error"
+          title="Not saved permanently"
+          [message]="persistErrorMessage"
+          [dismissible]="false"
+          style="text-align:left; display:block; margin-bottom:24px" />
+      }
       <div class="publish-actions">
         <a routerLink="/products" class="publish-btn-secondary">Back to Products</a>
         <a routerLink="/apply" [queryParams]="{ product: editingProductId }" class="publish-btn-primary">
