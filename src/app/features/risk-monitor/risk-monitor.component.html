@@ -245,7 +245,7 @@
     <div class="writeoff-body">
       <p class="writeoff-loan">{{ loan.loanId }} · {{ loan.customer.name }}</p>
       <app-select [options]="writeOffReasonOptions" [value]="writeOffReason()" (valueChange)="writeOffReason.set($event)" />
-      <app-input label="Write-off amount (₦)" type="number" [value]="writeOffAmount()" (valueChange)="writeOffAmount.set($event)" />
+      <app-input label="Write-off amount (₦)" type="number" [commaFormat]="true" [value]="writeOffAmount()" (valueChange)="writeOffAmount.set($event)" />
       <app-input label="Authorization code (required)" [value]="writeOffAuthCode()" (valueChange)="writeOffAuthCode.set($event)" />
       <p class="writeoff-note">This creates a permanent audit entry and moves the loan to "Written Off" status.</p>
     </div>

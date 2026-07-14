@@ -1188,19 +1188,19 @@
         @case ('loanCount') {
           <div class="ob-field-group">
             <label class="ob-label">Loan count target</label>
-            <input class="ob-input" type="number" min="1" placeholder="e.g. 2000" [(ngModel)]="targetForm.loanCount" />
+            <input class="ob-input" type="text" inputmode="numeric" placeholder="e.g. 2,000" [ngModel]="formatTargetValue(targetForm.loanCount)" (ngModelChange)="onTargetFieldInput('loanCount', $event)" />
           </div>
         }
         @case ('disbursementAmount') {
           <div class="ob-field-group">
             <label class="ob-label">Disbursement amount target (₦)</label>
-            <input class="ob-input" type="number" min="1" placeholder="e.g. 2000000" [(ngModel)]="targetForm.disbursementAmount" />
+            <input class="ob-input" type="text" inputmode="numeric" placeholder="e.g. 2,000,000" [ngModel]="formatTargetValue(targetForm.disbursementAmount)" (ngModelChange)="onTargetFieldInput('disbursementAmount', $event)" />
           </div>
         }
         @case ('activeCustomers') {
           <div class="ob-field-group">
             <label class="ob-label">Active customers target</label>
-            <input class="ob-input" type="number" min="1" placeholder="e.g. 2000" [(ngModel)]="targetForm.activeCustomers" />
+            <input class="ob-input" type="text" inputmode="numeric" placeholder="e.g. 2,000" [ngModel]="formatTargetValue(targetForm.activeCustomers)" (ngModelChange)="onTargetFieldInput('activeCustomers', $event)" />
           </div>
         }
       }

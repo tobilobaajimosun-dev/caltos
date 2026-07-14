@@ -378,7 +378,7 @@
             </div>
             <div class="dark-field">
               <label class="dark-label">Monthly net income (₦)</label>
-              <input class="dark-input" type="number" placeholder="250000" [(ngModel)]="monthlyIncome" />
+              <input class="dark-input" type="text" inputmode="numeric" placeholder="250,000" [ngModel]="formatAmount(monthlyIncome)" (ngModelChange)="onMoneyInput('monthlyIncome', $event)" />
             </div>
             @for (f of sectionFields('collectEmployment'); track f.label) {
               <div class="dark-field">
@@ -410,7 +410,7 @@
             </div>
             <div class="dark-field">
               <label class="dark-label">Annual revenue (₦)</label>
-              <input class="dark-input" type="number" placeholder="5000000" [(ngModel)]="annualRevenue" />
+              <input class="dark-input" type="text" inputmode="numeric" placeholder="5,000,000" [ngModel]="formatAmount(annualRevenue)" (ngModelChange)="onMoneyInput('annualRevenue', $event)" />
             </div>
             @for (f of sectionFields('collectBusiness'); track f.label) {
               <div class="dark-field">

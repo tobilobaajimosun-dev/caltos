@@ -231,7 +231,7 @@
   <!-- Edit amount modal -->
   <app-modal [isOpen]="showEditAmount" title="Edit loan amount" size="sm" (closed)="closeEditAmount()">
     <div class="edit-amount-body">
-      <app-input label="Loan amount" type="number" [(value)]="editAmountValue" placeholder="Amount" />
+      <app-input label="Loan amount" type="number" [commaFormat]="true" [(value)]="editAmountValue" placeholder="Amount" />
     </div>
     <div modalFooter class="modal-footer-actions">
       <app-button variant="outline" label="Cancel" (clicked)="closeEditAmount()" />

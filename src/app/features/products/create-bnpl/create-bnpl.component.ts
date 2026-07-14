@@ -262,6 +262,18 @@ export class CreateBnplComponent {
 
   get descLength(): number { return this.config.description?.length ?? 0; }
 
+  /** Strips non-digits and re-inserts thousand separators live as the user types an amount. */
+  onAmountInput(key: keyof BnplConfig, raw: string) {
+    const digits = raw.replace(/[^\d]/g, '');
+    (this.config[key] as string) = digits ? Number(digits).toLocaleString('en-US') : '';
+  }
+
+  /** Same as onAmountInput but for the custom-fee dialog's own field (not part of `config`). */
+  onCustomFeeRateInput(raw: string) {
+    const digits = raw.replace(/[^\d]/g, '');
+    this.customFeeRate = digits ? Number(digits).toLocaleString('en-US') : '';
+  }
+
   addCustomFee() {
     if (!this.customFeeName.trim()) return;
     this.customFees.push({ name: this.customFeeName, type: this.customFeeType, rate: this.customFeeRate });

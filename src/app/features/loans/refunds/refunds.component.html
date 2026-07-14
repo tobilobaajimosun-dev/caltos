@@ -134,7 +134,7 @@
         <span class="detail-value">₦{{ overAmount(row) | number: '1.0-0' }}</span>
       </div>
 
-      <app-input label="Refund amount" type="number" [value]="refundAmount().toString()" (valueChange)="refundAmount.set(+$event || 0)" />
+      <app-input label="Refund amount" type="number" [commaFormat]="true" [value]="refundAmount().toString()" (valueChange)="refundAmount.set(+$event || 0)" />
       <app-select [options]="paymentMethods" [value]="paymentMethod()" (valueChange)="paymentMethod.set($event)" />
 
       <app-button variant="primary" label="Approve & post refund" (clicked)="approveRefund(row)" [fullWidth]="true" />

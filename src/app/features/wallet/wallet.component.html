@@ -211,7 +211,7 @@
           <button type="button" class="amount-chip" [class.active]="topUpAmount() === chip" (click)="selectTopUpChip(chip)">{{ chip }}</button>
         }
       </div>
-      <app-input label="Or enter custom amount" type="number" placeholder="Custom amount" [value]="topUpCustomAmount()" (valueChange)="topUpCustomAmount.set($event); topUpAmount.set('')" />
+      <app-input label="Or enter custom amount" type="number" [commaFormat]="true" placeholder="Custom amount" [value]="topUpCustomAmount()" (valueChange)="topUpCustomAmount.set($event); topUpAmount.set('')" />
     </div>
   }
 
@@ -250,7 +250,7 @@
 <!-- Withdrawal flow -->
 <app-modal [isOpen]="withdrawalOpen()" title="Withdraw funds" size="sm" (closed)="closeWithdrawal()">
   <div class="topup-body">
-    <app-input label="Amount" type="number" placeholder="Amount to withdraw" [value]="withdrawalAmount()" (valueChange)="withdrawalAmount.set($event)" />
+    <app-input label="Amount" type="number" [commaFormat]="true" placeholder="Amount to withdraw" [value]="withdrawalAmount()" (valueChange)="withdrawalAmount.set($event)" />
     @if (withdrawalExceedsAvailable) {
       <p class="withdrawal-error">Amount exceeds available balance (₦{{ availableBalance().toLocaleString() }}).</p>
     }
@@ -271,8 +271,8 @@
       <span>Enable Auto Top-Up</span>
     </div>
     @if (autoTopUpEnabled) {
-      <app-input label="Top up when balance falls below (₦)" type="number" [value]="autoTopUpThreshold" (valueChange)="autoTopUpThreshold = $event" />
-      <app-input label="Top up by (₦)" type="number" [value]="autoTopUpAmount" (valueChange)="autoTopUpAmount = $event" />
+      <app-input label="Top up when balance falls below (₦)" type="number" [commaFormat]="true" [value]="autoTopUpThreshold" (valueChange)="autoTopUpThreshold = $event" />
+      <app-input label="Top up by (₦)" type="number" [commaFormat]="true" [value]="autoTopUpAmount" (valueChange)="autoTopUpAmount = $event" />
       <app-select [options]="withdrawalAccountOptions" [value]="autoTopUpSource" (valueChange)="autoTopUpSource = $event" />
     }
   </div>

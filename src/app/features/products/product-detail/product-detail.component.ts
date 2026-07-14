@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent } from '../../../shared/components';
 import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
+import { formatThousands } from '../../../shared/utils/number-format';
 import {
   ArrowLeft02Icon,
   PauseIcon,
@@ -520,6 +521,14 @@ export class ProductDetailComponent implements OnInit {
       activeCustomers: this.targets.activeCustomers.target ? String(this.targets.activeCustomers.target) : '',
     };
     this.showTargetModal = true;
+  }
+
+  /** Displays a plain-digit target field with thousand separators. */
+  formatTargetValue(value: string): string { return formatThousands(value); }
+
+  /** Strips non-digits before storing — targetForm stays plain numbers; only display gets commas. */
+  onTargetFieldInput(field: 'loanCount' | 'disbursementAmount' | 'activeCustomers', raw: string) {
+    this.targetForm[field] = raw.replace(/[^\d]/g, '');
   }
 
   saveTarget() {

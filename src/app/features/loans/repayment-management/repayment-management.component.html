@@ -254,7 +254,7 @@
           <span class="detail-value">{{ row.loanId }}</span>
         </div>
 
-        <app-input label="Amount paid" type="number" [value]="paymentAmount()" (valueChange)="paymentAmount.set($event)" />
+        <app-input label="Amount paid" type="number" [commaFormat]="true" [value]="paymentAmount()" (valueChange)="paymentAmount.set($event)" />
         @if (paymentDelta < 0) {
           <p class="payment-note partial">Partial payment — ₦{{ (-paymentDelta).toLocaleString() }} remaining after this.</p>
         } @else if (paymentDelta > 0) {

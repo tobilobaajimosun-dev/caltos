@@ -1048,6 +1048,12 @@ export class CreateLoanComponent implements OnInit {
     this.setConfig(key, digits ? Number(digits).toLocaleString('en-US') : '');
   }
 
+  /** Same as onAmountInput but for the custom-fee dialog's own field (not part of `config`). */
+  onCustomFeeRateInput(raw: string) {
+    const digits = raw.replace(/[^\d]/g, '');
+    this.customFeeRate = digits ? Number(digits).toLocaleString('en-US') : '';
+  }
+
   /**
    * Persisted as a data URL (not a File — the whole config, including this, is what
    * gets JSON.stringify'd into localStorage for both the draft/product record and the

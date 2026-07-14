@@ -270,7 +270,7 @@
   }
 
   @if (intakeStep() === 2) {
-    <app-input label="Loan amount" type="number" [value]="intakeAmount()" (valueChange)="intakeAmount.set($event)" />
+    <app-input label="Loan amount" type="number" [commaFormat]="true" [value]="intakeAmount()" (valueChange)="intakeAmount.set($event)" />
     <app-input label="Tenor (months)" type="number" [value]="intakeTenor()" (valueChange)="intakeTenor.set($event)" />
   }
 

@@ -817,7 +817,11 @@
                     <div class="field-group">
                       <label class="field-label">Max Penalty Cap Charge Value</label>
                       <div class="input-suffix-wrap">
-                        <input class="text-input" type="number" placeholder="e.g. 10" [(ngModel)]="config.latePenaltyMaxCapChargeValue" />
+                        @if (config.latePenaltyMaxCapChargeType === 'Percentage') {
+                          <input class="text-input" type="number" placeholder="e.g. 10" [(ngModel)]="config.latePenaltyMaxCapChargeValue" />
+                        } @else {
+                          <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 10,000" [ngModel]="config.latePenaltyMaxCapChargeValue" (ngModelChange)="onAmountInput('latePenaltyMaxCapChargeValue', $event)" />
+                        }
                         <span class="input-suffix">@if (config.latePenaltyMaxCapChargeType === 'Percentage') { % } @else { ₦ }</span>
                       </div>
                     </div>
@@ -1370,7 +1374,11 @@
         </div>
         <div class="field-group">
           <label class="field-label">Rate / Amount</label>
-          <input class="text-input" type="number" [placeholder]="customFeeType === 'Percentage' ? 'e.g. 1.5' : 'e.g. 2500'" [(ngModel)]="customFeeRate" />
+          @if (customFeeType === 'Percentage') {
+            <input class="text-input" type="number" placeholder="e.g. 1.5" [(ngModel)]="customFeeRate" />
+          } @else {
+            <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 2,500" [ngModel]="customFeeRate" (ngModelChange)="onCustomFeeRateInput($event)" />
+          }
         </div>
       </div>
       <div class="dialog-actions">

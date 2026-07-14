@@ -84,7 +84,7 @@
           <div class="panel-head"><p class="panel-title">Auto-approve conditions</p></div>
           <div class="field-row">
             <label>Auto-approve if amount below (₦)</label>
-            <app-input type="number" [value]="autoApproveBelow" (valueChange)="autoApproveBelow = $event" />
+            <app-input type="number" [commaFormat]="true" [value]="autoApproveBelow" (valueChange)="autoApproveBelow = $event" />
           </div>
           <app-checkbox label="Auto-approve if risk level is Low" [checked]="autoApproveLowRisk" (checkedChange)="autoApproveLowRisk = $event" />
         </div>

@@ -15,7 +15,7 @@
   </div>
 
   <div class="calc-form">
-    <app-input label="Loan amount (₦)" type="number" [value]="amount()" (valueChange)="amount.set($event)" />
+    <app-input label="Loan amount (₦)" type="number" [commaFormat]="true" [value]="amount()" (valueChange)="amount.set($event)" />
 
     <div class="tenor-row">
       <app-input label="Tenor" type="number" [value]="tenorValue()" (valueChange)="tenorValue.set($event)" />

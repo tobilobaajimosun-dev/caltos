@@ -6,6 +6,7 @@ import { LoanConfig } from '../loans/create-loan/create-loan.component';
 import { LoansService } from '../../shared/services/loans.service';
 import { ProductsService } from '../../shared/services/products.service';
 import { scoreEligibility, EligibilityInput, EmploymentStabilityInput } from '../../shared/utils/eligibility-scoring';
+import { formatThousands } from '../../shared/utils/number-format';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
 const FALLBACK_CONFIG: LoanConfig = {
@@ -131,6 +132,14 @@ export class ApplyComponent implements OnInit, OnDestroy {
   cacNumber = '';
   businessType = '';
   annualRevenue = '';
+
+  /** Displays a plain-digit amount field with thousand separators. */
+  formatAmount(value: string): string { return formatThousands(value); }
+
+  /** Strips non-digits before storing — the field itself stays a plain number string; only display gets commas. */
+  onMoneyInput(field: 'monthlyIncome' | 'annualRevenue', raw: string) {
+    this[field] = raw.replace(/[^\d]/g, '');
+  }
 
   // ── Form state: bank account details ────────────────────────────────────────
   bankName = '';

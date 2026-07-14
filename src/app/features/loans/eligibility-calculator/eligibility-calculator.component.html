@@ -17,8 +17,8 @@
   </div>
 
   <div class="calc-form">
-    <app-input label="Monthly salary (₦)" type="number" [value]="monthlySalary()" (valueChange)="monthlySalary.set($event)" />
-    <app-input label="Existing monthly loan obligations (₦)" type="number" [value]="existingObligations()" (valueChange)="existingObligations.set($event)" />
+    <app-input label="Monthly salary (₦)" type="number" [commaFormat]="true" [value]="monthlySalary()" (valueChange)="monthlySalary.set($event)" />
+    <app-input label="Existing monthly loan obligations (₦)" type="number" [commaFormat]="true" [value]="existingObligations()" (valueChange)="existingObligations.set($event)" />
     <div class="field-group">
       <span class="field-label">Product</span>
       <app-select [options]="productOptions()" [value]="productId() || (productOptions()[0]?.value ?? '')" (valueChange)="productId.set($event)" />
