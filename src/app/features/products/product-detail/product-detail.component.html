@@ -41,7 +41,7 @@
                   </app-row-menu>
                 </div>
               </div>
-              @if (pendingSetupCount === 0 && publishBlockedMessage) {
+              @if (publishBlockedMessage) {
                 <p class="hero-publish-block">{{ publishBlockedMessage }}</p>
               }
               <p class="hero-created">Created at: {{ product.createdAt }}</p>

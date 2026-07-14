@@ -931,9 +931,18 @@ export class ProductDetailComponent implements OnInit {
     return this.productsService.canActivate(this.productId);
   }
 
-  /** Explains why the Publish button is disabled, or null when publishing is allowed. */
+  /**
+   * Explains why the Activate/Publish button is disabled, or null when it's clickable.
+   * Covers every pending setup step (identity, income, deduction), not just deduction
+   * channels — a click on a disabled button is otherwise silent, so this is the only
+   * feedback the user gets for why nothing happened.
+   */
   get publishBlockedMessage(): string | null {
     if (this.product.status === 'live') return null;
+    const pending = this.setupSteps.filter((s) => !s.done);
+    if (pending.length) {
+      return `Finish setup before activating: ${pending.map((s) => s.title).join(', ')}.`;
+    }
     return this.productsService.getPublishBlockReason(this.productId);
   }
 
