@@ -526,7 +526,10 @@ export class ProductDetailComponent implements OnInit {
   private persistNotificationEvent(patched: NotificationEventConfig) {
     const record = this.productsService.getById(this.productId);
     if (!record) return;
-    const notificationEvents = record.config.notificationEvents.map((e) => (e.key === patched.key ? patched : e));
+    // Products persisted before this field existed won't have it on the raw record either —
+    // same fallback as mapRecordToProductData().
+    const existing = record.config.notificationEvents ?? DEFAULT_NOTIFICATION_EVENTS;
+    const notificationEvents = existing.map((e) => (e.key === patched.key ? patched : e));
     this.productsService.update(this.productId, { config: { ...record.config, notificationEvents } });
     this.product = { ...this.product, notificationEvents };
   }
