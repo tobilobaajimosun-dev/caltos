@@ -182,6 +182,8 @@ export interface ProductRecord {
   interestType: string;
   interestFrequency: string;
   websiteLink: string;
+  /** Data URL of the banner image uploaded in the wizard's Customise step — shown on both product-detail's hero and the borrower portal. */
+  bannerImageDataUrl?: string;
   stats: ProductStats;
   config: ProductConfig;
   /**
@@ -441,6 +443,7 @@ export class ProductsService {
       interestType: partial.interestType ?? 'Flat Rate',
       interestFrequency: partial.interestFrequency ?? 'Monthly',
       websiteLink: partial.websiteLink ?? '',
+      bannerImageDataUrl: partial.bannerImageDataUrl,
       stats: partial.stats ?? DEFAULT_STATS,
       config: partial.config ?? DEFAULT_PRODUCT_CONFIG,
       wizardConfig: partial.wizardConfig,

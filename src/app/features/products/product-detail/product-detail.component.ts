@@ -265,6 +265,7 @@ interface ProductData {
   websiteLink: string;
   applyRoute: string;
   productId: string;
+  bannerImageDataUrl?: string;
   minAmount: string;
   maxAmount: string;
   minTenor: string;
@@ -348,6 +349,7 @@ function mapRecordToProductData(record: ProductRecord): ProductData {
     websiteLink: record.websiteLink,
     applyRoute: `/apply?product=${record.id}`,
     productId: record.id,
+    bannerImageDataUrl: record.bannerImageDataUrl,
     minAmount: record.minAmount,
     maxAmount: record.maxAmount,
     minTenor: record.minTenor,

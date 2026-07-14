@@ -674,6 +674,7 @@
 .hero-image {
   width: 369px; height: 249px; flex-shrink: 0; border-radius: 16px;
   background: linear-gradient(135deg, #073b3d 0%, #0f6f73 55%, #17a3a8 100%);
+  background-size: cover; background-position: center;
   display: flex; align-items: flex-end; padding: 20px;
   overflow: hidden;
 }

@@ -169,15 +169,15 @@ export class ApplyComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
 
   // ── Load config from localStorage, keyed by the ?product= query param ──────
-  // Only a currently-'live' product's published snapshot is ever served here — a draft
-  // edit only ever touches ProductRecord (via saveDraft), never this published-config key,
-  // and if the product has since been deactivated/unpublished its stale snapshot must not
-  // keep being served to real borrowers either, so status is re-checked on every load.
+  // Any product that has been through the wizard's Publish step gets a snapshot here,
+  // regardless of live/draft/deactivated status — the preview/shareable link must show
+  // what was actually configured (name, banner, terms) even before it's live. Whether an
+  // application can actually be *submitted* is a separate check (see submissionBlockReason),
+  // not tied to whether the preview can load.
   private loadProduct() {
     const productId = this.route.snapshot.queryParamMap.get('product');
-    const isLive = !!productId && this.productsService.getById(productId)?.status === 'live';
     try {
-      const raw = productId && isLive ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
+      const raw = productId ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
       if (raw && productId) {
         this.product = { ...FALLBACK_CONFIG, ...JSON.parse(raw) };
         this.configSource = 'localStorage';
@@ -340,7 +340,22 @@ export class ApplyComponent implements OnInit, OnDestroy {
   /** Set when submit() is blocked by an in-progress duplicate application from this BVN. */
   duplicateBlockMessage: string | null = null;
 
+  /**
+   * True once the underlying product is actually live — the preview/shareable link loads a
+   * draft product's real config (see loadProduct()) so the owner can see what it'll look
+   * like, but a draft has no working repayment rail yet, so real applicants must not be able
+   * to submit against it.
+   */
+  get productNotLiveYet(): boolean {
+    const record = this.resolvedProductId ? this.productsService.getById(this.resolvedProductId) : undefined;
+    return !!record && record.status !== 'live';
+  }
+
   submit() {
+    if (this.productNotLiveYet) {
+      this.duplicateBlockMessage = 'This loan product isn\'t accepting applications yet — check back soon.';
+      return;
+    }
     const applicantIdentifier = this.bvn || this.entryBvn;
     const duplicateReason = this.loansService.getDuplicateApplicationBlockReason(this.resolvedProductId, applicantIdentifier);
     if (duplicateReason) {
