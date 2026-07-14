@@ -178,10 +178,33 @@ export class ApplyComponent implements OnInit, OnDestroy {
     const productId = this.route.snapshot.queryParamMap.get('product');
     try {
       const raw = productId ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
+      const record = productId ? this.productsService.getById(productId) : undefined;
       if (raw && productId) {
         this.product = { ...FALLBACK_CONFIG, ...JSON.parse(raw) };
         this.configSource = 'localStorage';
         this.resolvedProductId = productId;
+      } else if (record) {
+        // No wizard-Publish snapshot for this id — this happens for a product that was only
+        // ever "Saved as Draft" and later activated straight from product-detail. Still show
+        // the real product's own fields (name, amounts, banner) instead of unrelated demo
+        // copy; only fields the wizard snapshot alone carries (verification/deduction
+        // toggles, legal text, etc.) fall back to FALLBACK_CONFIG's defaults.
+        this.product = {
+          ...FALLBACK_CONFIG,
+          name: record.name,
+          description: record.description,
+          minAmount: record.minAmount.replace(/,/g, ''),
+          maxAmount: record.maxAmount.replace(/,/g, ''),
+          minTenor: record.minTenor,
+          maxTenor: record.maxTenor,
+          tenorUnit: record.tenorUnit,
+          interestModel: record.interestType,
+          interestRate: record.interestRate,
+          interestChargedWhen: record.interestFrequency,
+          bannerImageDataUrl: record.bannerImageDataUrl,
+        };
+        this.configSource = 'localStorage';
+        this.resolvedProductId = productId!;
       } else {
         this.product = FALLBACK_CONFIG;
         this.configSource = 'fallback';

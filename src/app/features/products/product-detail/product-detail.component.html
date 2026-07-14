@@ -802,12 +802,21 @@
             @for (field of connectIntegrationTarget.fields; track field.key) {
               <div class="ob-field-group">
                 <label class="ob-label">{{ field.label }}</label>
-                <input class="ob-input" type="text" [placeholder]="field.label" [(ngModel)]="credentialForm[field.key]" />
+                @if (isSensitiveCredentialField(field.key)) {
+                  <div class="ob-input-reveal-wrap">
+                    <input class="ob-input" [type]="isCredentialFieldRevealed(field.key) ? 'text' : 'password'" [placeholder]="field.label" [(ngModel)]="credentialForm[field.key]" />
+                    <button type="button" class="ob-input-reveal-btn" [attr.aria-label]="(isCredentialFieldRevealed(field.key) ? 'Hide' : 'Show') + ' ' + field.label" (click)="toggleCredentialFieldReveal(field.key)">
+                      <hi-icon [icon]="isCredentialFieldRevealed(field.key) ? eyeOffIcon : eyeIcon" size="16" color="currentColor" />
+                    </button>
+                  </div>
+                } @else {
+                  <input class="ob-input" type="text" [placeholder]="field.label" [(ngModel)]="credentialForm[field.key]" />
+                }
               </div>
             }
           </div>
         }
-        <div modalFooter>
+        <div modalFooter class="modal-footer-actions">
           <app-button variant="outline" label="Cancel" (clicked)="closeConnectIntegration()" />
           <app-button variant="primary" label="Save & connect" (clicked)="submitConnectIntegration()" />
         </div>
@@ -825,12 +834,21 @@
             @for (field of channelCredentialsTarget.fields; track field.key) {
               <div class="ob-field-group">
                 <label class="ob-label">{{ field.label }}</label>
-                <input class="ob-input" type="text" [placeholder]="field.label" [(ngModel)]="channelCredentialForm[field.key]" />
+                @if (isSensitiveCredentialField(field.key)) {
+                  <div class="ob-input-reveal-wrap">
+                    <input class="ob-input" [type]="isCredentialFieldRevealed(field.key) ? 'text' : 'password'" [placeholder]="field.label" [(ngModel)]="channelCredentialForm[field.key]" />
+                    <button type="button" class="ob-input-reveal-btn" [attr.aria-label]="(isCredentialFieldRevealed(field.key) ? 'Hide' : 'Show') + ' ' + field.label" (click)="toggleCredentialFieldReveal(field.key)">
+                      <hi-icon [icon]="isCredentialFieldRevealed(field.key) ? eyeOffIcon : eyeIcon" size="16" color="currentColor" />
+                    </button>
+                  </div>
+                } @else {
+                  <input class="ob-input" type="text" [placeholder]="field.label" [(ngModel)]="channelCredentialForm[field.key]" />
+                }
               </div>
             }
           </div>
         }
-        <div modalFooter>
+        <div modalFooter class="modal-footer-actions">
           <app-button variant="outline" label="Cancel" (clicked)="closeChannelCredentials()" />
           <app-button variant="primary" label="Save credentials" (clicked)="saveChannelCredentials()" />
         </div>
@@ -1188,7 +1206,7 @@
       }
     </div>
   </div>
-  <div modalFooter>
+  <div modalFooter class="modal-footer-actions">
     <app-button variant="outline" label="Cancel" (clicked)="showTargetModal = false" />
     <app-button variant="primary" [label]="targetsSet ? 'Save changes' : 'Save target'" (clicked)="saveTarget()" />
   </div>
@@ -1200,4 +1218,23 @@
 
 @if (linkCopiedToastVisible) {
   <app-toast type="success" title="Link copied" message="You can now share it everywhere." (dismissed)="linkCopiedToastVisible = false" />
+}
+
+@if (confettiPieces.length) {
+  <div class="confetti-overlay" aria-hidden="true">
+    @for (piece of confettiPieces; track $index) {
+      <span
+        class="confetti-piece"
+        [style.left.%]="piece.left"
+        [style.background]="piece.color"
+        [style.animation-delay.s]="piece.delay"
+        [style.animation-duration.s]="piece.duration"
+        [style.--drift]="piece.drift"
+        [style.--rotate]="piece.rotate"></span>
+    }
+  </div>
+}
+
+@if (activationToastVisible) {
+  <app-toast type="success" title="Product activated!" [message]="product.name + ' is now live and accepting applications.'" (dismissed)="activationToastVisible = false" />
 }

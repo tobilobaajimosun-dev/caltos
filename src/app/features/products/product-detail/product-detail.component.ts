@@ -23,6 +23,8 @@ import {
   ArrowDown01Icon,
   Plug01Icon,
   ShoppingBag01Icon,
+  EyeIcon,
+  ViewOffIcon,
 } from '@hugeicons/core-free-icons';
 
 type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations';
@@ -429,6 +431,8 @@ export class ProductDetailComponent implements OnInit {
   readonly chevronDownIcon: IconData = ArrowDown01Icon as IconData;
   readonly plugIcon: IconData = Plug01Icon as IconData;
   readonly marketplaceIcon: IconData = ShoppingBag01Icon as IconData;
+  readonly eyeIcon: IconData = EyeIcon as IconData;
+  readonly eyeOffIcon: IconData = ViewOffIcon as IconData;
 
   get overviewTabItems(): TabItem[] {
     const tabs: TabItem[] = [
@@ -665,6 +669,23 @@ export class ProductDetailComponent implements OnInit {
   credentialForm: Record<string, string> = {};
   integrationToastVisible = false;
 
+  /** Field keys currently shown in plain text within a credentials form — masked by default. */
+  private revealedCredentialFields = new Set<string>();
+
+  /** Password/API-key/secret-style fields are masked by default and need a show/hide toggle; identifiers (username, merchant ID, etc.) don't. */
+  isSensitiveCredentialField(key: string): boolean {
+    return /password|secret|apikey|api_key|apitoken|api_token|token/i.test(key);
+  }
+
+  isCredentialFieldRevealed(key: string): boolean {
+    return this.revealedCredentialFields.has(key);
+  }
+
+  toggleCredentialFieldReveal(key: string) {
+    if (this.revealedCredentialFields.has(key)) this.revealedCredentialFields.delete(key);
+    else this.revealedCredentialFields.add(key);
+  }
+
   setIntegrationScope(value: string) { this.integrationScope = value as typeof this.integrationScope; }
 
   get activeIntegrations(): IntegrationDef[] {
@@ -681,7 +702,7 @@ export class ProductDetailComponent implements OnInit {
     this.credentialForm = Object.fromEntries(integration.fields.map((f) => [f.key, '']));
     this.connectIntegrationTarget = integration;
   }
-  closeConnectIntegration() { this.connectIntegrationTarget = null; }
+  closeConnectIntegration() { this.connectIntegrationTarget = null; this.revealedCredentialFields.clear(); }
 
   submitConnectIntegration() {
     if (!this.connectIntegrationTarget) return;
@@ -718,7 +739,7 @@ export class ProductDetailComponent implements OnInit {
     this.channelCredentialsTarget = channel;
   }
 
-  closeChannelCredentials() { this.channelCredentialsTarget = null; }
+  closeChannelCredentials() { this.channelCredentialsTarget = null; this.revealedCredentialFields.clear(); }
 
   saveChannelCredentials() {
     if (!this.channelCredentialsTarget) return;
@@ -958,6 +979,28 @@ export class ProductDetailComponent implements OnInit {
     const result = this.productsService.publish(this.productId);
     if (!result.success) return;
     this.product = { ...this.product, status: 'live' };
+    this.celebrateActivation();
+  }
+
+  /** Random-ish confetti piece styles, generated once per celebration so they don't reshuffle on every change-detection tick. */
+  confettiPieces: { left: number; delay: number; duration: number; drift: string; rotate: string; color: string }[] = [];
+  activationToastVisible = false;
+  private static readonly CONFETTI_COLORS = ['#0053a6', '#12B76A', '#FFD54A', '#ED254E', '#8a93a6'];
+
+  private celebrateActivation() {
+    // CSS custom properties need their unit baked into the value string — Angular's
+    // [style.--x.unit] suffix syntax only applies to real CSS properties, not custom ones.
+    this.confettiPieces = Array.from({ length: 90 }, () => ({
+      left: Math.random() * 100,
+      delay: Math.random() * 0.4,
+      duration: 2.2 + Math.random() * 1.4,
+      drift: `${(Math.random() - 0.5) * 120}px`,
+      rotate: `${Math.random() * 720 - 360}deg`,
+      color: ProductDetailComponent.CONFETTI_COLORS[Math.floor(Math.random() * ProductDetailComponent.CONFETTI_COLORS.length)],
+    }));
+    this.activationToastVisible = true;
+    setTimeout(() => { this.confettiPieces = []; }, 3600);
+    setTimeout(() => { this.activationToastVisible = false; }, 4000);
   }
 
   toggleMoreMenu() { this.moreMenuOpen = !this.moreMenuOpen; }

@@ -216,3 +216,7 @@
   font-size: var(--text-sm);
   color: var(--text-primary);
 }
+
+/* Bare <div modalFooter> projected content is .modal-footer's only child, not a flex item of
+   it — .modal-footer's own gap never reaches the buttons inside, so this needs its own. */
+.modal-footer-actions { display: flex; gap: var(--space-3); }

@@ -1503,6 +1503,19 @@ table.ref-table {
   &:focus { border-color: var(--color-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-blue) 12%, transparent); }
 }
 
+.ob-input-reveal-wrap {
+  position: relative;
+  .ob-input { padding-right: 40px; }
+}
+
+.ob-input-reveal-btn {
+  position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; border-radius: 6px; cursor: pointer;
+  color: var(--color-grey-header);
+  &:hover { background: var(--surface-raised); color: var(--color-body); }
+}
+
 .ob-verify-row {
   display: flex;
   gap: 8px;
@@ -1893,6 +1906,11 @@ table.ref-table {
 
 .integration-info-footer { flex: 1; display: flex; width: 100%; }
 
+/* Bare <div modalFooter> projected content isn't a flex child of .modal-footer — it's the
+   footer's only child, so .modal-footer's own gap never reaches the buttons inside. Every
+   modalFooter wrapper needs its own display:flex + gap. */
+.modal-footer-actions { display: flex; gap: var(--space-3); }
+
 /* ── Shared per-tab page header (Performance/Loans/Customers/Collections) ── */
 .tab-page-head { margin-bottom: 16px; }
 .tab-page-title {
@@ -1926,3 +1944,25 @@ table.ref-table {
 .status-breakdown-val { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--color-header); }
 
 .customer-filter-row { margin-bottom: 16px; }
+
+/* Confetti burst on product activation — full-viewport, pours from the top, fixed so it plays
+   over the whole page regardless of scroll position. */
+.confetti-overlay {
+  position: fixed; inset: 0; z-index: 400; pointer-events: none; overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 8px; height: 14px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--drift), 100vh) rotate(var(--rotate)); opacity: 0; }
+}
