@@ -1,3 +1,6 @@
+@if (loading) {
+  <div class="apply-shell apply-loading" aria-busy="true"></div>
+} @else {
 <div class="apply-shell" [style.--brand]="brandColor">
 
   <!-- ── SUCCESS SCREEN ─────────────────────────────────────────────────── -->
@@ -680,3 +683,4 @@
   }
 
 </div>
+}

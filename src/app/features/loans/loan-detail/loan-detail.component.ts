@@ -74,6 +74,9 @@ export class LoanDetailComponent implements OnInit {
       await this.loansService.ready;
       this.loanId = (params['id'] as string) ?? '';
       this.refreshLoan();
+      // This app runs zoneless — the continuation after `await` isn't an Angular-tracked
+      // event, so nothing repaints the view on its own without an explicit nudge here.
+      this.cdr.markForCheck();
     });
   }
 

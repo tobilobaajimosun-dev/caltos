@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -74,7 +74,10 @@ export class ApplyComponent implements OnInit, OnDestroy {
   private readonly productsService = inject(ProductsService);
 
   // ── Product config ──────────────────────────────────────────────────────────
-  product!: LoanConfig;
+  // A real default (not just a definite-assignment assertion) so the template — which starts
+  // rendering before ngOnInit's now-async loadProduct() resolves — always has valid data to
+  // read instead of crashing on undefined during that brief window.
+  product: LoanConfig = FALLBACK_CONFIG;
   configSource: 'localStorage' | 'fallback' = 'fallback';
   /** Real ProductRecord id this application is filed against — the FK on LoanApplication. */
   resolvedProductId = '';
@@ -169,13 +172,28 @@ export class ApplyComponent implements OnInit, OnDestroy {
     'Yobe','Zamfara',
   ];
 
+  // True until loadProduct()/buildDerivedData()/buildSteps() finish — the template's first
+  // render happens before this async work resolves, so it renders a minimal shell instead of
+  // referencing `steps`/derived state that isn't populated yet.
+  loading = true;
+
   async ngOnInit() {
-    await this.loadProduct();
-    this.buildDerivedData();
-    this.buildSteps();
+    try {
+      await this.loadProduct();
+      this.buildDerivedData();
+      this.buildSteps();
+    } catch (e) {
+      console.error('ApplyComponent failed to initialize', e);
+    } finally {
+      this.loading = false;
+      // This app runs zoneless — the continuation after `await` isn't an Angular-tracked
+      // event, so nothing repaints the view on its own without an explicit nudge here.
+      this.cdr.markForCheck();
+    }
   }
 
   private readonly route = inject(ActivatedRoute);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // ── Load config, keyed by the ?product= query param ─────────────────────────
   // Any product that has been through the wizard's Publish step gets a snapshot here,
@@ -346,7 +364,10 @@ export class ApplyComponent implements OnInit, OnDestroy {
   }
 
   // ── Step helpers ────────────────────────────────────────────────────────────
-  get currentStep(): StepDef { return this.steps[this.stepIndex]; }
+  // Falls back instead of returning undefined — `loading` should prevent the template from
+  // reading this before `steps` is populated, but this getter shouldn't be able to crash the
+  // whole page even if some future change lets a read slip through earlier than expected.
+  get currentStep(): StepDef { return this.steps[this.stepIndex] ?? { id: 'welcome', label: 'Welcome' }; }
 
   get progress(): number {
     return (this.stepIndex / Math.max(this.steps.length - 1, 1)) * 100;

@@ -901,6 +901,9 @@ export class ProductDetailComponent implements OnInit {
       this.activeLoans = this.buildMockActiveLoans();
       this.customers = this.buildMockCustomers();
       this.buildCollectionsData();
+      // This app runs zoneless — the continuation after `await` isn't an Angular-tracked
+      // event, so nothing repaints the view on its own without an explicit nudge here.
+      this.cdr.markForCheck();
     });
   }
 

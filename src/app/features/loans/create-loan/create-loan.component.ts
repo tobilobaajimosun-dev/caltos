@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, inject, viewChild, ElementRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, HostListener, inject, viewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -531,6 +531,7 @@ export class CreateLoanComponent implements OnInit {
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly productsService = inject(ProductsService);
   private readonly loansService = inject(LoansService);
 
@@ -595,6 +596,9 @@ export class CreateLoanComponent implements OnInit {
             };
           }
         }
+        // This app runs zoneless — the continuation after `await` isn't an Angular-tracked
+        // event, so nothing repaints the view on its own without an explicit nudge here.
+        this.cdr.markForCheck();
       }
     });
   }
