@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { idbGet, idbSet, WHOLE_COLLECTION_KEY } from '../utils/indexed-db';
+import { DeliveryChannel } from './notification-delivery.service';
 
 export type ProductStatus = 'live' | 'draft' | 'deactivated';
 export type ProductKind = 'loan' | 'bnpl';
@@ -112,6 +113,46 @@ export interface LatePenaltyConfig {
   gracePeriod: string;
 }
 
+export type NotificationEventKey =
+  | 'loan_application_submitted' | 'loan_document_approved' | 'loan_document_rejected'
+  | 'loan_application_rejected'  | 'loan_application_cancelled' | 'loan_disbursed'
+  | 'loan_repayment_reminder'    | 'loan_liquidation' | 'loan_completed';
+
+/** Product-wide config for one loan-lifecycle notification — who gets told, on which
+ * channels, when this event fires for a loan under this product. */
+export interface NotificationEventConfig {
+  key: NotificationEventKey;
+  label: string;
+  recipientCustomers: boolean;
+  /** Ids into TeamsService.members(). */
+  recipientTeamMemberIds: string[];
+  channels: DeliveryChannel[];
+  active: boolean;
+}
+
+const NOTIFICATION_EVENT_LABELS: Record<NotificationEventKey, string> = {
+  loan_application_submitted: 'Loan Application Submitted',
+  loan_document_approved: 'Loan Document Approved',
+  loan_document_rejected: 'Loan Document Rejected',
+  loan_application_rejected: 'Loan Application Rejected',
+  loan_application_cancelled: 'Loan Application Cancelled',
+  loan_disbursed: 'Loan Disbursed',
+  loan_repayment_reminder: 'Loan Repayment Reminder',
+  loan_liquidation: 'Loan Liquidation',
+  loan_completed: 'Loan Completed',
+};
+
+export const DEFAULT_NOTIFICATION_EVENTS: NotificationEventConfig[] = (
+  Object.keys(NOTIFICATION_EVENT_LABELS) as NotificationEventKey[]
+).map((key) => ({
+  key,
+  label: NOTIFICATION_EVENT_LABELS[key],
+  recipientCustomers: false,
+  recipientTeamMemberIds: [],
+  channels: [],
+  active: false,
+}));
+
 /**
  * Everything the create-loan wizard collects beyond the 11 headline fields
  * (name/type/amounts/tenor/interest — those stay directly on ProductRecord).
@@ -141,6 +182,7 @@ export interface ProductConfig {
   activateImmediately: boolean;
   latePenalty: LatePenaltyConfig;
   policyText: string;
+  notificationEvents: NotificationEventConfig[];
 }
 
 export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
@@ -165,6 +207,7 @@ export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
   activateImmediately: true,
   latePenalty: { enabled: false, type: 'Percentage', value: '0%', frequency: 'Daily', gracePeriod: '0 days' },
   policyText: '',
+  notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
 };
 
 export interface ProductRecord {
@@ -280,6 +323,7 @@ export function demoProducts(): ProductRecord[] {
     activateImmediately: true,
     latePenalty: { enabled: true, type: 'Percentage', value: '2%', frequency: 'Daily', gracePeriod: '3 days' },
     policyText: 'By applying, you agree that Princeps Finance may verify your employment, salary, and credit history from third-party sources to assess your eligibility. If approved, your monthly repayments will be automatically deducted from your salary before funds are credited to your account. Any outstanding balance in the event of default may be recovered from your other linked accounts.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.',
+    notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
   };
 
   const bnplConfig: ProductConfig = {
@@ -306,6 +350,7 @@ export function demoProducts(): ProductRecord[] {
     activateImmediately: true,
     latePenalty: { enabled: true, type: 'Percentage', value: '1.5%', frequency: 'Daily', gracePeriod: '3 days' },
     policyText: 'By proceeding with this purchase, you agree that Princeps Finance will finance this transaction on your behalf. Repayment will be made in equal monthly instalments as agreed. Failure to repay may result in reporting to credit bureaus and recovery action.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and BNPL Terms & Conditions.',
+    notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
   };
 
   return [

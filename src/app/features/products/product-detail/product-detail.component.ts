@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent } from '../../../shared/components';
-import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
+import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, NotificationEventConfig, NotificationEventKey, DEFAULT_NOTIFICATION_EVENTS } from '../../../shared/services/products.service';
+import { DeliveryChannel } from '../../../shared/services/notification-delivery.service';
+import { TeamsService } from '../../../shared/services/teams.service';
 import { formatThousands } from '../../../shared/utils/number-format';
 import {
   ArrowLeft02Icon,
@@ -28,7 +30,7 @@ import {
   ViewOffIcon,
 } from '@hugeicons/core-free-icons';
 
-type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations';
+type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations' | 'notifications';
 
 type IntegrationTag = 'deduction' | 'direct debit' | 'disbursements' | 'marketplace' | 'verification' | 'signature';
 
@@ -298,6 +300,7 @@ interface ProductData {
   activateImmediately: boolean;
   latePenalty: { enabled: boolean; type: string; value: string; frequency: string; gracePeriod: string };
   policyText: string;
+  notificationEvents: NotificationEventConfig[];
 }
 
 const EMPTY_PRODUCT_DATA: ProductData = {
@@ -338,6 +341,7 @@ const EMPTY_PRODUCT_DATA: ProductData = {
   activateImmediately: true,
   latePenalty: { enabled: false, type: 'Percentage', value: '0%', frequency: 'Daily', gracePeriod: '0 days' },
   policyText: '',
+  notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
 };
 
 /** Maps a persisted ProductRecord (real or newly created) into the shape the template renders. */
@@ -391,6 +395,8 @@ function mapRecordToProductData(record: ProductRecord): ProductData {
     activateImmediately: c.activateImmediately,
     latePenalty: c.latePenalty,
     policyText: c.policyText,
+    // Products persisted before this field existed won't have it — fall back to the defaults.
+    notificationEvents: c.notificationEvents ?? DEFAULT_NOTIFICATION_EVENTS,
   };
 }
 
@@ -410,6 +416,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  readonly teamsService = inject(TeamsService);
 
   activeTab: DetailTab = 'overview';
   statPeriod: 'today' | 'week' | 'month' | 'all' = 'month';
@@ -446,8 +453,101 @@ export class ProductDetailComponent implements OnInit {
       { id: 'eligibility', label: 'Customers' },
       { id: 'collections', label: 'Collections/Repayments' },
       { id: 'integrations', label: 'Integrations' },
+      { id: 'notifications', label: 'Notifications' },
     );
     return tabs;
+  }
+
+  // ── Notifications tab ───────────────────────────────────────────────────────
+  openNotificationMenuKey: NotificationEventKey | null = null;
+  toggleNotificationMenu(key: NotificationEventKey) {
+    this.openNotificationMenuKey = this.openNotificationMenuKey === key ? null : key;
+  }
+
+  editingEvent: NotificationEventConfig | null = null;
+  editRecipientCustomers = false;
+  editRecipientTeams = false;
+  editTeamMemberIds: string[] = [];
+  editChannels: DeliveryChannel[] = [];
+
+  openEditEvent(evt: NotificationEventConfig) {
+    this.editingEvent = evt;
+    this.editRecipientCustomers = evt.recipientCustomers;
+    this.editRecipientTeams = evt.recipientTeamMemberIds.length > 0;
+    this.editTeamMemberIds = [...evt.recipientTeamMemberIds];
+    this.editChannels = [...evt.channels];
+    this.openNotificationMenuKey = null;
+  }
+
+  closeEditEvent() {
+    this.editingEvent = null;
+  }
+
+  toggleEditRecipientTeams(checked: boolean) {
+    this.editRecipientTeams = checked;
+    if (!checked) this.editTeamMemberIds = [];
+  }
+
+  toggleEditTeamMember(id: string, checked: boolean) {
+    this.editTeamMemberIds = checked
+      ? [...this.editTeamMemberIds, id]
+      : this.editTeamMemberIds.filter((m) => m !== id);
+  }
+
+  toggleEditChannel(channel: DeliveryChannel, checked: boolean) {
+    this.editChannels = checked
+      ? [...this.editChannels, channel]
+      : this.editChannels.filter((c) => c !== channel);
+  }
+
+  get editEventCanSave(): boolean {
+    const hasRecipient = this.editRecipientCustomers || (this.editRecipientTeams && this.editTeamMemberIds.length > 0);
+    return hasRecipient && this.editChannels.length > 0;
+  }
+
+  saveEditEvent() {
+    if (!this.editingEvent || !this.editEventCanSave) return;
+    const patched: NotificationEventConfig = {
+      ...this.editingEvent,
+      recipientCustomers: this.editRecipientCustomers,
+      recipientTeamMemberIds: this.editRecipientTeams ? this.editTeamMemberIds : [],
+      channels: this.editChannels,
+      active: true,
+    };
+    this.persistNotificationEvent(patched);
+    this.closeEditEvent();
+  }
+
+  toggleEventActive(evt: NotificationEventConfig) {
+    this.persistNotificationEvent({ ...evt, active: !evt.active });
+    this.openNotificationMenuKey = null;
+  }
+
+  private persistNotificationEvent(patched: NotificationEventConfig) {
+    const record = this.productsService.getById(this.productId);
+    if (!record) return;
+    const notificationEvents = record.config.notificationEvents.map((e) => (e.key === patched.key ? patched : e));
+    this.productsService.update(this.productId, { config: { ...record.config, notificationEvents } });
+    this.product = { ...this.product, notificationEvents };
+  }
+
+  teamMemberName(id: string): string {
+    const m = this.teamsService.members().find((tm) => tm.id === id);
+    return m ? `${m.firstName} ${m.lastName}` : id;
+  }
+
+  recipientTypeLabel(evt: NotificationEventConfig): string {
+    const parts: string[] = [];
+    if (evt.recipientCustomers) parts.push('Customers');
+    if (evt.recipientTeamMemberIds.length) parts.push('Teams');
+    return parts.length ? parts.join(', ') : '—';
+  }
+
+  recipientsLabel(evt: NotificationEventConfig): string {
+    const parts: string[] = [];
+    if (evt.recipientCustomers) parts.push('All customers');
+    if (evt.recipientTeamMemberIds.length) parts.push(evt.recipientTeamMemberIds.map((id) => this.teamMemberName(id)).join(', '));
+    return parts.length ? parts.join(' · ') : '—';
   }
 
   moreMenuOpen = false;

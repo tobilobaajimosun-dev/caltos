@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 import {
@@ -818,6 +818,7 @@ export class CreateLoanComponent implements OnInit {
         gracePeriod: `${this.config.latePenaltyGraceDays || '0'} days`,
       },
       policyText: `By applying for ${this.config.name || 'this product'}, you agree that we may verify your employment, salary, and credit history from third-party sources to assess your eligibility. By checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
+      notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
     };
   }
 

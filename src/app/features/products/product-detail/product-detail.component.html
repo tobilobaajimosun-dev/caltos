@@ -746,6 +746,96 @@
         </div>
       }
 
+      <!-- ═══ NOTIFICATIONS ═══ -->
+      @if (activeTab === 'notifications') {
+        <div class="tab-body">
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Notifications</h3>
+            <p class="tab-page-sub">Configure who gets notified, and how, when a loan under this product hits one of these events.</p>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><app-column-title label="Event" /></th>
+                <th><app-column-title label="Recipient Type" /></th>
+                <th><app-column-title label="Recipient(s)" /></th>
+                <th><app-column-title label="Channels" /></th>
+                <th><app-column-title label="Status" /></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (evt of product.notificationEvents; track evt.key) {
+                <tr>
+                  <td><app-table-item type="text" [text]="evt.label" /></td>
+                  <td><app-table-item type="text" [text]="recipientTypeLabel(evt)" /></td>
+                  <td><app-table-item type="text" [text]="recipientsLabel(evt)" /></td>
+                  <td><app-table-item type="tags" [tags]="evt.channels" /></td>
+                  <td><app-status-badge [status]="evt.active ? 'active' : 'inactive'" [label]="evt.active ? 'Active' : 'Inactive'" /></td>
+                  <td class="col-actions">
+                    <app-row-menu [open]="openNotificationMenuKey === evt.key" (openChange)="toggleNotificationMenu(evt.key)">
+                      <button trigger #trigger class="more-btn" (click)="toggleNotificationMenu(evt.key)" aria-label="More actions">
+                        <hi-icon [icon]="moreIcon" size="16" color="var(--color-grey-header)" />
+                      </button>
+                      <ng-template>
+                        <div class="row-dropdown">
+                          <button class="dropdown-item" (click)="openEditEvent(evt)">Edit event details</button>
+                          <button class="dropdown-item" (click)="toggleEventActive(evt)">{{ evt.active ? 'Deactivate' : 'Activate' }}</button>
+                        </div>
+                      </ng-template>
+                    </app-row-menu>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- Edit notification event modal -->
+      <app-modal [isOpen]="!!editingEvent" title="Edit event details" size="sm" (closed)="closeEditEvent()">
+        @if (editingEvent) {
+          <div class="target-form">
+            <p class="target-explainer">Modify the event, recipients, or delivery settings for this notification.</p>
+
+            <div class="ob-field-group">
+              <label class="ob-label">Event Name</label>
+              <input class="ob-input" type="text" [value]="editingEvent.label" disabled />
+            </div>
+
+            <div class="ob-field-group">
+              <label class="ob-label">Recipient Type</label>
+              <app-checkbox label="Customers" [checked]="editRecipientCustomers" (checkedChange)="editRecipientCustomers = $event" />
+              <app-checkbox label="Teams" [checked]="editRecipientTeams" (checkedChange)="toggleEditRecipientTeams($event)" />
+            </div>
+
+            @if (editRecipientTeams) {
+              <div class="ob-field-group">
+                <label class="ob-label">Team members</label>
+                @for (m of teamsService.members(); track m.id) {
+                  <app-checkbox
+                    [label]="m.firstName + ' ' + m.lastName + ' — ' + m.role"
+                    [checked]="editTeamMemberIds.includes(m.id)"
+                    (checkedChange)="toggleEditTeamMember(m.id, $event)" />
+                }
+              </div>
+            }
+
+            <div class="ob-field-group">
+              <label class="ob-label">Channels</label>
+              <app-checkbox label="SMS" [checked]="editChannels.includes('sms')" (checkedChange)="toggleEditChannel('sms', $event)" />
+              <app-checkbox label="Email" [checked]="editChannels.includes('email')" (checkedChange)="toggleEditChannel('email', $event)" />
+              <app-checkbox label="Push (in-app)" [checked]="editChannels.includes('push')" (checkedChange)="toggleEditChannel('push', $event)" />
+            </div>
+          </div>
+        }
+        <div modalFooter class="modal-footer-actions">
+          <app-button variant="outline" label="Cancel" (clicked)="closeEditEvent()" />
+          <app-button variant="primary" label="Save changes" [disabled]="!editEventCanSave" (clicked)="saveEditEvent()" />
+        </div>
+      </app-modal>
+
       <!-- Integration info modal -->
       <app-modal [isOpen]="!!infoIntegration" title="" size="sm" (closed)="closeIntegrationInfo()">
         @if (infoIntegration) {
