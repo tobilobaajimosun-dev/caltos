@@ -68,7 +68,10 @@ export class LoanDetailComponent implements OnInit {
   showBlacklistConfirm = false;
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
+    this.route.params.subscribe(async (params) => {
+      // IndexedDB's initial read is async — wait so a hard refresh straight to this URL
+      // doesn't see a real loan as missing before it's finished loading.
+      await this.loansService.ready;
       this.loanId = (params['id'] as string) ?? '';
       this.refreshLoan();
     });

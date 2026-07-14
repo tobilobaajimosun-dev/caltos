@@ -169,27 +169,31 @@ export class ApplyComponent implements OnInit, OnDestroy {
     'Yobe','Zamfara',
   ];
 
-  ngOnInit() {
-    this.loadProduct();
+  async ngOnInit() {
+    await this.loadProduct();
     this.buildDerivedData();
     this.buildSteps();
   }
 
   private readonly route = inject(ActivatedRoute);
 
-  // ── Load config from localStorage, keyed by the ?product= query param ──────
+  // ── Load config, keyed by the ?product= query param ─────────────────────────
   // Any product that has been through the wizard's Publish step gets a snapshot here,
   // regardless of live/draft/deactivated status — the preview/shareable link must show
   // what was actually configured (name, banner, terms) even before it's live. Whether an
   // application can actually be *submitted* is a separate check (see submissionBlockReason),
   // not tied to whether the preview can load.
-  private loadProduct() {
+  private async loadProduct() {
+    // This is often the very first thing constructed on a fresh page load (public route, no
+    // shell) — ProductsService's IndexedDB read may not have resolved yet, so wait for it
+    // before trusting getById()/products() to reflect real data.
+    await this.productsService.ready;
     const productId = this.route.snapshot.queryParamMap.get('product');
     try {
-      const raw = productId ? localStorage.getItem(`caltos_published_config_${productId}`) : null;
+      const raw = productId ? await this.productsService.getPublishedConfig(productId) : undefined;
       const record = productId ? this.productsService.getById(productId) : undefined;
       if (raw && productId) {
-        this.product = { ...FALLBACK_CONFIG, ...JSON.parse(raw) };
+        this.product = { ...FALLBACK_CONFIG, ...raw } as LoanConfig;
         this.configSource = 'localStorage';
         this.resolvedProductId = productId;
       } else if (record) {

@@ -875,7 +875,11 @@ export class ProductDetailComponent implements OnInit {
   productId = 'CW001';
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe(async params => {
+      // IndexedDB's initial read is async — on a hard refresh straight to this URL, this
+      // component's ngOnInit can otherwise run before ProductsService has loaded anything,
+      // making a real product look like it doesn't exist and bouncing back to /products.
+      await this.productsService.ready;
       const id = (params['id'] as string) ?? '';
       this.productId = id;
 

@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { idbGet, idbSet, WHOLE_COLLECTION_KEY } from '../utils/indexed-db';
 
 export type ProductStatus = 'live' | 'draft' | 'deactivated';
 export type ProductKind = 'loan' | 'bnpl';
@@ -378,32 +379,61 @@ export function demoProducts(): ProductRecord[] {
 
 @Injectable({ providedIn: 'root' })
 export class ProductsService {
-  private readonly _products = signal<ProductRecord[]>(this.load());
+  // IndexedDB reads are async, so this starts empty and is populated moments after
+  // construction once loadFromIndexedDb() resolves — see the constructor below.
+  private readonly _products = signal<ProductRecord[]>([]);
   readonly products = this._products.asReadonly();
 
   /**
-   * Set whenever the last persist() call failed (almost always a localStorage quota error —
-   * products carry inline base64 banner images plus duplicated wizard/published-config
-   * snapshots, so the ~5-10MB origin quota fills up faster than you'd expect). Cleared on
-   * the next successful persist(). Callers should surface this so a failed save isn't silent.
+   * Set whenever the last persist() call failed. IndexedDB's per-origin quota is hundreds of
+   * MB to low GB (vs localStorage's ~5-10MB), so this should now be rare even with inline
+   * base64 banner images/wizard snapshots — but callers still shouldn't fail silently.
    */
   readonly persistError = signal<string | null>(null);
 
-  private load(): ProductRecord[] {
+  /**
+   * Resolves once the initial IndexedDB read completes. IndexedDB is async even for the very
+   * first read, unlike the old synchronous localStorage.getItem — so any code that reads
+   * getById()/products() right after this service is constructed (e.g. a route component's
+   * ngOnInit firing before this resolves) should `await` this first, or it may see an empty
+   * list for a real product that just hasn't loaded yet.
+   */
+  readonly ready: Promise<void>;
+
+  constructor() {
+    this.ready = this.loadFromIndexedDb();
+  }
+
+  private async loadFromIndexedDb() {
+    try {
+      let records = await idbGet<ProductRecord[]>('products', WHOLE_COLLECTION_KEY);
+      if (records === undefined) {
+        // First run after the IndexedDB migration — a prior session may still have real data
+        // sitting in the old localStorage key. Import it once so it isn't silently lost.
+        records = this.loadLegacyLocalStorage();
+        if (records.length) {
+          await idbSet('products', WHOLE_COLLECTION_KEY, records);
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+      // Backfill config for records saved before this field existed.
+      this._products.set(records.map((p) => ({ ...p, config: p.config ?? DEFAULT_PRODUCT_CONFIG })));
+    } catch (e) {
+      console.error('Failed to load products from IndexedDB', e);
+    }
+  }
+
+  private loadLegacyLocalStorage(): ProductRecord[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as ProductRecord[];
-        // Backfill config for records saved before this field existed.
-        return parsed.map((p) => ({ ...p, config: p.config ?? DEFAULT_PRODUCT_CONFIG }));
-      }
+      if (raw) return JSON.parse(raw) as ProductRecord[];
     } catch {}
     return [];
   }
 
-  private persist() {
+  private async persist() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this._products()));
+      await idbSet('products', WHOLE_COLLECTION_KEY, this._products());
       this.persistError.set(null);
     } catch (e) {
       // Don't rethrow — callers (create/update/publish/saveDraft) are synchronous and an
@@ -411,8 +441,8 @@ export class ProductsService {
       // after the persist() call (e.g. setting editingProductId, showing the success modal).
       // In-memory state (the signal) is already updated, so the current session keeps working;
       // we just can't survive a reload. Surface it via persistError instead.
-      console.error('Failed to persist products to localStorage', e);
-      this.persistError.set('Your browser storage is full, so this change could not be saved permanently. Delete some old draft products (they carry banner images) to free up space.');
+      console.error('Failed to persist products to IndexedDB', e);
+      this.persistError.set('This change could not be saved permanently — your browser storage may be full or unavailable in this tab (e.g. private/incognito mode).');
     }
   }
 
@@ -424,6 +454,34 @@ export class ProductsService {
 
   getById(id: string): ProductRecord | undefined {
     return this._products().find((p) => p.id === id);
+  }
+
+  /**
+   * The wizard's own lossless snapshot of what a product looked like when last published —
+   * this is what the borrower portal (/apply) renders. Kept generic (not typed to the
+   * wizard's LoanConfig) to avoid a shared→feature import; callers cast as needed.
+   * Keyed by product id, one row per product (not the whole-collection-in-one-record
+   * pattern the products/loans stores use) since it's read/written per-id, never as a list.
+   */
+  async getPublishedConfig(id: string): Promise<Record<string, unknown> | undefined> {
+    try {
+      const fromDb = await idbGet<Record<string, unknown>>('published_configs', id);
+      if (fromDb !== undefined) return fromDb;
+      // One-time legacy import, same idea as loadLegacyLocalStorage() above.
+      const raw = localStorage.getItem(`caltos_published_config_${id}`);
+      if (!raw) return undefined;
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      await idbSet('published_configs', id, parsed);
+      localStorage.removeItem(`caltos_published_config_${id}`);
+      return parsed;
+    } catch (e) {
+      console.error('Failed to load published config from IndexedDB', e);
+      return undefined;
+    }
+  }
+
+  async setPublishedConfig(id: string, config: Record<string, unknown>): Promise<void> {
+    await idbSet('published_configs', id, config);
   }
 
   create(partial: Partial<ProductRecord> & { name: string }): ProductRecord {

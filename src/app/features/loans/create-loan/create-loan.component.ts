@@ -537,7 +537,7 @@ export class CreateLoanComponent implements OnInit {
   editingProductId: string | null = null;
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(async params => {
       const type = params['type'];
       if (type && TEMPLATE_PRESETS[type]) {
         const preset = TEMPLATE_PRESETS[type];
@@ -546,6 +546,9 @@ export class CreateLoanComponent implements OnInit {
 
       const id = params['id'];
       if (id) {
+        // IndexedDB's initial read is async — wait for it so editing a real product right
+        // after a hard refresh doesn't silently fall through to a blank/new-product form.
+        await this.productsService.ready;
         const record = this.productsService.getById(id);
         if (record) {
           this.editingProductId = id;
@@ -996,14 +999,11 @@ export class CreateLoanComponent implements OnInit {
       customDocs: this.customDocs,
     };
     // Keyed by product id — previously a single global key, so publishing a second
-    // product silently overwrote the first one's preview config. A quota error here must
-    // not abort the rest of publish() (the success modal below, etc.) the way an uncaught
-    // exception would — same failure mode as ProductsService.persist().
-    try {
-      localStorage.setItem(`caltos_published_config_${this.editingProductId}`, JSON.stringify(publishedConfig));
-    } catch (e) {
-      console.error('Failed to persist published config to localStorage', e);
-    }
+    // product silently overwrote the first one's preview config. Fire-and-forget: a failure
+    // here must not abort the rest of publish() (the success modal below, etc.) the way an
+    // uncaught/awaited rejection would — same reasoning as ProductsService.persist().
+    this.productsService.setPublishedConfig(this.editingProductId, publishedConfig as unknown as Record<string, unknown>)
+      .catch((e) => console.error('Failed to persist published config', e));
     // A selected deduction channel isn't actually usable until its credentials are set up
     // and it passes connection testing (see effectiveChannelStatus) — publishing the product
     // record doesn't do that automatically, so applicants could apply for a loan whose

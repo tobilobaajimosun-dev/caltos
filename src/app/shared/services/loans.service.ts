@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ProductsService, ProductRecord, ProductConfig, DEFAULT_PRODUCT_CONFIG, DeductionChannelStatus, effectiveChannelStatus } from './products.service';
 import { NotificationDeliveryService } from './notification-delivery.service';
+import { idbGet, idbSet, WHOLE_COLLECTION_KEY } from '../utils/indexed-db';
 
 export type LoanStatus = 'new' | 'declined' | 'documents_review' | 'closed' | 'disbursed' | 'top_up_request';
 
@@ -307,22 +308,48 @@ export function demoLoans(productsService: ProductsService): LoanApplication[] {
 export class LoansService {
   private readonly productsService = inject(ProductsService);
   private readonly deliveryService = inject(NotificationDeliveryService);
-  private readonly _loans = signal<LoanApplication[]>(this.load());
+  // IndexedDB reads are async, so this starts empty and is populated moments after
+  // construction once loadFromIndexedDb() resolves — see the constructor below.
+  private readonly _loans = signal<LoanApplication[]>([]);
   readonly loans = this._loans.asReadonly();
 
   /** Every unresolved application currently flagged for manual review (mismatch or borderline score). */
   readonly manualReviewQueue = computed(() => this._loans().filter(needsManualReview));
 
-  private load(): LoanApplication[] {
+  /** Resolves once the initial IndexedDB read completes — see ProductsService.ready for why this matters. */
+  readonly ready: Promise<void>;
+
+  constructor() {
+    this.ready = this.loadFromIndexedDb();
+  }
+
+  private async loadFromIndexedDb() {
+    // Backfilling missing snapshots below needs real product records, not an empty list.
+    await this.productsService.ready;
+    try {
+      let records = await idbGet<LoanApplication[]>('loans', WHOLE_COLLECTION_KEY);
+      if (records === undefined) {
+        // First run after the IndexedDB migration — import any real data still sitting in
+        // the old localStorage key so it isn't silently lost.
+        records = this.loadLegacyLocalStorage();
+        if (records.length) {
+          await idbSet('loans', WHOLE_COLLECTION_KEY, records);
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+      // Backfill a snapshot for records saved before this field existed.
+      this._loans.set(records.map((l) =>
+        l.productConfigSnapshot ? l : { ...l, productConfigSnapshot: buildTermsSnapshot(this.productsService.getById(l.productId)) },
+      ));
+    } catch (e) {
+      console.error('Failed to load loans from IndexedDB', e);
+    }
+  }
+
+  private loadLegacyLocalStorage(): LoanApplication[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as LoanApplication[];
-        // Backfill a snapshot for records saved before this field existed.
-        return parsed.map((l) =>
-          l.productConfigSnapshot ? l : { ...l, productConfigSnapshot: buildTermsSnapshot(this.productsService.getById(l.productId)) },
-        );
-      }
+      if (raw) return JSON.parse(raw) as LoanApplication[];
     } catch {}
     return [];
   }
@@ -333,8 +360,12 @@ export class LoansService {
     this.persist();
   }
 
-  private persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._loans()));
+  private async persist() {
+    try {
+      await idbSet('loans', WHOLE_COLLECTION_KEY, this._loans());
+    } catch (e) {
+      console.error('Failed to persist loans to IndexedDB', e);
+    }
   }
 
   getById(id: string): LoanApplication | undefined {
