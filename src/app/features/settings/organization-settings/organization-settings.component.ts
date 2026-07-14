@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   SettingsRowComponent, ToastComponent, ButtonComponent, ToggleComponent, SelectComponent, SelectOption,
   InputComponent, ModalComponent, StatusBadgeComponent, BadgeStatus,
   CheckboxComponent, RadioButtonComponent,
 } from '../../../shared/components';
+import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 
 type Section = 'organization' | 'branding' | 'approval' | 'integrations' | 'api-webhooks' | 'notifications' | 'security' | 'billing' | 'team';
 
@@ -122,15 +123,29 @@ export class OrganizationSettingsComponent {
   updatePhone(value: string) { this.phone = value; this.showToast(); }
   updateWebsite(value: string) { this.website = value; this.showToast(); }
   updatePrimaryEmail(value: string) { this.primaryEmail = value; this.showToast(); }
-  updateAppName(value: string) { this.appName = value; this.showToast(); }
+  updateAppName(value: string) { this.orgBranding.set({ appName: value }); this.showToast(); }
 
   // ── Branding ──
-  brandColor = '#0053a6';
-  appName = 'Caltos';
+  private readonly orgBranding = inject(OrgBrandingService);
+
+  get brandColor() { return this.orgBranding.branding().brandColor; }
+  get appName() { return this.orgBranding.branding().appName; }
+  get logoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
 
   setBrandColor(value: string) {
-    this.brandColor = value;
+    this.orgBranding.set({ brandColor: value });
     this.showToast();
+  }
+
+  onLogoFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.orgBranding.set({ logoDataUrl: reader.result as string });
+      this.showToast();
+    };
+    reader.readAsDataURL(file);
   }
 
   // ── Loan approval workflow ──

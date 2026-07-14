@@ -16,6 +16,7 @@ import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
 import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
+import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   PlusSignIcon, EyeIcon, Clock01Icon,
@@ -333,6 +334,9 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
   styleUrls: ['./create-loan.component.scss'],
 })
 export class CreateLoanComponent implements OnInit {
+  private readonly orgBranding = inject(OrgBrandingService);
+  get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
+
   readonly steps = STEPS;
   currentStep = 0;
   isDraft = false;

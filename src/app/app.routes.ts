@@ -9,6 +9,7 @@ import { ProductDetailComponent } from './features/products/product-detail/produ
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
 import { CreateBnplComponent } from './features/products/create-bnpl/create-bnpl.component';
 import { ApplyComponent } from './features/apply/apply.component';
+import { TrackLoanComponent } from './features/track-loan/track-loan.component';
 import { RepaymentPortalComponent } from './features/portal/repayment-portal/repayment-portal.component';
 import { LoanListComponent } from './features/loans/loan-list/loan-list.component';
 import { LoanDetailComponent } from './features/loans/loan-detail/loan-detail.component';
@@ -50,6 +51,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: LandingComponent },
   // Public, unauthenticated flows — no shell chrome
   { path: 'apply', component: ApplyComponent },
+  { path: 'track', component: TrackLoanComponent },
   { path: 'portal/repayments', component: RepaymentPortalComponent },
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },

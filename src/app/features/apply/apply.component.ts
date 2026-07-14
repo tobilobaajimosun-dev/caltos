@@ -5,7 +5,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoanConfig } from '../loans/create-loan/create-loan.component';
 import { LoansService } from '../../shared/services/loans.service';
 import { ProductsService } from '../../shared/services/products.service';
-import { scoreEligibility, EligibilityInput, EmploymentStabilityInput } from '../../shared/utils/eligibility-scoring';
+import { OrgBrandingService } from '../../shared/services/org-branding.service';
+import {
+  scoreEligibility, EligibilityInput, EligibilityConfig, EligibilityResult,
+  EmploymentStabilityInput, IncomeSource, DEFAULT_ELIGIBILITY_CONFIG,
+} from '../../shared/utils/eligibility-scoring';
 import { formatThousands } from '../../shared/utils/number-format';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
@@ -60,6 +64,14 @@ interface DocField {
   required: boolean;
 }
 
+export type IdentityFieldType = 'bvn' | 'nin' | 'phone' | 'email';
+
+interface IdentityField {
+  type: IdentityFieldType;
+  label: string;
+  otpDestinationCopy: string;
+}
+
 @Component({
   selector: 'app-apply',
   standalone: true,
@@ -72,15 +84,14 @@ export class ApplyComponent implements OnInit, OnDestroy {
 
   private readonly loansService = inject(LoansService);
   private readonly productsService = inject(ProductsService);
+  private readonly orgBranding = inject(OrgBrandingService);
 
   // ── Product config ──────────────────────────────────────────────────────────
-  // A real default (not just a definite-assignment assertion) so the template — which starts
-  // rendering before ngOnInit's now-async loadProduct() resolves — always has valid data to
-  // read instead of crashing on undefined during that brief window.
   product: LoanConfig = FALLBACK_CONFIG;
   configSource: 'localStorage' | 'fallback' = 'fallback';
-  /** Real ProductRecord id this application is filed against — the FK on LoanApplication. */
   resolvedProductId = '';
+
+  get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
 
   // ── Dynamic steps ───────────────────────────────────────────────────────────
   steps: StepDef[] = [];
@@ -106,71 +117,182 @@ export class ApplyComponent implements OnInit, OnDestroy {
   loanTenor = '3';
   loanPurpose = '';
 
-  // ── Form state: personal ────────────────────────────────────────────────────
+  // ── Form state: personal (auto-derived from BVN/NIN verification) ──────────
   firstName = '';
   lastName = '';
   dob = '';
   gender = '';
-  maritalStatus = '';
 
   // ── Form state: contact ─────────────────────────────────────────────────────
   phone = '';
   email = '';
-  altPhone = '';
 
-  // ── Form state: address ─────────────────────────────────────────────────────
-  houseAddress = '';
-  city = '';
-  state = '';
-  lga = '';
-
-  // ── Form state: employment ──────────────────────────────────────────────────
+  // ── Form state: income & employment (folded into one step) ─────────────────
   employerName = '';
   employmentType = '';
   monthlyIncome = '';
   staffId = '';
-
-  // ── Form state: business ────────────────────────────────────────────────────
-  businessName = '';
-  cacNumber = '';
-  businessType = '';
-  annualRevenue = '';
+  incomeChannel = '';
 
   /** Displays a plain-digit amount field with thousand separators. */
   formatAmount(value: string): string { return formatThousands(value); }
 
   /** Strips non-digits before storing — the field itself stays a plain number string; only display gets commas. */
-  onMoneyInput(field: 'monthlyIncome' | 'annualRevenue', raw: string) {
+  onMoneyInput(field: 'monthlyIncome', raw: string) {
     this[field] = raw.replace(/[^\d]/g, '');
   }
 
-  // ── Form state: bank account details ────────────────────────────────────────
-  bankName = '';
-  bankAccountNumber = '';
-  bankAccountName = '';
+  /** `08012345678` -> `+2348012345678` — strips the leading trunk `0` before prefixing `+234`. */
+  formatPhoneDisplay(raw: string): string {
+    if (!raw) return '';
+    return '+234' + raw.replace(/^0/, '');
+  }
 
-  // ── Form state: per-section custom fields (item 11), keyed by field label ──
-  customFieldValues: Record<string, string> = {};
+  formatDob(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
 
-  // ── Form state: identity ────────────────────────────────────────────────────
+  // ── Form state: identity verification ───────────────────────────────────────
   bvn = '';
   nin = '';
+
+  get pendingIdentityFields(): IdentityField[] {
+    const p = this.product;
+    const list: IdentityField[] = [];
+    if (p.identityBvn && !p.entryBvn) list.push({ type: 'bvn', label: 'BVN', otpDestinationCopy: 'your BVN-registered phone number' });
+    if (p.identityNin && !p.entryNin) list.push({ type: 'nin', label: 'NIN', otpDestinationCopy: 'your NIN-registered phone number' });
+    if (p.identityPhoneOtp && !p.entryPhone) list.push({ type: 'phone', label: 'Phone', otpDestinationCopy: this.formatPhoneDisplay(this.phone) || 'your phone number' });
+    if (p.identityEmailOtp && !p.entryEmail) list.push({ type: 'email', label: 'Email', otpDestinationCopy: this.email || 'your email address' });
+    return list;
+  }
+
+  identityQueueIndex = 0;
+
+  isIdentityFieldUnlocked(i: number): boolean { return i <= this.identityQueueIndex; }
+  isIdentityFieldVerified(i: number): boolean { return i < this.identityQueueIndex; }
+
+  identityFieldValue(type: IdentityFieldType): string {
+    return type === 'bvn' ? this.bvn : type === 'nin' ? this.nin : type === 'phone' ? this.phone : this.email;
+  }
+
+  setIdentityFieldValue(type: IdentityFieldType, value: string) {
+    if (type === 'bvn') this.bvn = value;
+    else if (type === 'nin') this.nin = value;
+    else if (type === 'phone') this.phone = value;
+    else this.email = value;
+  }
+
+  identityFieldReady(field: IdentityField): boolean {
+    const value = this.identityFieldValue(field.type);
+    return field.type === 'bvn' || field.type === 'nin' ? value.length === 11 : value.trim().length > 0;
+  }
+
+  // ── OTP modal (shared across identity fields) ───────────────────────────────
+  otpModalOpen = false;
+  otpModalDestinationCopy = '';
+  otpModalCode = '';
+  private otpModalFieldIndex = -1;
+
+  openIdentityOtp(index: number) {
+    const field = this.pendingIdentityFields[index];
+    if (!field) return;
+    this.otpModalFieldIndex = index;
+    this.otpModalDestinationCopy = field.otpDestinationCopy;
+    this.otpModalCode = '';
+    this.otpModalOpen = true;
+  }
+
+  closeOtpModal() {
+    this.otpModalOpen = false;
+    this.otpModalFieldIndex = -1;
+  }
+
+  verifyOtpModal() {
+    // Demo OTP, matching the app's existing convention elsewhere (e.g. login's 2FA step).
+    if (this.otpModalCode !== '123456') return;
+    if (this.otpModalFieldIndex === this.identityQueueIndex) {
+      this.identityQueueIndex++;
+      if (this.identityQueueIndex >= this.pendingIdentityFields.length) {
+        this.deriveIdentityFromVerification();
+      }
+    }
+    this.closeOtpModal();
+  }
+
+  /**
+   * No personal-info step exists anymore — a BVN/NIN lookup realistically returns bio-data,
+   * so once identity verification clears, backfill name/DOB with a mocked lookup response
+   * (only if not already set) rather than asking the borrower to retype it.
+   */
+  private deriveIdentityFromVerification() {
+    if (!this.firstName) this.firstName = 'Aisha';
+    if (!this.lastName) this.lastName = 'Bello';
+    if (!this.dob) this.dob = '1990-01-01';
+  }
+
+  // ── Eligibility ──────────────────────────────────────────────────────────────
+  isCalculatingEligibility = false;
+  eligibilityResult: EligibilityResult | null = null;
+
+  private mapEmploymentStability(): EmploymentStabilityInput {
+    if (/nysc|corper|corps/i.test(this.employmentType)) {
+      return { type: 'nysc-corper', monthsRemaining: 9 };
+    }
+    const category = this.employmentType === 'Self-employed' ? 'self-employed'
+      : this.employmentType === 'Contract' ? 'sme'
+      : 'private-large';
+    return { type: 'mda', category };
+  }
+
+  calculateEligibility() {
+    this.isCalculatingEligibility = true;
+    const eligibilityInput: EligibilityInput = {
+      income: { source: (this.incomeChannel as IncomeSource) || 'other', monthlyAmount: +this.monthlyIncome || 0 },
+      stability: this.mapEmploymentStability(),
+      repaymentHistory: { isRepeatBorrower: false },
+      exposure: { hasActiveLoanElsewhere: false },
+    };
+    const config: EligibilityConfig = {
+      ...DEFAULT_ELIGIBILITY_CONFIG,
+      productMaxAmount: this.amountMax,
+      productMaxTenorMonths: +(this.product.maxTenor || 12),
+      productMinTenorMonths: +(this.product.minTenor || 1),
+    };
+    // Simulated processing delay — matches the app's existing fake-backend timing conventions.
+    setTimeout(() => {
+      const result = scoreEligibility(eligibilityInput, config);
+      this.eligibilityResult = result;
+      this.isCalculatingEligibility = false;
+      if (result.decision === 'approved') {
+        this.loanAmount = String(result.maxEligibleAmount);
+        this.loanTenor = String(Math.min(+this.loanTenor || result.tenorMonths, result.tenorMonths));
+      }
+      this.next();
+      this.cdr.markForCheck();
+    }, 1500);
+  }
+
+  // ── Documents: mock per-file verification ───────────────────────────────────
+  verifyingDocs: Record<string, boolean> = {};
+  verifiedDocs: Record<string, boolean> = {};
+
+  // ── Legal ────────────────────────────────────────────────────────────────────
+  legalConsentAccepted = false;
+  legalCreditCheckAccepted = false;
+
+  // ── Form state: bank account details (kept for LoanApplication fields, no dedicated step) ──
+  bankName = '';
+  bankAccountNumber = '';
+
+  // ── Form state: identity ────────────────────────────────────────────────────
   otpSent = false;
   otp = '';
 
-  // ── Form state: income ──────────────────────────────────────────────────────
-  incomeChannel = '';
-
   // ── Form state: documents ───────────────────────────────────────────────────
   uploadedDocs: Record<string, { file: File; name: string } | null> = {};
-
-  readonly nigerianStates = [
-    'Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno',
-    'Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT','Gombe','Imo',
-    'Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa',
-    'Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba',
-    'Yobe','Zamfara',
-  ];
 
   // True until loadProduct()/buildDerivedData()/buildSteps() finish — the template's first
   // render happens before this async work resolves, so it renders a minimal shell instead of
@@ -196,15 +318,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
 
   // ── Load config, keyed by the ?product= query param ─────────────────────────
-  // Any product that has been through the wizard's Publish step gets a snapshot here,
-  // regardless of live/draft/deactivated status — the preview/shareable link must show
-  // what was actually configured (name, banner, terms) even before it's live. Whether an
-  // application can actually be *submitted* is a separate check (see submissionBlockReason),
-  // not tied to whether the preview can load.
   private async loadProduct() {
-    // This is often the very first thing constructed on a fresh page load (public route, no
-    // shell) — ProductsService's IndexedDB read may not have resolved yet, so wait for it
-    // before trusting getById()/products() to reflect real data.
     await this.productsService.ready;
     const productId = this.route.snapshot.queryParamMap.get('product');
     try {
@@ -215,11 +329,6 @@ export class ApplyComponent implements OnInit, OnDestroy {
         this.configSource = 'localStorage';
         this.resolvedProductId = productId;
       } else if (record) {
-        // No wizard-Publish snapshot for this id — this happens for a product that was only
-        // ever "Saved as Draft" and later activated straight from product-detail. Still show
-        // the real product's own fields (name, amounts, banner) instead of unrelated demo
-        // copy; only fields the wizard snapshot alone carries (verification/deduction
-        // toggles, legal text, etc.) fall back to FALLBACK_CONFIG's defaults.
         this.product = {
           ...FALLBACK_CONFIG,
           name: record.name,
@@ -239,8 +348,6 @@ export class ApplyComponent implements OnInit, OnDestroy {
       } else {
         this.product = FALLBACK_CONFIG;
         this.configSource = 'fallback';
-        // No ?product= (or nothing published for it) — file the application against
-        // whichever real product is live, so LoanApplication.productId is always a real FK.
         this.resolvedProductId = productId ?? this.productsService.products().find((p) => p.status === 'live')?.id ?? '';
       }
     } catch {
@@ -256,41 +363,35 @@ export class ApplyComponent implements OnInit, OnDestroy {
 
     this.amountMin = +(p.minAmount || 10000);
     this.amountMax = +(p.maxAmount || 500000);
-    // Start borrower at the midpoint
     this.loanAmount = String(Math.round((this.amountMin + this.amountMax) / 2 / 1000) * 1000);
 
-    // Build tenor options based on configured range
     const minT = +(p.minTenor || 1);
     const maxT = +(p.maxTenor || 12);
-    const presets = [1,2,3,6,9,12].filter(m => m >= minT && m <= maxT);
-    this.tenorOptions = presets.length ? presets : [minT, maxT].filter((v,i,a) => a.indexOf(v) === i);
+    const presets = [1, 2, 3, 6, 9, 12].filter((m) => m >= minT && m <= maxT);
+    this.tenorOptions = presets.length ? presets : [minT, maxT].filter((v, i, a) => a.indexOf(v) === i);
     this.loanTenor = String(this.tenorOptions[0] ?? minT);
 
-    // Income options
     this.incomeOptions = [];
-    if (p.incomeRemita)       this.incomeOptions.push({ id: 'remita', label: 'Remita',         tag: 'Instant', desc: 'For government & corporate employees', color: 'green' });
-    if (p.incomeIppis)        this.incomeOptions.push({ id: 'ippis',  label: 'IPPIS',          tag: 'Instant', desc: 'Government payroll system',            color: 'blue' });
-    if (p.incomeBankStatement) this.incomeOptions.push({ id: 'bank',  label: 'Bank Statement', tag: '3–6 hrs', desc: 'Upload a 3-month bank statement',      color: 'yellow' });
+    if (p.incomeRemita) this.incomeOptions.push({ id: 'remita', label: 'Remita', tag: 'Instant', desc: 'For government & corporate employees', color: 'green' });
+    if (p.incomeIppis) this.incomeOptions.push({ id: 'ippis', label: 'IPPIS', tag: 'Instant', desc: 'Government payroll system', color: 'blue' });
+    if (p.incomeBankStatement) this.incomeOptions.push({ id: 'bank', label: 'Bank Statement', tag: '3–6 hrs', desc: 'Upload a 3-month bank statement', color: 'yellow' });
     if (this.incomeOptions.length) this.incomeChannel = this.incomeOptions[0].id;
 
-    // Document fields — only those not 'none'
     const allDocs: { key: keyof LoanConfig; label: string; sub: string }[] = [
-      { key: 'docGovId',           label: 'Government-issued ID',    sub: 'National ID · Voter\'s Card · Driver\'s Licence · Passport' },
-      { key: 'docUtilityBill',     label: 'Utility bill',            sub: 'Recent (within 3 months) electricity, water or DSTV bill' },
-      { key: 'docWorkVerification',label: 'Work verification',       sub: 'Employment letter, staff ID or company registration' },
-      { key: 'docGuarantorForm',   label: 'Guarantor form',          sub: 'Signed form from an approved guarantor' },
-      { key: 'docSchoolId',        label: 'School ID',               sub: 'Valid school identification card' },
-      { key: 'docAdmissionLetter', label: 'Admission letter',        sub: 'Letter of admission from your institution' },
-      { key: 'docNyscLetter',      label: 'NYSC call-up letter',     sub: 'Original NYSC call-up or posting letter' },
-      { key: 'docCacCert',         label: 'CAC certificate',         sub: 'Certificate of incorporation for your business' },
-      { key: 'docMembershipCert',  label: 'Membership certificate',  sub: 'Valid cooperative or association membership cert' },
+      { key: 'docGovId', label: 'Government-issued ID', sub: 'National ID · Voter\'s Card · Driver\'s Licence · Passport' },
+      { key: 'docUtilityBill', label: 'Utility bill', sub: 'Recent (within 3 months) electricity, water or DSTV bill' },
+      { key: 'docWorkVerification', label: 'Work verification', sub: 'Employment letter, staff ID or company registration' },
+      { key: 'docGuarantorForm', label: 'Guarantor form', sub: 'Signed form from an approved guarantor' },
+      { key: 'docSchoolId', label: 'School ID', sub: 'Valid school identification card' },
+      { key: 'docAdmissionLetter', label: 'Admission letter', sub: 'Letter of admission from your institution' },
+      { key: 'docNyscLetter', label: 'NYSC call-up letter', sub: 'Original NYSC call-up or posting letter' },
+      { key: 'docCacCert', label: 'CAC certificate', sub: 'Certificate of incorporation for your business' },
+      { key: 'docMembershipCert', label: 'Membership certificate', sub: 'Valid cooperative or association membership cert' },
     ];
     this.docFields = allDocs
-      .filter(d => this.product[d.key] !== 'none')
-      .map(d => ({ ...d, required: this.product[d.key] === 'required' }));
+      .filter((d) => this.product[d.key] !== 'none')
+      .map((d) => ({ ...d, required: this.product[d.key] === 'required' }));
 
-    // Custom documents added on the create-product wizard (item 14) — their required/
-    // optional/none state is stored dynamically on the config under a `custom-{i}` key.
     const rec = this.product as unknown as Record<string, string>;
     (this.product.customDocs ?? []).forEach((doc, i) => {
       const key = `custom-${i}`;
@@ -303,59 +404,29 @@ export class ApplyComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Pre-populate contact fields from entry if phone was used
     if (p.entryPhone && this.entryPhone) this.phone = this.entryPhone;
     if (p.entryEmail && this.entryEmail) this.email = this.entryEmail;
+    if (p.entryBvn && this.entryBvn) this.bvn = this.entryBvn;
+    if (p.entryNin && this.entryNin) this.nin = this.entryNin;
   }
 
-  // ── Build step list based on config flags ───────────────────────────────────
+  // ── Build step list based on config flags (capped at 6 steps after entry) ──
   private buildSteps() {
     const p = this.product;
     const steps: StepDef[] = [{ id: 'welcome', label: 'Welcome' }];
 
-    // Entry step — shown only if lender configured a specific entry method
     if (p.entryPhone || p.entryEmail || p.entryBvn || p.entryNin) {
       steps.push({ id: 'entry', label: 'Identify yourself' });
     }
 
-    steps.push({ id: 'loan', label: 'Loan details' });
-
-    if (p.collectPersonal)   steps.push({ id: 'personal',   label: 'Personal info' });
-    if (p.collectContact)    steps.push({ id: 'contact',    label: 'Contact' });
-    if (p.collectAddress)    steps.push({ id: 'address',    label: 'Address' });
-    if (p.collectEmployment) steps.push({ id: 'employment', label: 'Employment' });
-    if (p.collectBusiness)   steps.push({ id: 'business',   label: 'Business info' });
-    if (p.collectBank)       steps.push({ id: 'bank',       label: 'Bank details' });
-
-    const needsIdentity = p.identityBvn || p.identityNin || p.identityPhoneOtp;
-    if (needsIdentity) steps.push({ id: 'identity', label: 'Verify identity' });
-
-    const hasIncome = p.incomeRemita || p.incomeIppis || p.incomeBankStatement;
-    if (hasIncome) steps.push({ id: 'income', label: 'Verify income' });
-
+    steps.push({ id: 'income', label: 'Income & employment' });
+    steps.push({ id: 'eligible-amount', label: 'Your loan amount' });
+    if (this.pendingIdentityFields.length) steps.push({ id: 'identity', label: 'Verify identity' });
     if (this.docFields.length) steps.push({ id: 'documents', label: 'Documents' });
+    if (p.videoConfirmation) steps.push({ id: 'video', label: 'Caltos Verify' });
+    steps.push({ id: 'review', label: 'Legal & submit' });
 
-    if (p.videoConfirmation) steps.push({ id: 'video', label: 'Video confirmation' });
-
-    steps.push({ id: 'review', label: 'Review' });
     this.steps = steps;
-  }
-
-  // Lender-defined custom fields (item 11) for a given collection section — e.g.
-  // sectionFields('collectPersonal') for the extra fields added under Personal
-  // Information on the create-product wizard.
-  sectionFields(sectionKey: string): { label: string; type: string; required: string }[] {
-    return this.product.sectionCustomFields?.[sectionKey] ?? [];
-  }
-
-  /**
-   * BVN verification is an anchor rule — always required later in the flow — regardless of
-   * whether this product's wizard configured entryBvn. If it wasn't collected at entry, the
-   * applicant would otherwise be surprised by a BVN field appearing later at Verify Identity;
-   * this shows them a heads-up on the entry step instead.
-   */
-  get showBvnEntryNotice(): boolean {
-    return !this.product.entryBvn;
   }
 
   /** The lender's own brand color, driving every accent in this portal (CTA, progress, focus rings) — falls back to the original signature purple for products created before branding existed. */
@@ -364,9 +435,6 @@ export class ApplyComponent implements OnInit, OnDestroy {
   }
 
   // ── Step helpers ────────────────────────────────────────────────────────────
-  // Falls back instead of returning undefined — `loading` should prevent the template from
-  // reading this before `steps` is populated, but this getter shouldn't be able to crash the
-  // whole page even if some future change lets a read slip through earlier than expected.
   get currentStep(): StepDef { return this.steps[this.stepIndex] ?? { id: 'welcome', label: 'Welcome' }; }
 
   get progress(): number {
@@ -374,7 +442,23 @@ export class ApplyComponent implements OnInit, OnDestroy {
   }
 
   get isFirst(): boolean { return this.stepIndex === 0; }
-  get isLast(): boolean  { return this.stepIndex === this.steps.length - 1; }
+  get isLast(): boolean { return this.stepIndex === this.steps.length - 1; }
+
+  /** Gates the footer Continue button per-step for state that isn't a simple required-field check. */
+  get canContinue(): boolean {
+    switch (this.currentStep.id) {
+      case 'identity':
+        return this.identityQueueIndex >= this.pendingIdentityFields.length;
+      case 'eligible-amount':
+        return !!this.eligibilityResult && this.eligibilityResult.decision === 'approved';
+      case 'video':
+        return !!this.videoConfirmationDataUrl;
+      case 'review':
+        return this.legalConsentAccepted && this.legalCreditCheckAccepted;
+      default:
+        return true;
+    }
+  }
 
   next() {
     if (this.stepIndex < this.steps.length - 1) {
@@ -397,12 +481,6 @@ export class ApplyComponent implements OnInit, OnDestroy {
   /** Set when submit() is blocked by an in-progress duplicate application from this BVN. */
   duplicateBlockMessage: string | null = null;
 
-  /**
-   * True once the underlying product is actually live — the preview/shareable link loads a
-   * draft product's real config (see loadProduct()) so the owner can see what it'll look
-   * like, but a draft has no working repayment rail yet, so real applicants must not be able
-   * to submit against it.
-   */
   get productNotLiveYet(): boolean {
     const record = this.resolvedProductId ? this.productsService.getById(this.resolvedProductId) : undefined;
     return !!record && record.status !== 'live';
@@ -421,24 +499,20 @@ export class ApplyComponent implements OnInit, OnDestroy {
     }
 
     const customerName = `${this.firstName} ${this.lastName}`.trim() || 'Applicant';
-    const phone = this.phone || this.entryPhone || this.altPhone;
-
-    const stability: EmploymentStabilityInput = /nysc|corper|corps/i.test(this.employmentType)
-      ? { type: 'nysc-corper', monthsRemaining: 9 }
-      : { type: 'mda', category: 'private-large' };
+    const phone = this.phone || this.entryPhone;
 
     const eligibilityInput: EligibilityInput = {
-      income: { source: (this.incomeChannel as 'ippis' | 'remita' | 'deduct') || 'other', monthlyAmount: +this.monthlyIncome || 0 },
-      stability,
+      income: { source: (this.incomeChannel as IncomeSource) || 'other', monthlyAmount: +this.monthlyIncome || 0 },
+      stability: this.mapEmploymentStability(),
       repaymentHistory: { isRepeatBorrower: false },
       exposure: { hasActiveLoanElsewhere: false },
     };
-    const eligibility = scoreEligibility(eligibilityInput);
+    const eligibility = this.eligibilityResult ?? scoreEligibility(eligibilityInput);
 
     const requiredDocuments = this.docFields.map((d) => ({
       type: d.label,
       uploaded: !!this.getDoc(d.key),
-      approved: false,
+      approved: !!this.verifiedDocs[d.key],
     }));
 
     const created = this.loansService.create({
@@ -462,8 +536,8 @@ export class ApplyComponent implements OnInit, OnDestroy {
       status: 'new',
       verificationResults: {
         bvnVerified: /^\d{11}$/.test(this.bvn),
-        secondaryCheckPassed: this.otpSent && !!this.otp,
-        mismatchFlags: /^\d{11}$/.test(this.bvn) ? [] : ['BVN could not be validated — expected an 11-digit number.'],
+        secondaryCheckPassed: this.identityQueueIndex >= this.pendingIdentityFields.length,
+        mismatchFlags: /^\d{11}$/.test(this.bvn) || !this.product.identityBvn ? [] : ['BVN could not be validated — expected an 11-digit number.'],
       },
       eligibilityScore: {
         score: eligibility.score,
@@ -481,7 +555,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
     this.submitted = true;
   }
 
-  // ── OTP ─────────────────────────────────────────────────────────────────────
+  // ── OTP (legacy single-field trigger, kept for the entry-step "recognise existing" flow) ──
   sendOtp() { this.otpSent = true; }
 
   // ── Documents ───────────────────────────────────────────────────────────────
@@ -489,19 +563,27 @@ export class ApplyComponent implements OnInit, OnDestroy {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.uploadedDocs = { ...this.uploadedDocs, [key]: { file, name: file.name } };
+    this.verifyingDocs = { ...this.verifyingDocs, [key]: true };
+    setTimeout(() => {
+      this.verifyingDocs = { ...this.verifyingDocs, [key]: false };
+      this.verifiedDocs = { ...this.verifiedDocs, [key]: true };
+      this.cdr.markForCheck();
+    }, 1100);
   }
 
   removeDoc(key: string) {
     this.uploadedDocs = { ...this.uploadedDocs, [key]: null };
+    const { [key]: _removed, ...restVerified } = this.verifiedDocs;
+    this.verifiedDocs = restVerified;
   }
 
   getDoc(key: string) { return this.uploadedDocs[key] ?? null; }
 
-  // ── Video confirmation ───────────────────────────────────────────────────────
-  // Recorded in-browser via MediaRecorder, then stored as a data URL on the
-  // LoanApplication record itself (videoConfirmationDataUrl) — same pattern as the
-  // banner-image/document uploads elsewhere in this app, since there's no backend
-  // to upload a Blob to. A lender reviews it from the loan's detail page.
+  get allDocsVerified(): boolean {
+    return this.docFields.filter((d) => d.required).every((d) => this.verifiedDocs[d.key]);
+  }
+
+  // ── Video confirmation ("Caltos Verify") ─────────────────────────────────────
   @ViewChild('videoPreview') videoPreviewRef?: ElementRef<HTMLVideoElement>;
   @ViewChild('videoPlayback') videoPlaybackRef?: ElementRef<HTMLVideoElement>;
 
@@ -580,6 +662,6 @@ export class ApplyComponent implements OnInit, OnDestroy {
   }
 
   get interestRateDisplay(): string {
-    return `${this.product.interestRate || '2.5'}% / ${this.product.tenorUnit?.slice(0,-1).toLowerCase() || 'month'} (${this.product.interestModel || 'Flat Rate'})`;
+    return `${this.product.interestRate || '2.5'}% / ${this.product.tenorUnit?.slice(0, -1).toLowerCase() || 'month'} (${this.product.interestModel || 'Flat Rate'})`;
   }
 }

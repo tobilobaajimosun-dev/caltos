@@ -49,8 +49,15 @@
         <app-settings-row type="text" label="Customer-facing app name" [value]="appName" (valueChange)="updateAppName($event)" />
         <div class="logo-upload-row">
           <span class="field-label">Logo</span>
-          <div class="logo-placeholder" [style.background]="brandColor">{{ appName.charAt(0) }}</div>
-          <app-button variant="outline" label="Upload logo" />
+          @if (logoDataUrl) {
+            <img class="logo-placeholder logo-image" [src]="logoDataUrl" alt="{{ appName }} logo" />
+          } @else {
+            <div class="logo-placeholder" [style.background]="brandColor">{{ appName.charAt(0) }}</div>
+          }
+          <label class="logo-upload-btn">
+            <input type="file" accept="image/*" class="logo-upload-input" (change)="onLogoFileSelected($event)" />
+            <app-button variant="outline" label="Upload logo" />
+          </label>
         </div>
       </div>
       <div class="panel">

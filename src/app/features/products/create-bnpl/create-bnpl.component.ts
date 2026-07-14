@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
@@ -9,6 +9,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import {
   ChevronLeftIcon, ChevronRightIcon, PlusSignIcon, EyeIcon, Clock01Icon,
 } from '@hugeicons/core-free-icons';
+import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 
 const BNPL_STEPS = [
   { id: 'about',         label: 'About this BNPL Product',     shortLabel: 'About' },
@@ -93,6 +94,9 @@ interface BnplConfig {
   styleUrls: ['./create-bnpl.component.scss'],
 })
 export class CreateBnplComponent {
+  private readonly orgBranding = inject(OrgBrandingService);
+  get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
+
   readonly steps = BNPL_STEPS;
   currentStep = 0;
   isDraft = false;

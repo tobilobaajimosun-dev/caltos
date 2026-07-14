@@ -22,6 +22,7 @@
           <span class="ref-chip-label">Reference</span>
           <span class="ref-chip-code">{{ refNumber }}</span>
         </div>
+        <a routerLink="/track" class="support-note">Track this application's status →</a>
         @if (product.supportEmail || product.supportPhone) {
           <p class="support-note">
             Questions? Contact us at
@@ -39,11 +40,15 @@
     <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
     <header class="apply-header">
       <div class="header-logo">
-        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="10" [attr.fill]="brandColor"/>
-          <path d="M10 22V12l6-4 6 4v10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M13 22v-5h6v5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        @if (orgLogoDataUrl) {
+          <img class="header-logo-img" [src]="orgLogoDataUrl" alt="" />
+        } @else {
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="10" [attr.fill]="brandColor"/>
+            <path d="M10 22V12l6-4 6 4v10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M13 22v-5h6v5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        }
         <span class="header-logo-name">{{ product.brandName || 'Caltos' }}</span>
       </div>
       <span class="header-product">{{ product.name }}</span>
@@ -65,9 +70,9 @@
     </div>
 
     <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
-    <main class="apply-main">
+    <main class="apply-main" [class.apply-main-wide]="currentStep.id === 'welcome'">
 
-      <!-- WELCOME -->
+      <!-- WELCOME (Luma-style two-column on desktop) -->
       @if (currentStep.id === 'welcome') {
         <div class="screen screen-welcome">
           @if (configSource === 'fallback') {
@@ -76,51 +81,60 @@
               Preview mode — no published product found. Create and publish a loan product first.
             </div>
           }
-          @if (product.bannerImageDataUrl) {
-            <img class="welcome-banner" [src]="product.bannerImageDataUrl" alt="" />
-          }
-          <div class="welcome-badge">{{ product.targetAudiences[0] || 'Loan Application' }}</div>
-          <h1 class="screen-headline">{{ product.name }}</h1>
-          <p class="screen-body">
-            {{ product.welcomeMessage || product.description }}
-          </p>
-          <div class="stat-grid">
-            @if (product.minAmount && product.maxAmount) {
-              <div class="stat-tile">
-                <div class="stat-icon brand">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="15" r="1.4" fill="currentColor"/></svg>
+
+          <div class="welcome-grid">
+            <div class="welcome-media">
+              @if (product.bannerImageDataUrl) {
+                <img class="welcome-banner" [src]="product.bannerImageDataUrl" alt="" />
+              }
+              <h1 class="screen-headline welcome-product-name">{{ product.name }}</h1>
+            </div>
+
+            <div class="welcome-details">
+              <div class="welcome-badge">{{ product.targetAudiences[0] || 'Loan Application' }}</div>
+              <p class="screen-body">{{ product.welcomeMessage || product.description }}</p>
+
+              <div class="stat-grid">
+                @if (product.minAmount && product.maxAmount) {
+                  <div class="stat-tile">
+                    <div class="stat-icon brand">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="15" r="1.4" fill="currentColor"/></svg>
+                    </div>
+                    <span class="stat-label">Loan amount</span>
+                    <span class="stat-value">₦{{ (+product.minAmount).toLocaleString() }}–₦{{ (+product.maxAmount).toLocaleString() }}</span>
+                  </div>
+                }
+                @if (product.minTenor && product.maxTenor) {
+                  <div class="stat-tile">
+                    <div class="stat-icon blue">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </div>
+                    <span class="stat-label">Repayment period</span>
+                    <span class="stat-value">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }}</span>
+                  </div>
+                }
+                @if (product.interestRate) {
+                  <div class="stat-tile">
+                    <div class="stat-icon green">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 5L5 19M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span class="stat-label">Interest</span>
+                    <span class="stat-value">{{ product.interestRate }}% {{ product.interestModel }}</span>
+                  </div>
+                }
+                <div class="stat-tile">
+                  <div class="stat-icon yellow">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="stat-label">Decision</span>
+                  <span class="stat-value">Fast &amp; easy</span>
                 </div>
-                <span class="stat-label">Loan amount</span>
-                <span class="stat-value">₦{{ (+product.minAmount).toLocaleString() }}–₦{{ (+product.maxAmount).toLocaleString() }}</span>
               </div>
-            }
-            @if (product.minTenor && product.maxTenor) {
-              <div class="stat-tile">
-                <div class="stat-icon blue">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                </div>
-                <span class="stat-label">Repayment period</span>
-                <span class="stat-value">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit }}</span>
-              </div>
-            }
-            @if (product.interestRate) {
-              <div class="stat-tile">
-                <div class="stat-icon green">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 5L5 19M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
-                <span class="stat-label">Interest</span>
-                <span class="stat-value">{{ product.interestRate }}% {{ product.interestModel }}</span>
-              </div>
-            }
-            <div class="stat-tile">
-              <div class="stat-icon yellow">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <span class="stat-label">Decision</span>
-              <span class="stat-value">Fast &amp; easy</span>
+
+              <p class="legal-note">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+              <p class="built-by-caltos">Built by Caltos</p>
             </div>
           </div>
-          <p class="legal-note">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
         </div>
       }
 
@@ -162,298 +176,126 @@
               </div>
             }
           </div>
-          @if (showBvnEntryNotice) {
-            <p class="screen-notice">You'll also need your BVN to complete this application.</p>
-          }
         </div>
       }
 
-      <!-- LOAN DETAILS -->
-      @if (currentStep.id === 'loan') {
-        <div class="screen">
-          <p class="screen-eyebrow">How much do you need?</p>
-          <div class="amount-display">
-            <span class="amount-currency">₦</span>
-            <span class="amount-value">{{ (+loanAmount).toLocaleString() }}</span>
+      <!-- STEP 1: INCOME & EMPLOYMENT -->
+      @if (currentStep.id === 'income') {
+        @if (isCalculatingEligibility) {
+          <div class="screen processing-screen">
+            <div class="loader-ring"></div>
+            <p class="processing-text">Calculating your eligibility…</p>
           </div>
-          <input class="dark-slider" type="range"
-            [min]="amountMin" [max]="amountMax" step="5000"
-            [(ngModel)]="loanAmount" />
-          <div class="slider-limits">
-            <span>₦{{ amountMin.toLocaleString() }}</span>
-            <span>₦{{ amountMax.toLocaleString() }}</span>
-          </div>
+        } @else {
+          <div class="screen">
+            <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+            <h2 class="screen-headline sm">Income &amp;<br>Employment</h2>
+            <p class="screen-body-sm">Choose the fastest income verification method available to you.</p>
 
-          <div class="section-divider"></div>
+            <div class="income-cards">
+              @for (ch of incomeOptions; track ch.id) {
+                <button class="income-card" [class.active]="incomeChannel === ch.id" (click)="incomeChannel = ch.id">
+                  <div class="income-card-left">
+                    <div class="income-icon-dot" [class]="ch.color"></div>
+                    <div class="income-info">
+                      <span class="income-label">{{ ch.label }}</span>
+                      <span class="income-desc">{{ ch.desc }}</span>
+                    </div>
+                  </div>
+                  <span class="income-tag" [class]="ch.color">{{ ch.tag }}</span>
+                </button>
+              }
+            </div>
 
-          <p class="screen-eyebrow">Repayment period</p>
-          <div class="tenor-grid" [style.grid-template-columns]="'repeat(' + Math.min(tenorOptions.length, 3) + ', 1fr)'">
-            @for (m of tenorOptions; track m) {
-              <button class="tenor-chip" [class.active]="loanTenor === m.toString()" (click)="loanTenor = m.toString()">
-                {{ m }} <span class="tenor-unit">{{ product.tenorUnit === 'Days' ? 'd' : product.tenorUnit === 'Weeks' ? 'wk' : product.tenorUnit === 'Years' ? 'yr' : 'mo' }}</span>
-              </button>
-            }
-          </div>
-
-          @if (product.description || product.targetAudiences?.length) {
             <div class="section-divider"></div>
-            <p class="screen-eyebrow">Loan purpose <span class="opt-inline">optional</span></p>
-            <select class="dark-input dark-select" [(ngModel)]="loanPurpose">
-              <option value="">Select purpose</option>
-              <option>Working capital</option>
-              <option>Salary advance</option>
-              <option>Medical expenses</option>
-              <option>School fees</option>
-              <option>Home expenses</option>
-              <option>Business growth</option>
-              <option>Other</option>
-            </select>
+
+            <div class="form-stack">
+              <div class="dark-field">
+                <label class="dark-label">Monthly net income (₦)</label>
+                <input class="dark-input" type="text" inputmode="numeric" placeholder="250,000" [ngModel]="formatAmount(monthlyIncome)" (ngModelChange)="onMoneyInput('monthlyIncome', $event)" />
+              </div>
+              <div class="dark-field">
+                <label class="dark-label">Employment type</label>
+                <div class="chip-row">
+                  @for (t of ['Salaried','Self-employed','Contract']; track t) {
+                    <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
+                  }
+                </div>
+              </div>
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">Employer name</label>
+                  <input class="dark-input" type="text" placeholder="e.g. First Bank" [(ngModel)]="employerName" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- STEP 2: ELIGIBLE AMOUNT -->
+      @if (currentStep.id === 'eligible-amount') {
+        <div class="screen">
+          @if (eligibilityResult && eligibilityResult.decision === 'declined') {
+            <p class="screen-eyebrow">Result</p>
+            <h2 class="screen-headline sm">We can't offer<br>a loan right now</h2>
+            <p class="screen-notice error">{{ eligibilityResult.reasons[0] || "We couldn't approve an eligible amount based on the details provided." }}</p>
+          } @else {
+            <p class="screen-eyebrow">You're eligible for up to</p>
+            <div class="amount-display">
+              <span class="amount-currency">₦</span>
+              <span class="amount-value">{{ (+loanAmount).toLocaleString() }}</span>
+            </div>
+            <input class="dark-slider" type="range"
+              [min]="amountMin" [max]="eligibilityResult?.maxEligibleAmount || amountMax" step="5000"
+              [(ngModel)]="loanAmount" />
+            <div class="slider-limits">
+              <span>₦{{ amountMin.toLocaleString() }}</span>
+              <span>₦{{ (eligibilityResult?.maxEligibleAmount || amountMax).toLocaleString() }}</span>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <p class="screen-eyebrow">Repayment period</p>
+            <div class="tenor-grid" [style.grid-template-columns]="'repeat(' + Math.min(tenorOptions.length, 3) + ', 1fr)'">
+              @for (m of tenorOptions; track m) {
+                @if (!eligibilityResult || m <= eligibilityResult.tenorMonths) {
+                  <button class="tenor-chip" [class.active]="loanTenor === m.toString()" (click)="loanTenor = m.toString()">
+                    {{ m }} <span class="tenor-unit">{{ product.tenorUnit === 'Days' ? 'd' : product.tenorUnit === 'Weeks' ? 'wk' : product.tenorUnit === 'Years' ? 'yr' : 'mo' }}</span>
+                  </button>
+                }
+              }
+            </div>
+
+            <div class="loan-est-row">
+              <div class="loan-est-item">
+                <span class="est-label">Monthly est.</span>
+                <span class="est-val">₦{{ monthlyEst.toLocaleString() }}</span>
+              </div>
+              <div class="loan-est-divider"></div>
+              <div class="loan-est-item">
+                <span class="est-label">Total repayment</span>
+                <span class="est-val">₦{{ totalRepayment.toLocaleString() }}</span>
+              </div>
+              <div class="loan-est-divider"></div>
+              <div class="loan-est-item">
+                <span class="est-label">Interest</span>
+                <span class="est-val">{{ product.interestRate || '—' }}%</span>
+              </div>
+            </div>
+
+            <p class="need-higher-note">Need a higher amount?
+              <a [href]="product.supportEmail ? 'mailto:' + product.supportEmail : (product.whatsappContact ? 'https://wa.me/' + product.whatsappContact : '#')">Click here to reach us</a>.
+            </p>
           }
-
-          <div class="loan-est-row">
-            <div class="loan-est-item">
-              <span class="est-label">Monthly est.</span>
-              <span class="est-val">₦{{ monthlyEst.toLocaleString() }}</span>
-            </div>
-            <div class="loan-est-divider"></div>
-            <div class="loan-est-item">
-              <span class="est-label">Total repayment</span>
-              <span class="est-val">₦{{ totalRepayment.toLocaleString() }}</span>
-            </div>
-            <div class="loan-est-divider"></div>
-            <div class="loan-est-item">
-              <span class="est-label">Interest</span>
-              <span class="est-val">{{ product.interestRate || '—' }}%</span>
-            </div>
-          </div>
         </div>
       }
 
-      <!-- PERSONAL -->
-      @if (currentStep.id === 'personal') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Personal<br>Information</h2>
-          <div class="form-stack">
-            <div class="dark-field-row">
-              <div class="dark-field">
-                <label class="dark-label">First name</label>
-                <input class="dark-input" type="text" placeholder="Aisha" [(ngModel)]="firstName" />
-              </div>
-              <div class="dark-field">
-                <label class="dark-label">Last name</label>
-                <input class="dark-input" type="text" placeholder="Bello" [(ngModel)]="lastName" />
-              </div>
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Date of birth</label>
-              <input class="dark-input" type="date" [(ngModel)]="dob" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Gender</label>
-              <div class="chip-row">
-                @for (g of ['Male','Female','Other']; track g) {
-                  <button class="select-chip" [class.active]="gender === g" (click)="gender = g">{{ g }}</button>
-                }
-              </div>
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Marital status <span class="opt-label">Optional</span></label>
-              <select class="dark-input dark-select" [(ngModel)]="maritalStatus">
-                <option value="">Select</option>
-                <option>Single</option><option>Married</option>
-                <option>Divorced</option><option>Widowed</option>
-              </select>
-            </div>
-            @for (f of sectionFields('collectPersonal'); track f.label) {
-              <div class="dark-field">
-                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
-                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- CONTACT -->
-      @if (currentStep.id === 'contact') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Contact<br>Details</h2>
-          <div class="form-stack">
-            @if (product.entryPhone) {
-              <!-- Pre-populated from entry step -->
-              <div class="dark-field">
-                <label class="dark-label">Phone number</label>
-                <div class="dark-phone-wrap">
-                  <span class="dark-phone-prefix">🇳🇬 +234</span>
-                  <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
-                </div>
-              </div>
-            } @else {
-              <div class="dark-field">
-                <label class="dark-label">Phone number</label>
-                <div class="dark-phone-wrap">
-                  <span class="dark-phone-prefix">🇳🇬 +234</span>
-                  <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="phone" />
-                </div>
-              </div>
-            }
-            <div class="dark-field">
-              <label class="dark-label">Email address</label>
-              <input class="dark-input" type="email" placeholder="you@example.com" [(ngModel)]="email" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Alternate phone <span class="opt-label">Optional</span></label>
-              <div class="dark-phone-wrap">
-                <span class="dark-phone-prefix">🇳🇬 +234</span>
-                <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="altPhone" />
-              </div>
-            </div>
-            @for (f of sectionFields('collectContact'); track f.label) {
-              <div class="dark-field">
-                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
-                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- ADDRESS -->
-      @if (currentStep.id === 'address') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Where do<br>you live?</h2>
-          <div class="form-stack">
-            <div class="dark-field">
-              <label class="dark-label">House address</label>
-              <input class="dark-input" type="text" placeholder="e.g. 12 Adeola Street" [(ngModel)]="houseAddress" />
-            </div>
-            <div class="dark-field-row">
-              <div class="dark-field">
-                <label class="dark-label">City</label>
-                <input class="dark-input" type="text" placeholder="Ikeja" [(ngModel)]="city" />
-              </div>
-              <div class="dark-field">
-                <label class="dark-label">LGA</label>
-                <input class="dark-input" type="text" placeholder="Alimosho" [(ngModel)]="lga" />
-              </div>
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">State</label>
-              <select class="dark-input dark-select" [(ngModel)]="state">
-                <option value="">Select state</option>
-                @for (s of nigerianStates; track s) { <option>{{ s }}</option> }
-              </select>
-            </div>
-            @for (f of sectionFields('collectAddress'); track f.label) {
-              <div class="dark-field">
-                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
-                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- EMPLOYMENT -->
-      @if (currentStep.id === 'employment') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Employment<br>Details</h2>
-          <div class="form-stack">
-            <div class="dark-field">
-              <label class="dark-label">Employment type</label>
-              <div class="chip-row">
-                @for (t of ['Salaried','Self-employed','Contract']; track t) {
-                  <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
-                }
-              </div>
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">{{ product.collectBusiness ? 'Business name' : 'Employer name' }}</label>
-              <input class="dark-input" type="text" [placeholder]="product.collectBusiness ? 'e.g. Acme Ltd' : 'e.g. First Bank'" [(ngModel)]="employerName" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
-              <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Monthly net income (₦)</label>
-              <input class="dark-input" type="text" inputmode="numeric" placeholder="250,000" [ngModel]="formatAmount(monthlyIncome)" (ngModelChange)="onMoneyInput('monthlyIncome', $event)" />
-            </div>
-            @for (f of sectionFields('collectEmployment'); track f.label) {
-              <div class="dark-field">
-                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
-                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- BUSINESS -->
-      @if (currentStep.id === 'business') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Business<br>Information</h2>
-          <div class="form-stack">
-            <div class="dark-field">
-              <label class="dark-label">Business name</label>
-              <input class="dark-input" type="text" placeholder="e.g. Acme Ventures" [(ngModel)]="businessName" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">CAC number</label>
-              <input class="dark-input" type="text" placeholder="e.g. RC1234567" [(ngModel)]="cacNumber" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Business type</label>
-              <input class="dark-input" type="text" placeholder="e.g. Retail, Services" [(ngModel)]="businessType" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Annual revenue (₦)</label>
-              <input class="dark-input" type="text" inputmode="numeric" placeholder="5,000,000" [ngModel]="formatAmount(annualRevenue)" (ngModelChange)="onMoneyInput('annualRevenue', $event)" />
-            </div>
-            @for (f of sectionFields('collectBusiness'); track f.label) {
-              <div class="dark-field">
-                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
-                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- BANK ACCOUNT DETAILS -->
-      @if (currentStep.id === 'bank') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Bank Account<br>Details</h2>
-          <div class="form-stack">
-            <div class="dark-field">
-              <label class="dark-label">Bank name</label>
-              <input class="dark-input" type="text" placeholder="e.g. Guaranty Trust Bank" [(ngModel)]="bankName" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Account number</label>
-              <input class="dark-input" type="text" placeholder="0123456789" [(ngModel)]="bankAccountNumber" />
-            </div>
-            <div class="dark-field">
-              <label class="dark-label">Account name</label>
-              <input class="dark-input" type="text" placeholder="As it appears on your bank account" [(ngModel)]="bankAccountName" />
-            </div>
-            @for (f of sectionFields('collectBank'); track f.label) {
-              <div class="dark-field">
-                <label class="dark-label">{{ f.label }} @if (f.required !== 'required') {<span class="opt-label">Optional</span>}</label>
-                <input class="dark-input" type="text" [(ngModel)]="customFieldValues[f.label]" />
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- IDENTITY -->
+      <!-- STEP 3: IDENTITY VERIFICATION -->
       @if (currentStep.id === 'identity') {
         <div class="screen">
           <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
@@ -462,32 +304,41 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" [attr.stroke]="brandColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             256-bit encrypted. Never shared with third parties.
           </div>
-          <div class="form-stack">
-            @if (product.identityBvn) {
-              <div class="dark-field">
-                <label class="dark-label">Bank Verification Number (BVN)</label>
-                <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="bvn" />
-              </div>
-            }
-            @if (product.identityNin) {
-              <div class="dark-field">
-                <label class="dark-label">National ID Number (NIN)</label>
-                <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit NIN" [(ngModel)]="nin" />
-              </div>
-            }
-            @if (product.identityPhoneOtp) {
-              <div class="dark-field">
-                <label class="dark-label">Phone OTP</label>
-                @if (!otpSent) {
-                  <button class="otp-trigger" (click)="sendOtp()">
-                    Send code to {{ phone ? '+234' + phone : 'your phone' }}
+
+          <div class="identity-field-stack">
+            @for (field of pendingIdentityFields; track field.type; let i = $index) {
+              <div class="identity-field-row" [class.locked]="!isIdentityFieldUnlocked(i)" [class.verified]="isIdentityFieldVerified(i)">
+                @if (isIdentityFieldVerified(i)) {
+                  <div class="identity-verified-row">
+                    <div class="doc-check">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span>{{ field.label }} verified</span>
+                  </div>
+                } @else {
+                  <div class="dark-field">
+                    <label class="dark-label">{{ field.type === 'bvn' ? 'Bank Verification Number (BVN)' : field.type === 'nin' ? 'National ID Number (NIN)' : field.label }}</label>
+                    @if (field.type === 'bvn' || field.type === 'nin') {
+                      <input class="dark-input" type="tel" maxlength="11" [placeholder]="'11-digit ' + field.label"
+                        [ngModel]="identityFieldValue(field.type)" (ngModelChange)="setIdentityFieldValue(field.type, $event)"
+                        [disabled]="!isIdentityFieldUnlocked(i)" />
+                    } @else if (field.type === 'phone') {
+                      <div class="dark-phone-wrap">
+                        <span class="dark-phone-prefix">🇳🇬 +234</span>
+                        <input class="dark-input dark-phone-input" type="tel" placeholder="080XXXXXXXX"
+                          [ngModel]="identityFieldValue(field.type)" (ngModelChange)="setIdentityFieldValue(field.type, $event)"
+                          [disabled]="!isIdentityFieldUnlocked(i)" />
+                      </div>
+                    } @else {
+                      <input class="dark-input" type="email" placeholder="you@example.com"
+                        [ngModel]="identityFieldValue(field.type)" (ngModelChange)="setIdentityFieldValue(field.type, $event)"
+                        [disabled]="!isIdentityFieldUnlocked(i)" />
+                    }
+                  </div>
+                  <button class="otp-trigger" [disabled]="!isIdentityFieldUnlocked(i) || !identityFieldReady(field)" (click)="openIdentityOtp(i)">
+                    Verify via OTP
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   </button>
-                } @else {
-                  <div class="otp-row">
-                    <input class="dark-input" style="flex:1" type="tel" maxlength="6" placeholder="6-digit code" [(ngModel)]="otp" />
-                    <button class="otp-resend" (click)="otpSent = false">Resend</button>
-                  </div>
                 }
               </div>
             }
@@ -495,30 +346,7 @@
         </div>
       }
 
-      <!-- INCOME -->
-      @if (currentStep.id === 'income') {
-        <div class="screen">
-          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Verify your<br>income</h2>
-          <p class="screen-body-sm">Choose the fastest method available to you.</p>
-          <div class="income-cards">
-            @for (ch of incomeOptions; track ch.id) {
-              <button class="income-card" [class.active]="incomeChannel === ch.id" (click)="incomeChannel = ch.id">
-                <div class="income-card-left">
-                  <div class="income-icon-dot" [class]="ch.color"></div>
-                  <div class="income-info">
-                    <span class="income-label">{{ ch.label }}</span>
-                    <span class="income-desc">{{ ch.desc }}</span>
-                  </div>
-                </div>
-                <span class="income-tag" [class]="ch.color">{{ ch.tag }}</span>
-              </button>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- DOCUMENTS -->
+      <!-- STEP 4: DOCUMENTS -->
       @if (currentStep.id === 'documents') {
         <div class="screen">
           <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
@@ -546,6 +374,14 @@
                     </div>
                   </div>
                   <input type="file" accept="image/*,.pdf" (change)="onFileChange($event, doc.key)" />
+                } @else if (verifyingDocs[doc.key]) {
+                  <div class="doc-card-inner">
+                    <div class="doc-icon"><div class="loader-ring loader-ring-sm"></div></div>
+                    <div class="doc-file-info">
+                      <div class="doc-file-name">{{ getDoc(doc.key)!.name }}</div>
+                      <div class="doc-sub">Verifying document…</div>
+                    </div>
+                  </div>
                 } @else {
                   <div class="doc-card-inner">
                     <div class="doc-check">
@@ -553,7 +389,7 @@
                     </div>
                     <div class="doc-file-info">
                       <div class="doc-file-name">{{ getDoc(doc.key)!.name }}</div>
-                      <div class="doc-sub">{{ doc.label }} · Uploaded</div>
+                      <div class="doc-sub">{{ doc.label }} · Verified</div>
                     </div>
                     <button class="doc-remove" (click)="removeDoc(doc.key); $event.preventDefault()">Remove</button>
                   </div>
@@ -564,11 +400,11 @@
         </div>
       }
 
-      <!-- VIDEO CONFIRMATION -->
+      <!-- STEP 5: CALTOS VERIFY (video confirmation) -->
       @if (currentStep.id === 'video') {
         <div class="screen">
           <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
-          <h2 class="screen-headline sm">Record a short<br>video confirmation</h2>
+          <h2 class="screen-headline sm">Caltos Verify<br>video confirmation</h2>
           <p class="screen-body-sm">Confirm out loud that you understand and agree to this loan's terms. Takes less than a minute.</p>
 
           @if (cameraError) {
@@ -600,11 +436,11 @@
         </div>
       }
 
-      <!-- REVIEW -->
+      <!-- STEP 6: LEGAL & SUBMIT -->
       @if (currentStep.id === 'review') {
         <div class="screen">
           <p class="screen-eyebrow">Almost there</p>
-          <h2 class="screen-headline sm">Review &amp;<br>Submit</h2>
+          <h2 class="screen-headline sm">Legal &amp;<br>Submit</h2>
 
           <div class="review-stack">
             <div class="review-card">
@@ -613,47 +449,43 @@
               <div class="review-line"><span>Amount</span><strong>₦{{ (+loanAmount).toLocaleString() }}</strong></div>
               <div class="review-line"><span>Tenor</span><strong>{{ loanTenor }} {{ product.tenorUnit?.toLowerCase() || 'months' }}</strong></div>
               <div class="review-line"><span>Repayment</span><strong>₦{{ monthlyEst.toLocaleString() }} / {{ product.repaymentFrequency?.toLowerCase() || 'month' }}</strong></div>
-              @if (loanPurpose) {
-                <div class="review-line"><span>Purpose</span><strong>{{ loanPurpose }}</strong></div>
-              }
             </div>
 
-            @if (product.collectPersonal && (firstName || lastName)) {
+            @if (firstName || lastName) {
               <div class="review-card">
                 <div class="review-card-title">Personal</div>
                 <div class="review-line"><span>Name</span><strong>{{ firstName }} {{ lastName }}</strong></div>
-                @if (dob) { <div class="review-line"><span>DOB</span><strong>{{ dob }}</strong></div> }
-                @if (gender) { <div class="review-line"><span>Gender</span><strong>{{ gender }}</strong></div> }
+                @if (dob) { <div class="review-line"><span>DOB</span><strong>{{ formatDob(dob) }}</strong></div> }
               </div>
             }
 
-            @if (product.collectContact && (phone || email)) {
+            @if (phone || email) {
               <div class="review-card">
                 <div class="review-card-title">Contact</div>
-                @if (phone) { <div class="review-line"><span>Phone</span><strong>+234{{ phone }}</strong></div> }
+                @if (phone) { <div class="review-line"><span>Phone</span><strong>{{ formatPhoneDisplay(phone) }}</strong></div> }
                 @if (email) { <div class="review-line"><span>Email</span><strong>{{ email }}</strong></div> }
               </div>
             }
 
-            @if (product.collectAddress && houseAddress) {
-              <div class="review-card">
-                <div class="review-card-title">Address</div>
-                <div class="review-line"><span>Address</span><strong>{{ houseAddress }}{{ city ? ', ' + city : '' }}</strong></div>
-                @if (state) { <div class="review-line"><span>State</span><strong>{{ state }}</strong></div> }
-              </div>
-            }
-
-            @if (product.collectEmployment && employerName) {
+            @if (employerName) {
               <div class="review-card">
                 <div class="review-card-title">Employment</div>
                 <div class="review-line"><span>Employer</span><strong>{{ employerName }}</strong></div>
-                @if (employmentType) { <div class="review-line"><span>Type</span><strong>{{ employmentType }}</strong></div> }
                 @if (monthlyIncome) { <div class="review-line"><span>Income</span><strong>₦{{ (+monthlyIncome).toLocaleString() }}/mo</strong></div> }
               </div>
             }
           </div>
 
-          <p class="consent-note">By submitting, I confirm all information is accurate and I consent to credit checks and data processing as described in the <a href="#">Privacy Policy</a> of {{ product.brandName || 'Caltos' }}.</p>
+          <div class="legal-checkbox-stack">
+            <label class="dark-checkbox-row">
+              <input type="checkbox" class="dark-checkbox" [(ngModel)]="legalConsentAccepted" />
+              <span>I confirm all information is accurate and agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a> of {{ product.brandName || 'Caltos' }}.</span>
+            </label>
+            <label class="dark-checkbox-row">
+              <input type="checkbox" class="dark-checkbox" [(ngModel)]="legalCreditCheckAccepted" />
+              <span>I consent to credit checks and data processing as described in the loan agreement.</span>
+            </label>
+          </div>
 
           @if (duplicateBlockMessage) {
             <p class="screen-notice error">{{ duplicateBlockMessage }}</p>
@@ -664,22 +496,45 @@
     </main>
 
     <!-- ── FOOTER ──────────────────────────────────────────────────────────── -->
-    <div class="apply-footer">
-      @if (!isFirst) {
-        <button class="back-btn" (click)="back()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      }
-      @if (isLast) {
-        <button class="cta-btn submit-btn" (click)="submit()">Submit Application</button>
-      } @else {
-        <button class="cta-btn" [disabled]="currentStep.id === 'video' && !videoConfirmationDataUrl" (click)="next()">
-          {{ currentStep.id === 'welcome' ? 'Get Started' : 'Continue' }}
-        </button>
-      }
-    </div>
+    @if (!isCalculatingEligibility) {
+      <div class="apply-footer">
+        @if (!isFirst) {
+          <button class="back-btn" (click)="back()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        }
+        @if (isLast) {
+          <button class="cta-btn submit-btn" [disabled]="!canContinue" (click)="submit()">Submit Application</button>
+        } @else if (currentStep.id === 'income') {
+          <button class="cta-btn" [disabled]="!monthlyIncome || !employmentType || !employerName" (click)="calculateEligibility()">Calculate my eligible amount</button>
+        } @else {
+          <button class="cta-btn" [disabled]="!canContinue" (click)="next()">
+            {{ currentStep.id === 'welcome' ? 'Get Started' : 'Continue' }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- ── OTP MODAL ───────────────────────────────────────────────────────── -->
+    @if (otpModalOpen) {
+      <div class="otp-modal-backdrop" (click)="closeOtpModal()">
+        <div class="otp-modal-dialog" (click)="$event.stopPropagation()">
+          <button class="otp-modal-close" (click)="closeOtpModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+          <div class="security-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" [attr.stroke]="brandColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            OTP sent
+          </div>
+          <p class="otp-modal-title">Enter the code sent to</p>
+          <p class="otp-modal-destination">{{ otpModalDestinationCopy }}</p>
+          <input class="dark-input" style="text-align:center; letter-spacing:6px; font-size:20px" type="tel" maxlength="6" placeholder="······" [(ngModel)]="otpModalCode" />
+          <button class="cta-btn" [disabled]="otpModalCode.length !== 6" (click)="verifyOtpModal()">Verify</button>
+        </div>
+      </div>
+    }
   }
 
 </div>

@@ -372,6 +372,11 @@ export class LoansService {
     return this._loans().find((l) => l.id === id);
   }
 
+  /** Looks up by the customer-facing reference (e.g. `CW001-0003`) shown on the apply success screen and used by the /track portal. */
+  getByLoanUniqueId(loanUniqueId: string): LoanApplication | undefined {
+    return this._loans().find((l) => l.loanUniqueId.toLowerCase() === loanUniqueId.trim().toLowerCase());
+  }
+
   /** Next zero-padded serial for a product's loanUniqueId — e.g. CW001-0003. */
   private nextSerialForProduct(productId: string): string {
     const count = this._loans().filter((l) => l.productId === productId).length;

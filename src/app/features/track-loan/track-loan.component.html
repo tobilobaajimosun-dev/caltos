@@ -1,0 +1,84 @@
+<div class="portal-shell">
+  <div class="portal-header">
+    <p class="portal-eyebrow">Caltos</p>
+    <h1 class="portal-title">Track your loan</h1>
+    <p class="portal-subtitle">Enter the reference number from your application to check its status.</p>
+  </div>
+
+  <div class="panel">
+    <div class="lookup-row">
+      <app-input placeholder="e.g. CW001-0003" [value]="reference()" (valueChange)="reference.set($event)" />
+      <app-button variant="primary" label="Look up" [disabled]="!reference().trim()" (clicked)="lookup()" />
+    </div>
+  </div>
+
+  @if (searched() && !loan()) {
+    <div class="panel">
+      <app-empty-state title="No loan found" description="We couldn't find an application with that reference number. Double-check it and try again." />
+    </div>
+  }
+
+  @if (loan(); as l) {
+    <div class="panel">
+      <div class="panel-head">
+        <p class="panel-title">{{ l.loanUniqueId }}</p>
+        <app-status-badge [status]="statusBadgeMap[l.status]" [label]="statusLabels[l.status]" />
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <app-kpi-card label="Amount" [value]="'₦' + l.amount.toLocaleString()" />
+      <app-kpi-card label="Tenor" [value]="l.tenor + ' months'" />
+      <app-kpi-card label="Monthly repayment" [value]="'₦' + l.monthlyRepayment.toLocaleString()" />
+      <app-kpi-card label="Total repayment" [value]="'₦' + l.totalRepayment.toLocaleString()" />
+    </div>
+
+    @if (l.status === 'disbursed' || l.status === 'closed') {
+      <div class="panel table-panel">
+        <div class="panel-head"><p class="panel-title">Repayment schedule</p></div>
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th><app-column-title label="Due date" /></th>
+              <th><app-column-title label="Amount" /></th>
+              <th><app-column-title label="Status" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (installment of schedule(); track installment.dueDate) {
+              <tr>
+                <td><app-table-item type="date" [date]="installment.dueDate" /></td>
+                <td><app-table-item type="amount" [amount]="'₦' + installment.amount.toLocaleString()" /></td>
+                <td><app-status-badge [status]="installment.paid ? 'successful' : 'pending'" [label]="installment.paid ? 'Paid' : 'Upcoming'" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (l.status === 'disbursed') {
+      <div class="panel danger-zone">
+        <div class="panel-head"><p class="panel-title">Liquidate loan</p></div>
+        <p class="danger-desc">Pay off your remaining balance in full and close this loan now.</p>
+        <app-button variant="outline" label="Liquidate loan" (clicked)="showLiquidateConfirm.set(true)" />
+      </div>
+    }
+
+    @if (liquidated()) {
+      <div class="panel">
+        <app-empty-state title="Loan liquidated" description="This loan has been paid off in full and is now closed." />
+      </div>
+    }
+  }
+
+  <app-confirm-modal
+    [isOpen]="showLiquidateConfirm()"
+    title="Liquidate this loan?"
+    message="This pays off your remaining balance and closes the loan. This can't be undone."
+    confirmLabel="Liquidate loan"
+    [danger]="true"
+    (confirmed)="confirmLiquidate()"
+    (cancelled)="showLiquidateConfirm.set(false)"
+  />
+</div>
