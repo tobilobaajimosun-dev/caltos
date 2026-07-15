@@ -254,6 +254,167 @@
         </div>
       }
 
+      <!-- PERSONAL DETAILS -->
+      @if (currentStep.id === 'personal-details') {
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">A few more<br>details</h2>
+          <p class="screen-body-sm">Just what's needed to process your application.</p>
+
+          <div class="form-stack">
+            @if (product.collectPersonal) {
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">Middle name <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="text" [(ngModel)]="middleName" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Gender</label>
+                  <div class="chip-row">
+                    @for (g of ['Male', 'Female']; track g) {
+                      <button class="select-chip" [class.active]="gender === g" (click)="gender = g">{{ g }}</button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (product.collectContact) {
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">WhatsApp number <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="whatsapp" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Preferred contact method</label>
+                  <div class="chip-row">
+                    @for (c of ['Phone', 'Email', 'WhatsApp']; track c) {
+                      <button class="select-chip" [class.active]="preferredContact === c" (click)="preferredContact = c">{{ c }}</button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (product.collectAddress && !isReturningCustomer) {
+              <div class="dark-field">
+                <label class="dark-label">Street address</label>
+                <input class="dark-input" type="text" placeholder="e.g. 14 Marina Road" [(ngModel)]="addressStreet" />
+              </div>
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">City</label>
+                  <input class="dark-input" type="text" [(ngModel)]="addressCity" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">State</label>
+                  <input class="dark-input" type="text" [(ngModel)]="addressState" />
+                </div>
+              </div>
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">LGA <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="text" [(ngModel)]="addressLga" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Landmark <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="text" [(ngModel)]="addressLandmark" />
+                </div>
+              </div>
+            }
+
+            @if (product.collectEmployment && !isBusinessApplicant) {
+              <div class="dark-field">
+                <label class="dark-label">Job title <span class="opt-label">Optional</span></label>
+                <input class="dark-input" type="text" placeholder="e.g. Branch Manager" [(ngModel)]="jobTitle" />
+              </div>
+            }
+
+            @if (isBusinessApplicant) {
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">CAC number</label>
+                  <input class="dark-input" type="text" placeholder="e.g. RC-1234567" [(ngModel)]="businessCacNumber" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Business type <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="text" placeholder="e.g. Retail" [(ngModel)]="businessType" />
+                </div>
+              </div>
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">Annual revenue <span class="opt-label">Optional</span></label>
+                  <input class="dark-input" type="text" inputmode="numeric" placeholder="e.g. 5,000,000" [ngModel]="formatAmount(businessAnnualRevenue)" (ngModelChange)="onMoneyInput('businessAnnualRevenue', $event)" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Your role <span class="opt-label">Optional</span></label>
+                  <div class="chip-row">
+                    @for (r of ['Owner', 'Director', 'Chairman']; track r) {
+                      <button class="select-chip" [class.active]="businessRole === r" (click)="businessRole = r">{{ r }}</button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (product.collectBank) {
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">Bank name (for disbursement)</label>
+                  <app-bank-select [value]="disbursementBankName" (valueChange)="disbursementBankName = $event" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Account number</label>
+                  <input class="dark-input" type="text" maxlength="10" placeholder="0123456789" [(ngModel)]="disbursementAccountNumber" />
+                </div>
+              </div>
+            }
+
+            @if (product.collectSchoolInfo) {
+              <div class="dark-field">
+                <label class="dark-label">School name</label>
+                <input class="dark-input" type="text" [(ngModel)]="schoolName" />
+              </div>
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">Student name <span class="opt-label">If different from applicant</span></label>
+                  <input class="dark-input" type="text" [(ngModel)]="studentName" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Class / Level</label>
+                  <input class="dark-input" type="text" placeholder="e.g. JSS 2" [(ngModel)]="schoolClass" />
+                </div>
+              </div>
+              <div class="dark-field">
+                <label class="dark-label">Term / Session</label>
+                <input class="dark-input" type="text" placeholder="e.g. 2nd Term, 2025/2026" [(ngModel)]="schoolTerm" />
+              </div>
+            }
+
+            @if (product.collectCoopInfo) {
+              <div class="dark-field">
+                <label class="dark-label">Cooperative / society name</label>
+                <input class="dark-input" type="text" [(ngModel)]="coopSocietyName" />
+              </div>
+              <div class="dark-field-row">
+                <div class="dark-field">
+                  <label class="dark-label">Membership number</label>
+                  <input class="dark-input" type="text" [(ngModel)]="coopMembershipNumber" />
+                </div>
+                <div class="dark-field">
+                  <label class="dark-label">Membership start date</label>
+                  <input class="dark-input" type="date" [(ngModel)]="coopMembershipStartDate" />
+                </div>
+              </div>
+              <div class="dark-field">
+                <label class="dark-label">Monthly savings contribution (₦) <span class="opt-label">Optional</span></label>
+                <input class="dark-input" type="text" inputmode="numeric" placeholder="e.g. 10,000" [ngModel]="formatAmount(coopMonthlySavings)" (ngModelChange)="onMoneyInput('coopMonthlySavings', $event)" />
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       <!-- HOW DO YOU EARN? (income source) -->
       @if (currentStep.id === 'income-source') {
         <div class="screen">
@@ -664,8 +825,9 @@
             @if (firstName || lastName) {
               <div class="review-card">
                 <div class="review-card-title">Personal</div>
-                <div class="review-line"><span>Name</span><strong>{{ firstName }} {{ lastName }}</strong></div>
+                <div class="review-line"><span>Name</span><strong>{{ firstName }} {{ middleName }} {{ lastName }}</strong></div>
                 @if (dob) { <div class="review-line"><span>DOB</span><strong>{{ formatDob(dob) }}</strong></div> }
+                @if (gender) { <div class="review-line"><span>Gender</span><strong>{{ gender }}</strong></div> }
               </div>
             }
 
@@ -674,14 +836,53 @@
                 <div class="review-card-title">Contact</div>
                 @if (phone) { <div class="review-line"><span>Phone</span><strong>{{ formatPhoneDisplay(phone) }}</strong></div> }
                 @if (email) { <div class="review-line"><span>Email</span><strong>{{ email }}</strong></div> }
+                @if (whatsapp) { <div class="review-line"><span>WhatsApp</span><strong>{{ whatsapp }}</strong></div> }
               </div>
             }
 
-            @if (employerName) {
+            @if (addressStreet || addressCity) {
+              <div class="review-card">
+                <div class="review-card-title">Address</div>
+                <div class="review-line"><span>Address</span><strong>{{ addressStreet }}, {{ addressCity }}, {{ addressState }}</strong></div>
+              </div>
+            }
+
+            @if (isBusinessApplicant && businessCacNumber) {
+              <div class="review-card">
+                <div class="review-card-title">Business</div>
+                <div class="review-line"><span>CAC Number</span><strong>{{ businessCacNumber }}</strong></div>
+                @if (businessRole) { <div class="review-line"><span>Role</span><strong>{{ businessRole }}</strong></div> }
+              </div>
+            } @else if (employerName) {
               <div class="review-card">
                 <div class="review-card-title">Employment</div>
                 <div class="review-line"><span>Employer</span><strong>{{ employerName }}</strong></div>
+                @if (jobTitle) { <div class="review-line"><span>Job title</span><strong>{{ jobTitle }}</strong></div> }
                 @if (monthlyIncome) { <div class="review-line"><span>Income</span><strong>₦{{ (+monthlyIncome).toLocaleString() }}/mo</strong></div> }
+              </div>
+            }
+
+            @if (disbursementBankName) {
+              <div class="review-card">
+                <div class="review-card-title">Disbursement Account</div>
+                <div class="review-line"><span>Bank</span><strong>{{ disbursementBankName }}</strong></div>
+                <div class="review-line"><span>Account number</span><strong>{{ disbursementAccountNumber }}</strong></div>
+              </div>
+            }
+
+            @if (schoolName) {
+              <div class="review-card">
+                <div class="review-card-title">School Information</div>
+                <div class="review-line"><span>School</span><strong>{{ schoolName }}</strong></div>
+                @if (studentName) { <div class="review-line"><span>Student</span><strong>{{ studentName }}</strong></div> }
+              </div>
+            }
+
+            @if (coopSocietyName) {
+              <div class="review-card">
+                <div class="review-card-title">Cooperative Membership</div>
+                <div class="review-line"><span>Society</span><strong>{{ coopSocietyName }}</strong></div>
+                @if (coopMembershipNumber) { <div class="review-line"><span>Membership No.</span><strong>{{ coopMembershipNumber }}</strong></div> }
               </div>
             }
           </div>

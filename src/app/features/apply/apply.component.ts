@@ -145,10 +145,56 @@ export class ApplyComponent implements OnInit, OnDestroy {
   lastName = '';
   dob = '';
   gender = '';
+  /** Only asked on the new "Personal Details" step — not derivable from BVN/NIN. */
+  middleName = '';
 
   // ── Form state: contact ─────────────────────────────────────────────────────
   phone = '';
   email = '';
+  /** Only asked on the new "Personal Details" step. */
+  whatsapp = '';
+  preferredContact = '';
+
+  // ── Form state: address (new applicants only — returning customers already have
+  // a single on-file address string via `returningRecord`, see the "returning" step) ──
+  addressStreet = '';
+  addressCity = '';
+  addressState = '';
+  addressLga = '';
+  addressLandmark = '';
+
+  // ── Form state: extra employment/business detail not already asked in the income step ──
+  jobTitle = '';
+  businessCacNumber = '';
+  businessType = '';
+  businessAnnualRevenue = '';
+  businessRole = '';
+
+  /**
+   * True when the applicant should be asked business-flavoured (not employment-flavoured)
+   * detail fields — either because they picked "Business Owner" on the income-source step,
+   * or the product is business-only by design (collects business info but not employment,
+   * e.g. SME) even though it has no income-source selector at all.
+   */
+  get isBusinessApplicant(): boolean {
+    return this.incomeSourceIsBusiness || (this.product.collectBusiness && !this.product.collectEmployment);
+  }
+
+  // ── Form state: disbursement bank account (separate from the income-verification bank lookup) ──
+  disbursementBankName = '';
+  disbursementAccountNumber = '';
+
+  // ── Form state: School Fees Loan ("School Information") ─────────────────────
+  schoolName = '';
+  studentName = '';
+  schoolClass = '';
+  schoolTerm = '';
+
+  // ── Form state: Cooperative Loan ("Cooperative Membership") ─────────────────
+  coopSocietyName = '';
+  coopMembershipNumber = '';
+  coopMembershipStartDate = '';
+  coopMonthlySavings = '';
 
   // ── Form state: income & employment (folded into one step) ─────────────────
   employerName = '';
@@ -277,6 +323,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
       return this.remitaWorkFetched && this.remitaWorkNameMatches;
     }
     if (this.isPayrollVerifiedIncome) return true;
+    if (this.incomeSourceIsBusiness) return !!this.employerName;
     return !!this.employmentType && !!this.employerName;
   }
 
@@ -329,7 +376,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
   formatAmount(value: string): string { return formatThousands(value); }
 
   /** Strips non-digits before storing — the field itself stays a plain number string; only display gets commas. */
-  onMoneyInput(field: 'monthlyIncome', raw: string) {
+  onMoneyInput(field: 'monthlyIncome' | 'businessAnnualRevenue' | 'coopMonthlySavings', raw: string) {
     this[field] = raw.replace(/[^\d]/g, '');
   }
 
@@ -658,11 +705,30 @@ export class ApplyComponent implements OnInit, OnDestroy {
     if (p.entryNin && this.entryNin) this.nin = this.entryNin;
   }
 
+  /**
+   * Whether the "Personal Details" step has anything to show at all — a product might enable
+   * `collectPersonal`/`collectContact` etc. but every field those sections ask for is already
+   * covered elsewhere (name/DOB via identity verification, phone/email via entry), in which
+   * case there's nothing left for this step to collect.
+   */
+  get showPersonalDetailsStep(): boolean {
+    const p = this.product;
+    return !!(
+      p.collectPersonal || p.collectContact
+      || (p.collectAddress && !this.isReturningCustomer)
+      || p.collectEmployment || p.collectBusiness || p.collectBank
+      || p.collectSchoolInfo || p.collectCoopInfo
+    );
+  }
+
   // ── Build step list based on config flags ───────────────────────────────────
   // Order follows the applicant's actual journey: identify yourself -> (if this product
   // recognises returning customers) say whether you've applied before -> verify identity ->
-  // verify income (which needs a name to cross-check accounts/work-details against, hence
-  // coming after identity) -> loan amount -> documents -> optional video -> review & submit.
+  // (if applicable) say how you earn -> verify income (needs a name to cross-check
+  // accounts/work-details against, hence after identity) -> personal details (comes after
+  // income-source/income so it knows whether to ask employment- or business-flavoured
+  // fields — see `isBusinessApplicant`) -> loan amount -> documents -> optional video ->
+  // review & submit.
   private buildSteps() {
     const p = this.product;
     const steps: StepDef[] = [{ id: 'welcome', label: 'Welcome' }];
@@ -678,6 +744,11 @@ export class ApplyComponent implements OnInit, OnDestroy {
     if (this.pendingIdentityFields.length) steps.push({ id: 'identity', label: 'Verify identity' });
     if (p.incomeSourceOptions?.length) steps.push({ id: 'income-source', label: 'How you earn' });
     steps.push({ id: 'income', label: 'Income & employment' });
+
+    if (this.showPersonalDetailsStep) {
+      steps.push({ id: 'personal-details', label: 'Personal details' });
+    }
+
     steps.push({ id: 'eligible-amount', label: 'Your loan amount' });
     if (this.docFields.length) steps.push({ id: 'documents', label: 'Documents' });
     if (p.videoConfirmation) steps.push({ id: 'video', label: 'Caltos Verify' });
@@ -767,9 +838,24 @@ export class ApplyComponent implements OnInit, OnDestroy {
     return repayMax != null ? Math.min(tenorMax, repayMax) : tenorMax;
   }
 
+  /** Personal Details step — checks only the lead field of each visible section (matching
+   * how every other step here gates on a representative field, not every single input). */
+  private get personalDetailsStepCanContinue(): boolean {
+    const p = this.product;
+    if (p.collectPersonal && !this.gender) return false;
+    if (p.collectAddress && !this.isReturningCustomer && (!this.addressStreet || !this.addressCity || !this.addressState)) return false;
+    if (this.isBusinessApplicant && !this.businessCacNumber) return false;
+    if (p.collectBank && (!this.disbursementBankName || !this.disbursementAccountNumber)) return false;
+    if (p.collectSchoolInfo && !this.schoolName) return false;
+    if (p.collectCoopInfo && !this.coopSocietyName) return false;
+    return true;
+  }
+
   /** Gates the footer Continue button per-step for state that isn't a simple required-field check. */
   get canContinue(): boolean {
     switch (this.currentStep.id) {
+      case 'personal-details':
+        return this.personalDetailsStepCanContinue;
       case 'identity':
         return this.identityQueueIndex >= this.pendingIdentityFields.length;
       case 'eligible-amount':
