@@ -1,0 +1,11 @@
+<div class="readonly-field">
+  <span class="readonly-label">{{ label() }}</span>
+  <div class="readonly-value-row">
+    <span class="readonly-value">{{ value() }}</span>
+    @if (verified()) {
+      <span class="readonly-check">
+        <hi-icon [icon]="checkIcon" size="14" color="var(--color-success)" />
+      </span>
+    }
+  </div>
+</div>

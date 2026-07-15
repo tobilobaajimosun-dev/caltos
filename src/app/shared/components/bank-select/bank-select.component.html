@@ -1,0 +1,27 @@
+<div class="select-host">
+  <button type="button" class="select-trigger" [class.open]="open()" [class.disabled]="disabled()" [disabled]="disabled()" (click)="toggle()">
+    <span class="select-label" [class.placeholder]="!value()">{{ value() || placeholder() }}</span>
+    <hi-icon class="chevron" [class.open]="open()" [icon]="chevronIcon" size="14" color="currentColor" />
+  </button>
+
+  @if (open()) {
+    <div class="select-backdrop" (click)="close()"></div>
+    <div class="select-menu" role="listbox">
+      <div class="select-search">
+        <app-search placeholder="Search banks" [value]="query()" (valueChange)="query.set($event)" />
+      </div>
+      <div class="select-options">
+        @for (bank of filteredBanks(); track bank.code) {
+          <button type="button" class="select-option" [class.active]="bank.name === value()" (click)="select(bank)">
+            <span>{{ bank.name }}</span>
+            @if (bank.name === value()) {
+              <hi-icon [icon]="checkIcon" size="15" color="var(--color-blue)" />
+            }
+          </button>
+        } @empty {
+          <p class="select-empty">No banks match your search.</p>
+        }
+      </div>
+    </div>
+  }
+</div>

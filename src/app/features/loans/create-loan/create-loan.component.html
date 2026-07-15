@@ -458,8 +458,8 @@
                   </button>
                   <button class="verify-card" [class.selected]="config.incomeIppis" (click)="config.incomeIppis = !config.incomeIppis">
                     <div class="verify-check" [class.active]="config.incomeIppis"></div>
-                    <div class="verify-title">IPPIS</div>
-                    <div class="verify-sub">For federal government employees</div>
+                    <div class="verify-title">WACS</div>
+                    <div class="verify-sub">For state government employees</div>
                   </button>
                   <button class="verify-card" [class.selected]="config.incomeBankStatement" (click)="config.incomeBankStatement = !config.incomeBankStatement">
                     <div class="verify-check" [class.active]="config.incomeBankStatement"></div>
@@ -476,7 +476,7 @@
                 @if (!noIncomeSelected && (config.incomeRemita || config.incomeIppis)) {
                   <div class="info-callout" style="margin-top:14px">
                     <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
-                    {{ config.incomeRemita && config.incomeIppis ? 'Remita and IPPIS require' : config.incomeRemita ? 'Remita requires' : 'IPPIS requires' }} integration keys to function. You can provide your keys in Settings → Integrations, or our team can help you set this up.
+                    {{ config.incomeRemita && config.incomeIppis ? 'Remita and WACS require' : config.incomeRemita ? 'Remita requires' : 'WACS requires' }} integration keys to function. You can provide your keys in Settings → Integrations, or our team can help you set this up.
                   </div>
                 }
               </div>
@@ -1213,7 +1213,7 @@
                     @if (i === 2) {
                       <div class="review-grid">
                         <div class="review-item"><span class="r-label">Identity</span><span class="r-val">{{ compact([config.identityBvn ? 'BVN' : '', config.identityNin ? 'NIN' : '', config.identityPhoneOtp ? 'Phone OTP' : '']) }}</span></div>
-                        <div class="review-item"><span class="r-label">Income verification</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'IPPIS' : '', config.incomeBankStatement ? 'Bank Statement' : '']) || 'None' }}</span></div>
+                        <div class="review-item"><span class="r-label">Income verification</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'WACS' : '', config.incomeBankStatement ? 'Bank Statement' : '']) || 'None' }}</span></div>
                         <div class="review-item review-item--full"><span class="r-label">Repayment deduction</span><span class="r-val">{{ activeDeductionChannels.join(' · ') || 'None configured' }}</span></div>
                         <div class="review-item"><span class="r-label">Gov ID</span><span class="r-val">{{ config.docGovId | titlecase }}</span></div>
                       </div>

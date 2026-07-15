@@ -9,7 +9,7 @@
  * starting point and `scoreEligibility` for the entry point.
  */
 
-export type IncomeSource = 'ippis' | 'remita' | 'deduct' | 'other';
+export type IncomeSource = 'wacs' | 'remita' | 'deduct' | 'other';
 
 export interface VerifiedIncomeInput {
   source: IncomeSource;

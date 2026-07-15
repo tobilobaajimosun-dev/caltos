@@ -11,6 +11,7 @@ import {
   EmploymentStabilityInput, IncomeSource, DEFAULT_ELIGIBILITY_CONFIG,
 } from '../../shared/utils/eligibility-scoring';
 import { formatThousands } from '../../shared/utils/number-format';
+import { BankSelectComponent, ReadonlyFieldComponent } from '../../shared/components';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
 const FALLBACK_CONFIG: LoanConfig = {
@@ -75,7 +76,7 @@ interface IdentityField {
 @Component({
   selector: 'app-apply',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, BankSelectComponent, ReadonlyFieldComponent],
   templateUrl: './apply.component.html',
   styleUrls: ['./apply.component.scss'],
 })
@@ -134,47 +135,115 @@ export class ApplyComponent implements OnInit, OnDestroy {
   staffId = '';
   incomeChannel = '';
 
-  /** True when the product offers IPPIS/Remita income verification — for these, work details
-   * come from the channel's own "Verify" lookup instead of asking employment type/employer. */
+  /** True when the product offers WACS/Remita income verification — for these, work details
+   * come from the channel's own lookup instead of asking employment type/employer. */
   get isPayrollVerifiedIncome(): boolean {
     return !!(this.product.incomeIppis || this.product.incomeRemita);
   }
 
-  ippisNumber = '';
-  ippisVerifying = false;
-  ippisVerified = false;
+  /** Applicant's name as collected via identity verification/entry — used to cross-check
+   * account/work-detail names returned by the mocked Remita/WACS lookups below. */
+  private get knownApplicantName(): string {
+    return `${this.firstName} ${this.lastName}`.trim();
+  }
 
+  private namesMatch(a: string, b: string): boolean {
+    if (!a || !b) return true; // nothing to compare against yet — don't block on it
+    return a.trim().toLowerCase() === b.trim().toLowerCase();
+  }
+
+  // ── Remita income verification (bank account -> work details) ──────────────
   bankAccountName = '';
-  remitaVerifying = false;
-  remitaVerified = false;
+  remitaFetchingAccount = false;
+  remitaAccountFetched = false;
+  remitaFetchingWork = false;
+  remitaWorkFetched = false;
+  remitaWorkplace = '';
 
-  verifyIppis() {
-    if (!this.ippisNumber) return;
-    this.ippisVerifying = true;
+  get remitaAccountNameMatches(): boolean {
+    return this.namesMatch(this.bankAccountName, this.knownApplicantName);
+  }
+
+  get remitaWorkNameMatches(): boolean {
+    return this.remitaAccountNameMatches && this.namesMatch(this.bankAccountName, this.knownApplicantName);
+  }
+
+  /** Step 1 of Remita verification — resolves the account name behind the bank + account number entered. */
+  fetchRemitaAccountDetails() {
+    if (!this.bankAccountNumber || !this.bankName) return;
+    this.remitaFetchingAccount = true;
     setTimeout(() => {
-      this.ippisVerifying = false;
-      this.ippisVerified = true;
-      this.employerName = 'Federal Ministry of Works';
+      this.remitaFetchingAccount = false;
+      this.remitaAccountFetched = true;
+      this.bankAccountName = 'Aisha Bello';
       this.cdr.markForCheck();
     }, 1200);
   }
 
-  verifyRemita() {
-    if (!this.bankAccountNumber || !this.bankName) return;
-    this.remitaVerifying = true;
+  /** Step 2 of Remita verification — only reachable once the account name matches; pulls full work details. */
+  fetchRemitaWorkDetails() {
+    if (!this.remitaAccountFetched || !this.remitaAccountNameMatches) return;
+    this.remitaFetchingWork = true;
     setTimeout(() => {
-      this.remitaVerifying = false;
-      this.remitaVerified = true;
-      this.bankAccountName = 'Aisha Bello';
-      this.employerName = this.employerName || 'Lagos State Government';
+      this.remitaFetchingWork = false;
+      this.remitaWorkFetched = true;
+      this.remitaWorkplace = 'Lagos State Government';
+      this.employerName = this.remitaWorkplace;
+      this.cdr.markForCheck();
+    }, 1200);
+  }
+
+  // ── WACS income verification (BVN + OTP -> WACS number -> bank account) ─────
+  wacsBvn = '';
+  wacsBvnSendingOtp = false;
+  wacsBvnVerified = false;
+  wacsNumber = '';
+  wacsBankName = '';
+  wacsAccountNumber = '';
+  wacsFetchingAccount = false;
+  wacsAccountFetched = false;
+  wacsAccountName = '';
+
+  get wacsAccountNameMatches(): boolean {
+    return this.namesMatch(this.wacsAccountName, this.knownApplicantName)
+      && this.namesMatch(this.wacsAccountName, this.wacsBvnName);
+  }
+
+  /** Mocked name-on-file for the entered BVN — stands in for a real BVN lookup response. */
+  wacsBvnName = '';
+
+  /** Sends a mocked OTP to the BVN-registered phone number, then opens the shared OTP modal. */
+  sendWacsBvnOtp() {
+    if (!/^\d{11}$/.test(this.wacsBvn)) return;
+    this.wacsBvnSendingOtp = true;
+    setTimeout(() => {
+      this.wacsBvnSendingOtp = false;
+      this.wacsBvnName = this.knownApplicantName || 'Aisha Bello';
+      this.openOtpFor('your BVN-registered phone number', () => { this.wacsBvnVerified = true; });
+      this.cdr.markForCheck();
+    }, 800);
+  }
+
+  /** Resolves the account name behind the WACS bank + account number entered. */
+  fetchWacsAccountDetails() {
+    if (!this.wacsAccountNumber || !this.wacsBankName) return;
+    this.wacsFetchingAccount = true;
+    setTimeout(() => {
+      this.wacsFetchingAccount = false;
+      this.wacsAccountFetched = true;
+      this.wacsAccountName = this.wacsBvnName || 'Aisha Bello';
       this.cdr.markForCheck();
     }, 1200);
   }
 
   get incomeStepCanContinue(): boolean {
     if (!this.monthlyIncome) return false;
-    if (this.incomeChannel === 'ippis') return this.ippisVerified;
-    if (this.incomeChannel === 'remita') return this.remitaVerified;
+    if (this.incomeChannel === 'wacs') {
+      return this.wacsBvnVerified && !!this.wacsNumber && this.wacsAccountFetched && this.wacsAccountNameMatches;
+    }
+    if (this.incomeChannel === 'remita') {
+      return this.remitaWorkFetched && this.remitaWorkNameMatches;
+    }
     if (this.isPayrollVerifiedIncome) return true;
     return !!this.employmentType && !!this.employerName;
   }
@@ -235,17 +304,30 @@ export class ApplyComponent implements OnInit, OnDestroy {
     return field.type === 'bvn' || field.type === 'nin' ? value.length === 11 : value.trim().length > 0;
   }
 
-  // ── OTP modal (shared across identity fields) ───────────────────────────────
+  // ── OTP modal (shared across identity fields and any other OTP-gated action) ─
   otpModalOpen = false;
   otpModalDestinationCopy = '';
   otpModalCode = '';
   private otpModalFieldIndex = -1;
+  /** Set when the modal was opened for something other than the identity-field queue
+   * (e.g. the WACS income step's BVN verification) — takes priority on verify. */
+  private otpModalOnVerify: (() => void) | null = null;
 
   openIdentityOtp(index: number) {
     const field = this.pendingIdentityFields[index];
     if (!field) return;
     this.otpModalFieldIndex = index;
+    this.otpModalOnVerify = null;
     this.otpModalDestinationCopy = field.otpDestinationCopy;
+    this.otpModalCode = '';
+    this.otpModalOpen = true;
+  }
+
+  /** Opens the same OTP modal for a non-identity-field action, running `onVerify` on success. */
+  openOtpFor(destinationCopy: string, onVerify: () => void) {
+    this.otpModalFieldIndex = -1;
+    this.otpModalOnVerify = onVerify;
+    this.otpModalDestinationCopy = destinationCopy;
     this.otpModalCode = '';
     this.otpModalOpen = true;
   }
@@ -253,12 +335,15 @@ export class ApplyComponent implements OnInit, OnDestroy {
   closeOtpModal() {
     this.otpModalOpen = false;
     this.otpModalFieldIndex = -1;
+    this.otpModalOnVerify = null;
   }
 
   verifyOtpModal() {
     // Demo OTP, matching the app's existing convention elsewhere (e.g. login's 2FA step).
     if (this.otpModalCode !== '123456') return;
-    if (this.otpModalFieldIndex === this.identityQueueIndex) {
+    if (this.otpModalOnVerify) {
+      this.otpModalOnVerify();
+    } else if (this.otpModalFieldIndex === this.identityQueueIndex) {
       this.identityQueueIndex++;
       if (this.identityQueueIndex >= this.pendingIdentityFields.length) {
         this.deriveIdentityFromVerification();
@@ -315,10 +400,36 @@ export class ApplyComponent implements OnInit, OnDestroy {
         // Default to the maximum amount at the maximum duration — the borrower can only edit down from here.
         this.loanAmount = String(result.maxEligibleAmount);
         this.loanTenor = String(result.tenorMonths);
+        // Anchor a fixed "affordable monthly installment" ceiling from the approved amount/tenor,
+        // so moving the tenor slider afterward can recompute amount against a stable target
+        // instead of leaving it fixed regardless of the tenor chosen (see recomputeAmountForTenor).
+        const rate = +(this.product.interestRate || 0) / 100;
+        this.approvedMonthlyCeiling = Math.ceil((result.maxEligibleAmount * (1 + rate)) / (result.tenorMonths || 1));
       }
       this.next();
       this.cdr.markForCheck();
     }, 1500);
+  }
+
+  /** Fixed monthly-installment ceiling set once eligibility is approved — see `calculateEligibility()`. */
+  private approvedMonthlyCeiling = 0;
+
+  /**
+   * A longer repayment period spreads the same affordable monthly installment over more months,
+   * which unlocks a *higher* eligible principal — not a smaller one. Previously the tenor slider
+   * only changed the displayed monthly estimate while `loanAmount` stayed frozen at approval time.
+   */
+  recomputeAmountForTenor(tenor: number) {
+    if (!this.eligibilityResult || this.eligibilityResult.decision !== 'approved') return;
+    const rate = +(this.product.interestRate || 0) / 100;
+    const raw = Math.floor((this.approvedMonthlyCeiling * tenor) / (1 + rate));
+    this.loanAmount = String(Math.min(Math.max(raw, 0), this.eligibilityResult.maxEligibleAmount));
+  }
+
+  onTenorChange(raw: string) {
+    const tenor = Math.min(Math.max(+raw || this.minTenorBound, this.minTenorBound), this.maxTenorBound);
+    this.loanTenor = String(tenor);
+    this.recomputeAmountForTenor(tenor);
   }
 
   // ── Documents: mock per-file verification ───────────────────────────────────
@@ -403,12 +514,21 @@ export class ApplyComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * The wizard's amount fields are saved thousand-separated (e.g. "20,000" — see
+   * `onAmountInput` in create-loan.component.ts), which `+value` can't parse (`+"20,000"` is
+   * `NaN`). Every published/draft config on the borrower portal needs this before parsing.
+   */
+  private parseAmount(value: string | undefined): number {
+    return +String(value ?? '').replace(/,/g, '') || 0;
+  }
+
   // ── Derive amount/tenor/income/docs from config ─────────────────────────────
   private buildDerivedData() {
     const p = this.product;
 
-    this.amountMin = +(p.minAmount || 10000);
-    this.amountMax = +(p.maxAmount || 500000);
+    this.amountMin = this.parseAmount(p.minAmount) || 10000;
+    this.amountMax = this.parseAmount(p.maxAmount) || 500000;
     this.loanAmount = String(Math.round((this.amountMin + this.amountMax) / 2 / 1000) * 1000);
 
     const minT = +(p.minTenor || 1);
@@ -419,7 +539,9 @@ export class ApplyComponent implements OnInit, OnDestroy {
 
     this.incomeOptions = [];
     if (p.incomeRemita) this.incomeOptions.push({ id: 'remita', label: 'Remita', tag: 'Instant', desc: 'For government & corporate employees', color: 'green' });
-    if (p.incomeIppis) this.incomeOptions.push({ id: 'ippis', label: 'IPPIS', tag: 'Instant', desc: 'Government payroll system', color: 'blue' });
+    // "IPPIS" -> "WACS" (see plan): only the display label/flow for income verification changes;
+    // the underlying `incomeIppis` config field name is kept as-is for data compatibility.
+    if (p.incomeIppis) this.incomeOptions.push({ id: 'wacs', label: 'WACS', tag: 'Instant', desc: 'State government payroll system', color: 'blue' });
     if (p.incomeBankStatement) this.incomeOptions.push({ id: 'bank', label: 'Bank Statement', tag: '3–6 hrs', desc: 'Upload a 3-month bank statement', color: 'yellow' });
     if (this.incomeOptions.length) this.incomeChannel = this.incomeOptions[0].id;
 
@@ -456,7 +578,11 @@ export class ApplyComponent implements OnInit, OnDestroy {
     if (p.entryNin && this.entryNin) this.nin = this.entryNin;
   }
 
-  // ── Build step list based on config flags (capped at 6 steps after entry) ──
+  // ── Build step list based on config flags ───────────────────────────────────
+  // Order follows the applicant's actual journey: identify yourself -> (if this product
+  // recognises returning customers) say whether you've applied before -> verify identity ->
+  // verify income (which needs a name to cross-check accounts/work-details against, hence
+  // coming after identity) -> loan amount -> documents -> optional video -> review & submit.
   private buildSteps() {
     const p = this.product;
     const steps: StepDef[] = [{ id: 'welcome', label: 'Welcome' }];
@@ -465,14 +591,59 @@ export class ApplyComponent implements OnInit, OnDestroy {
       steps.push({ id: 'entry', label: 'Identify yourself' });
     }
 
+    if (p.recogniseExisting) {
+      steps.push({ id: 'returning', label: 'New or returning?' });
+    }
+
+    if (this.pendingIdentityFields.length) steps.push({ id: 'identity', label: 'Verify identity' });
     steps.push({ id: 'income', label: 'Income & employment' });
     steps.push({ id: 'eligible-amount', label: 'Your loan amount' });
-    if (this.pendingIdentityFields.length) steps.push({ id: 'identity', label: 'Verify identity' });
     if (this.docFields.length) steps.push({ id: 'documents', label: 'Documents' });
     if (p.videoConfirmation) steps.push({ id: 'video', label: 'Caltos Verify' });
     steps.push({ id: 'review', label: 'Legal & submit' });
 
     this.steps = steps;
+  }
+
+  // ── New vs. returning customer ───────────────────────────────────────────────
+  isReturningCustomer: boolean | null = null;
+  checkingReturningCustomer = false;
+  /** Mocked prior-application record, populated once "returning customer" is confirmed. */
+  returningRecord: { phone: string; email: string; address: string } | null = null;
+  /** Which of the returning customer's on-file fields they've chosen to edit instead of keep. */
+  editingReturningField: 'phone' | 'email' | 'address' | null = null;
+
+  chooseCustomerStatus(returning: boolean) {
+    if (!returning) {
+      this.isReturningCustomer = false;
+      this.next();
+      return;
+    }
+    this.checkingReturningCustomer = true;
+    setTimeout(() => {
+      this.checkingReturningCustomer = false;
+      this.isReturningCustomer = true;
+      this.returningRecord = {
+        phone: this.phone || this.entryPhone || '08012345678',
+        email: this.email || this.entryEmail || 'aisha.bello@example.com',
+        address: '14 Marina Road, Lagos Island, Lagos',
+      };
+      this.phone = this.returningRecord.phone;
+      this.email = this.returningRecord.email;
+      this.cdr.markForCheck();
+    }, 900);
+  }
+
+  startEditingReturningField(field: 'phone' | 'email' | 'address') {
+    this.editingReturningField = field;
+  }
+
+  confirmReturningField(field: 'phone' | 'email' | 'address', value: string) {
+    if (!this.returningRecord) return;
+    this.returningRecord = { ...this.returningRecord, [field]: value };
+    if (field === 'phone') this.phone = value;
+    if (field === 'email') this.email = value;
+    this.editingReturningField = null;
   }
 
   /** The lender's own brand color, driving every accent in this portal (CTA, progress, focus rings) — falls back to the original signature purple for products created before branding existed. */
@@ -497,12 +668,22 @@ export class ApplyComponent implements OnInit, OnDestroy {
     this.loanAmount = String(Math.min(+digits || 0, max));
   }
 
+  /**
+   * `minRepayments`/`maxRepayments` (the wizard's "Number of Repayments" fields) previously had
+   * no effect anywhere on the borrower portal — only `minTenor`/`maxTenor` bounded the slider.
+   * Intersect both so a lender's configured repayment-count limits actually constrain what a
+   * borrower can select, on top of the overall tenor range.
+   */
   get minTenorBound(): number {
-    return +(this.product.minTenor || 1);
+    const tenorMin = +(this.product.minTenor || 1);
+    const repayMin = this.product.minRepayments ? +this.product.minRepayments : null;
+    return repayMin != null ? Math.max(tenorMin, repayMin) : tenorMin;
   }
 
   get maxTenorBound(): number {
-    return this.eligibilityResult ? this.eligibilityResult.tenorMonths : +(this.product.maxTenor || 12);
+    const tenorMax = this.eligibilityResult ? this.eligibilityResult.tenorMonths : +(this.product.maxTenor || 12);
+    const repayMax = this.product.maxRepayments ? +this.product.maxRepayments : null;
+    return repayMax != null ? Math.min(tenorMax, repayMax) : tenorMax;
   }
 
   /** Gates the footer Continue button per-step for state that isn't a simple required-field check. */

@@ -43,8 +43,8 @@ export const LOAN_TYPES: LoanTypeOption[] = [
   },
   {
     id: 'public', label: 'Public Sector Loan', desc: 'Loans for government employees',
-    detail: 'Designed for federal and state civil servants. Verifies employment through IPPIS or Remita, with deductions processed through payroll.',
-    color: '#F79009', bg: '#FEF3C7', tags: ['Remita', 'IPPIS'],
+    detail: 'Designed for federal and state civil servants. Verifies employment through WACS or Remita, with deductions processed through payroll.',
+    color: '#F79009', bg: '#FEF3C7', tags: ['Remita', 'WACS'],
   },
   {
     id: 'school', label: 'School Fees Loan', desc: 'Help parents and students pay school fees',
@@ -692,7 +692,7 @@ export class CreateLoanComponent implements OnInit {
     if (this.config.identityPhoneOtp) labels.push('Phone OTP');
     if (this.config.identityEmailOtp) labels.push('Email OTP');
     if (this.config.incomeRemita) labels.push('Remita');
-    if (this.config.incomeIppis) labels.push('IPPIS');
+    if (this.config.incomeIppis) labels.push('WACS');
     if (this.config.incomeBankStatement) labels.push('Bank Statement');
     return labels;
   }
@@ -719,7 +719,7 @@ export class CreateLoanComponent implements OnInit {
   private buildIncomeChannels(): IncomeChannelConfig[] {
     const channels: IncomeChannelConfig[] = [];
     if (this.config.incomeRemita) channels.push({ id: 'remita', label: 'Remita', desc: 'Salary verification via Remita', status: 'pending' });
-    if (this.config.incomeIppis) channels.push({ id: 'ippis', label: 'IPPIS', desc: 'Federal payroll verification', status: 'pending' });
+    if (this.config.incomeIppis) channels.push({ id: 'wacs', label: 'WACS', desc: 'State government payroll verification', status: 'pending' });
     if (this.config.incomeBankStatement) channels.push({ id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'pending' });
     return channels;
   }

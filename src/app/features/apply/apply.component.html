@@ -101,7 +101,7 @@
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="15" r="1.4" fill="currentColor"/></svg>
                     </div>
                     <span class="stat-label">Loan amount</span>
-                    <span class="stat-value">₦{{ (+product.minAmount).toLocaleString() }}–₦{{ (+product.maxAmount).toLocaleString() }}</span>
+                    <span class="stat-value">₦{{ amountMin.toLocaleString() }}–₦{{ amountMax.toLocaleString() }}</span>
                   </div>
                 }
                 @if (product.minTenor && product.maxTenor) {
@@ -179,6 +179,72 @@
         </div>
       }
 
+      <!-- RETURNING CUSTOMER CHECK -->
+      @if (currentStep.id === 'returning') {
+        <div class="screen">
+          @if (checkingReturningCustomer) {
+            <div class="screen processing-screen">
+              <div class="loader-ring"></div>
+              <p class="processing-text">Checking your details…</p>
+            </div>
+          } @else if (isReturningCustomer && returningRecord) {
+            <p class="screen-eyebrow">Welcome back</p>
+            <h2 class="screen-headline sm">We found your<br>details</h2>
+            <p class="screen-body-sm">These are on file from a previous application. Edit anything that's changed.</p>
+
+            <div class="form-stack">
+              @if (editingReturningField === 'phone') {
+                <div class="dark-field">
+                  <label class="dark-label">Phone number</label>
+                  <input class="dark-input" type="tel" [(ngModel)]="returningRecord.phone" (blur)="confirmReturningField('phone', returningRecord.phone)" />
+                </div>
+              } @else {
+                <app-readonly-field label="Phone number" [value]="returningRecord.phone">
+                </app-readonly-field>
+                <button class="edit-returning-btn" type="button" (click)="startEditingReturningField('phone')">Edit phone number</button>
+              }
+
+              @if (editingReturningField === 'email') {
+                <div class="dark-field">
+                  <label class="dark-label">Email address</label>
+                  <input class="dark-input" type="email" [(ngModel)]="returningRecord.email" (blur)="confirmReturningField('email', returningRecord.email)" />
+                </div>
+              } @else {
+                <app-readonly-field label="Email address" [value]="returningRecord.email">
+                </app-readonly-field>
+                <button class="edit-returning-btn" type="button" (click)="startEditingReturningField('email')">Edit email address</button>
+              }
+
+              @if (editingReturningField === 'address') {
+                <div class="dark-field">
+                  <label class="dark-label">Address</label>
+                  <input class="dark-input" type="text" [(ngModel)]="returningRecord.address" (blur)="confirmReturningField('address', returningRecord.address)" />
+                </div>
+              } @else {
+                <app-readonly-field label="Address" [value]="returningRecord.address">
+                </app-readonly-field>
+                <button class="edit-returning-btn" type="button" (click)="startEditingReturningField('address')">Edit address</button>
+              }
+            </div>
+          } @else {
+            <p class="screen-eyebrow">Quick question</p>
+            <h2 class="screen-headline sm">Have you applied<br>with us before?</h2>
+            <p class="screen-body-sm">We'll pick up where you left off if you have.</p>
+
+            <div class="customer-status-cards">
+              <button class="customer-status-card" (click)="chooseCustomerStatus(true)">
+                <span class="customer-status-title">Returning customer</span>
+                <span class="customer-status-sub">I've applied for a loan with this lender before</span>
+              </button>
+              <button class="customer-status-card" (click)="chooseCustomerStatus(false)">
+                <span class="customer-status-title">New here</span>
+                <span class="customer-status-sub">This is my first time applying</span>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
       <!-- STEP 1: INCOME & EMPLOYMENT -->
       @if (currentStep.id === 'income') {
         @if (isCalculatingEligibility) {
@@ -215,47 +281,102 @@
                 <input class="dark-input" type="text" inputmode="numeric" placeholder="250,000" [ngModel]="formatAmount(monthlyIncome)" (ngModelChange)="onMoneyInput('monthlyIncome', $event)" />
               </div>
 
-              @if (incomeChannel === 'ippis') {
+              @if (incomeChannel === 'wacs') {
+                <!-- WACS: BVN -> OTP -> WACS number -> bank account -> name match -->
                 <div class="dark-field">
-                  <label class="dark-label">IPPIS Number</label>
+                  <label class="dark-label">Bank Verification Number (BVN)</label>
                   <div class="verify-field-row">
-                    <input class="dark-input" type="text" placeholder="e.g. IPPIS/2024/00821" [(ngModel)]="ippisNumber" [disabled]="ippisVerified" />
-                    @if (ippisVerified) {
+                    <input class="dark-input" type="tel" maxlength="11" placeholder="11-digit BVN" [(ngModel)]="wacsBvn" [disabled]="wacsBvnVerified" />
+                    @if (wacsBvnVerified) {
                       <div class="verify-badge">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         Verified
                       </div>
                     } @else {
-                      <button class="verify-btn" type="button" [disabled]="!ippisNumber || ippisVerifying" (click)="verifyIppis()">
-                        {{ ippisVerifying ? 'Verifying…' : 'Verify' }}
+                      <button class="verify-btn" type="button" [disabled]="wacsBvn.length !== 11 || wacsBvnSendingOtp" (click)="sendWacsBvnOtp()">
+                        {{ wacsBvnSendingOtp ? 'Sending OTP…' : 'Verify via OTP' }}
                       </button>
                     }
                   </div>
-                  @if (ippisVerified) { <p class="screen-notice">Work details fetched: {{ employerName }}.</p> }
                 </div>
+
+                @if (wacsBvnVerified) {
+                  <div class="dark-field">
+                    <label class="dark-label">WACS Number</label>
+                    <input class="dark-input" type="text" placeholder="e.g. WACS/2024/00821" [(ngModel)]="wacsNumber" />
+                  </div>
+
+                  <div class="dark-field-row">
+                    <div class="dark-field">
+                      <label class="dark-label">Bank name</label>
+                      <app-bank-select [value]="wacsBankName" [disabled]="wacsAccountFetched" (valueChange)="wacsBankName = $event" />
+                    </div>
+                    <div class="dark-field">
+                      <label class="dark-label">Account number</label>
+                      <input class="dark-input" type="text" maxlength="10" placeholder="0123456789" [(ngModel)]="wacsAccountNumber" [disabled]="wacsAccountFetched" />
+                    </div>
+                  </div>
+                  <div class="verify-field-row">
+                    @if (wacsAccountFetched) {
+                      <div class="verify-badge" [class.mismatch]="!wacsAccountNameMatches">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        {{ wacsAccountName }}
+                      </div>
+                    } @else {
+                      <button class="verify-btn" type="button" [disabled]="!wacsBankName || !wacsAccountNumber || !wacsNumber || wacsFetchingAccount" (click)="fetchWacsAccountDetails()">
+                        {{ wacsFetchingAccount ? 'Fetching…' : 'Fetch account details' }}
+                      </button>
+                    }
+                  </div>
+                  @if (wacsAccountFetched && !wacsAccountNameMatches) {
+                    <p class="screen-notice error">The name on this account doesn't match your BVN/personal information — please check the bank and account number.</p>
+                  }
+                }
               } @else if (incomeChannel === 'remita') {
+                <!-- Remita: bank account -> name match -> work details -->
                 <div class="dark-field-row">
                   <div class="dark-field">
                     <label class="dark-label">Bank name</label>
-                    <input class="dark-input" type="text" placeholder="e.g. GTBank" [(ngModel)]="bankName" [disabled]="remitaVerified" />
+                    <app-bank-select [value]="bankName" [disabled]="remitaAccountFetched" (valueChange)="bankName = $event" />
                   </div>
                   <div class="dark-field">
                     <label class="dark-label">Account number</label>
-                    <input class="dark-input" type="text" maxlength="10" placeholder="0123456789" [(ngModel)]="bankAccountNumber" [disabled]="remitaVerified" />
+                    <input class="dark-input" type="text" maxlength="10" placeholder="0123456789" [(ngModel)]="bankAccountNumber" [disabled]="remitaAccountFetched" />
                   </div>
                 </div>
                 <div class="verify-field-row">
-                  @if (remitaVerified) {
-                    <div class="verify-badge">
+                  @if (remitaAccountFetched) {
+                    <div class="verify-badge" [class.mismatch]="!remitaAccountNameMatches">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                       {{ bankAccountName }}
                     </div>
                   } @else {
-                    <button class="verify-btn" type="button" [disabled]="!bankName || !bankAccountNumber || remitaVerifying" (click)="verifyRemita()">
-                      {{ remitaVerifying ? 'Verifying…' : 'Verify account' }}
+                    <button class="verify-btn" type="button" [disabled]="!bankName || !bankAccountNumber || remitaFetchingAccount" (click)="fetchRemitaAccountDetails()">
+                      {{ remitaFetchingAccount ? 'Fetching…' : 'Fetch account details' }}
                     </button>
                   }
                 </div>
+                @if (remitaAccountFetched && !remitaAccountNameMatches) {
+                  <p class="screen-notice error">The name on this account doesn't match your personal information — please check the bank and account number.</p>
+                }
+
+                @if (remitaAccountFetched && remitaAccountNameMatches) {
+                  <div class="verify-field-row">
+                    @if (remitaWorkFetched) {
+                      <div class="verify-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        {{ remitaWorkplace }}
+                      </div>
+                    } @else {
+                      <button class="verify-btn" type="button" [disabled]="remitaFetchingWork" (click)="fetchRemitaWorkDetails()">
+                        {{ remitaFetchingWork ? 'Fetching…' : 'Fetch work details' }}
+                      </button>
+                    }
+                  </div>
+                  @if (remitaWorkFetched) {
+                    <p class="screen-notice">Work details fetched — {{ bankAccountName }}, {{ remitaWorkplace }}.</p>
+                  }
+                }
               } @else if (!isPayrollVerifiedIncome) {
                 <div class="dark-field">
                   <label class="dark-label">Employment type</label>
@@ -302,7 +423,7 @@
             <p class="screen-eyebrow">Repayment period — {{ loanTenor }} {{ product.tenorUnit === 'Days' ? 'day(s)' : product.tenorUnit === 'Weeks' ? 'week(s)' : product.tenorUnit === 'Years' ? 'year(s)' : 'month(s)' }}</p>
             <input class="dark-slider" type="range"
               [min]="minTenorBound" [max]="maxTenorBound" step="1"
-              [(ngModel)]="loanTenor" />
+              [ngModel]="loanTenor" (ngModelChange)="onTenorChange($event)" />
             <div class="slider-limits">
               <span>{{ minTenorBound }}</span>
               <span>{{ maxTenorBound }}</span>
@@ -346,12 +467,7 @@
             @for (field of pendingIdentityFields; track field.type; let i = $index) {
               <div class="identity-field-row" [class.locked]="!isIdentityFieldUnlocked(i)" [class.verified]="isIdentityFieldVerified(i)">
                 @if (isIdentityFieldVerified(i)) {
-                  <div class="identity-verified-row">
-                    <div class="doc-check">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
-                    <span>{{ field.label }} verified</span>
-                  </div>
+                  <app-readonly-field [label]="field.label" [value]="identityFieldValue(field.type)" [verified]="true" />
                 } @else {
                   <div class="dark-field">
                     <label class="dark-label">{{ field.type === 'bvn' ? 'Bank Verification Number (BVN)' : field.type === 'nin' ? 'National ID Number (NIN)' : field.label }}</label>
@@ -540,7 +656,7 @@
     </main>
 
     <!-- ── FOOTER ──────────────────────────────────────────────────────────── -->
-    @if (!isCalculatingEligibility) {
+    @if (!isCalculatingEligibility && !(currentStep.id === 'returning' && isReturningCustomer === null)) {
       <div class="apply-footer">
         @if (!isFirst) {
           <button class="back-btn" (click)="back()">

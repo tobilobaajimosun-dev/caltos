@@ -66,6 +66,8 @@ export { ProgressBarComponent } from './progress-bar/progress-bar.component';
 export { TabsComponent } from './tabs/tabs.component';
 export { SelectComponent } from './select/select.component';
 export { SplitButtonComponent } from './split-button/split-button.component';
+export { BankSelectComponent } from './bank-select/bank-select.component';
+export { ReadonlyFieldComponent } from './readonly-field/readonly-field.component';
 
 export type { BadgeStatus } from './status-badge/status-badge.component';
 export type { ButtonVariant } from './button/button.component';
