@@ -159,8 +159,6 @@
           <!-- ── TABS (underline style, always visible) ── -->
           <app-tabs [tabs]="overviewTabItems" [activeTab]="activeTab" (activeTabChange)="setTab($any($event))" />
 
-          <div class="ov2-divider"></div>
-
       </div>
 
       <!-- ═══ OVERVIEW ═══ -->
@@ -805,20 +803,78 @@
             </div>
 
             <div class="ob-field-group">
-              <label class="ob-label">Recipient Type</label>
+              <label class="ob-label">Customers &amp; Teams</label>
               <app-checkbox label="Customers" [checked]="editRecipientCustomers" (checkedChange)="editRecipientCustomers = $event" />
               <app-checkbox label="Teams" [checked]="editRecipientTeams" (checkedChange)="toggleEditRecipientTeams($event)" />
             </div>
 
             @if (editRecipientTeams) {
               <div class="ob-field-group">
-                <label class="ob-label">Team members</label>
-                @for (m of teamsService.members(); track m.id) {
-                  <app-checkbox
-                    [label]="m.firstName + ' ' + m.lastName + ' — ' + m.role"
-                    [checked]="editTeamMemberIds.includes(m.id)"
-                    (checkedChange)="toggleEditTeamMember(m.id, $event)" />
-                }
+                <label class="ob-label">Role</label>
+                <div class="picker-combo">
+                  <input class="ob-input" type="text" placeholder="Search a role…"
+                    [value]="editTeamsRole ?? roleSearchText"
+                    (focus)="roleDropdownOpen = true; editTeamsRole = null"
+                    (input)="roleSearchText = $any($event.target).value" />
+                  <button type="button" class="picker-caret" (click)="roleDropdownOpen = !roleDropdownOpen">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  @if (roleDropdownOpen) {
+                    <div class="picker-dropdown">
+                      @for (role of filteredRoles; track role) {
+                        <button type="button" class="picker-dropdown-item" (click)="selectRole(role)">{{ role }}</button>
+                      }
+                      @if (!filteredRoles.length) { <div class="picker-dropdown-empty">No matching role</div> }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (editTeamsRole) {
+                <div class="ob-field-group">
+                  <label class="ob-label">Team members — {{ editTeamsRole }}</label>
+                  <div class="picker-combo">
+                    <input class="ob-input" type="text" placeholder="Search team members…"
+                      [value]="memberSearchText"
+                      (focus)="memberDropdownOpen = true"
+                      (input)="memberSearchText = $any($event.target).value" />
+                    <button type="button" class="picker-caret" (click)="memberDropdownOpen = !memberDropdownOpen">
+                      <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    @if (memberDropdownOpen) {
+                      <div class="picker-dropdown">
+                        @if (filteredRoleMembers.length) {
+                          <label class="picker-dropdown-item picker-select-all">
+                            <app-checkbox [checked]="allFilteredMembersSelected" (checkedChange)="toggleSelectAllFilteredMembers()" />
+                            <span>Select all</span>
+                          </label>
+                          @for (m of filteredRoleMembers; track m.id) {
+                            <label class="picker-dropdown-item">
+                              <app-checkbox [checked]="editTeamMemberIds.includes(m.id)" (checkedChange)="toggleEditTeamMember(m.id, $event)" />
+                              <span>{{ m.firstName }} {{ m.lastName }}</span>
+                            </label>
+                          }
+                        } @else {
+                          <div class="picker-dropdown-empty">No team members with this role</div>
+                        }
+                      </div>
+                    }
+                  </div>
+                  @if (editTeamMemberIds.length) {
+                    <p class="picker-selected-summary">{{ editTeamMemberIds.length }} member{{ editTeamMemberIds.length === 1 ? '' : 's' }} selected</p>
+                  }
+                </div>
+              }
+            }
+
+            @if (editingEvent.key === 'loan_repayment_reminder') {
+              <div class="ob-field-group">
+                <label class="ob-label">Send reminder</label>
+                <app-select [options]="reminderTimingOptions" [value]="editReminderTiming" (valueChange)="editReminderTiming = $event" />
+              </div>
+              <div class="ob-field-group">
+                <label class="ob-label">Frequency</label>
+                <app-select [options]="reminderFrequencyOptions" [value]="editReminderFrequency" (valueChange)="editReminderFrequency = $event" />
               </div>
             }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
 
 export type ChartType = 'line' | 'bar' | 'grouped-bar' | 'area';
 
@@ -16,6 +16,7 @@ export interface ChartSeries {
 const WIDTH = 600;
 const HEIGHT = 240;
 const PADDING = 24;
+const AXIS_PADDING_BOTTOM = 20;
 
 @Component({
   selector: 'app-chart',
@@ -35,6 +36,11 @@ export class ChartComponent {
   readonly chartHeight = HEIGHT;
   readonly chartWidth = WIDTH;
 
+  private readonly svgEl = viewChild<ElementRef<SVGSVGElement>>('svgRef');
+
+  private readonly plotBottom = HEIGHT - PADDING - AXIS_PADDING_BOTTOM;
+  private readonly plotHeight = HEIGHT - PADDING - AXIS_PADDING_BOTTOM - PADDING;
+
   private readonly maxValue = computed(() => Math.max(1, ...this.data().map((d) => d.value)));
 
   private readonly seriesMax = computed(() => {
@@ -53,6 +59,15 @@ export class ChartComponent {
     return Math.max(1, ...s.flatMap((ser) => ser.data.map((d) => d.value)));
   });
 
+  readonly labels = computed(() => (this.series().length ? this.series()[0].data.map((d) => d.label) : this.data().map((d) => d.label)));
+
+  readonly labelPositions = computed(() => {
+    const labels = this.labels();
+    if (!labels.length) return [];
+    const step = (WIDTH - PADDING * 2) / Math.max(1, labels.length - 1);
+    return labels.map((label, i) => ({ x: PADDING + i * step, label }));
+  });
+
   readonly points = computed(() => {
     const d = this.data();
     if (!d.length) return [];
@@ -60,7 +75,7 @@ export class ChartComponent {
     const max = this.maxValue();
     return d.map((point, i) => ({
       x: PADDING + i * step,
-      y: HEIGHT - PADDING - (point.value / max) * (HEIGHT - PADDING * 2),
+      y: this.plotBottom - (point.value / max) * this.plotHeight,
       label: point.label,
       value: point.value,
     }));
@@ -77,10 +92,10 @@ export class ChartComponent {
     const barWidth = Math.min(40, slot * 0.5);
     const max = this.maxValue();
     return d.map((point, i) => {
-      const barHeight = (point.value / max) * (HEIGHT - PADDING * 2);
+      const barHeight = (point.value / max) * this.plotHeight;
       return {
         x: PADDING + i * slot + (slot - barWidth) / 2,
-        y: HEIGHT - PADDING - barHeight,
+        y: this.plotBottom - barHeight,
         width: barWidth,
         height: barHeight,
         label: point.label,
@@ -104,10 +119,10 @@ export class ChartComponent {
       s.forEach((ser, si) => {
         const point = ser.data[i];
         if (!point) return;
-        const barHeight = (point.value / max) * (HEIGHT - PADDING * 2);
+        const barHeight = (point.value / max) * this.plotHeight;
         out.push({
           x: groupX + si * barWidth,
-          y: HEIGHT - PADDING - barHeight,
+          y: this.plotBottom - barHeight,
           width: Math.max(2, barWidth - 2),
           height: barHeight,
           color: ser.color,
@@ -118,6 +133,9 @@ export class ChartComponent {
     }
     return out;
   });
+
+  /** Horizontal gridlines at 0/25/50/75/100% of the plot height. */
+  readonly gridlines = computed(() => [0, 0.25, 0.5, 0.75, 1].map((f) => this.plotBottom - f * this.plotHeight));
 
   /** Stacked area layers — each series stacked on top of the previous one. */
   readonly areaLayers = computed(() => {
@@ -130,12 +148,12 @@ export class ChartComponent {
     return s.map((ser) => {
       const topPoints = ser.data.map((point, i) => {
         runningTotals[i] += point.value;
-        const y = HEIGHT - PADDING - (runningTotals[i] / max) * (HEIGHT - PADDING * 2);
+        const y = this.plotBottom - (runningTotals[i] / max) * this.plotHeight;
         return { x: PADDING + i * step, y };
       });
-      const baseline = HEIGHT - PADDING;
+      const baseline = this.plotBottom;
       const bottomPoints = topPoints
-        .map((p, i) => ({ x: p.x, y: HEIGHT - PADDING - ((runningTotals[i] - ser.data[i].value) / max) * (HEIGHT - PADDING * 2) }))
+        .map((p, i) => ({ x: p.x, y: this.plotBottom - ((runningTotals[i] - ser.data[i].value) / max) * this.plotHeight }))
         .reverse();
       const path =
         topPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ') +
@@ -145,4 +163,45 @@ export class ChartComponent {
       return { name: ser.name, color: ser.color, path };
     });
   });
+
+  // ── Hover / tooltip ──────────────────────────────────────────────────────────
+  hoveredIndex = signal<number | null>(null);
+  tooltipLeftPct = signal(0);
+
+  /** What the tooltip shows for the currently hovered index — one row per series (or the single line/bar). */
+  readonly tooltipRows = computed(() => {
+    const i = this.hoveredIndex();
+    if (i === null) return [];
+    const s = this.series();
+    if (s.length) {
+      return s.map((ser) => ({ name: ser.name, color: ser.color, value: ser.data[i]?.value ?? 0 }));
+    }
+    const d = this.data();
+    const point = d[i];
+    if (!point) return [];
+    return [{ name: point.label, color: this.color(), value: point.value }];
+  });
+
+  readonly tooltipLabel = computed(() => {
+    const i = this.hoveredIndex();
+    return i === null ? '' : (this.labels()[i] ?? '');
+  });
+
+  onMouseMove(event: MouseEvent) {
+    const svg = this.svgEl()?.nativeElement;
+    const labels = this.labels();
+    if (!svg || !labels.length) return;
+    const rect = svg.getBoundingClientRect();
+    const relX = (event.clientX - rect.left) / rect.width;
+    const step = (WIDTH - PADDING * 2) / Math.max(1, labels.length - 1);
+    const svgX = relX * WIDTH;
+    const index = Math.round((svgX - PADDING) / step);
+    const clamped = Math.max(0, Math.min(labels.length - 1, index));
+    this.hoveredIndex.set(clamped);
+    this.tooltipLeftPct.set(((PADDING + clamped * step) / WIDTH) * 100);
+  }
+
+  onMouseLeave() {
+    this.hoveredIndex.set(null);
+  }
 }

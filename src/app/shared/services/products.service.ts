@@ -128,6 +128,9 @@ export interface NotificationEventConfig {
   recipientTeamMemberIds: string[];
   channels: DeliveryChannel[];
   active: boolean;
+  /** Only meaningful (and only editable) for the 'loan_repayment_reminder' event. */
+  reminderTiming?: string;
+  reminderFrequency?: string;
 }
 
 const NOTIFICATION_EVENT_LABELS: Record<NotificationEventKey, string> = {

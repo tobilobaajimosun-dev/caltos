@@ -817,8 +817,6 @@
 
 .setup-card-desc { font-family: var(--font-body); font-size: 12px; color: var(--color-grey-header); margin: 0; line-height: 1.5; }
 
-.ov2-tabs { border-bottom: none; }
-
 /* Bio details grid */
 .bio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
@@ -887,7 +885,7 @@
 /* ══════════════════════════════════════
    TAB CONTENT (non-overview tabs)
 ══════════════════════════════════════ */
-.tab-body { padding: 24px 32px; display: flex; flex-direction: column; gap: 12px; }
+.tab-body { padding: 12px 32px 24px; display: flex; flex-direction: column; gap: 12px; }
 
 .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
@@ -1506,6 +1504,66 @@ table.ref-table {
 .ob-input-reveal-wrap {
   position: relative;
   .ob-input { padding-right: 40px; }
+}
+
+.picker-combo {
+  position: relative;
+  .ob-input { padding-right: 36px; }
+}
+
+.picker-caret {
+  position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; color: var(--color-grey-header); padding: 0;
+}
+
+.picker-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  padding: 4px;
+}
+
+.picker-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  color: var(--color-header);
+  cursor: pointer;
+  &:hover { background: var(--surface-overlay); }
+}
+
+.picker-select-all {
+  border-bottom: 1px solid var(--color-stroke);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.picker-dropdown-empty {
+  padding: 10px;
+  font-size: 12px;
+  color: var(--color-grey-header);
+}
+
+.picker-selected-summary {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin: 2px 0 0;
 }
 
 .ob-input-reveal-btn {

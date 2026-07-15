@@ -451,10 +451,6 @@ export class CreateLoanComponent implements OnInit {
   }
 
   selectLoanType(id: string) {
-    if (id === 'bnpl') {
-      this.router.navigate(['/products/create-bnpl']);
-      return;
-    }
     const preset = TEMPLATE_PRESETS[id];
     if (preset) {
       this.config = { ...this.config, ...preset, template: id };

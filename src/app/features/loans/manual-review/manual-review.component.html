@@ -55,6 +55,16 @@
       <div class="review-row"><span class="review-label">Amount</span><span class="review-value">₦{{ loan.amount.toLocaleString() }}</span></div>
       <div class="review-row"><span class="review-label">Eligibility score</span><span class="review-value">{{ loan.eligibilityScore.score }} / 100</span></div>
 
+      @if (loan.eligibilityScore.breakdown; as breakdown) {
+        <div class="review-section">
+          <p class="review-section-title">How we arrived at this score</p>
+          <div class="score-breakdown-row"><span>Income</span><strong>{{ breakdown.incomeScore | number:'1.0-0' }}</strong></div>
+          <div class="score-breakdown-row"><span>Employment stability</span><strong>{{ breakdown.stabilityScore | number:'1.0-0' }}</strong></div>
+          <div class="score-breakdown-row"><span>Repayment history</span><strong>{{ breakdown.repaymentHistoryScore | number:'1.0-0' }}</strong></div>
+          <div class="score-breakdown-row"><span>Exposure</span><strong>{{ breakdown.exposureScore | number:'1.0-0' }}</strong></div>
+        </div>
+      }
+
       <div class="review-section">
         <p class="review-section-title">Reason flagged</p>
         <ul class="reason-list-vertical">
@@ -63,6 +73,18 @@
           }
         </ul>
       </div>
+
+      @if (loan.status === 'documents_review') {
+        <div class="review-section">
+          <p class="review-section-title">Deductions &amp; disbursement</p>
+          @if (allDeductionChannelsLive) {
+            <p class="review-value">Deductions are set up and live.</p>
+            <app-button variant="primary" label="Disburse" (clicked)="disburse()" />
+          } @else {
+            <app-button variant="outline" label="Setup deductions" (clicked)="openDeductionSetup()" />
+          }
+        </div>
+      }
 
       <div class="review-section">
         <app-textarea label="Note (optional)" placeholder="Add context for this decision..." [value]="note()" (valueChange)="note.set($event)" />
@@ -75,6 +97,21 @@
     <app-button variant="primary" label="Approve" (clicked)="resolve('approved')" />
   </div>
 </app-drawer>
+
+<app-modal [isOpen]="showDeductionModal" title="Setup deductions & mandates" size="sm" (closed)="closeDeductionSetup()">
+  @if (selected(); as loan) {
+    <div class="deduction-modal-body">
+      <p class="review-value">Confirm mandate setup for every deduction channel snapshotted on this loan.</p>
+      @for (channel of loan.deductionChannelStatus; track channel.rail) {
+        <div class="review-row"><span class="review-label">{{ channel.rail }}</span><app-status-badge [status]="channel.status === 'live' ? 'active' : 'pending'" [label]="channel.status" /></div>
+      }
+    </div>
+  }
+  <div modalFooter class="review-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeDeductionSetup()" />
+    <app-button variant="primary" label="Confirm mandate setup" (clicked)="confirmDeductionSetup()" />
+  </div>
+</app-modal>
 
 @if (toastVisible) {
   <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />

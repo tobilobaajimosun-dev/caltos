@@ -6,8 +6,9 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent } from '../../../shared/components';
 import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, NotificationEventConfig, NotificationEventKey, DEFAULT_NOTIFICATION_EVENTS } from '../../../shared/services/products.service';
 import { DeliveryChannel } from '../../../shared/services/notification-delivery.service';
-import { TeamsService } from '../../../shared/services/teams.service';
+import { TeamsService, Role } from '../../../shared/services/teams.service';
 import { formatThousands } from '../../../shared/utils/number-format';
+import { fuzzyScore } from '../../../shared/utils/fuzzy-match';
 import {
   ArrowLeft02Icon,
   PauseIcon,
@@ -469,6 +470,59 @@ export class ProductDetailComponent implements OnInit {
   editRecipientTeams = false;
   editTeamMemberIds: string[] = [];
   editChannels: DeliveryChannel[] = [];
+  editReminderTiming = '';
+  editReminderFrequency = '';
+
+  readonly allRoles: Role[] = ['Admin', 'Loan Officer', 'Manager', 'Auditor', 'Custom'];
+  readonly reminderTimingOptions: SelectOption[] = [
+    { value: '7', label: '7 days before due date' },
+    { value: '3', label: '3 days before due date' },
+    { value: '1', label: '1 day before due date' },
+    { value: '0', label: 'On the due date' },
+  ];
+  readonly reminderFrequencyOptions: SelectOption[] = ['Weekly', 'Bi-weekly', 'Monthly'].map((v) => ({ value: v, label: v }));
+
+  // Two-stage role → member picker for the "Teams" recipient type.
+  roleDropdownOpen = false;
+  roleSearchText = '';
+  editTeamsRole: Role | null = null;
+  memberDropdownOpen = false;
+  memberSearchText = '';
+
+  get filteredRoles(): Role[] {
+    const q = this.roleSearchText;
+    return this.allRoles.filter((r) => fuzzyScore(r, q) !== null);
+  }
+
+  get filteredRoleMembers() {
+    if (!this.editTeamsRole) return [];
+    const q = this.memberSearchText;
+    return this.teamsService.members()
+      .filter((m) => m.role === this.editTeamsRole)
+      .filter((m) => fuzzyScore(`${m.firstName} ${m.lastName}`, q) !== null);
+  }
+
+  get allFilteredMembersSelected(): boolean {
+    const members = this.filteredRoleMembers;
+    return members.length > 0 && members.every((m) => this.editTeamMemberIds.includes(m.id));
+  }
+
+  toggleSelectAllFilteredMembers() {
+    const ids = this.filteredRoleMembers.map((m) => m.id);
+    if (this.allFilteredMembersSelected) {
+      this.editTeamMemberIds = this.editTeamMemberIds.filter((id) => !ids.includes(id));
+    } else {
+      this.editTeamMemberIds = [...new Set([...this.editTeamMemberIds, ...ids])];
+    }
+  }
+
+  selectRole(role: Role) {
+    this.editTeamsRole = role;
+    this.roleDropdownOpen = false;
+    this.roleSearchText = '';
+    this.memberDropdownOpen = true;
+    this.memberSearchText = '';
+  }
 
   openEditEvent(evt: NotificationEventConfig) {
     this.editingEvent = evt;
@@ -476,6 +530,16 @@ export class ProductDetailComponent implements OnInit {
     this.editRecipientTeams = evt.recipientTeamMemberIds.length > 0;
     this.editTeamMemberIds = [...evt.recipientTeamMemberIds];
     this.editChannels = [...evt.channels];
+    this.editReminderTiming = evt.reminderTiming ?? '3';
+    this.editReminderFrequency = evt.reminderFrequency ?? 'Weekly';
+    // Preselect whichever role the loaded recipients mostly belong to, so the picker
+    // isn't empty when reopening an event that already has team recipients.
+    const firstMember = this.teamsService.members().find((m) => this.editTeamMemberIds.includes(m.id));
+    this.editTeamsRole = firstMember?.role ?? null;
+    this.roleDropdownOpen = false;
+    this.memberDropdownOpen = false;
+    this.roleSearchText = '';
+    this.memberSearchText = '';
     this.openNotificationMenuKey = null;
   }
 
@@ -485,7 +549,10 @@ export class ProductDetailComponent implements OnInit {
 
   toggleEditRecipientTeams(checked: boolean) {
     this.editRecipientTeams = checked;
-    if (!checked) this.editTeamMemberIds = [];
+    if (!checked) {
+      this.editTeamMemberIds = [];
+      this.editTeamsRole = null;
+    }
   }
 
   toggleEditTeamMember(id: string, checked: boolean) {
@@ -507,12 +574,14 @@ export class ProductDetailComponent implements OnInit {
 
   saveEditEvent() {
     if (!this.editingEvent || !this.editEventCanSave) return;
+    const isReminder = this.editingEvent.key === 'loan_repayment_reminder';
     const patched: NotificationEventConfig = {
       ...this.editingEvent,
       recipientCustomers: this.editRecipientCustomers,
       recipientTeamMemberIds: this.editRecipientTeams ? this.editTeamMemberIds : [],
       channels: this.editChannels,
       active: true,
+      ...(isReminder ? { reminderTiming: this.editReminderTiming, reminderFrequency: this.editReminderFrequency } : {}),
     };
     this.persistNotificationEvent(patched);
     this.closeEditEvent();
@@ -1095,10 +1164,13 @@ export class ProductDetailComponent implements OnInit {
       this.product = { ...this.product, status: 'deactivated' };
       return;
     }
+    const isFirstActivation = this.product.status === 'draft';
     const result = this.productsService.publish(this.productId);
     if (!result.success) return;
     this.product = { ...this.product, status: 'live' };
-    this.celebrateActivation();
+    // Reactivating a previously-live (deactivated) product is a routine resume, not a launch —
+    // the confetti celebration is reserved for a product's actual first-ever activation.
+    if (isFirstActivation) this.celebrateActivation();
   }
 
   /** Random-ish confetti piece styles, generated once per celebration so they don't reshuffle on every change-detection tick. */

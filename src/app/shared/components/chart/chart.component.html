@@ -1,31 +1,54 @@
-<svg class="chart" [attr.viewBox]="viewBox" preserveAspectRatio="none" role="img" [attr.aria-label]="type() + ' chart'">
-  @switch (type()) {
-    @case ('line') {
-      <path [attr.d]="linePath()" fill="none" [attr.stroke]="color()" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      @for (p of points(); track p.label) {
-        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3" [attr.fill]="color()">
-          <title>{{ p.label }}: {{ p.value }}</title>
-        </circle>
+<div class="chart-wrap">
+  <svg #svgRef class="chart" [attr.viewBox]="viewBox" preserveAspectRatio="none" role="img" [attr.aria-label]="type() + ' chart'"
+    (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
+
+    @for (gy of gridlines(); track gy) {
+      <line class="gridline" [attr.x1]="24" [attr.x2]="chartWidth - 24" [attr.y1]="gy" [attr.y2]="gy" />
+    }
+
+    @if (hoveredIndex() !== null) {
+      <line class="hover-guide" [attr.x1]="labelPositions()[hoveredIndex()!]?.x" [attr.x2]="labelPositions()[hoveredIndex()!]?.x" y1="24" [attr.y2]="chartHeight - 40" />
+    }
+
+    @switch (type()) {
+      @case ('line') {
+        <path [attr.d]="linePath()" fill="none" [attr.stroke]="color()" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        @for (p of points(); track p.label; let i = $index) {
+          <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="hoveredIndex() === i ? 5 : 3" [attr.fill]="color()" class="point" [class.hovered]="hoveredIndex() === i" />
+        }
+      }
+      @case ('grouped-bar') {
+        @for (b of groupedBars(); track b.x) {
+          <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="b.color" rx="2" class="bar" />
+        }
+      }
+      @case ('area') {
+        @for (layer of areaLayers(); track layer.name) {
+          <path [attr.d]="layer.path" [attr.fill]="layer.color" fill-opacity="0.75" stroke="none" />
+        }
+      }
+      @default {
+        @for (b of bars(); track b.label; let i = $index) {
+          <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="color()" rx="3" class="bar" [class.hovered]="hoveredIndex() === i" />
+        }
       }
     }
-    @case ('grouped-bar') {
-      @for (b of groupedBars(); track b.x) {
-        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="b.color" rx="2">
-          <title>{{ b.label }}: {{ b.value }}</title>
-        </rect>
-      }
+
+    @for (lp of labelPositions(); track lp.label) {
+      <text class="axis-label" [attr.x]="lp.x" [attr.y]="chartHeight - 6" text-anchor="middle">{{ lp.label }}</text>
     }
-    @case ('area') {
-      @for (layer of areaLayers(); track layer.name) {
-        <path [attr.d]="layer.path" [attr.fill]="layer.color" fill-opacity="0.75" stroke="none" />
+  </svg>
+
+  @if (hoveredIndex() !== null && tooltipRows().length) {
+    <div class="chart-tooltip" [style.left.%]="tooltipLeftPct()">
+      <div class="chart-tooltip-label">{{ tooltipLabel() }}</div>
+      @for (row of tooltipRows(); track row.name) {
+        <div class="chart-tooltip-row">
+          <span class="chart-tooltip-dot" [style.background]="row.color"></span>
+          <span class="chart-tooltip-name">{{ row.name }}</span>
+          <span class="chart-tooltip-value">{{ row.value.toLocaleString() }}</span>
+        </div>
       }
-    }
-    @default {
-      @for (b of bars(); track b.label) {
-        <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.width" [attr.height]="b.height" [attr.fill]="color()" rx="3">
-          <title>{{ b.label }}: {{ b.value }}</title>
-        </rect>
-      }
-    }
+    </div>
   }
-</svg>
+</div>

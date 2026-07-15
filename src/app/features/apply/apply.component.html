@@ -214,24 +214,68 @@
                 <label class="dark-label">Monthly net income (₦)</label>
                 <input class="dark-input" type="text" inputmode="numeric" placeholder="250,000" [ngModel]="formatAmount(monthlyIncome)" (ngModelChange)="onMoneyInput('monthlyIncome', $event)" />
               </div>
-              <div class="dark-field">
-                <label class="dark-label">Employment type</label>
-                <div class="chip-row">
-                  @for (t of ['Salaried','Self-employed','Contract']; track t) {
-                    <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
+
+              @if (incomeChannel === 'ippis') {
+                <div class="dark-field">
+                  <label class="dark-label">IPPIS Number</label>
+                  <div class="verify-field-row">
+                    <input class="dark-input" type="text" placeholder="e.g. IPPIS/2024/00821" [(ngModel)]="ippisNumber" [disabled]="ippisVerified" />
+                    @if (ippisVerified) {
+                      <div class="verify-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Verified
+                      </div>
+                    } @else {
+                      <button class="verify-btn" type="button" [disabled]="!ippisNumber || ippisVerifying" (click)="verifyIppis()">
+                        {{ ippisVerifying ? 'Verifying…' : 'Verify' }}
+                      </button>
+                    }
+                  </div>
+                  @if (ippisVerified) { <p class="screen-notice">Work details fetched: {{ employerName }}.</p> }
+                </div>
+              } @else if (incomeChannel === 'remita') {
+                <div class="dark-field-row">
+                  <div class="dark-field">
+                    <label class="dark-label">Bank name</label>
+                    <input class="dark-input" type="text" placeholder="e.g. GTBank" [(ngModel)]="bankName" [disabled]="remitaVerified" />
+                  </div>
+                  <div class="dark-field">
+                    <label class="dark-label">Account number</label>
+                    <input class="dark-input" type="text" maxlength="10" placeholder="0123456789" [(ngModel)]="bankAccountNumber" [disabled]="remitaVerified" />
+                  </div>
+                </div>
+                <div class="verify-field-row">
+                  @if (remitaVerified) {
+                    <div class="verify-badge">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      {{ bankAccountName }}
+                    </div>
+                  } @else {
+                    <button class="verify-btn" type="button" [disabled]="!bankName || !bankAccountNumber || remitaVerifying" (click)="verifyRemita()">
+                      {{ remitaVerifying ? 'Verifying…' : 'Verify account' }}
+                    </button>
                   }
                 </div>
-              </div>
-              <div class="dark-field-row">
+              } @else if (!isPayrollVerifiedIncome) {
                 <div class="dark-field">
-                  <label class="dark-label">Employer name</label>
-                  <input class="dark-input" type="text" placeholder="e.g. First Bank" [(ngModel)]="employerName" />
+                  <label class="dark-label">Employment type</label>
+                  <div class="chip-row">
+                    @for (t of ['Salaried','Self-employed','Contract']; track t) {
+                      <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
+                    }
+                  </div>
                 </div>
-                <div class="dark-field">
-                  <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
-                  <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
+                <div class="dark-field-row">
+                  <div class="dark-field">
+                    <label class="dark-label">Employer name</label>
+                    <input class="dark-input" type="text" placeholder="e.g. First Bank" [(ngModel)]="employerName" />
+                  </div>
+                  <div class="dark-field">
+                    <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
+                    <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
+                  </div>
                 </div>
-              </div>
+              }
             </div>
           </div>
         }
@@ -246,29 +290,22 @@
             <p class="screen-notice error">{{ eligibilityResult.reasons[0] || "We couldn't approve an eligible amount based on the details provided." }}</p>
           } @else {
             <p class="screen-eyebrow">You're eligible for up to</p>
-            <div class="amount-display">
+            <div class="amount-edit-row">
               <span class="amount-currency">₦</span>
-              <span class="amount-value">{{ (+loanAmount).toLocaleString() }}</span>
+              <input class="amount-edit-input" type="text" inputmode="numeric"
+                [value]="formatAmount(loanAmount)" (input)="onAmountEdit($any($event.target).value); $any($event.target).value = formatAmount(loanAmount)" />
             </div>
-            <input class="dark-slider" type="range"
-              [min]="amountMin" [max]="eligibilityResult?.maxEligibleAmount || amountMax" step="5000"
-              [(ngModel)]="loanAmount" />
-            <div class="slider-limits">
-              <span>₦{{ amountMin.toLocaleString() }}</span>
-              <span>₦{{ (eligibilityResult?.maxEligibleAmount || amountMax).toLocaleString() }}</span>
-            </div>
+            <p class="amount-edit-hint">You can lower this amount, but not raise it above ₦{{ (eligibilityResult?.maxEligibleAmount || amountMax).toLocaleString() }}.</p>
 
             <div class="section-divider"></div>
 
-            <p class="screen-eyebrow">Repayment period</p>
-            <div class="tenor-grid" [style.grid-template-columns]="'repeat(' + Math.min(tenorOptions.length, 3) + ', 1fr)'">
-              @for (m of tenorOptions; track m) {
-                @if (!eligibilityResult || m <= eligibilityResult.tenorMonths) {
-                  <button class="tenor-chip" [class.active]="loanTenor === m.toString()" (click)="loanTenor = m.toString()">
-                    {{ m }} <span class="tenor-unit">{{ product.tenorUnit === 'Days' ? 'd' : product.tenorUnit === 'Weeks' ? 'wk' : product.tenorUnit === 'Years' ? 'yr' : 'mo' }}</span>
-                  </button>
-                }
-              }
+            <p class="screen-eyebrow">Repayment period — {{ loanTenor }} {{ product.tenorUnit === 'Days' ? 'day(s)' : product.tenorUnit === 'Weeks' ? 'week(s)' : product.tenorUnit === 'Years' ? 'year(s)' : 'month(s)' }}</p>
+            <input class="dark-slider" type="range"
+              [min]="minTenorBound" [max]="maxTenorBound" step="1"
+              [(ngModel)]="loanTenor" />
+            <div class="slider-limits">
+              <span>{{ minTenorBound }}</span>
+              <span>{{ maxTenorBound }}</span>
             </div>
 
             <div class="loan-est-row">
@@ -422,17 +459,24 @@
             }
           </div>
 
-          <div class="video-capture-actions">
-            @if (!cameraStream && !videoPlaybackUrl) {
-              <button class="cta-btn" (click)="startCamera()">Enable camera</button>
-            } @else if (videoPlaybackUrl) {
-              <button class="back-btn-wide" (click)="retakeVideo()">Retake video</button>
-            } @else if (!isRecording) {
-              <button class="cta-btn" (click)="startRecording()">Start recording</button>
-            } @else {
-              <button class="cta-btn submit-btn" (click)="stopRecording()">Stop recording</button>
-            }
-          </div>
+          @if (checkingVideo) {
+            <div class="checking-video-row">
+              <div class="loader-ring"></div>
+              <span>Checking video…</span>
+            </div>
+          } @else {
+            <div class="video-capture-actions">
+              @if (!cameraStream && !videoPlaybackUrl) {
+                <button class="cta-btn" (click)="startCamera()">Enable camera</button>
+              } @else if (videoPlaybackUrl) {
+                <button class="back-btn-wide" (click)="retakeVideo()">Retake video</button>
+              } @else if (!isRecording) {
+                <button class="cta-btn" (click)="startRecording()">Start recording</button>
+              } @else {
+                <button class="cta-btn submit-btn" (click)="stopRecording()">Stop recording</button>
+              }
+            </div>
+          }
         </div>
       }
 
@@ -508,7 +552,7 @@
         @if (isLast) {
           <button class="cta-btn submit-btn" [disabled]="!canContinue" (click)="submit()">Submit Application</button>
         } @else if (currentStep.id === 'income') {
-          <button class="cta-btn" [disabled]="!monthlyIncome || !employmentType || !employerName" (click)="calculateEligibility()">Calculate my eligible amount</button>
+          <button class="cta-btn" [disabled]="!incomeStepCanContinue" (click)="calculateEligibility()">Calculate my eligible amount</button>
         } @else {
           <button class="cta-btn" [disabled]="!canContinue" (click)="next()">
             {{ currentStep.id === 'welcome' ? 'Get Started' : 'Continue' }}
@@ -532,6 +576,21 @@
           <p class="otp-modal-destination">{{ otpModalDestinationCopy }}</p>
           <input class="dark-input" style="text-align:center; letter-spacing:6px; font-size:20px" type="tel" maxlength="6" placeholder="······" [(ngModel)]="otpModalCode" />
           <button class="cta-btn" [disabled]="otpModalCode.length !== 6" (click)="verifyOtpModal()">Verify</button>
+        </div>
+      </div>
+    }
+
+    <!-- ── AUTO-DISBURSE JOURNEY MODAL ─────────────────────────────────────── -->
+    @if (disburseJourneyVisible) {
+      <div class="otp-modal-backdrop">
+        <div class="journey-modal-dialog">
+          <div class="loader-ring"></div>
+          <p class="journey-phase-text">{{ disburseJourneyPhases[disburseJourneyPhaseIndex] }}</p>
+          <div class="journey-dot-row">
+            @for (phase of disburseJourneyPhases; track phase; let i = $index) {
+              <div class="journey-dot" [class.done]="i < disburseJourneyPhaseIndex" [class.active]="i === disburseJourneyPhaseIndex"></div>
+            }
+          </div>
         </div>
       </div>
     }

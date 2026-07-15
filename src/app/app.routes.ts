@@ -7,7 +7,6 @@ import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { ProductListComponent } from './features/products/product-list/product-list.component';
 import { ProductDetailComponent } from './features/products/product-detail/product-detail.component';
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
-import { CreateBnplComponent } from './features/products/create-bnpl/create-bnpl.component';
 import { ApplyComponent } from './features/apply/apply.component';
 import { TrackLoanComponent } from './features/track-loan/track-loan.component';
 import { RepaymentPortalComponent } from './features/portal/repayment-portal/repayment-portal.component';
@@ -73,7 +72,6 @@ export const routes: Routes = [
       { path: 'wallet', component: WalletComponent },
       { path: 'notifications', component: NotificationsPageComponent },
       { path: 'products', component: ProductListComponent },
-      { path: 'products/create-bnpl', component: CreateBnplComponent },
       { path: 'products/:id', component: ProductDetailComponent },
       { path: 'loans', component: LoanListComponent },
       { path: 'loans/processing', component: LoanProcessingComponent },

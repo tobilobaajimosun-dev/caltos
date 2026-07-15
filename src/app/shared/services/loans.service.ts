@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { ProductsService, ProductRecord, ProductConfig, DEFAULT_PRODUCT_CONFIG, DeductionChannelStatus, effectiveChannelStatus } from './products.service';
 import { NotificationDeliveryService } from './notification-delivery.service';
 import { idbGet, idbSet, WHOLE_COLLECTION_KEY } from '../utils/indexed-db';
+import { EligibilityBreakdown } from '../utils/eligibility-scoring';
 
 export type LoanStatus = 'new' | 'declined' | 'documents_review' | 'closed' | 'disbursed' | 'top_up_request';
 
@@ -15,6 +16,8 @@ export interface EligibilityScoreResult {
   score: number;
   maxEligibleAmount: number;
   tenor: number;
+  /** How the overall score was arrived at — absent on loans created before this field existed. */
+  breakdown?: EligibilityBreakdown;
 }
 
 export interface RequiredDocument {

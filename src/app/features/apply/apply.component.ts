@@ -134,6 +134,51 @@ export class ApplyComponent implements OnInit, OnDestroy {
   staffId = '';
   incomeChannel = '';
 
+  /** True when the product offers IPPIS/Remita income verification — for these, work details
+   * come from the channel's own "Verify" lookup instead of asking employment type/employer. */
+  get isPayrollVerifiedIncome(): boolean {
+    return !!(this.product.incomeIppis || this.product.incomeRemita);
+  }
+
+  ippisNumber = '';
+  ippisVerifying = false;
+  ippisVerified = false;
+
+  bankAccountName = '';
+  remitaVerifying = false;
+  remitaVerified = false;
+
+  verifyIppis() {
+    if (!this.ippisNumber) return;
+    this.ippisVerifying = true;
+    setTimeout(() => {
+      this.ippisVerifying = false;
+      this.ippisVerified = true;
+      this.employerName = 'Federal Ministry of Works';
+      this.cdr.markForCheck();
+    }, 1200);
+  }
+
+  verifyRemita() {
+    if (!this.bankAccountNumber || !this.bankName) return;
+    this.remitaVerifying = true;
+    setTimeout(() => {
+      this.remitaVerifying = false;
+      this.remitaVerified = true;
+      this.bankAccountName = 'Aisha Bello';
+      this.employerName = this.employerName || 'Lagos State Government';
+      this.cdr.markForCheck();
+    }, 1200);
+  }
+
+  get incomeStepCanContinue(): boolean {
+    if (!this.monthlyIncome) return false;
+    if (this.incomeChannel === 'ippis') return this.ippisVerified;
+    if (this.incomeChannel === 'remita') return this.remitaVerified;
+    if (this.isPayrollVerifiedIncome) return true;
+    return !!this.employmentType && !!this.employerName;
+  }
+
   /** Displays a plain-digit amount field with thousand separators. */
   formatAmount(value: string): string { return formatThousands(value); }
 
@@ -267,8 +312,9 @@ export class ApplyComponent implements OnInit, OnDestroy {
       this.eligibilityResult = result;
       this.isCalculatingEligibility = false;
       if (result.decision === 'approved') {
+        // Default to the maximum amount at the maximum duration — the borrower can only edit down from here.
         this.loanAmount = String(result.maxEligibleAmount);
-        this.loanTenor = String(Math.min(+this.loanTenor || result.tenorMonths, result.tenorMonths));
+        this.loanTenor = String(result.tenorMonths);
       }
       this.next();
       this.cdr.markForCheck();
@@ -444,6 +490,21 @@ export class ApplyComponent implements OnInit, OnDestroy {
   get isFirst(): boolean { return this.stepIndex === 0; }
   get isLast(): boolean { return this.stepIndex === this.steps.length - 1; }
 
+  /** Amount can only be edited down from the eligible max, never up. */
+  onAmountEdit(raw: string) {
+    const digits = raw.replace(/[^\d]/g, '');
+    const max = this.eligibilityResult?.maxEligibleAmount ?? this.amountMax;
+    this.loanAmount = String(Math.min(+digits || 0, max));
+  }
+
+  get minTenorBound(): number {
+    return +(this.product.minTenor || 1);
+  }
+
+  get maxTenorBound(): number {
+    return this.eligibilityResult ? this.eligibilityResult.tenorMonths : +(this.product.maxTenor || 12);
+  }
+
   /** Gates the footer Continue button per-step for state that isn't a simple required-field check. */
   get canContinue(): boolean {
     switch (this.currentStep.id) {
@@ -543,6 +604,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
         score: eligibility.score,
         maxEligibleAmount: eligibility.maxEligibleAmount,
         tenor: eligibility.tenorMonths,
+        breakdown: eligibility.breakdown,
       },
       requiredDocuments,
       deductionChannelStatus: this.loansService.buildDeductionChannelStatus(this.resolvedProductId),
@@ -552,7 +614,46 @@ export class ApplyComponent implements OnInit, OnDestroy {
     });
 
     this.refNumber = created.loanUniqueId;
-    this.submitted = true;
+
+    if (this.product.autoDisburseEnabled) {
+      // Deductions/mandates are mocked, same convention as everywhere else in this demo app —
+      // the loan is flipped straight to 'disbursed' once the journey modal finishes.
+      this.loansService.setStatus(created.id, 'disbursed');
+      this.runDisburseJourney();
+    } else {
+      this.submitted = true;
+    }
+  }
+
+  // ── Auto-disburse "money on its way" journey modal ──────────────────────────
+  readonly disburseJourneyPhases = [
+    'Submitting application',
+    'Reviewing application',
+    'Setting up deductions and mandates',
+    'Cleaning up',
+    'Your money is on its way — you\'ll get it in 5 mins max',
+  ];
+  disburseJourneyVisible = false;
+  disburseJourneyPhaseIndex = 0;
+
+  private runDisburseJourney() {
+    this.disburseJourneyVisible = true;
+    this.disburseJourneyPhaseIndex = 0;
+    this.cdr.markForCheck();
+    const advance = () => {
+      if (this.disburseJourneyPhaseIndex < this.disburseJourneyPhases.length - 1) {
+        this.disburseJourneyPhaseIndex++;
+        this.cdr.markForCheck();
+        setTimeout(advance, 900);
+      } else {
+        setTimeout(() => {
+          this.disburseJourneyVisible = false;
+          this.submitted = true;
+          this.cdr.markForCheck();
+        }, 1200);
+      }
+    };
+    setTimeout(advance, 900);
   }
 
   // ── OTP (legacy single-field trigger, kept for the entry-step "recognise existing" flow) ──
@@ -594,6 +695,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
   mediaRecorder: MediaRecorder | null = null;
   videoPlaybackUrl: string | null = null;
   videoConfirmationDataUrl: string | null = null;
+  checkingVideo = false;
 
   async startCamera() {
     this.cameraError = null;
@@ -621,6 +723,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
   stopRecording() {
     this.mediaRecorder?.stop();
     this.isRecording = false;
+    this.checkingVideo = true;
   }
 
   private onRecordingStopped() {
@@ -630,7 +733,11 @@ export class ApplyComponent implements OnInit, OnDestroy {
     this.stopCameraTracks();
 
     const reader = new FileReader();
-    reader.onload = () => { this.videoConfirmationDataUrl = reader.result as string; };
+    reader.onload = () => {
+      this.videoConfirmationDataUrl = reader.result as string;
+      this.checkingVideo = false;
+      this.cdr.markForCheck();
+    };
     reader.readAsDataURL(blob);
   }
 
@@ -638,6 +745,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
     if (this.videoPlaybackUrl) URL.revokeObjectURL(this.videoPlaybackUrl);
     this.videoPlaybackUrl = null;
     this.videoConfirmationDataUrl = null;
+    this.checkingVideo = false;
     this.recordedChunks = [];
     this.startCamera();
   }

@@ -1,7 +1,92 @@
 :host { display: block; width: 100%; }
 
+.chart-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .chart {
   width: 100%;
   height: auto;
   display: block;
+  cursor: crosshair;
+}
+
+.gridline {
+  stroke: var(--color-stroke);
+  stroke-width: 1;
+}
+
+.hover-guide {
+  stroke: var(--color-grey-header);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.axis-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  fill: var(--color-grey-header);
+}
+
+.point {
+  transition: r 0.1s;
+  pointer-events: none;
+}
+
+.bar {
+  transition: opacity 0.1s;
+}
+
+.bar.hovered {
+  opacity: 0.75;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  background: #121212;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chart-tooltip-label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 0.7;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.chart-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-tooltip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chart-tooltip-name {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.chart-tooltip-value {
+  font-weight: 600;
+  margin-left: auto;
+  padding-left: 8px;
 }
