@@ -201,6 +201,10 @@ export interface LoanConfig {
   collectSchoolInfo: boolean;
   /** Cooperative Loan only — collects membership/society details as their own section. */
   collectCoopInfo: boolean;
+  /** Public Sector Loan only — collects civil service details as their own section. */
+  collectCivilServiceInfo: boolean;
+  /** Corper Loan only — collects NYSC service details as their own section. */
+  collectNyscInfo: boolean;
 }
 
 export const STEPS = [
@@ -246,6 +250,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
     disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Loans designed specifically for civil servants. Get started in minutes.',
+    collectCivilServiceInfo: true,
   },
   school: {
     name: 'School Fees Loan',
@@ -277,6 +282,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, corps member! Quick loans to support your NYSC service year.',
+    collectNyscInfo: true,
   },
   sme: {
     name: 'SME Working Capital Loan',
@@ -364,6 +370,8 @@ export class CreateLoanComponent implements OnInit {
   expandBank = false;
   expandSchoolInfo = false;
   expandCoopInfo = false;
+  expandCivilServiceInfo = false;
+  expandNyscInfo = false;
 
   showInsuranceFee = false;
   showAdminFee = false;
@@ -540,6 +548,7 @@ export class CreateLoanComponent implements OnInit {
     supportPhone: '', whatsappContact: '',
     brandColor: '#6941C6', brandName: '',
     bnplCategories: [], collectSchoolInfo: false, collectCoopInfo: false,
+    collectCivilServiceInfo: false, collectNyscInfo: false,
   };
 
   private readonly route = inject(ActivatedRoute);
@@ -1276,17 +1285,25 @@ export class CreateLoanComponent implements OnInit {
     { key: 'collectCoopInfo',    label: 'Cooperative Membership',
       fields: this.mkFields(['Cooperative / Society Name', 'Membership Number', 'Membership Start Date', 'Monthly Savings Contribution']),
       expand: 'expandCoopInfo', customFields: [] },
+    { key: 'collectCivilServiceInfo', label: 'Civil Service Details',
+      fields: this.mkFields(['Ministry / Department / Agency (MDA)', 'Employee / Service Number', 'Grade Level', 'Cadre']),
+      expand: 'expandCivilServiceInfo', customFields: [] },
+    { key: 'collectNyscInfo',    label: 'NYSC Details',
+      fields: this.mkFields(['State Code', 'Call-Up Number', 'Place of Primary Assignment (PPA)', 'Service Start Date']),
+      expand: 'expandNyscInfo', customFields: [] },
   ];
 
   /**
-   * "School Information" and "Cooperative Membership" only make sense for their own loan
-   * type — filtered out of the collection list for every other template instead of showing
-   * an irrelevant section every lender would have to explicitly turn off.
+   * These type-specific sections only make sense for their own loan type — filtered out of
+   * the collection list for every other template instead of showing an irrelevant section
+   * every lender would have to explicitly turn off.
    */
   get visibleCollectionSections() {
     return this.collectionSections.filter((sec) => {
       if (sec.key === 'collectSchoolInfo') return this.showSchoolDocs;
       if (sec.key === 'collectCoopInfo') return this.showCoopDocs;
+      if (sec.key === 'collectCivilServiceInfo') return this.config.template === 'public';
+      if (sec.key === 'collectNyscInfo') return this.showCorperDocs;
       return true;
     });
   }

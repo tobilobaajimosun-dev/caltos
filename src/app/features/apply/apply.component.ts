@@ -55,6 +55,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   thankYouMessage: '', supportEmail: 'hello@caltos.ng', supportPhone: '', whatsappContact: '',
   brandColor: '#6941C6', brandName: '',
   collectSchoolInfo: false, collectCoopInfo: false,
+  collectCivilServiceInfo: false, collectNyscInfo: false,
 };
 
 interface StepDef { id: string; label: string; }
