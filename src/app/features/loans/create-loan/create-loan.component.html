@@ -186,17 +186,17 @@
 
             <!-- Amount Range -->
             <div class="form-card">
-              <div class="form-card-title">Loan Amount Range</div>
+              <div class="form-card-title">{{ isBnpl ? 'Purchase Limits' : 'Loan Amount Range' }}</div>
               <div class="field-row">
                 <div class="field-group">
-                  <label class="field-label">Minimum amount (₦)</label>
+                  <label class="field-label">{{ isBnpl ? 'Minimum purchase amount (₦)' : 'Minimum amount (₦)' }}</label>
                   <div class="input-prefix-wrap">
                     <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 10,000" [ngModel]="config.minAmount" (ngModelChange)="onAmountInput('minAmount', $event)" />
                     <span class="input-prefix">₦</span>
                   </div>
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Maximum amount (₦)</label>
+                  <label class="field-label">{{ isBnpl ? 'Maximum purchase amount (₦)' : 'Maximum amount (₦)' }}</label>
                   <div class="input-prefix-wrap">
                     <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 5,000,000" [ngModel]="config.maxAmount" (ngModelChange)="onAmountInput('maxAmount', $event)" />
                     <span class="input-prefix">₦</span>
@@ -292,6 +292,28 @@
                       <div class="verify-title">{{ cat }}</div>
                     </button>
                   }
+                </div>
+
+                <div class="field-group" style="margin-top: 16px">
+                  <label class="field-label">Custom category <span class="opt-label">Optional</span></label>
+                  <input class="text-input" type="text" placeholder="e.g. Solar Energy Equipment" [(ngModel)]="config.bnplCustomCategory" />
+                </div>
+
+                <div class="field-row" style="margin-top: 16px">
+                  <div class="field-group">
+                    <label class="field-label">Default vendor limit (₦)</label>
+                    <div class="input-prefix-wrap">
+                      <input class="text-input" type="text" inputmode="numeric" placeholder="e.g. 200,000" [ngModel]="config.bnplDefaultVendorLimit" (ngModelChange)="onAmountInput('bnplDefaultVendorLimit', $event)" />
+                      <span class="input-prefix">₦</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Purchase mode</label>
+                    <div class="freq-row">
+                      <button class="freq-btn" [class.selected]="config.bnplPurchaseMode === 'amount'" (click)="config.bnplPurchaseMode = 'amount'">Customer enters amount</button>
+                      <button class="freq-btn" [class.selected]="config.bnplPurchaseMode === 'invoice'" (click)="config.bnplPurchaseMode = 'invoice'">Vendor sends invoice</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             }

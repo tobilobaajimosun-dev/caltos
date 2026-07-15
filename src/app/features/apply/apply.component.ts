@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject, ViewChild, Ele
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { LoanConfig } from '../loans/create-loan/create-loan.component';
+import { LoanConfig, IncomeSourceOption } from '../loans/create-loan/create-loan.component';
 import { LoansService } from '../../shared/services/loans.service';
 import { ProductsService } from '../../shared/services/products.service';
 import { OrgBrandingService } from '../../shared/services/org-branding.service';
@@ -33,7 +33,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
   docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
   docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-  docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+  docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
   processingFeeType: 'Percentage', processingFeeRate: '1.5',
   processingFeeApplicableTo: 'Loan Amount', processingFeeMin: '', processingFeeMax: '',
   latePenaltyMethod: 'Percentage', latePenaltyRate: '2', latePenaltyGraceDays: '3',
@@ -74,6 +74,26 @@ interface IdentityField {
   label: string;
   otpDestinationCopy: string;
 }
+
+/**
+ * Reusable "how do you earn?" borrower-portal step — a product opts in by setting
+ * `incomeSourceOptions` (which of these to offer). The choice decides whether the borrower
+ * gets employment- or business-flavoured fields, and which of the product's already-enabled
+ * deduction channels is the applicable repayment rail for them.
+ */
+const INCOME_SOURCE_DEFS: Record<IncomeSourceOption, {
+  label: string; desc: string; collect: 'employment' | 'business'; deductionChannelIds: string[];
+}> = {
+  private: { label: 'Private Sector Employee', desc: 'I work for a private company', collect: 'employment', deductionChannelIds: ['remita-direct-debit', 'mono-direct-debit', 'dedukt'] },
+  government: { label: 'Government Employee', desc: 'I work in the public sector', collect: 'employment', deductionChannelIds: ['wacs', 'ippis', 'remita'] },
+  paramilitary: { label: 'Paramilitary', desc: 'Armed forces, police, or similar', collect: 'employment', deductionChannelIds: ['remita'] },
+  business: { label: 'Business Owner', desc: 'I run my own business', collect: 'business', deductionChannelIds: ['mono-direct-debit', 'dedukt'] },
+};
+
+const DEDUCTION_CHANNEL_LABELS: Record<string, string> = {
+  ippis: 'IPPIS', remita: 'Remita', dedukt: 'Dedukt', wacs: 'WACS',
+  'remita-direct-debit': 'Remita Direct Debit', 'mono-direct-debit': 'Mono Direct Debit',
+};
 
 @Component({
   selector: 'app-apply',
@@ -226,6 +246,12 @@ export class ApplyComponent implements OnInit, OnDestroy {
     }, 800);
   }
 
+  /** Populated alongside the account fetch — civil service details are derived from a
+   * successful WACS verification rather than collected as their own upfront section. */
+  wacsMda = '';
+  wacsEmployeeNumber = '';
+  wacsGradeLevel = '';
+
   /** Resolves the account name behind the WACS bank + account number entered. */
   fetchWacsAccountDetails() {
     if (!this.wacsAccountNumber || !this.wacsBankName) return;
@@ -234,12 +260,16 @@ export class ApplyComponent implements OnInit, OnDestroy {
       this.wacsFetchingAccount = false;
       this.wacsAccountFetched = true;
       this.wacsAccountName = this.wacsBvnName || 'Aisha Bello';
+      this.wacsMda = 'Lagos State Ministry of Health';
+      this.wacsEmployeeNumber = 'LSG/2019/00482';
+      this.wacsGradeLevel = 'Grade Level 09';
       this.cdr.markForCheck();
     }, 1200);
   }
 
   get incomeStepCanContinue(): boolean {
     if (!this.monthlyIncome) return false;
+    if (this.isCorperProduct && !this.nyscServiceStartDate) return false;
     if (this.incomeChannel === 'wacs') {
       return this.wacsBvnVerified && !!this.wacsNumber && this.wacsAccountFetched && this.wacsAccountNameMatches;
     }
@@ -248,6 +278,51 @@ export class ApplyComponent implements OnInit, OnDestroy {
     }
     if (this.isPayrollVerifiedIncome) return true;
     return !!this.employmentType && !!this.employerName;
+  }
+
+  // ── "How do you earn?" income-source step ───────────────────────────────────
+  incomeSourceType: IncomeSourceOption | '' = '';
+
+  readonly incomeSourceCards = () => (this.product.incomeSourceOptions ?? []).map((opt) => ({
+    id: opt, ...INCOME_SOURCE_DEFS[opt],
+  }));
+
+  chooseIncomeSource(opt: IncomeSourceOption) {
+    this.incomeSourceType = opt;
+    this.next();
+  }
+
+  /** True once the applicant's chosen income source means they should be asked for business (not employment) details. */
+  get incomeSourceIsBusiness(): boolean {
+    return !!this.incomeSourceType && INCOME_SOURCE_DEFS[this.incomeSourceType].collect === 'business';
+  }
+
+  /** The applicable repayment rail for this applicant, resolved against the product's enabled deduction channels. */
+  get selectedDeductionChannelLabel(): string {
+    if (!this.incomeSourceType) return '';
+    const p = this.product;
+    const enabled: Record<string, boolean> = {
+      ippis: p.deductIppis, remita: p.deductRemita, dedukt: p.deductDedukt,
+      wacs: p.deductWacs, 'remita-direct-debit': p.deductRemitaDirectDebit, 'mono-direct-debit': p.deductMonoDirectDebit,
+    };
+    const match = INCOME_SOURCE_DEFS[this.incomeSourceType].deductionChannelIds.find((id) => enabled[id]);
+    return match ? DEDUCTION_CHANNEL_LABELS[match] : '';
+  }
+
+  // ── NYSC service duration (Corper products only) ─────────────────────────────
+  nyscServiceStartDate = '';
+
+  get isCorperProduct(): boolean {
+    return this.product.template === 'corper';
+  }
+
+  /** NYSC service runs 12 months — caps eligibility for corpers nearing the end of their service year. */
+  get nyscMonthsRemaining(): number {
+    if (!this.nyscServiceStartDate) return 12;
+    const start = new Date(this.nyscServiceStartDate);
+    if (Number.isNaN(start.getTime())) return 12;
+    const monthsElapsed = (new Date().getFullYear() - start.getFullYear()) * 12 + (new Date().getMonth() - start.getMonth());
+    return Math.max(0, Math.min(12, 12 - monthsElapsed));
   }
 
   /** Displays a plain-digit amount field with thousand separators. */
@@ -370,8 +445,10 @@ export class ApplyComponent implements OnInit, OnDestroy {
   eligibilityResult: EligibilityResult | null = null;
 
   private mapEmploymentStability(): EmploymentStabilityInput {
-    if (/nysc|corper|corps/i.test(this.employmentType)) {
-      return { type: 'nysc-corper', monthsRemaining: 9 };
+    // Corper products are always payroll-verified income (Remita), so the employment-type chips
+    // never render for them — detect corper from the product itself, not free-text employmentType.
+    if (this.isCorperProduct) {
+      return { type: 'nysc-corper', monthsRemaining: this.nyscMonthsRemaining };
     }
     const category = this.employmentType === 'Self-employed' ? 'self-employed'
       : this.employmentType === 'Contract' ? 'sme'
@@ -557,6 +634,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
       { key: 'docNyscLetter', label: 'NYSC call-up letter', sub: 'Original NYSC call-up or posting letter' },
       { key: 'docCacCert', label: 'CAC certificate', sub: 'Certificate of incorporation for your business' },
       { key: 'docMembershipCert', label: 'Membership certificate', sub: 'Valid cooperative or association membership cert' },
+      { key: 'docMembershipId', label: 'Membership ID card', sub: 'Your cooperative or association membership ID card' },
     ];
     this.docFields = allDocs
       .filter((d) => this.product[d.key] !== 'none')
@@ -598,6 +676,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
     }
 
     if (this.pendingIdentityFields.length) steps.push({ id: 'identity', label: 'Verify identity' });
+    if (p.incomeSourceOptions?.length) steps.push({ id: 'income-source', label: 'How you earn' });
     steps.push({ id: 'income', label: 'Income & employment' });
     steps.push({ id: 'eligible-amount', label: 'Your loan amount' });
     if (this.docFields.length) steps.push({ id: 'documents', label: 'Documents' });

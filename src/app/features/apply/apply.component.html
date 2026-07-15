@@ -254,6 +254,24 @@
         </div>
       }
 
+      <!-- HOW DO YOU EARN? (income source) -->
+      @if (currentStep.id === 'income-source') {
+        <div class="screen">
+          <p class="screen-eyebrow">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
+          <h2 class="screen-headline sm">How do you<br>earn?</h2>
+          <p class="screen-body-sm">This helps us ask you the right questions next.</p>
+
+          <div class="customer-status-cards">
+            @for (card of incomeSourceCards(); track card.id) {
+              <button class="customer-status-card" (click)="chooseIncomeSource(card.id)">
+                <span class="customer-status-title">{{ card.label }}</span>
+                <span class="customer-status-sub">{{ card.desc }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
       <!-- STEP 1: INCOME & EMPLOYMENT -->
       @if (currentStep.id === 'income') {
         @if (isCalculatingEligibility) {
@@ -289,6 +307,14 @@
                 <label class="dark-label">Monthly net income (₦)</label>
                 <input class="dark-input" type="text" inputmode="numeric" placeholder="250,000" [ngModel]="formatAmount(monthlyIncome)" (ngModelChange)="onMoneyInput('monthlyIncome', $event)" />
               </div>
+
+              @if (isCorperProduct) {
+                <div class="dark-field">
+                  <label class="dark-label">NYSC service start date</label>
+                  <input class="dark-input" type="date" [(ngModel)]="nyscServiceStartDate" />
+                  <p class="screen-notice">Your eligible amount is capped based on how many months of service you have left.</p>
+                </div>
+              }
 
               @if (incomeChannel === 'wacs') {
                 <!-- WACS: BVN -> OTP -> WACS number -> bank account -> name match -->
@@ -340,6 +366,14 @@
                   @if (wacsAccountFetched && !wacsAccountNameMatches) {
                     <p class="screen-notice error">The name on this account doesn't match your BVN/personal information — please check the bank and account number.</p>
                   }
+                  @if (wacsAccountFetched && wacsAccountNameMatches) {
+                    <div class="civil-service-details">
+                      <p class="screen-notice">Civil service details fetched:</p>
+                      <app-readonly-field label="Ministry / Department / Agency" [value]="wacsMda" [verified]="false" />
+                      <app-readonly-field label="Employee / Service Number" [value]="wacsEmployeeNumber" [verified]="false" />
+                      <app-readonly-field label="Grade Level" [value]="wacsGradeLevel" [verified]="false" />
+                    </div>
+                  }
                 }
               } @else if (incomeChannel === 'remita') {
                 <!-- Remita: bank account -> name match -> work details -->
@@ -387,24 +421,31 @@
                   }
                 }
               } @else if (!isPayrollVerifiedIncome) {
-                <div class="dark-field">
-                  <label class="dark-label">Employment type</label>
-                  <div class="chip-row">
-                    @for (t of ['Salaried','Self-employed','Contract']; track t) {
-                      <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
-                    }
+                @if (!incomeSourceIsBusiness) {
+                  <div class="dark-field">
+                    <label class="dark-label">Employment type</label>
+                    <div class="chip-row">
+                      @for (t of ['Salaried','Self-employed','Contract']; track t) {
+                        <button class="select-chip" [class.active]="employmentType === t" (click)="employmentType = t">{{ t }}</button>
+                      }
+                    </div>
                   </div>
-                </div>
+                }
                 <div class="dark-field-row">
                   <div class="dark-field">
-                    <label class="dark-label">Employer name</label>
-                    <input class="dark-input" type="text" placeholder="e.g. First Bank" [(ngModel)]="employerName" />
+                    <label class="dark-label">{{ incomeSourceIsBusiness ? 'Business name' : 'Employer name' }}</label>
+                    <input class="dark-input" type="text" [placeholder]="incomeSourceIsBusiness ? 'e.g. Aisha Foods Ltd' : 'e.g. First Bank'" [(ngModel)]="employerName" />
                   </div>
-                  <div class="dark-field">
-                    <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
-                    <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
-                  </div>
+                  @if (!incomeSourceIsBusiness) {
+                    <div class="dark-field">
+                      <label class="dark-label">Staff ID <span class="opt-label">Optional</span></label>
+                      <input class="dark-input" type="text" placeholder="e.g. FBN-00123" [(ngModel)]="staffId" />
+                    </div>
+                  }
                 </div>
+                @if (selectedDeductionChannelLabel) {
+                  <p class="screen-notice">Repayment method: {{ selectedDeductionChannelLabel }}</p>
+                }
               }
             </div>
           </div>
@@ -665,7 +706,7 @@
     </main>
 
     <!-- ── FOOTER ──────────────────────────────────────────────────────────── -->
-    @if (!isCalculatingEligibility && !(currentStep.id === 'returning' && isReturningCustomer === null)) {
+    @if (!isCalculatingEligibility && !(currentStep.id === 'returning' && isReturningCustomer === null) && currentStep.id !== 'income-source') {
       <div class="apply-footer">
         @if (!isFirst) {
           <button class="back-btn" (click)="back()">

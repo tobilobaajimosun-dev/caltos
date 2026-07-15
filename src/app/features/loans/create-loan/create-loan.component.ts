@@ -132,6 +132,7 @@ export interface LoanConfig {
   docNyscLetter: string;
   docCacCert: string;
   docMembershipCert: string;
+  docMembershipId: string;
   // Step 4
   processingFeeType: string;
   processingFeeRate: string;
@@ -205,7 +206,22 @@ export interface LoanConfig {
   collectCivilServiceInfo: boolean;
   /** Corper Loan only — collects NYSC service details as their own section. */
   collectNyscInfo: boolean;
+  // Per-type differentiation (Phase D)
+  /**
+   * Borrower-portal "how do you earn?" step — which income-source options this product
+   * offers (e.g. School Fees: private/business; BNPL: private/government/paramilitary/business).
+   * Empty/undefined means the step is skipped entirely (existing single-path types).
+   */
+  incomeSourceOptions?: IncomeSourceOption[];
+  /** BNPL only — a category not in the standard list, shown as-is on vendor onboarding. */
+  bnplCustomCategory?: string;
+  /** BNPL only — default per-vendor spending limit, in Naira. */
+  bnplDefaultVendorLimit?: string;
+  /** BNPL only — whether the customer enters the purchase amount or the vendor sends an invoice. */
+  bnplPurchaseMode?: 'amount' | 'invoice';
 }
+
+export type IncomeSourceOption = 'private' | 'government' | 'paramilitary' | 'business';
 
 export const STEPS = [
   { id: 'type',          label: 'Loan Type',               shortLabel: 'Loan Type' },
@@ -228,11 +244,12 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    incomeRemita: true, incomeIppis: false, incomeBankStatement: true,
-    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
+    // Open to both private and government salary earners, so every income/deduction rail is offered.
+    incomeRemita: true, incomeIppis: true, incomeBankStatement: true,
+    deductRemita: true, deductIppis: true, deductDedukt: true, deductWacs: true, deductRemitaDirectDebit: true, deductMonoDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get quick access to your salary in advance. The process takes about 5 minutes.',
   },
@@ -244,42 +261,47 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: true, incomeBankStatement: false,
-    deductIppis: true, deductRemita: true, deductWacs: false, deductDedukt: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: false,
+    deductIppis: true, deductRemita: true, deductWacs: true, deductDedukt: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'required',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Loans designed specifically for civil servants. Get started in minutes.',
-    collectCivilServiceInfo: true,
+    // Civil service details now come from a successful WACS verification on the borrower
+    // portal instead of being collected upfront as a separate section.
+    collectCivilServiceInfo: false,
   },
   school: {
     name: 'School Fees Loan',
     description: 'Help families pay school fees and educational expenses.',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: false,
+    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: true, collectBusiness: true,
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
+    deductIppis: true, deductRemita: true, deductDedukt: true, deductWacs: true, deductRemitaDirectDebit: true, deductMonoDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'optional', docWorkVerification: 'none',
     docGuarantorForm: 'required', docSchoolId: 'required', docAdmissionLetter: 'required',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Fund your education without the financial stress. Apply in minutes.',
     collectSchoolInfo: true,
+    // Parent/guardian applicants are either employed or run a business — the borrower portal
+    // asks which, rather than collecting both employment and business info upfront.
+    incomeSourceOptions: ['private', 'business'],
   },
   corper: {
     name: 'Corper Wallet Loan',
     description: 'Quick loans for NYSC corps members throughout their service year.',
     entryPhone: true, entryEmail: false, entryBvn: true, entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: false, collectBusiness: false,
+    collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: false, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: true, incomeIppis: false, incomeBankStatement: false,
-    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: false,
+    deductRemita: true, deductIppis: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none',
+    docNyscLetter: 'required', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, corps member! Quick loans to support your NYSC service year.',
     collectNyscInfo: true,
@@ -288,14 +310,14 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     name: 'SME Working Capital Loan',
     description: 'Working capital and growth financing for registered businesses.',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
-    collectPersonal: true, collectContact: true, collectEmployment: true, collectAddress: true, collectBusiness: true,
+    collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: true,
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: true, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: true, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'required', docWorkVerification: 'optional',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none',
+    docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get the working capital your business needs to grow.',
   },
@@ -307,10 +329,10 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
     incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
+    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required', docMembershipId: 'required',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, member! Access your cooperative loan benefits quickly and easily.',
     collectCoopInfo: true,
@@ -322,14 +344,16 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     collectPersonal: true, collectContact: true, collectEmployment: false, collectAddress: true, collectBusiness: false,
     allowContinue: true, recogniseExisting: true,
     identityBvn: true, identityNin: false, identityPhoneOtp: true, identityEmailOtp: false,
-    incomeRemita: false, incomeIppis: false, incomeBankStatement: true,
-    deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: true, deductMonoDirectDebit: false,
+    incomeRemita: true, incomeIppis: true, incomeBankStatement: true,
+    deductIppis: true, deductRemita: true, deductDedukt: true, deductWacs: true, deductRemitaDirectDebit: true, deductMonoDirectDebit: true,
     docGovId: 'required', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'third-party', repaymentFrequency: 'Weekly',
     welcomeMessage: 'Shop now, pay later. Get instant purchase financing with no hidden fees.',
     bnplCategories: ['Fashion & Apparel', 'Electronics & Gadgets'],
+    bnplPurchaseMode: 'amount',
+    incomeSourceOptions: ['private', 'government', 'paramilitary', 'business'],
   },
   scratch: {},
 };
@@ -526,7 +550,7 @@ export class CreateLoanComponent implements OnInit {
     deductIppis: false, deductRemita: false, deductDedukt: false, deductWacs: false, deductRemitaDirectDebit: false, deductMonoDirectDebit: false,
     docGovId: 'none', docUtilityBill: 'none', docWorkVerification: 'none',
     docGuarantorForm: 'none', docSchoolId: 'none', docAdmissionLetter: 'none',
-    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
+    docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     processingFeeType: 'Percentage', processingFeeRate: '', processingFeeApplicableTo: 'Loan Amount',
     processingFeeMin: '', processingFeeMax: '',
     latePenaltyMethod: 'Percentage', latePenaltyRate: '', latePenaltyGraceDays: '3',
@@ -549,6 +573,7 @@ export class CreateLoanComponent implements OnInit {
     brandColor: '#6941C6', brandName: '',
     bnplCategories: [], collectSchoolInfo: false, collectCoopInfo: false,
     collectCivilServiceInfo: false, collectNyscInfo: false,
+    incomeSourceOptions: [], bnplCustomCategory: '', bnplDefaultVendorLimit: '', bnplPurchaseMode: 'amount',
   };
 
   private readonly route = inject(ActivatedRoute);
@@ -731,6 +756,7 @@ export class CreateLoanComponent implements OnInit {
       { value: this.config.docNyscLetter, label: 'NYSC Letter' },
       { value: this.config.docCacCert, label: 'CAC Certificate' },
       { value: this.config.docMembershipCert, label: 'Membership Certificate' },
+      { value: this.config.docMembershipId, label: 'Membership ID Card' },
     ];
     return docs
       .filter((d) => d.value === 'required' || d.value === 'optional')
@@ -1274,7 +1300,7 @@ export class CreateLoanComponent implements OnInit {
       fields: this.mkFields(['Employer Name', 'Staff ID', 'Job Title', 'Monthly Salary', 'Employment Type']),
       expand: 'expandEmployment', customFields: [] },
     { key: 'collectBusiness',    label: 'Business Information',
-      fields: this.mkFields(['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue']),
+      fields: this.mkFields(['Business Name', 'CAC Number', 'Business Type', 'Annual Revenue', 'Role in Business (Owner / Director / Chairman / etc.)']),
       expand: 'expandBusiness', customFields: [] },
     { key: 'collectBank',        label: 'Bank Account Details',
       fields: this.mkFields(['Bank Name', 'Account Number', 'Account Name']),
@@ -1353,6 +1379,7 @@ export class CreateLoanComponent implements OnInit {
     }
     if (this.showCoopDocs) {
       rows.push({ key: 'docMembershipCert', label: 'Membership Certificate' });
+      rows.push({ key: 'docMembershipId', label: 'Membership ID Card' });
     }
     return rows;
   }
