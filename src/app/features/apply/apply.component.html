@@ -122,6 +122,15 @@
                     <span class="stat-value">{{ product.interestRate }}% {{ product.interestModel }}</span>
                   </div>
                 }
+                @if (product.bnplCategories?.length) {
+                  <div class="stat-tile">
+                    <div class="stat-icon brand">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </div>
+                    <span class="stat-label">Eligible for</span>
+                    <span class="stat-value">{{ product.bnplCategories!.join(', ') }}</span>
+                  </div>
+                }
                 <div class="stat-tile">
                   <div class="stat-icon yellow">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>

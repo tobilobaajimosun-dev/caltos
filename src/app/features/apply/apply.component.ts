@@ -54,6 +54,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   welcomeMessage: 'Welcome! Get quick access to your salary in advance. The process takes about 5 minutes.',
   thankYouMessage: '', supportEmail: 'hello@caltos.ng', supportPhone: '', whatsappContact: '',
   brandColor: '#6941C6', brandName: '',
+  collectSchoolInfo: false, collectCoopInfo: false,
 };
 
 interface StepDef { id: string; label: string; }

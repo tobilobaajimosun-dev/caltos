@@ -280,6 +280,22 @@
           </div>
           <div class="form-sections">
 
+            <!-- BNPL: Eligible Purchase Categories -->
+            @if (isBnpl) {
+              <div class="form-card">
+                <div class="form-card-title">Eligible Purchase Categories</div>
+                <div class="form-card-sub">Choose which merchant categories customers can finance with this product.</div>
+                <div class="verify-grid">
+                  @for (cat of bnplCategoryOptions; track cat) {
+                    <button class="verify-card" [class.selected]="(config.bnplCategories ?? []).includes(cat)" (click)="toggleBnplCategory(cat)">
+                      <div class="verify-check" [class.active]="(config.bnplCategories ?? []).includes(cat)"></div>
+                      <div class="verify-title">{{ cat }}</div>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
             <!-- Entry options -->
             <div class="form-card">
               <div class="form-card-number">1</div>
@@ -322,7 +338,7 @@
               <div class="form-card-title">What information would you like to collect?</div>
               <div class="form-card-sub">Toggle categories on or off. Expand to configure individual fields.</div>
               <div class="collection-list">
-                @for (sec of collectionSections; track sec.key) {
+                @for (sec of visibleCollectionSections; track sec.key) {
                   <div class="collection-row">
                     <app-toggle [checked]="!!getConfig(sec.key)" (checkedChange)="setConfig(sec.key, $event)" />
                     <div class="collection-info">

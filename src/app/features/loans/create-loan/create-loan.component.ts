@@ -194,6 +194,13 @@ export interface LoanConfig {
   customDocs?: { name: string; types: string[] }[];
   /** Data URL of the uploaded product banner image, shown on the borrower application portal. */
   bannerImageDataUrl?: string;
+  // Per-type differentiation (Phase B, Batch 1)
+  /** BNPL only — merchant/purchase categories this product finances. */
+  bnplCategories?: string[];
+  /** School Fees Loan only — collects student/school details as their own section. */
+  collectSchoolInfo: boolean;
+  /** Cooperative Loan only — collects membership/society details as their own section. */
+  collectCoopInfo: boolean;
 }
 
 export const STEPS = [
@@ -254,6 +261,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Fund your education without the financial stress. Apply in minutes.',
+    collectSchoolInfo: true,
   },
   corper: {
     name: 'Corper Wallet Loan',
@@ -299,6 +307,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'required',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, member! Access your cooperative loan benefits quickly and easily.',
+    collectCoopInfo: true,
   },
   bnpl: {
     name: 'Buy Now Pay Later',
@@ -314,6 +323,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none',
     disburseTo: 'third-party', repaymentFrequency: 'Weekly',
     welcomeMessage: 'Shop now, pay later. Get instant purchase financing with no hidden fees.',
+    bnplCategories: ['Fashion & Apparel', 'Electronics & Gadgets'],
   },
   scratch: {},
 };
@@ -352,6 +362,8 @@ export class CreateLoanComponent implements OnInit {
   expandEmployment = false;
   expandBusiness = false;
   expandBank = false;
+  expandSchoolInfo = false;
+  expandCoopInfo = false;
 
   showInsuranceFee = false;
   showAdminFee = false;
@@ -527,6 +539,7 @@ export class CreateLoanComponent implements OnInit {
     welcomeMessage: '', thankYouMessage: '', supportEmail: 'hello@yourcompany.ng',
     supportPhone: '', whatsappContact: '',
     brandColor: '#6941C6', brandName: '',
+    bnplCategories: [], collectSchoolInfo: false, collectCoopInfo: false,
   };
 
   private readonly route = inject(ActivatedRoute);
@@ -1257,7 +1270,41 @@ export class CreateLoanComponent implements OnInit {
     { key: 'collectBank',        label: 'Bank Account Details',
       fields: this.mkFields(['Bank Name', 'Account Number', 'Account Name']),
       expand: 'expandBank', customFields: [] },
+    { key: 'collectSchoolInfo',  label: 'School Information',
+      fields: this.mkFields(['School Name', 'Student Name (if different from applicant)', 'Class / Level', 'Term / Session']),
+      expand: 'expandSchoolInfo', customFields: [] },
+    { key: 'collectCoopInfo',    label: 'Cooperative Membership',
+      fields: this.mkFields(['Cooperative / Society Name', 'Membership Number', 'Membership Start Date', 'Monthly Savings Contribution']),
+      expand: 'expandCoopInfo', customFields: [] },
   ];
+
+  /**
+   * "School Information" and "Cooperative Membership" only make sense for their own loan
+   * type — filtered out of the collection list for every other template instead of showing
+   * an irrelevant section every lender would have to explicitly turn off.
+   */
+  get visibleCollectionSections() {
+    return this.collectionSections.filter((sec) => {
+      if (sec.key === 'collectSchoolInfo') return this.showSchoolDocs;
+      if (sec.key === 'collectCoopInfo') return this.showCoopDocs;
+      return true;
+    });
+  }
+
+  get isBnpl(): boolean { return this.config.template === 'bnpl'; }
+
+  readonly bnplCategoryOptions = [
+    'Electronics & Gadgets', 'Fashion & Apparel', 'Home Appliances', 'Furniture',
+    'Travel & Ticketing', 'Education & Training', 'Health & Wellness',
+    'Groceries & Food', 'Automotive', 'Other',
+  ];
+
+  toggleBnplCategory(cat: string) {
+    const current = this.config.bnplCategories ?? [];
+    this.config.bnplCategories = current.includes(cat)
+      ? current.filter((c) => c !== cat)
+      : [...current, cat];
+  }
 
   getExpand(key: string): boolean {
     return (this as unknown as Record<string, unknown>)[key] as boolean;
