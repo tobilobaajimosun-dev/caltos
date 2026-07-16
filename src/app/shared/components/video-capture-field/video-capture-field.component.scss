@@ -1,9 +1,3 @@
-$surface: #161820;
-$border: rgba(255, 255, 255, 0.07);
-$text-1: #FFFFFF;
-$text-2: #A0A4B8;
-$red: #F04438;
-
 :host { display: block; }
 
 .vcf-wrap {
@@ -16,19 +10,19 @@ $red: #F04438;
   font-family: var(--font-heading, inherit);
   font-weight: 600;
   font-size: 15px;
-  color: $text-1;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .vcf-prompt {
   font-size: 13px;
-  color: $text-2;
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .vcf-error {
   font-size: 13px;
-  color: $red;
+  color: var(--color-error);
   margin: 0;
 }
 
@@ -39,8 +33,8 @@ $red: #F04438;
   max-height: 360px;
   border-radius: 16px;
   overflow: hidden;
-  background: $surface;
-  border: 1px solid $border;
+  background: var(--surface-overlay);
+  border: 1px solid var(--color-stroke);
 }
 
 .vcf-video {
@@ -59,8 +53,8 @@ $red: #F04438;
   gap: 6px;
   padding: 5px 10px;
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  color: $text-1;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
 }
@@ -69,7 +63,7 @@ $red: #F04438;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: $red;
+  background: var(--color-error);
   animation: vcfRecPulse 1.2s ease-in-out infinite;
 }
 
@@ -83,8 +77,8 @@ $red: #F04438;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 48px;
-  color: $text-2;
+  height: 44px;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -92,8 +86,8 @@ $red: #F04438;
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-top-color: var(--brand, #7C5CEB);
+  border: 2px solid var(--color-stroke);
+  border-top-color: var(--brand, var(--color-blue));
   animation: vcfSpin 0.8s linear infinite;
 }
 
@@ -108,11 +102,11 @@ $red: #F04438;
 
 .vcf-btn {
   flex: 1;
-  height: 48px;
-  border-radius: 14px;
-  border: 1px solid $border;
-  background: $surface;
-  color: $text-1;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--color-input-stroke);
+  background: var(--surface-base);
+  color: var(--text-primary);
   font-family: var(--font-body, inherit);
   font-size: 14px;
   font-weight: 700;
@@ -120,10 +114,18 @@ $red: #F04438;
 
   &.primary {
     border: none;
-    background: var(--brand, #7C5CEB);
+    background: var(--brand, var(--color-blue));
+    color: #fff;
   }
 
   &.danger {
-    background: $red;
+    background: var(--color-error);
+    color: #fff;
+  }
+}
+
+@media (max-width: 480px) {
+  .vcf-frame {
+    max-height: 280px;
   }
 }

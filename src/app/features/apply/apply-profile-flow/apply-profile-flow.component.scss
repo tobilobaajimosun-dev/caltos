@@ -1,24 +1,14 @@
-// Matches the existing /apply portal's dark aesthetic (apply.component.scss) — same tokens,
-// deliberately simpler/self-contained class set since this is a separate, additive flow.
-$bg: #0C0D10;
-$surface: #161820;
-$surface-2: #1E2028;
-$border: rgba(255, 255, 255, 0.07);
-$purple: #7C5CEB;
-$text-1: #FFFFFF;
-$text-2: #A0A4B8;
-$green: #12B76A;
-$red: #F04438;
-
+// Light-mode borrower portal — uses the app's real design tokens (src/styles.scss) instead of a
+// bespoke dark palette, so it also gets dark-mode support for free via the .dark class overrides.
 :host {
   display: block;
-  --brand: #{$purple};
+  --brand: var(--color-blue);
 }
 
 .pf-shell {
   min-height: 100dvh;
-  background: $bg;
-  color: $text-1;
+  background: var(--surface-raised);
+  color: var(--text-primary);
   font-family: var(--font-body, -apple-system, sans-serif);
   display: flex;
   flex-direction: column;
@@ -26,18 +16,29 @@ $red: #F04438;
 
 .pf-header {
   padding: var(--space-5, 20px) var(--space-5, 20px) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pf-logo {
+  height: 32px;
+  max-width: 160px;
+  object-fit: contain;
+  margin-bottom: 10px;
 }
 
 .pf-brand {
   font-size: 13px;
-  color: $text-2;
+  color: var(--text-muted);
   margin: 0 0 12px;
   text-align: center;
 }
 
 .pf-progress-rail {
+  width: 100%;
   height: 2px;
-  background: $surface-2;
+  background: var(--color-stroke);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -59,7 +60,7 @@ $red: #F04438;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: $surface-2;
+  background: var(--color-stroke);
   transition: all 0.3s ease;
 
   &.done { background: color-mix(in srgb, var(--brand) 40%, transparent); }
@@ -72,6 +73,7 @@ $red: #F04438;
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .pf-eyebrow {
@@ -79,7 +81,7 @@ $red: #F04438;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: $text-2;
+  color: var(--text-muted);
   margin: 0 0 12px;
 }
 
@@ -100,12 +102,27 @@ $red: #F04438;
   font-size: 28px;
   line-height: 1.15;
   margin: 0;
+  color: var(--text-primary);
 }
 
 .pf-body-sm {
   font-size: 14px;
-  color: $text-2;
+  color: var(--text-secondary);
   margin: 0;
+}
+
+.pf-loan-detail-card {
+  border: 1px solid var(--color-stroke);
+  border-radius: 14px;
+  background: var(--surface-base);
+  padding: 14px 16px;
+}
+
+.pf-loan-detail-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 6px;
 }
 
 .pf-field {
@@ -117,7 +134,7 @@ $red: #F04438;
 .pf-label {
   font-size: 12px;
   font-weight: 600;
-  color: $text-2;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -129,35 +146,39 @@ $red: #F04438;
 }
 
 .pf-input {
-  height: 52px;
-  border-radius: 14px;
-  border: 1px solid $border;
-  background: $surface;
-  color: $text-1;
-  padding: 0 16px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--color-input-stroke);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  padding: 0 14px;
   font-size: 15px;
   font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
 
   &:focus { outline: none; border-color: var(--brand); }
+  &::placeholder { color: var(--text-disabled); }
 }
 
 select.pf-input { appearance: none; }
 
 .pf-field-error {
   font-size: 12px;
-  color: $red;
+  color: var(--color-error);
   margin: 0;
 }
 
 .pf-cta {
-  height: 56px;
-  border-radius: 18px;
+  height: 44px;
+  border-radius: 12px;
   border: none;
   background: var(--brand);
-  color: $text-1;
-  font-size: 16px;
+  color: #fff;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
+  width: 100%;
 
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
@@ -171,6 +192,7 @@ select.pf-input { appearance: none; }
   font-weight: 700;
   cursor: pointer;
   padding: 0;
+  min-height: 44px;
 
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
@@ -179,10 +201,11 @@ select.pf-input { appearance: none; }
   margin-top: 16px;
   background: none;
   border: none;
-  color: $text-2;
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
   padding: 0;
+  min-height: 44px;
 }
 
 .pf-profile-cards {
@@ -194,11 +217,12 @@ select.pf-input { appearance: none; }
 .pf-profile-card {
   text-align: left;
   padding: 18px;
-  border-radius: 16px;
-  border: 1px solid $border;
-  background: $surface;
-  color: $text-1;
+  border-radius: 14px;
+  border: 1px solid var(--color-stroke);
+  background: var(--surface-base);
+  color: var(--text-primary);
   cursor: pointer;
+  min-height: 44px;
 
   &:hover { border-color: var(--brand); }
 }
@@ -214,18 +238,18 @@ select.pf-input { appearance: none; }
   gap: 12px;
   padding: 14px;
   border-radius: 14px;
-  background: $surface;
-  border: 1px solid $border;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
 }
 
 .pf-check {
-  color: $green;
+  color: var(--color-success);
   font-weight: 700;
 }
 
 .pf-verified-label {
   font-size: 11px;
-  color: $text-2;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -233,20 +257,21 @@ select.pf-input { appearance: none; }
   font-size: 14px;
   font-weight: 700;
   margin: 2px 0 0;
+  color: var(--text-primary);
 }
 
 .pf-notice {
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(247, 144, 9, 0.1);
-  border: 1px solid rgba(247, 144, 9, 0.3);
+  background: var(--color-warning-bg);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
   font-size: 13px;
-  color: $text-1;
+  color: var(--text-primary);
 }
 
 .pf-notice-line {
   margin: 4px 0 0;
-  color: $text-2;
+  color: var(--text-secondary);
 }
 
 .pf-doc-row {
@@ -256,32 +281,37 @@ select.pf-input { appearance: none; }
   gap: 12px;
   padding: 14px;
   border-radius: 14px;
-  background: $surface;
-  border: 1px solid $border;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
 
-  &.done { border-color: color-mix(in srgb, $green 40%, transparent); }
+  &.done { border-color: color-mix(in srgb, var(--color-success) 40%, transparent); }
 }
 
 .pf-doc-label {
   font-size: 14px;
   font-weight: 700;
   margin: 0;
+  color: var(--text-primary);
 }
 
 .pf-doc-sub {
   font-size: 12px;
-  color: $text-2;
+  color: var(--text-muted);
   margin: 2px 0 0;
 }
 
 .pf-doc-upload-btn {
   position: relative;
-  padding: 8px 14px;
+  height: 44px;
+  padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid $border;
+  border: 1px solid var(--color-input-stroke);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-primary);
 
   input[type='file'] {
     position: absolute;
@@ -296,7 +326,7 @@ select.pf-input { appearance: none; }
   align-items: flex-start;
   gap: 10px;
   font-size: 13px;
-  color: $text-2;
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
@@ -306,14 +336,14 @@ select.pf-input { appearance: none; }
   align-items: center;
   gap: 14px;
   padding: 40px 0;
-  color: $text-2;
+  color: var(--text-muted);
 }
 
 .pf-loader-ring {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 3px solid $surface-2;
+  border: 3px solid var(--color-stroke);
   border-top-color: var(--brand);
   animation: pfSpin 0.8s linear infinite;
 }
@@ -324,7 +354,7 @@ select.pf-input { appearance: none; }
 
 .pf-eligible-eyebrow {
   font-size: 13px;
-  color: $text-2;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -333,6 +363,7 @@ select.pf-input { appearance: none; }
   font-size: 40px;
   font-weight: 700;
   margin: 0;
+  color: var(--text-primary);
 }
 
 .pf-summary-row {
@@ -340,16 +371,17 @@ select.pf-input { appearance: none; }
   justify-content: space-between;
   font-size: 13px;
   padding: 6px 0;
+  gap: 12px;
 
-  span { color: $text-2; }
-  strong { color: $text-1; }
+  span { color: var(--text-muted); }
+  strong { color: var(--text-primary); text-align: right; }
 }
 
 .pf-review-card {
   padding: 16px;
   border-radius: 14px;
-  background: $surface;
-  border: 1px solid $border;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
 }
 
 .pf-review-head {
@@ -363,6 +395,7 @@ select.pf-input { appearance: none; }
   font-size: 13px;
   font-weight: 700;
   margin: 0;
+  color: var(--text-primary);
 }
 
 .pf-review-edit {
@@ -372,14 +405,15 @@ select.pf-input { appearance: none; }
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  min-height: 44px;
 }
 
 .pf-success-badge {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: color-mix(in srgb, $green 20%, transparent);
-  color: $green;
+  background: var(--color-success-bg);
+  color: var(--color-success);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -390,7 +424,7 @@ select.pf-input { appearance: none; }
 .pf-otp-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -401,18 +435,19 @@ select.pf-input { appearance: none; }
 .pf-otp-dialog {
   width: 100%;
   max-width: 320px;
-  background: $surface;
-  border: 1px solid $border;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
   border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
 }
 
 .pf-otp-title {
   font-size: 14px;
-  color: $text-2;
+  color: var(--text-secondary);
   margin: 0;
   text-align: center;
 }
@@ -421,4 +456,24 @@ select.pf-input { appearance: none; }
   text-align: center;
   letter-spacing: 6px;
   font-size: 20px;
+}
+
+// ── Mobile ────────────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .pf-body {
+    padding: var(--space-4, 16px) var(--space-4, 16px) var(--space-6, 24px);
+  }
+
+  .pf-headline {
+    font-size: 24px;
+  }
+
+  .pf-eligible-amount {
+    font-size: 32px;
+  }
+
+  .pf-otp-dialog {
+    max-width: calc(100% - 32px);
+    padding: 20px;
+  }
 }

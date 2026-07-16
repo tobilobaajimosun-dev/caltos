@@ -13,6 +13,7 @@ import {
 } from '../../../shared/utils/eligibility-scoring';
 import { FIELD_DEFS } from './field-defs';
 import { MANDATE_RAIL_COPY, DEFAULT_MANDATE_COPY } from './mandate-copy';
+import { synthesizeDefaultProfile } from './default-profile';
 
 type ProfileBucketId = 'entry' | 'profile' | 'verify' | 'details' | 'documents' | 'mandate' | 'eligibility' | 'review' | 'disbursement';
 
@@ -34,10 +35,11 @@ interface DraftSnapshot {
 }
 
 /**
- * Generic, fixed 9-bucket borrower application flow driven entirely by a product's
- * ApplicantProfile config (products.service.ts) — additive to, and completely independent of,
- * the legacy per-loan-type flow in apply.component.ts. Rendered by ApplyComponent only when
- * product.applicantProfiles is non-empty.
+ * The universal borrower application flow — a fixed 9-bucket journey rendered for every
+ * product regardless of type. Driven by the product's ApplicantProfile config
+ * (products.service.ts) when configured; products created before that field existed (empty
+ * applicantProfiles) get a single profile synthesized on the fly (see default-profile.ts) from
+ * their existing per-type fields, so nothing needs reconfiguring.
  */
 @Component({
   selector: 'app-apply-profile-flow',
@@ -49,6 +51,7 @@ interface DraftSnapshot {
 export class ApplyProfileFlowComponent implements OnInit, OnDestroy {
   product = input.required<LoanConfig>();
   productId = input.required<string>();
+  orgLogoDataUrl = input<string | null>(null);
 
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
@@ -59,8 +62,12 @@ export class ApplyProfileFlowComponent implements OnInit, OnDestroy {
   // ── Bucket state machine ─────────────────────────────────────────────────────
   bucketIndex = 0;
 
+  /** Every product ends up with at least one profile — products without applicantProfiles
+   * configured (every pre-session product) get one synthesized from their existing per-type
+   * config, so the universal flow works for every product regardless of type. */
   get profiles(): ApplicantProfile[] {
-    return this.product().applicantProfiles ?? [];
+    const configured = this.product().applicantProfiles ?? [];
+    return configured.length ? configured : [synthesizeDefaultProfile(this.product())];
   }
 
   get skipProfileBucket(): boolean {

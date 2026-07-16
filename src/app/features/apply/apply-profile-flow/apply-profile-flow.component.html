@@ -1,5 +1,8 @@
 <div class="pf-shell">
   <div class="pf-header">
+    @if (orgLogoDataUrl()) {
+      <img class="pf-logo" [src]="orgLogoDataUrl()" alt="" />
+    }
     <p class="pf-brand">{{ product().name }}</p>
     <div class="pf-progress-rail">
       <div class="pf-progress-fill" [style.width.%]="progress"></div>
@@ -19,6 +22,16 @@
       <div class="pf-screen">
         <h2 class="pf-headline">Let's get<br>started</h2>
         <p class="pf-body-sm">Tell us how to reach you.</p>
+
+        <div class="pf-loan-detail-card">
+          <p class="pf-loan-detail-title">About this loan</p>
+          <div class="pf-summary-row"><span>Amount range</span><strong>₦{{ +product().minAmount | number }} – ₦{{ +product().maxAmount | number }}</strong></div>
+          <div class="pf-summary-row"><span>Tenor range</span><strong>{{ product().minTenor }} – {{ product().maxTenor }} {{ product().tenorUnit }}</strong></div>
+          <div class="pf-summary-row"><span>Interest type</span><strong>{{ product().interestModel }}</strong></div>
+          <div class="pf-summary-row"><span>Value</span><strong>{{ product().interestRate }}%</strong></div>
+          <div class="pf-summary-row"><span>Frequency</span><strong>{{ product().interestChargedWhen }}</strong></div>
+        </div>
+
         <div class="pf-field">
           <label class="pf-label">Phone number</label>
           <input class="pf-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="entryPhone" (blur)="onSimpleFieldBlur('entryPhone')" />
