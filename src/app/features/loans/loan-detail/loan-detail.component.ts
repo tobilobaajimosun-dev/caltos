@@ -13,11 +13,12 @@ import {
   ConfirmModalComponent,
   ToastComponent,
   InputComponent,
+  TextareaComponent,
 } from '../../../shared/components';
 import { LoansService, LoanApplication, LoanStatus } from '../../../shared/services/loans.service';
-import { ProductsService, DeductionChannelStatus } from '../../../shared/services/products.service';
+import { ProductsService, DeductionChannelStatus, LiquidationPolicy, DEFAULT_LIQUIDATION_POLICY } from '../../../shared/services/products.service';
 
-type DetailTab = 'about' | 'documents' | 'undertaking' | 'integrations' | 'payment' | 'activity';
+type DetailTab = 'about' | 'documents' | 'undertaking' | 'integrations' | 'payment' | 'activity' | 'liquidation';
 
 interface RepaymentRow {
   installment: string;
@@ -31,7 +32,7 @@ interface RepaymentRow {
   standalone: true,
   imports: [
     RouterLink, DatePipe, StatusBadgeComponent, RoundTabsComponent, ButtonComponent, AvatarComponent,
-    ColumnTitleComponent, ModalComponent, ConfirmModalComponent, ToastComponent, InputComponent,
+    ColumnTitleComponent, ModalComponent, ConfirmModalComponent, ToastComponent, InputComponent, TextareaComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-detail.component.html',
@@ -52,6 +53,7 @@ export class LoanDetailComponent implements OnInit {
     { label: 'Undertaking', value: 'undertaking' },
     { label: 'Integrations', value: 'integrations' },
     { label: 'Payment', value: 'payment' },
+    { label: 'Liquidation', value: 'liquidation' },
     { label: 'Activity Log', value: 'activity' },
   ];
   readonly activeTab = signal<DetailTab>('about');
@@ -143,6 +145,123 @@ export class LoanDetailComponent implements OnInit {
         status: (i < paidCount ? 'successful' : 'pending') as BadgeStatus,
       };
     });
+  }
+
+  // ── Liquidation ──────────────────────────────────────────────────────────────
+  /** The policy this loan was actually disbursed under — from productConfigSnapshot, never the
+   * live ProductRecord, so editing the product's policy later never changes this loan's terms.
+   * Falls back to defaults for loans created before this field existed. */
+  get liquidationPolicy(): LiquidationPolicy {
+    return this.loan?.productConfigSnapshot.liquidationPolicy ?? DEFAULT_LIQUIDATION_POLICY;
+  }
+
+  /** How many full months have elapsed since disbursement (proxied by updatedAt, same reference
+   * point repaymentSchedule already uses to derive installment due dates). */
+  private get monthsSinceDisbursement(): number {
+    if (!this.loan) return 0;
+    const start = new Date(this.loan.updatedAt);
+    const now = new Date();
+    return Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
+  }
+
+  get earliestEarlySettlementDate(): Date | null {
+    if (!this.loan) return null;
+    const start = new Date(this.loan.updatedAt);
+    start.setMonth(start.getMonth() + this.liquidationPolicy.earlySettlementMinTenorElapsed);
+    return start;
+  }
+
+  /** Null when early settlement is currently allowed; otherwise the reason it's blocked. */
+  get earlySettlementBlockReason(): string | null {
+    const policy = this.liquidationPolicy;
+    if (!policy.earlySettlementAllowed) return 'Early settlement is not available for this product.';
+    if (this.monthsSinceDisbursement < policy.earlySettlementMinTenorElapsed) {
+      return `Early settlement is available from ${this.earliestEarlySettlementDate?.toISOString().slice(0, 10)}.`;
+    }
+    return null;
+  }
+
+  get canEarlySettle(): boolean {
+    return this.loan?.status === 'disbursed' && !this.earlySettlementBlockReason;
+  }
+
+  /**
+   * Payoff amount as of today, computed purely from this loan's snapshotted terms (never the
+   * live product). Consistent with the flat-rate interest model used everywhere else in this
+   * app: outstanding principal is the straight-line share of the original amount for whatever
+   * installments remain, and "still owed to date" additionally includes the interest portion of
+   * those remaining installments.
+   */
+  get payoffBreakdown(): { remainingInstallments: number; balance: number; fee: number; total: number } {
+    if (!this.loan) return { remainingInstallments: 0, balance: 0, fee: 0, total: 0 };
+    const { tenor, amount, monthlyRepayment, status } = this.loan;
+    const paidCount = status === 'closed' ? tenor : status === 'disbursed' || status === 'top_up_request' ? Math.min(3, tenor) : 0;
+    const remainingInstallments = Math.max(0, tenor - paidCount);
+    const policy = this.liquidationPolicy;
+    const outstandingPrincipal = (amount / tenor) * remainingInstallments;
+    const outstandingWithInterest = monthlyRepayment * remainingInstallments;
+    const balance = policy.earlySettlementInterestTreatment === 'waived' ? outstandingPrincipal : outstandingWithInterest;
+    const fee = policy.earlySettlementFeeType === 'none' ? 0
+      : policy.earlySettlementFeeType === 'flat' ? policy.earlySettlementFeeValue
+      : balance * (policy.earlySettlementFeeValue / 100);
+    return { remainingInstallments, balance: Math.round(balance), fee: Math.round(fee), total: Math.round(balance + fee) };
+  }
+
+  showEarlySettleConfirm = false;
+
+  openEarlySettle() {
+    if (!this.canEarlySettle) return;
+    this.showEarlySettleConfirm = true;
+  }
+
+  cancelEarlySettle() {
+    this.showEarlySettleConfirm = false;
+  }
+
+  confirmEarlySettle() {
+    if (!this.loan || !this.canEarlySettle) return;
+    const { balance, fee, total } = this.payoffBreakdown;
+    this.loansService.setStatus(this.loan.id, 'closed');
+    this.loansService.addActivity(
+      this.loan.id,
+      `Loan liquidated early — payoff ₦${total.toLocaleString()} collected (₦${balance.toLocaleString()} balance + ₦${fee.toLocaleString()} fee)`,
+      'Admin',
+    );
+    this.refreshLoan();
+    this.showEarlySettleConfirm = false;
+    this.showToast('Loan liquidated — payoff collected.');
+  }
+
+  showWriteOff = false;
+  writeOffReason = '';
+
+  openWriteOff() {
+    this.writeOffReason = '';
+    this.showWriteOff = true;
+  }
+
+  closeWriteOff() {
+    this.showWriteOff = false;
+  }
+
+  get canSubmitWriteOff(): boolean {
+    return this.writeOffReason.trim().length > 0;
+  }
+
+  submitWriteOff() {
+    if (!this.loan || !this.canSubmitWriteOff) return;
+    const reason = this.writeOffReason.trim();
+    const auto = this.liquidationPolicy.writeOffApprovalRequired === 'auto';
+    // Always logged for audit, regardless of approval mode — the reason field is mandatory above.
+    this.loansService.addActivity(
+      this.loan.id,
+      auto ? `Loan written off — ${reason}` : `Loan write-off requested — ${reason} (pending manual approval)`,
+      'Admin',
+    );
+    if (auto) this.loansService.setStatus(this.loan.id, 'closed');
+    this.refreshLoan();
+    this.showWriteOff = false;
+    this.showToast(auto ? 'Loan written off.' : 'Write-off request submitted for manual approval.');
   }
 
   viewProfile() {

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
 import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent } from '../../../shared/components';
-import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, NotificationEventConfig, NotificationEventKey, DEFAULT_NOTIFICATION_EVENTS } from '../../../shared/services/products.service';
+import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, NotificationEventConfig, NotificationEventKey, DEFAULT_NOTIFICATION_EVENTS, LiquidationPolicy, DEFAULT_LIQUIDATION_POLICY, EarlySettlementFeeType, EarlySettlementInterestTreatment, WriteOffApproval } from '../../../shared/services/products.service';
 import { DeliveryChannel } from '../../../shared/services/notification-delivery.service';
 import { TeamsService, Role } from '../../../shared/services/teams.service';
 import { formatThousands } from '../../../shared/utils/number-format';
@@ -31,7 +31,7 @@ import {
   ViewOffIcon,
 } from '@hugeicons/core-free-icons';
 
-type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations' | 'notifications';
+type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations' | 'notifications' | 'liquidation';
 
 type IntegrationTag = 'deduction' | 'direct debit' | 'disbursements' | 'marketplace' | 'verification' | 'signature';
 
@@ -302,6 +302,7 @@ interface ProductData {
   latePenalty: { enabled: boolean; type: string; value: string; frequency: string; gracePeriod: string };
   policyText: string;
   notificationEvents: NotificationEventConfig[];
+  liquidationPolicy: LiquidationPolicy;
 }
 
 const EMPTY_PRODUCT_DATA: ProductData = {
@@ -343,6 +344,7 @@ const EMPTY_PRODUCT_DATA: ProductData = {
   latePenalty: { enabled: false, type: 'Percentage', value: '0%', frequency: 'Daily', gracePeriod: '0 days' },
   policyText: '',
   notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
+  liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
 };
 
 /** Maps a persisted ProductRecord (real or newly created) into the shape the template renders. */
@@ -398,6 +400,7 @@ function mapRecordToProductData(record: ProductRecord): ProductData {
     policyText: c.policyText,
     // Products persisted before this field existed won't have it — fall back to the defaults.
     notificationEvents: c.notificationEvents ?? DEFAULT_NOTIFICATION_EVENTS,
+    liquidationPolicy: c.liquidationPolicy ?? DEFAULT_LIQUIDATION_POLICY,
   };
 }
 
@@ -455,6 +458,7 @@ export class ProductDetailComponent implements OnInit {
       { id: 'collections', label: 'Collections/Repayments' },
       { id: 'integrations', label: 'Integrations' },
       { id: 'notifications', label: 'Notifications' },
+      { id: 'liquidation', label: 'Liquidation' },
     );
     return tabs;
   }
@@ -601,6 +605,41 @@ export class ProductDetailComponent implements OnInit {
     const notificationEvents = existing.map((e) => (e.key === patched.key ? patched : e));
     this.productsService.update(this.productId, { config: { ...record.config, notificationEvents } });
     this.product = { ...this.product, notificationEvents };
+  }
+
+  // ── Liquidation tab ──────────────────────────────────────────────────────────
+  editingLiquidation: LiquidationPolicy | null = null;
+
+  readonly earlySettlementFeeTypeOptions: SelectOption[] = [
+    { value: 'none', label: 'No fee' },
+    { value: 'flat', label: 'Flat amount (₦)' },
+    { value: 'percentage_of_balance', label: 'Percentage of balance' },
+  ];
+  readonly earlySettlementInterestTreatmentOptions: SelectOption[] = [
+    { value: 'waived', label: 'Waived — only outstanding principal is owed' },
+    { value: 'still_owed_to_date', label: 'Still owed to date' },
+  ];
+  readonly writeOffApprovalOptions: SelectOption[] = [
+    { value: 'manual', label: 'Manual approval required' },
+    { value: 'auto', label: 'Automatic' },
+  ];
+
+  openEditLiquidation() {
+    this.editingLiquidation = { ...this.product.liquidationPolicy };
+  }
+
+  closeEditLiquidation() {
+    this.editingLiquidation = null;
+  }
+
+  saveEditLiquidation() {
+    if (!this.editingLiquidation) return;
+    const record = this.productsService.getById(this.productId);
+    if (!record) return;
+    const liquidationPolicy = this.editingLiquidation;
+    this.productsService.update(this.productId, { config: { ...record.config, liquidationPolicy } });
+    this.product = { ...this.product, liquidationPolicy };
+    this.closeEditLiquidation();
   }
 
   teamMemberName(id: string): string {

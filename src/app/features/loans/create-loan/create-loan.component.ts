@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec, DEFAULT_LIQUIDATION_POLICY } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 import {
@@ -873,6 +873,12 @@ export class CreateLoanComponent implements OnInit {
       notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
       accountIdentifier: 'bvn',
       applicantProfiles: this.config.applicantProfiles,
+      // No wizard step for this — defaults are set at creation and reviewed/edited afterward on
+      // the product detail page's Liquidation tab. When editing an existing product, carry its
+      // current policy forward instead of resetting it, since this method rebuilds the whole
+      // config object on every save.
+      liquidationPolicy: (this.editingProductId && this.productsService.getById(this.editingProductId)?.config.liquidationPolicy)
+        || DEFAULT_LIQUIDATION_POLICY,
     };
   }
 

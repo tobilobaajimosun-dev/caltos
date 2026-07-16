@@ -791,6 +791,119 @@
         </div>
       }
 
+      <!-- ═══ LIQUIDATION ═══ -->
+      @if (activeTab === 'liquidation') {
+        <div class="tab-body">
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Liquidation policy</h3>
+            <p class="tab-page-sub">How this product handles early settlement and write-offs. Set to sensible defaults when the product was created — changing this never affects loans already disbursed under the previous policy.</p>
+          </div>
+
+          <div class="detail-card">
+            <div class="card-header">
+              <p class="card-title">Early settlement</p>
+              <app-button variant="outline" label="Edit" (clicked)="openEditLiquidation()" />
+            </div>
+            <div class="config-grid">
+              <div class="config-row">
+                <span class="config-label">Allowed</span>
+                <span class="config-value"><span class="status-badge" [class.live]="product.liquidationPolicy.earlySettlementAllowed" [class.dormant]="!product.liquidationPolicy.earlySettlementAllowed">{{ product.liquidationPolicy.earlySettlementAllowed ? 'Yes' : 'No' }}</span></span>
+              </div>
+              <div class="config-row">
+                <span class="config-label">Minimum tenor elapsed</span>
+                <span class="config-value">{{ product.liquidationPolicy.earlySettlementMinTenorElapsed }} month(s)</span>
+              </div>
+              <div class="config-row">
+                <span class="config-label">Fee</span>
+                <span class="config-value">
+                  @if (product.liquidationPolicy.earlySettlementFeeType === 'none') { No fee }
+                  @else if (product.liquidationPolicy.earlySettlementFeeType === 'flat') { ₦{{ product.liquidationPolicy.earlySettlementFeeValue.toLocaleString() }} flat }
+                  @else { {{ product.liquidationPolicy.earlySettlementFeeValue }}% of outstanding balance }
+                </span>
+              </div>
+              <div class="config-row">
+                <span class="config-label">Interest treatment</span>
+                <span class="config-value">{{ product.liquidationPolicy.earlySettlementInterestTreatment === 'waived' ? 'Waived — only outstanding principal is owed' : 'Still owed to date' }}</span>
+              </div>
+              <div class="config-row">
+                <span class="config-label">Partial liquidation</span>
+                <span class="config-value">{{ product.liquidationPolicy.partialLiquidationAllowed ? 'Allowed' : 'Not allowed' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-card mt">
+            <div class="card-header">
+              <p class="card-title">Write-off</p>
+            </div>
+            <div class="config-grid">
+              <div class="config-row">
+                <span class="config-label">Threshold</span>
+                <span class="config-value">{{ product.liquidationPolicy.writeOffThresholdDays }} days past due</span>
+              </div>
+              <div class="config-row">
+                <span class="config-label">Approval</span>
+                <span class="config-value">{{ product.liquidationPolicy.writeOffApprovalRequired === 'manual' ? 'Manual approval required' : 'Automatic' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Edit liquidation policy modal -->
+      <app-modal [isOpen]="!!editingLiquidation" title="Edit liquidation policy" size="sm" (closed)="closeEditLiquidation()">
+        @if (editingLiquidation) {
+          <div class="target-form">
+            <div class="ob-field-group">
+              <label class="ob-label">Early settlement</label>
+              <app-checkbox label="Allow early settlement" [checked]="editingLiquidation.earlySettlementAllowed" (checkedChange)="editingLiquidation.earlySettlementAllowed = $event" />
+            </div>
+
+            @if (editingLiquidation.earlySettlementAllowed) {
+              <div class="ob-field-group">
+                <label class="ob-label">Minimum tenor elapsed (months)</label>
+                <input class="ob-input" type="number" min="0" [(ngModel)]="editingLiquidation.earlySettlementMinTenorElapsed" />
+              </div>
+
+              <div class="ob-field-group">
+                <label class="ob-label">Fee type</label>
+                <app-select [options]="earlySettlementFeeTypeOptions" [value]="editingLiquidation.earlySettlementFeeType" (valueChange)="editingLiquidation.earlySettlementFeeType = $any($event)" />
+              </div>
+
+              @if (editingLiquidation.earlySettlementFeeType !== 'none') {
+                <div class="ob-field-group">
+                  <label class="ob-label">{{ editingLiquidation.earlySettlementFeeType === 'flat' ? 'Fee amount (₦)' : 'Fee (% of outstanding balance)' }}</label>
+                  <input class="ob-input" type="number" min="0" [(ngModel)]="editingLiquidation.earlySettlementFeeValue" />
+                </div>
+              }
+
+              <div class="ob-field-group">
+                <label class="ob-label">Interest treatment</label>
+                <app-select [options]="earlySettlementInterestTreatmentOptions" [value]="editingLiquidation.earlySettlementInterestTreatment" (valueChange)="editingLiquidation.earlySettlementInterestTreatment = $any($event)" />
+              </div>
+
+              <div class="ob-field-group">
+                <app-checkbox label="Allow partial liquidation" [checked]="editingLiquidation.partialLiquidationAllowed" (checkedChange)="editingLiquidation.partialLiquidationAllowed = $event" />
+              </div>
+            }
+
+            <div class="ob-field-group">
+              <label class="ob-label">Write-off threshold (days past due)</label>
+              <input class="ob-input" type="number" min="0" [(ngModel)]="editingLiquidation.writeOffThresholdDays" />
+            </div>
+
+            <div class="ob-field-group">
+              <label class="ob-label">Write-off approval</label>
+              <app-select [options]="writeOffApprovalOptions" [value]="editingLiquidation.writeOffApprovalRequired" (valueChange)="editingLiquidation.writeOffApprovalRequired = $any($event)" />
+            </div>
+          </div>
+        }
+        <div modalFooter class="modal-footer-actions">
+          <app-button variant="outline" label="Cancel" (clicked)="closeEditLiquidation()" />
+          <app-button variant="primary" label="Save changes" (clicked)="saveEditLiquidation()" />
+        </div>
+      </app-modal>
+
       <!-- Edit notification event modal -->
       <app-modal [isOpen]="!!editingEvent" title="Edit event details" size="sm" (closed)="closeEditEvent()">
         @if (editingEvent) {

@@ -210,6 +210,42 @@ export interface ApplicantProfile {
   mandateTiming: MandateTiming;
 }
 
+export type EarlySettlementFeeType = 'none' | 'flat' | 'percentage_of_balance';
+export type EarlySettlementInterestTreatment = 'waived' | 'still_owed_to_date';
+export type WriteOffApproval = 'manual' | 'auto';
+
+/**
+ * How this product handles a loan being paid off before term (early settlement) or written off
+ * as uncollectable. Set to sensible defaults at product creation (no wizard step for this — see
+ * create-loan.component.ts's buildProductConfig()) and reviewed/edited afterward on the product
+ * detail page's Liquidation tab. Captured into every loan's productConfigSnapshot at creation so
+ * editing a product's policy later never changes the terms an existing loan was disbursed under.
+ */
+export interface LiquidationPolicy {
+  earlySettlementAllowed: boolean;
+  /** Months that must elapse since disbursement before early settlement is allowed. */
+  earlySettlementMinTenorElapsed: number;
+  earlySettlementFeeType: EarlySettlementFeeType;
+  /** Naira amount if earlySettlementFeeType is 'flat', or a percentage (0-100) if 'percentage_of_balance'. */
+  earlySettlementFeeValue: number;
+  earlySettlementInterestTreatment: EarlySettlementInterestTreatment;
+  /** Days past due before a loan becomes eligible for write-off. */
+  writeOffThresholdDays: number;
+  writeOffApprovalRequired: WriteOffApproval;
+  partialLiquidationAllowed: boolean;
+}
+
+export const DEFAULT_LIQUIDATION_POLICY: LiquidationPolicy = {
+  earlySettlementAllowed: true,
+  earlySettlementMinTenorElapsed: 0,
+  earlySettlementFeeType: 'none',
+  earlySettlementFeeValue: 0,
+  earlySettlementInterestTreatment: 'waived',
+  writeOffThresholdDays: 90,
+  writeOffApprovalRequired: 'manual',
+  partialLiquidationAllowed: false,
+};
+
 export interface ProductConfig {
   minInterest: string;
   maxInterest: string;
@@ -235,6 +271,7 @@ export interface ProductConfig {
   notificationEvents: NotificationEventConfig[];
   accountIdentifier: AccountIdentifierType;
   applicantProfiles: ApplicantProfile[];
+  liquidationPolicy: LiquidationPolicy;
 }
 
 export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
@@ -262,6 +299,7 @@ export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
   notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
   accountIdentifier: 'bvn',
   applicantProfiles: [],
+  liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
 };
 
 export interface ProductRecord {
@@ -380,6 +418,7 @@ export function demoProducts(): ProductRecord[] {
     notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
     accountIdentifier: 'bvn',
     applicantProfiles: [],
+    liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
   };
 
   const bnplConfig: ProductConfig = {
@@ -409,6 +448,7 @@ export function demoProducts(): ProductRecord[] {
     notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
     accountIdentifier: 'bvn',
     applicantProfiles: [],
+    liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
   };
 
   return [
@@ -528,6 +568,7 @@ export class ProductsService {
             ...config,
             accountIdentifier: config.accountIdentifier ?? 'bvn',
             applicantProfiles: config.applicantProfiles ?? [],
+            liquidationPolicy: config.liquidationPolicy ?? DEFAULT_LIQUIDATION_POLICY,
           },
         };
       }));

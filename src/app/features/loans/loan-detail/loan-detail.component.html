@@ -176,6 +176,38 @@
         </div>
       }
 
+      <!-- LIQUIDATION -->
+      @if (activeTab() === 'liquidation') {
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Payoff summary</p></div>
+          <div class="summary-grid">
+            <div class="summary-row"><span class="summary-label">Remaining installments</span><span class="summary-value">{{ payoffBreakdown.remainingInstallments }}</span></div>
+            <div class="summary-row"><span class="summary-label">Outstanding balance</span><span class="summary-value">₦{{ payoffBreakdown.balance.toLocaleString() }}</span></div>
+            <div class="summary-row"><span class="summary-label">Early settlement fee</span><span class="summary-value">₦{{ payoffBreakdown.fee.toLocaleString() }}</span></div>
+            <div class="summary-row"><span class="summary-label">Total payoff amount</span><span class="summary-value">₦{{ payoffBreakdown.total.toLocaleString() }}</span></div>
+          </div>
+          @if (earlySettlementBlockReason) {
+            <p class="undertaking-meta">{{ earlySettlementBlockReason }}</p>
+          }
+          <div class="customer-actions" style="margin-top: 16px">
+            <app-button variant="primary" label="Settle early" [disabled]="!canEarlySettle" (clicked)="openEarlySettle()" />
+            <app-button variant="outline" label="Write off loan" (clicked)="openWriteOff()" />
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><p class="panel-title">Policy applied to this loan</p></div>
+          <p class="undertaking-meta">Captured at disbursement — editing the product's liquidation policy later never changes these terms.</p>
+          <div class="summary-grid">
+            <div class="summary-row"><span class="summary-label">Early settlement allowed</span><span class="summary-value">{{ liquidationPolicy.earlySettlementAllowed ? 'Yes' : 'No' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Minimum tenor elapsed</span><span class="summary-value">{{ liquidationPolicy.earlySettlementMinTenorElapsed }} month(s)</span></div>
+            <div class="summary-row"><span class="summary-label">Interest treatment</span><span class="summary-value">{{ liquidationPolicy.earlySettlementInterestTreatment === 'waived' ? 'Waived' : 'Still owed to date' }}</span></div>
+            <div class="summary-row"><span class="summary-label">Write-off threshold</span><span class="summary-value">{{ liquidationPolicy.writeOffThresholdDays }} days past due</span></div>
+            <div class="summary-row"><span class="summary-label">Write-off approval</span><span class="summary-value">{{ liquidationPolicy.writeOffApprovalRequired === 'manual' ? 'Manual' : 'Automatic' }}</span></div>
+          </div>
+        </div>
+      }
+
       <!-- ACTIVITY LOG -->
       @if (activeTab() === 'activity') {
         <div class="panel embedded-tab">
@@ -247,6 +279,26 @@
     [danger]="true"
     (confirmed)="confirmBlacklist()"
     (cancelled)="cancelBlacklist()" />
+
+  <app-confirm-modal
+    [isOpen]="showEarlySettleConfirm"
+    title="Settle loan early?"
+    [message]="'This collects a payoff of ₦' + payoffBreakdown.total.toLocaleString() + ' and closes the loan. This action is logged on the loan\'s activity log.'"
+    confirmLabel="Settle early"
+    (confirmed)="confirmEarlySettle()"
+    (cancelled)="cancelEarlySettle()" />
+
+  <!-- Write-off modal -->
+  <app-modal [isOpen]="showWriteOff" title="Write off loan" size="sm" (closed)="closeWriteOff()">
+    <div class="edit-amount-body">
+      <p class="undertaking-meta">A reason is required and this action is always logged on the loan's activity log, regardless of the product's write-off approval setting.</p>
+      <app-textarea label="Reason" [value]="writeOffReason" (valueChange)="writeOffReason = $event" placeholder="Why is this loan being written off?" />
+    </div>
+    <div modalFooter class="modal-footer-actions">
+      <app-button variant="outline" label="Cancel" (clicked)="closeWriteOff()" />
+      <app-button variant="primary" label="Submit write-off" [disabled]="!canSubmitWriteOff" (clicked)="submitWriteOff()" />
+    </div>
+  </app-modal>
 
   @if (toastVisible) {
     <app-toast type="success" title="Done" [message]="toastMessage" (dismissed)="toastVisible = false" />
