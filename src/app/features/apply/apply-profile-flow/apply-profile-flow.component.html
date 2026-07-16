@@ -56,6 +56,7 @@
           @for (p of profiles; track p.profileId) {
             <button type="button" class="pf-profile-card" (click)="selectProfile(p.profileId)">
               <span class="pf-profile-label">{{ p.label }}</span>
+              <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           }
         </div>
@@ -79,7 +80,9 @@
           <button class="pf-link-btn" [disabled]="!bvn || bvn.length !== 11" (click)="sendBvnOtp()">Verify via OTP</button>
         } @else {
           <div class="pf-verified-row">
-            <span class="pf-check">✓</span>
+            <span class="pf-icon-badge pf-icon-badge-sm">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
             <div>
               <p class="pf-verified-label">BVN</p>
               <p class="pf-verified-value">{{ bvn }}</p>
@@ -113,7 +116,9 @@
               </button>
             } @else {
               <div class="pf-verified-row">
-                <span class="pf-check">✓</span>
+                <span class="pf-icon-badge pf-icon-badge-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
                 <div>
                   <p class="pf-verified-label">Account verified</p>
                   <p class="pf-verified-value">{{ accountName }}</p>
@@ -192,7 +197,9 @@
                   <input type="file" accept="image/*,.pdf" (change)="onDocFileChange(doc.key, $event)" />
                 </label>
               } @else {
-                <span class="pf-check">✓</span>
+                <span class="pf-icon-badge pf-icon-badge-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
               }
             </div>
           }
@@ -300,14 +307,19 @@
     <!-- 9: DISBURSEMENT CONFIRMATION -->
     @if (currentBucket === 'disbursement') {
       <div class="pf-screen pf-center">
-        <div class="pf-success-badge">✓</div>
+        <div class="pf-success-badge">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
         <h2 class="pf-headline">Application<br>submitted</h2>
         <p class="pf-body-sm">Your loan of ₦{{ +loanAmount | number }} will be disbursed to {{ mandateBankName }} ({{ mandateAccountNumber }}) once approved. Reference: {{ refNumber }}</p>
       </div>
     }
 
     @if (currentBucket !== 'entry' && currentBucket !== 'profile' && currentBucket !== 'disbursement') {
-      <button class="pf-back-btn" (click)="back()">Back</button>
+      <button class="pf-back-btn" (click)="back()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
     }
   </div>
 
