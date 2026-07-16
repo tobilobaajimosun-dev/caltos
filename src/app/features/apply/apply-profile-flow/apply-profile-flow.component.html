@@ -1,0 +1,311 @@
+<div class="pf-shell">
+  <div class="pf-header">
+    <p class="pf-brand">{{ product().name }}</p>
+    <div class="pf-progress-rail">
+      <div class="pf-progress-fill" [style.width.%]="progress"></div>
+    </div>
+    <div class="pf-step-pill-row">
+      @for (b of bucketOrder; track b; let i = $index) {
+        <div class="pf-step-dot" [class.done]="i < bucketIndex" [class.active]="i === bucketIndex"></div>
+      }
+    </div>
+  </div>
+
+  <div class="pf-body">
+    <p class="pf-eyebrow">Bucket {{ bucketIndex + 1 }} of {{ bucketOrder.length }}</p>
+
+    <!-- 1: ENTRY IDENTIFIER -->
+    @if (currentBucket === 'entry') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">Let's get<br>started</h2>
+        <p class="pf-body-sm">Tell us how to reach you.</p>
+        <div class="pf-field">
+          <label class="pf-label">Phone number</label>
+          <input class="pf-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="entryPhone" (blur)="onSimpleFieldBlur('entryPhone')" />
+          @if (simpleFieldError('entryPhone', entryPhone); as err) {
+            <p class="pf-field-error">{{ err }}</p>
+          }
+        </div>
+        <div class="pf-field">
+          <label class="pf-label">Email address <span class="pf-opt">Optional</span></label>
+          <input class="pf-input" type="email" placeholder="you@example.com" [(ngModel)]="entryEmail" />
+        </div>
+        <button class="pf-cta" [disabled]="!entryCanContinue" (click)="next()">Continue</button>
+      </div>
+    }
+
+    <!-- 2: APPLICANT PROFILE SELECTOR (skipped when only one profile) -->
+    @if (currentBucket === 'profile') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">How do<br>you earn?</h2>
+        <p class="pf-body-sm">This helps us ask you the right questions next.</p>
+        <div class="pf-profile-cards">
+          @for (p of profiles; track p.profileId) {
+            <button type="button" class="pf-profile-card" (click)="selectProfile(p.profileId)">
+              <span class="pf-profile-label">{{ p.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- 3: VERIFICATION -->
+    @if (currentBucket === 'verify') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">Verify your<br>identity</h2>
+        <p class="pf-body-sm">256-bit encrypted. Never shared with third parties.</p>
+
+        @if (!bvnVerified) {
+          <div class="pf-field">
+            <label class="pf-label">Bank Verification Number (BVN)</label>
+            <input class="pf-input" type="tel" placeholder="11-digit BVN" [(ngModel)]="bvn" (blur)="onSimpleFieldBlur('bvn')" />
+            @if (simpleFieldError('bvn', bvn); as err) {
+              <p class="pf-field-error">{{ err }}</p>
+            }
+          </div>
+          <button class="pf-link-btn" [disabled]="!bvn || bvn.length !== 11" (click)="sendBvnOtp()">Verify via OTP</button>
+        } @else {
+          <div class="pf-verified-row">
+            <span class="pf-check">✓</span>
+            <div>
+              <p class="pf-verified-label">BVN</p>
+              <p class="pf-verified-value">{{ bvn }}</p>
+            </div>
+          </div>
+
+          @if (exposureMatches.length) {
+            <div class="pf-notice">
+              You already have {{ exposureMatches.length === 1 ? 'an application' : 'applications' }} elsewhere:
+              @for (m of exposureMatches; track m.loanUniqueId) {
+                <p class="pf-notice-line">{{ m.productName }} — {{ m.loanUniqueId }} ({{ m.status }})</p>
+              }
+            </div>
+          }
+
+          @if (selectedProfile?.incomeVerificationSource === 'remita' || selectedProfile?.incomeVerificationSource === 'wacs') {
+            @if (!accountFetched) {
+              <div class="pf-field">
+                <label class="pf-label">Bank</label>
+                <app-bank-select [value]="bankName" (valueChange)="bankName = $event" />
+              </div>
+              <div class="pf-field">
+                <label class="pf-label">Account number</label>
+                <input class="pf-input" type="tel" [(ngModel)]="accountNumber" (blur)="onSimpleFieldBlur('accountNumber')" />
+                @if (simpleFieldError('accountNumber', accountNumber); as err) {
+                  <p class="pf-field-error">{{ err }}</p>
+                }
+              </div>
+              <button class="pf-link-btn" [disabled]="!bankName || !accountNumber || fetchingAccount" (click)="fetchAccountDetails()">
+                {{ fetchingAccount ? 'Fetching…' : 'Fetch account details' }}
+              </button>
+            } @else {
+              <div class="pf-verified-row">
+                <span class="pf-check">✓</span>
+                <div>
+                  <p class="pf-verified-label">Account verified</p>
+                  <p class="pf-verified-value">{{ accountName }}</p>
+                </div>
+              </div>
+            }
+          } @else if (selectedProfile?.incomeVerificationSource === 'bank-statement') {
+            <div class="pf-field">
+              <label class="pf-label">Upload a 3-month bank statement</label>
+              <input type="file" accept="application/pdf" (change)="onDocFileChange('bank-statement-upload', $event)" />
+            </div>
+          } @else if (selectedProfile?.incomeVerificationSource === 'business-revenue') {
+            <div class="pf-field">
+              <label class="pf-label">Estimated annual business revenue (₦)</label>
+              <input class="pf-input" type="text" placeholder="e.g. 5,000,000" [ngModel]="declaredRevenue" (ngModelChange)="onDeclaredRevenueInput($event)" />
+            </div>
+          }
+        }
+
+        <button class="pf-cta" [disabled]="!verificationCanContinue" (click)="next()">Continue</button>
+      </div>
+    }
+
+    <!-- 4: PROFILE-SPECIFIC DETAILS (generic field renderer) -->
+    @if (currentBucket === 'details') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">A few more<br>details</h2>
+        <p class="pf-body-sm">Just what's needed to process your application.</p>
+
+        @for (key of selectedProfile?.fieldsRequired ?? []; track key) {
+          <div class="pf-field">
+            <label class="pf-label">{{ fieldDefs[key].label }}</label>
+            @if (fieldDefs[key].inputType === 'select') {
+              <select class="pf-input" [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)">
+                <option value="" disabled selected>Select…</option>
+                @for (opt of fieldDefs[key].options ?? []; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            } @else {
+              <input class="pf-input" type="text" [placeholder]="fieldDefs[key].placeholder ?? ''"
+                [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)" />
+            }
+            @if (fieldError(key); as err) {
+              <p class="pf-field-error">{{ err }}</p>
+            }
+          </div>
+        }
+
+        <button class="pf-cta" [disabled]="!detailsCanContinue" (click)="next()">Continue</button>
+      </div>
+    }
+
+    <!-- 5: DOCUMENTS -->
+    @if (currentBucket === 'documents') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">Upload<br>documents</h2>
+        <p class="pf-body-sm">{{ completedDocsCount }} of {{ (selectedProfile?.requiredDocuments ?? []).length }} complete</p>
+
+        @for (doc of selectedProfile?.requiredDocuments ?? []; track doc.key) {
+          @if (doc.captureMethod === 'in_app_recording') {
+            <app-video-capture-field [label]="doc.label" [value]="docs[doc.key]?.videoDataUrl ?? null" (valueChange)="onDocVideoChange(doc.key, $event)" />
+          } @else {
+            <div class="pf-doc-row" [class.done]="isDocComplete(doc.key)">
+              <div class="pf-doc-info">
+                <p class="pf-doc-label">{{ doc.label }}</p>
+                @if (isDocComplete(doc.key)) {
+                  <p class="pf-doc-sub">{{ docs[doc.key]?.fileName }} · Uploaded</p>
+                } @else {
+                  <p class="pf-doc-sub">Clear photo or scan, under 5MB</p>
+                }
+              </div>
+              @if (!isDocComplete(doc.key)) {
+                <label class="pf-doc-upload-btn">
+                  Upload
+                  <input type="file" accept="image/*,.pdf" (change)="onDocFileChange(doc.key, $event)" />
+                </label>
+              } @else {
+                <span class="pf-check">✓</span>
+              }
+            </div>
+          }
+        }
+
+        <button class="pf-cta" [disabled]="!documentsCanContinue" (click)="next()">Continue</button>
+      </div>
+    }
+
+    <!-- 6/7: MANDATE SETUP (order flips per mandateTiming) -->
+    @if (currentBucket === 'mandate') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">{{ mandateCopy.heading }}</h2>
+        <p class="pf-body-sm">{{ mandateCopy.description }}</p>
+
+        <div class="pf-field">
+          <label class="pf-label">Bank</label>
+          <app-bank-select [value]="mandateBankName" (valueChange)="mandateBankName = $event" />
+        </div>
+        <div class="pf-field">
+          <label class="pf-label">Account number</label>
+          <input class="pf-input" type="tel" [(ngModel)]="mandateAccountNumber" (blur)="onSimpleFieldBlur('mandateAccountNumber')" />
+          @if (simpleFieldError('mandateAccountNumber', mandateAccountNumber); as err) {
+            <p class="pf-field-error">{{ err }}</p>
+          }
+        </div>
+        <label class="pf-consent-row">
+          <input type="checkbox" [(ngModel)]="mandateConsent" />
+          <span>I authorise this repayment mandate.</span>
+        </label>
+
+        <button class="pf-cta" [disabled]="!mandateCanContinue" (click)="next()">Continue</button>
+      </div>
+    }
+
+    <!-- 6/7: ELIGIBILITY RESULT -->
+    @if (currentBucket === 'eligibility') {
+      <div class="pf-screen">
+        @if (isCalculatingEligibility) {
+          <div class="pf-calculating">
+            <div class="pf-loader-ring"></div>
+            <p>Calculating your eligible amount…</p>
+          </div>
+        } @else if (!eligibilityResult) {
+          <h2 class="pf-headline">Ready to see<br>your amount?</h2>
+          <button class="pf-cta" (click)="calculateEligibility()">Calculate my eligible amount</button>
+        } @else if (eligibilityResult.decision === 'declined') {
+          <h2 class="pf-headline">Not eligible<br>right now</h2>
+          <p class="pf-body-sm">{{ eligibilityResult.reasons.join(' ') }}</p>
+        } @else {
+          <p class="pf-eligible-eyebrow">You're eligible for up to</p>
+          <p class="pf-eligible-amount">₦{{ +loanAmount | number }}</p>
+          <div class="pf-field">
+            <label class="pf-label">Repayment period — {{ loanTenor }} month(s)</label>
+            <input type="range" [min]="+(product().minTenor || 1)" [max]="+(product().maxTenor || 12)" [(ngModel)]="loanTenor" />
+          </div>
+          <div class="pf-summary-row"><span>Monthly est.</span><strong>₦{{ monthlyEst | number }}</strong></div>
+          <button class="pf-cta" (click)="next()">Continue</button>
+        }
+      </div>
+    }
+
+    <!-- 8: REVIEW & CONFIRM -->
+    @if (currentBucket === 'review') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">Review &amp;<br>confirm</h2>
+
+        <div class="pf-review-card">
+          <div class="pf-review-head">
+            <p class="pf-review-title">Loan</p>
+            <button class="pf-review-edit" (click)="jumpTo('eligibility')">Edit</button>
+          </div>
+          <div class="pf-summary-row"><span>Amount</span><strong>₦{{ +loanAmount | number }}</strong></div>
+          <div class="pf-summary-row"><span>Tenor</span><strong>{{ loanTenor }} months</strong></div>
+        </div>
+
+        <div class="pf-review-card">
+          <div class="pf-review-head">
+            <p class="pf-review-title">Details</p>
+            <button class="pf-review-edit" (click)="jumpTo('details')">Edit</button>
+          </div>
+          @for (key of selectedProfile?.fieldsRequired ?? []; track key) {
+            <div class="pf-summary-row"><span>{{ fieldDefs[key].label }}</span><strong>{{ values[key] }}</strong></div>
+          }
+        </div>
+
+        <div class="pf-review-card">
+          <div class="pf-review-head">
+            <p class="pf-review-title">Repayment mandate</p>
+            <button class="pf-review-edit" (click)="jumpTo('mandate')">Edit</button>
+          </div>
+          <div class="pf-summary-row"><span>Bank</span><strong>{{ mandateBankName }}</strong></div>
+          <div class="pf-summary-row"><span>Account</span><strong>{{ mandateAccountNumber }}</strong></div>
+        </div>
+
+        <label class="pf-consent-row">
+          <input type="checkbox" [(ngModel)]="mandateConsent" />
+          <span>I confirm all information is accurate and agree to the Terms and Privacy Policy.</span>
+        </label>
+
+        <button class="pf-cta" [disabled]="!mandateConsent" (click)="submit()">Submit application</button>
+      </div>
+    }
+
+    <!-- 9: DISBURSEMENT CONFIRMATION -->
+    @if (currentBucket === 'disbursement') {
+      <div class="pf-screen pf-center">
+        <div class="pf-success-badge">✓</div>
+        <h2 class="pf-headline">Application<br>submitted</h2>
+        <p class="pf-body-sm">Your loan of ₦{{ +loanAmount | number }} will be disbursed to {{ mandateBankName }} ({{ mandateAccountNumber }}) once approved. Reference: {{ refNumber }}</p>
+      </div>
+    }
+
+    @if (currentBucket !== 'entry' && currentBucket !== 'profile' && currentBucket !== 'disbursement') {
+      <button class="pf-back-btn" (click)="back()">Back</button>
+    }
+  </div>
+
+  <!-- BVN OTP MODAL -->
+  @if (bvnOtpOpen) {
+    <div class="pf-otp-backdrop" (click)="closeBvnOtp()">
+      <div class="pf-otp-dialog" (click)="$event.stopPropagation()">
+        <p class="pf-otp-title">Enter the code sent to your BVN-registered phone number</p>
+        <input class="pf-input pf-otp-input" type="tel" maxlength="6" placeholder="······" [(ngModel)]="bvnOtpCode" />
+        <button class="pf-cta" [disabled]="bvnOtpCode.length !== 6" (click)="verifyBvnOtp()">Verify</button>
+      </div>
+    </div>
+  }
+</div>

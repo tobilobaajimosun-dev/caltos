@@ -440,6 +440,24 @@ export class LoansService {
     return `An application from this BVN (${dup.loanUniqueId}) is already in progress for this product. Please wait for it to be resolved before applying again.`;
   }
 
+  /**
+   * Cross-product exposure — every unresolved-or-active loan anywhere under this lender for the
+   * given BVN, regardless of product (unlike getDuplicateApplicationBlockReason above, which is
+   * scoped to a single product). Used by the profile-driven /apply flow's verification bucket to
+   * surface a plain-language "you already have a loan elsewhere" notice after BVN verification.
+   */
+  getCrossProductExposure(bvn: string): { productName: string; loanUniqueId: string; status: LoanStatus }[] {
+    if (!bvn) return [];
+    const relevant: LoanStatus[] = ['new', 'documents_review', 'disbursed', 'top_up_request'];
+    return this._loans()
+      .filter((l) => l.applicantIdentifier === bvn && relevant.includes(l.status))
+      .map((l) => ({
+        productName: this.productsService.getById(l.productId)?.name ?? 'another product',
+        loanUniqueId: l.loanUniqueId,
+        status: l.status,
+      }));
+  }
+
   /** Approve/decline/request-more-info action from the manual review queue. */
   resolveManualReview(id: string, decision: 'approved' | 'declined' | 'more_info', note: string, actor = 'Reviewer') {
     const loan = this.getById(id);

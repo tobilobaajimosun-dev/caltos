@@ -68,6 +68,7 @@ export { SelectComponent } from './select/select.component';
 export { SplitButtonComponent } from './split-button/split-button.component';
 export { BankSelectComponent } from './bank-select/bank-select.component';
 export { ReadonlyFieldComponent } from './readonly-field/readonly-field.component';
+export { VideoCaptureFieldComponent } from './video-capture-field/video-capture-field.component';
 
 export type { BadgeStatus } from './status-badge/status-badge.component';
 export type { ButtonVariant } from './button/button.component';

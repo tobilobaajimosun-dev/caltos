@@ -1,5 +1,7 @@
 @if (loading) {
   <div class="apply-shell apply-loading" aria-busy="true"></div>
+} @else if (usesProfileFlow) {
+  <app-apply-profile-flow [product]="product" [productId]="resolvedProductId" />
 } @else {
 <div class="apply-shell" [style.--brand]="brandColor">
 

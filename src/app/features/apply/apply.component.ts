@@ -12,6 +12,7 @@ import {
 } from '../../shared/utils/eligibility-scoring';
 import { formatThousands } from '../../shared/utils/number-format';
 import { BankSelectComponent, ReadonlyFieldComponent } from '../../shared/components';
+import { ApplyProfileFlowComponent } from './apply-profile-flow/apply-profile-flow.component';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
 const FALLBACK_CONFIG: LoanConfig = {
@@ -56,6 +57,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   brandColor: '#6941C6', brandName: '',
   collectSchoolInfo: false, collectCoopInfo: false,
   collectCivilServiceInfo: false, collectNyscInfo: false,
+  applicantProfiles: [],
 };
 
 interface StepDef { id: string; label: string; }
@@ -98,7 +100,7 @@ const DEDUCTION_CHANNEL_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-apply',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, BankSelectComponent, ReadonlyFieldComponent],
+  imports: [CommonModule, FormsModule, RouterLink, BankSelectComponent, ReadonlyFieldComponent, ApplyProfileFlowComponent],
   templateUrl: './apply.component.html',
   styleUrls: ['./apply.component.scss'],
 })
@@ -115,6 +117,14 @@ export class ApplyComponent implements OnInit, OnDestroy {
   resolvedProductId = '';
 
   get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
+
+  /** True once this product's config carries at least one applicant profile — dispatches
+   * the whole flow to the new generic 9-bucket engine (apply-profile-flow.component.ts)
+   * instead of the legacy per-loan-type flow below. Every existing product keeps
+   * applicantProfiles empty and is completely unaffected. */
+  get usesProfileFlow(): boolean {
+    return (this.product.applicantProfiles?.length ?? 0) > 0;
+  }
 
   // ── Dynamic steps ───────────────────────────────────────────────────────────
   steps: StepDef[] = [];
@@ -625,6 +635,7 @@ export class ApplyComponent implements OnInit, OnDestroy {
           interestRate: record.interestRate,
           interestChargedWhen: record.interestFrequency,
           bannerImageDataUrl: record.bannerImageDataUrl,
+          applicantProfiles: record.config.applicantProfiles ?? [],
         };
         this.configSource = 'localStorage';
         this.resolvedProductId = productId!;

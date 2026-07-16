@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 import {
@@ -219,6 +219,13 @@ export interface LoanConfig {
   bnplDefaultVendorLimit?: string;
   /** BNPL only — whether the customer enters the purchase amount or the vendor sends an invoice. */
   bnplPurchaseMode?: 'amount' | 'invoice';
+  /**
+   * Any product's set of lender-configurable applicant types (e.g. "Government Employee" vs.
+   * "Business Owner"). Non-empty opts this product into the new profile-driven /apply engine
+   * (apply-profile-flow.component.ts) instead of the legacy per-loan-type flow — see
+   * ProductConfig.applicantProfiles in products.service.ts for the full shape.
+   */
+  applicantProfiles: ApplicantProfile[];
 }
 
 export type IncomeSourceOption = 'private' | 'government' | 'paramilitary' | 'business';
@@ -574,6 +581,7 @@ export class CreateLoanComponent implements OnInit {
     bnplCategories: [], collectSchoolInfo: false, collectCoopInfo: false,
     collectCivilServiceInfo: false, collectNyscInfo: false,
     incomeSourceOptions: [], bnplCustomCategory: '', bnplDefaultVendorLimit: '', bnplPurchaseMode: 'amount',
+    applicantProfiles: [],
   };
 
   private readonly route = inject(ActivatedRoute);
@@ -863,6 +871,8 @@ export class CreateLoanComponent implements OnInit {
       },
       policyText: `By applying for ${this.config.name || 'this product'}, you agree that we may verify your employment, salary, and credit history from third-party sources to assess your eligibility. By checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
       notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
+      accountIdentifier: 'bvn',
+      applicantProfiles: this.config.applicantProfiles,
     };
   }
 
@@ -1347,6 +1357,92 @@ export class CreateLoanComponent implements OnInit {
     this.config.bnplCategories = current.includes(cat)
       ? current.filter((c) => c !== cat)
       : [...current, cat];
+  }
+
+  // ── Applicant Profiles builder ──────────────────────────────────────────────
+  // Lender-configurable applicant types for the new profile-driven /apply engine
+  // (apply-profile-flow.component.ts) — additive to every existing per-type flow above;
+  // a product only uses this mechanism once its applicantProfiles array is non-empty.
+  readonly incomeVerificationSourceOptions: SelectOption[] = [
+    { value: 'remita', label: 'Salary verification (Remita)' },
+    { value: 'wacs', label: 'Salary verification (WACS)' },
+    { value: 'bank-statement', label: 'Bank statement upload' },
+    { value: 'business-revenue', label: 'Self-declared business revenue' },
+  ];
+
+  readonly mandateRailOptions: SelectOption[] = Object.keys(DEDUCTION_CHANNEL_DEFS).map((id) => ({
+    value: id, label: DEDUCTION_CHANNEL_DEFS[id].name,
+  }));
+
+  readonly captureMethodOptions: SelectOption[] = [
+    { value: 'upload', label: 'Upload a file' },
+    { value: 'in_app_recording', label: 'Record in-app video' },
+  ];
+
+  readonly applicantFieldKeyOptions: { key: ApplicantFieldKey; label: string }[] = [
+    { key: 'employerName', label: 'Employer name' },
+    { key: 'jobTitle', label: 'Job title' },
+    { key: 'staffId', label: 'Staff ID' },
+    { key: 'businessName', label: 'Business name' },
+    { key: 'businessCacNumber', label: 'CAC number' },
+    { key: 'businessType', label: 'Business type' },
+    { key: 'businessAnnualRevenue', label: 'Annual revenue' },
+    { key: 'businessRole', label: 'Role in business' },
+    { key: 'monthlyIncome', label: 'Monthly net income' },
+    { key: 'addressStreet', label: 'Street address' },
+    { key: 'addressCity', label: 'City' },
+    { key: 'addressState', label: 'State' },
+  ];
+
+  addApplicantProfile() {
+    const profile: ApplicantProfile = {
+      profileId: 'profile-' + Date.now().toString(36),
+      label: 'New Applicant Profile',
+      incomeVerificationSource: 'remita',
+      fieldsRequired: [],
+      requiredDocuments: [],
+      mandateRail: 'remita',
+      mandateTiming: 'post_approval',
+    };
+    this.config.applicantProfiles = [...this.config.applicantProfiles, profile];
+  }
+
+  removeApplicantProfile(profileId: string) {
+    this.config.applicantProfiles = this.config.applicantProfiles.filter((p) => p.profileId !== profileId);
+  }
+
+  updateApplicantProfile(profileId: string, patch: Partial<ApplicantProfile>) {
+    this.config.applicantProfiles = this.config.applicantProfiles.map((p) => (p.profileId === profileId ? { ...p, ...patch } : p));
+  }
+
+  toggleProfileField(profileId: string, key: ApplicantFieldKey) {
+    const profile = this.config.applicantProfiles.find((p) => p.profileId === profileId);
+    if (!profile) return;
+    const has = profile.fieldsRequired.includes(key);
+    this.updateApplicantProfile(profileId, {
+      fieldsRequired: has ? profile.fieldsRequired.filter((k) => k !== key) : [...profile.fieldsRequired, key],
+    });
+  }
+
+  addProfileDocument(profileId: string) {
+    const profile = this.config.applicantProfiles.find((p) => p.profileId === profileId);
+    if (!profile) return;
+    const doc: RequiredDocumentSpec = { key: 'doc-' + Date.now().toString(36), label: 'New document', captureMethod: 'upload' };
+    this.updateApplicantProfile(profileId, { requiredDocuments: [...profile.requiredDocuments, doc] });
+  }
+
+  removeProfileDocument(profileId: string, docKey: string) {
+    const profile = this.config.applicantProfiles.find((p) => p.profileId === profileId);
+    if (!profile) return;
+    this.updateApplicantProfile(profileId, { requiredDocuments: profile.requiredDocuments.filter((d) => d.key !== docKey) });
+  }
+
+  updateProfileDocument(profileId: string, docKey: string, patch: Partial<RequiredDocumentSpec>) {
+    const profile = this.config.applicantProfiles.find((p) => p.profileId === profileId);
+    if (!profile) return;
+    this.updateApplicantProfile(profileId, {
+      requiredDocuments: profile.requiredDocuments.map((d) => (d.key === docKey ? { ...d, ...patch } : d)),
+    });
   }
 
   getExpand(key: string): boolean {

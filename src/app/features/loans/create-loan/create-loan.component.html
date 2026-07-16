@@ -318,6 +318,77 @@
               </div>
             }
 
+            <!-- Applicant Profiles (new profile-driven /apply engine) -->
+            <div class="form-card">
+              <div class="form-card-title">Applicant Profiles</div>
+              <div class="form-card-sub">Optional — define one or more applicant types (e.g. "Government Employee" vs. "Business Owner"). Adding at least one switches this product's borrower portal to the profile-driven 9-step flow instead of the default flow.</div>
+
+              @for (profile of config.applicantProfiles; track profile.profileId) {
+                <div class="collection-row" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 16px; border: 1px solid var(--color-stroke); border-radius: 8px; margin-top: 12px;">
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label class="field-label">Profile label</label>
+                      <input class="text-input" type="text" [ngModel]="profile.label" (ngModelChange)="updateApplicantProfile(profile.profileId, { label: $event })" />
+                    </div>
+                    <button class="expand-btn" (click)="removeApplicantProfile(profile.profileId)" aria-label="Remove profile">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                  </div>
+
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label class="field-label">Income verification source</label>
+                      <app-select [options]="incomeVerificationSourceOptions" [value]="profile.incomeVerificationSource" (valueChange)="updateApplicantProfile(profile.profileId, { incomeVerificationSource: $any($event) })" />
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Mandate rail</label>
+                      <app-select [options]="mandateRailOptions" [value]="profile.mandateRail" (valueChange)="updateApplicantProfile(profile.profileId, { mandateRail: $event })" />
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Mandate timing</label>
+                    <div class="freq-row">
+                      <button class="freq-btn" [class.selected]="profile.mandateTiming === 'inline'" (click)="updateApplicantProfile(profile.profileId, { mandateTiming: 'inline' })">Before eligibility result</button>
+                      <button class="freq-btn" [class.selected]="profile.mandateTiming === 'post_approval'" (click)="updateApplicantProfile(profile.profileId, { mandateTiming: 'post_approval' })">After eligibility result</button>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Fields to collect</label>
+                    <div class="verify-grid">
+                      @for (f of applicantFieldKeyOptions; track f.key) {
+                        <button class="verify-card" [class.selected]="profile.fieldsRequired.includes(f.key)" (click)="toggleProfileField(profile.profileId, f.key)">
+                          <div class="verify-check" [class.active]="profile.fieldsRequired.includes(f.key)"></div>
+                          <div class="verify-title">{{ f.label }}</div>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Required documents</label>
+                    @for (doc of profile.requiredDocuments; track doc.key) {
+                      <div class="field-row" style="margin-top: 8px">
+                        <div class="field-group">
+                          <input class="text-input" type="text" placeholder="Document label" [ngModel]="doc.label" (ngModelChange)="updateProfileDocument(profile.profileId, doc.key, { label: $event })" />
+                        </div>
+                        <div class="field-group">
+                          <app-select [options]="captureMethodOptions" [value]="doc.captureMethod" (valueChange)="updateProfileDocument(profile.profileId, doc.key, { captureMethod: $any($event) })" />
+                        </div>
+                        <button class="expand-btn" (click)="removeProfileDocument(profile.profileId, doc.key)" aria-label="Remove document">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </button>
+                      </div>
+                    }
+                    <app-button variant="outline" label="Add document" (clicked)="addProfileDocument(profile.profileId)" style="margin-top: 8px" />
+                  </div>
+                </div>
+              }
+
+              <app-button variant="secondary" label="Add applicant profile" (clicked)="addApplicantProfile()" style="margin-top: 12px" />
+            </div>
+
             <!-- Entry options -->
             <div class="form-card">
               <div class="form-card-number">1</div>

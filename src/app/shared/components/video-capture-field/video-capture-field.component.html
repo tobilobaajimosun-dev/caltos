@@ -1,0 +1,38 @@
+<div class="vcf-wrap">
+  <p class="vcf-label">{{ label() }}</p>
+  <p class="vcf-prompt">{{ prompt() }}</p>
+
+  @if (cameraError) {
+    <p class="vcf-error">{{ cameraError }}</p>
+  }
+
+  <div class="vcf-frame">
+    @if (videoPlaybackUrl || value()) {
+      <video [src]="videoPlaybackUrl ?? value()" controls playsinline class="vcf-video"></video>
+    } @else {
+      <video #videoPreview autoplay muted playsinline class="vcf-video"></video>
+      @if (isRecording) {
+        <div class="vcf-rec-badge"><span class="vcf-rec-dot"></span>Recording</div>
+      }
+    }
+  </div>
+
+  @if (checkingVideo) {
+    <div class="vcf-checking-row">
+      <div class="vcf-loader-ring"></div>
+      <span>Processing…</span>
+    </div>
+  } @else {
+    <div class="vcf-actions">
+      @if (!cameraStream && !videoPlaybackUrl && !value()) {
+        <button type="button" class="vcf-btn primary" (click)="startCamera()">Enable camera</button>
+      } @else if (videoPlaybackUrl || value()) {
+        <button type="button" class="vcf-btn" (click)="retakeVideo()">Retake video</button>
+      } @else if (!isRecording) {
+        <button type="button" class="vcf-btn primary" (click)="startRecording()">Start recording</button>
+      } @else {
+        <button type="button" class="vcf-btn primary danger" (click)="stopRecording()">Stop recording</button>
+      }
+    </div>
+  }
+</div>

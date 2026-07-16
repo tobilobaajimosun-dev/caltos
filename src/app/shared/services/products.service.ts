@@ -163,6 +163,53 @@ export const DEFAULT_NOTIFICATION_EVENTS: NotificationEventConfig[] = (
  * populate in full, and what product-detail.component.ts reads to render
  * every tab (Overview eligibility, Fees, Disbursement, Legal, Integrations).
  */
+/** Always BVN today — kept as its own named field (rather than folded into a per-profile
+ * income-verification source) because it's the identifier the cross-product exposure check
+ * (LoansService.getCrossProductExposure) matches on regardless of which applicant profile
+ * a borrower goes through. */
+export type AccountIdentifierType = 'bvn';
+
+export type CaptureMethod = 'upload' | 'in_app_recording';
+
+export interface RequiredDocumentSpec {
+  key: string;
+  label: string;
+  captureMethod: CaptureMethod;
+}
+
+/** Whether the repayment mandate is set up before ('inline') or after ('post_approval') the
+ * eligibility-result bucket in the applicant-profile-driven /apply flow. */
+export type MandateTiming = 'inline' | 'post_approval';
+
+/** Recognized borrower-facing income-verification mechanisms an applicant profile can select —
+ * each drives a distinct verification sub-flow in the profile-driven /apply engine. */
+export type IncomeVerificationSource = 'remita' | 'wacs' | 'bank-statement' | 'business-revenue';
+
+/** Field keys the profile-driven /apply flow's generic field renderer knows how to draw —
+ * see apply-profile-flow/field-defs.ts for the label/input-type each maps to. */
+export type ApplicantFieldKey =
+  | 'employerName' | 'jobTitle' | 'staffId'
+  | 'businessName' | 'businessCacNumber' | 'businessType' | 'businessAnnualRevenue' | 'businessRole'
+  | 'monthlyIncome' | 'addressStreet' | 'addressCity' | 'addressState';
+
+/**
+ * A lender-configurable applicant type (e.g. "Government Employee" vs. "Business Owner") for
+ * products using the new profile-driven /apply engine (apply-profile-flow.component.ts) instead
+ * of the legacy per-loan-type flow. A product opts in purely by having a non-empty
+ * ProductConfig.applicantProfiles — every existing product's array stays empty and keeps using
+ * the legacy ApplyComponent flow unchanged.
+ */
+export interface ApplicantProfile {
+  profileId: string;
+  label: string;
+  incomeVerificationSource: IncomeVerificationSource;
+  fieldsRequired: ApplicantFieldKey[];
+  requiredDocuments: RequiredDocumentSpec[];
+  /** One of DEDUCTION_CHANNEL_DEFS's ids. */
+  mandateRail: string;
+  mandateTiming: MandateTiming;
+}
+
 export interface ProductConfig {
   minInterest: string;
   maxInterest: string;
@@ -186,6 +233,8 @@ export interface ProductConfig {
   latePenalty: LatePenaltyConfig;
   policyText: string;
   notificationEvents: NotificationEventConfig[];
+  accountIdentifier: AccountIdentifierType;
+  applicantProfiles: ApplicantProfile[];
 }
 
 export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
@@ -211,6 +260,8 @@ export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
   latePenalty: { enabled: false, type: 'Percentage', value: '0%', frequency: 'Daily', gracePeriod: '0 days' },
   policyText: '',
   notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
+  accountIdentifier: 'bvn',
+  applicantProfiles: [],
 };
 
 export interface ProductRecord {
@@ -327,6 +378,8 @@ export function demoProducts(): ProductRecord[] {
     latePenalty: { enabled: true, type: 'Percentage', value: '2%', frequency: 'Daily', gracePeriod: '3 days' },
     policyText: 'By applying, you agree that Princeps Finance may verify your employment, salary, and credit history from third-party sources to assess your eligibility. If approved, your monthly repayments will be automatically deducted from your salary before funds are credited to your account. Any outstanding balance in the event of default may be recovered from your other linked accounts.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.',
     notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
+    accountIdentifier: 'bvn',
+    applicantProfiles: [],
   };
 
   const bnplConfig: ProductConfig = {
@@ -354,6 +407,8 @@ export function demoProducts(): ProductRecord[] {
     latePenalty: { enabled: true, type: 'Percentage', value: '1.5%', frequency: 'Daily', gracePeriod: '3 days' },
     policyText: 'By proceeding with this purchase, you agree that Princeps Finance will finance this transaction on your behalf. Repayment will be made in equal monthly instalments as agreed. Failure to repay may result in reporting to credit bureaus and recovery action.\n\nBy checking this box, you confirm that you have read and accept our Privacy Policy and BNPL Terms & Conditions.',
     notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
+    accountIdentifier: 'bvn',
+    applicantProfiles: [],
   };
 
   return [
@@ -464,8 +519,18 @@ export class ProductsService {
           localStorage.removeItem(STORAGE_KEY);
         }
       }
-      // Backfill config for records saved before this field existed.
-      this._products.set(records.map((p) => ({ ...p, config: p.config ?? DEFAULT_PRODUCT_CONFIG })));
+      // Backfill config (and its individual fields, for configs saved before they existed).
+      this._products.set(records.map((p) => {
+        const config = p.config ?? DEFAULT_PRODUCT_CONFIG;
+        return {
+          ...p,
+          config: {
+            ...config,
+            accountIdentifier: config.accountIdentifier ?? 'bvn',
+            applicantProfiles: config.applicantProfiles ?? [],
+          },
+        };
+      }));
     } catch (e) {
       console.error('Failed to load products from IndexedDB', e);
     }

@@ -1,0 +1,129 @@
+$surface: #161820;
+$border: rgba(255, 255, 255, 0.07);
+$text-1: #FFFFFF;
+$text-2: #A0A4B8;
+$red: #F04438;
+
+:host { display: block; }
+
+.vcf-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vcf-label {
+  font-family: var(--font-heading, inherit);
+  font-weight: 600;
+  font-size: 15px;
+  color: $text-1;
+  margin: 0;
+}
+
+.vcf-prompt {
+  font-size: 13px;
+  color: $text-2;
+  margin: 0;
+}
+
+.vcf-error {
+  font-size: 13px;
+  color: $red;
+  margin: 0;
+}
+
+.vcf-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 360px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: $surface;
+  border: 1px solid $border;
+}
+
+.vcf-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vcf-rec-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  color: $text-1;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vcf-rec-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $red;
+  animation: vcfRecPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes vcfRecPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.vcf-checking-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  color: $text-2;
+  font-size: 13px;
+}
+
+.vcf-loader-ring {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--brand, #7C5CEB);
+  animation: vcfSpin 0.8s linear infinite;
+}
+
+@keyframes vcfSpin {
+  to { transform: rotate(360deg); }
+}
+
+.vcf-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.vcf-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid $border;
+  background: $surface;
+  color: $text-1;
+  font-family: var(--font-body, inherit);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &.primary {
+    border: none;
+    background: var(--brand, #7C5CEB);
+  }
+
+  &.danger {
+    background: $red;
+  }
+}
