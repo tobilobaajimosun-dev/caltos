@@ -1,7 +1,7 @@
 @if (loading) {
   <div class="apply-loading" aria-busy="true"></div>
 } @else if (useV2Flow) {
-  <app-apply-flow-v2 [product]="product" [productId]="resolvedProductId" [orgLogoDataUrl]="orgLogoDataUrl" />
+  <app-apply-flow-v2 [product]="product" [productId]="resolvedProductId" [orgLogoDataUrl]="orgLogoDataUrl" [orgName]="orgName" />
 } @else {
   <app-apply-profile-flow [product]="product" [productId]="resolvedProductId" [orgLogoDataUrl]="orgLogoDataUrl" />
 }

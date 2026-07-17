@@ -4,7 +4,7 @@
       @if (orgLogoDataUrl()) {
         <img class="pf-logo" [src]="orgLogoDataUrl()" alt="" />
       }
-      <p class="pf-brand">{{ product().name }}@if (product().brandName) { <span class="pf-brand-lender"> · {{ product().brandName }}</span> }</p>
+      <p class="pf-brand">{{ product().name }} <span class="pf-brand-lender">· {{ product().brandName || orgName() }}</span></p>
       <div class="pf-progress-rail">
         <div class="pf-progress-fill" [style.width.%]="progress"></div>
       </div>
@@ -26,7 +26,7 @@
           @if (orgLogoDataUrl()) {
             <img class="pf-logo" [src]="orgLogoDataUrl()" alt="" />
           }
-          <p class="pf-brand">{{ product().brandName || product().name }}</p>
+          <p class="pf-brand">By {{ product().brandName || orgName() }}</p>
         </div>
         <h2 class="pf-headline">{{ product().name }}</h2>
         <p class="pf-body-sm">{{ product().description }}</p>
@@ -36,8 +36,11 @@
           <div class="pf-summary-row"><span>Amount range</span><strong>₦{{ +product().minAmount | number }} – ₦{{ +product().maxAmount | number }}</strong></div>
           <div class="pf-summary-row"><span>Tenor range</span><strong>{{ product().minTenor }} – {{ product().maxTenor }} {{ product().tenorUnit }}</strong></div>
           <div class="pf-summary-row"><span>Interest</span><strong>{{ product().interestRate }}% {{ product().interestChargedWhen }}</strong></div>
-          @if (audienceLabels.length) {
-            <div class="pf-summary-row"><span>Who can apply</span><strong>{{ audienceLabels.join(', ') }}</strong></div>
+          @if (eligibilitySummary) {
+            <div class="pf-summary-row"><span>Who can apply</span><strong>{{ eligibilitySummary }}</strong></div>
+          }
+          @if (incomeVerificationSummary) {
+            <div class="pf-summary-row"><span>Income verification</span><strong>{{ incomeVerificationSummary }}</strong></div>
           }
         </div>
 
@@ -333,21 +336,27 @@
         <div class="pf-screen pf-center">
           <h2 class="pf-headline">Offer<br>declined</h2>
           <p class="pf-body-sm">No problem — you can adjust your desired amount or repayment period and see a new offer.</p>
-          <button class="pf-cta" (click)="adjustLoanAmount()">Adjust loan amount</button>
-          <button class="pf-link-btn" (click)="exitApplication()">Exit application</button>
+          <div class="pf-button-stack">
+            <button class="pf-cta" (click)="adjustLoanAmount()">Adjust loan amount</button>
+            <button class="pf-link-btn" (click)="exitApplication()">Exit application</button>
+          </div>
         </div>
       } @else {
-        <h2 class="pf-headline">Your loan<br>offer</h2>
-        <p class="pf-body-sm">Review your terms before you continue.</p>
-        <div class="pf-review-card">
-          <div class="pf-summary-row"><span>Loan amount</span><strong>₦{{ +loanAmount | number }}</strong></div>
-          <div class="pf-summary-row"><span>Repayment period</span><strong>{{ loanTenor }} month(s)</strong></div>
-          <div class="pf-summary-row"><span>Monthly repayment</span><strong>₦{{ monthlyEst | number }}</strong></div>
-          <div class="pf-summary-row"><span>Processing fee</span><strong>₦{{ processingFeeAmount | number }}</strong></div>
-          <div class="pf-summary-row"><span>Total repayment</span><strong>₦{{ totalRepaymentAmount | number }}</strong></div>
+        <div class="pf-screen">
+          <h2 class="pf-headline">Your loan<br>offer</h2>
+          <p class="pf-body-sm">Review your terms before you continue.</p>
+          <div class="pf-review-card">
+            <div class="pf-summary-row"><span>Loan amount</span><strong>₦{{ +loanAmount | number }}</strong></div>
+            <div class="pf-summary-row"><span>Repayment period</span><strong>{{ loanTenor }} month(s)</strong></div>
+            <div class="pf-summary-row"><span>Monthly repayment</span><strong>₦{{ monthlyEst | number }}</strong></div>
+            <div class="pf-summary-row"><span>Processing fee</span><strong>₦{{ processingFeeAmount | number }}</strong></div>
+            <div class="pf-summary-row"><span>Total repayment</span><strong>₦{{ totalRepaymentAmount | number }}</strong></div>
+          </div>
+          <div class="pf-button-stack">
+            <button class="pf-cta" (click)="acceptOffer()">I have reviewed and agree</button>
+            <button class="pf-cta-outline" (click)="rejectOffer()">Reject loan offer</button>
+          </div>
         </div>
-        <button class="pf-cta" (click)="acceptOffer()">I have reviewed and agree</button>
-        <button class="pf-link-btn v2-reject-btn" (click)="rejectOffer()">Reject loan offer</button>
       }
     }
 

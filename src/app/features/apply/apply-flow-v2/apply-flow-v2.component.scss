@@ -24,9 +24,36 @@
   .pf-brand { margin: 0; text-align: left; }
 }
 
-.v2-reject-btn {
-  align-self: center;
-  color: var(--color-error);
+// Secondary button — the outline counterpart to .pf-cta (apply-profile-flow.component.scss),
+// same height/radius so the two stack as a matched pair rather than a filled pill next to a
+// bare text link with no visible boundary.
+.pf-cta-outline {
+  height: 44px;
+  border-radius: 22px;
+  border: 1.5px solid var(--brand);
+  background: transparent;
+  color: var(--brand);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 160ms ease, opacity 160ms var(--ease-out);
+
+  &:active:not(:disabled) { opacity: 0.7; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pf-cta-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+}
+
+// Groups 2+ related action buttons (e.g. accept/reject, adjust/exit) with a tighter, deliberate
+// gap than the screen's general 18px content rhythm — reads as one decision, not two separate
+// unrelated elements.
+.pf-button-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 // ── Confetti ──────────────────────────────────────────────────────────────────

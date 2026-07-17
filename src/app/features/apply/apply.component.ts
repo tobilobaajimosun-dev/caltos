@@ -78,6 +78,11 @@ export class ApplyComponent implements OnInit {
 
   get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
 
+  /** The lender's own name — distinct from the product's optional brandName override, this is
+   * always available (OrgBrandingService defaults to 'Caltos') so the borrower always sees who
+   * actually created the product, not just the product's own name. */
+  get orgName() { return this.orgBranding.branding().appName; }
+
   /** v2 (redesigned) /apply flow runs once every applicant profile on this product has an
    * `audience` — either explicitly configured ones, or, for products with no Applicant Profiles
    * configured at all (most products created before this field existed), the single profile

@@ -50,6 +50,17 @@ const INCOME_METHOD_LABELS: Record<IncomeVerificationSource, string> = {
   'business-revenue': 'Declare business revenue',
 };
 
+/** Short noun-phrase form of the same methods, for the About screen's compact eligibility/method
+ * summary line — INCOME_METHOD_LABELS above reads naturally as a button/heading ("Upload payslip"),
+ * these read naturally joined with "or" ("Remita or IPPIS/WACS"). */
+const INCOME_METHOD_SHORT_LABELS: Record<IncomeVerificationSource, string> = {
+  remita: 'Remita',
+  wacs: 'IPPIS/WACS',
+  payslip: 'Payslip',
+  'bank-statement': 'Bank statement',
+  'business-revenue': 'Business revenue',
+};
+
 /**
  * The v2 borrower application flow — a redesigned bucket order (issue #47) that runs only for
  * products whose applicantProfiles all have an `audience` set. Legacy/unmigrated products keep
@@ -72,6 +83,9 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   product = input.required<LoanConfig>();
   productId = input.required<string>();
   orgLogoDataUrl = input<string | null>(null);
+  /** The lender's own name (e.g. "Princeps Finance") — always shown on the About screen so the
+   * borrower knows who they're actually borrowing from, distinct from the product's own name. */
+  orgName = input<string>('');
 
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
@@ -147,6 +161,32 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   // ── About ─────────────────────────────────────────────────────────────────────
   get audienceLabels(): string[] {
     return this.profiles.map((p) => p.label).filter(Boolean);
+  }
+
+  /** Human-readable eligibility line for the About screen — age range plus the borrower-type
+   * label(s) this product is configured for, so "who can apply" is answered up front instead of
+   * only implicitly, several screens later, by which questions happen to get asked. */
+  get eligibilitySummary(): string {
+    const parts: string[] = [];
+    const minAge = this.product().minAge;
+    const maxAge = this.product().maxAge;
+    if (minAge || maxAge) {
+      parts.push(maxAge ? `Ages ${minAge || '18'}–${maxAge}` : `Ages ${minAge}+`);
+    }
+    parts.push(...this.audienceLabels);
+    return parts.join(' · ');
+  }
+
+  /** Every distinct income-verification method offered across this product's applicant profiles —
+   * shown up front on the About screen (issue: borrowers previously only discovered how their
+   * income would be verified several screens in, at the income-verification bucket itself). */
+  get incomeVerificationSummary(): string {
+    const methods = new Set<IncomeVerificationSource>();
+    for (const profile of this.profiles) {
+      const allowed = profile.audience ? AUDIENCE_INCOME_METHODS[profile.audience] : [profile.incomeVerificationSource];
+      allowed.forEach((m) => methods.add(m));
+    }
+    return Array.from(methods).map((m) => INCOME_METHOD_SHORT_LABELS[m]).join(' or ');
   }
 
   // ── Get started + returning-customer detection ───────────────────────────────
