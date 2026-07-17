@@ -11,7 +11,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   template: 'salary',
   name: 'Salary Advance Loan',
   description: 'Quick access to earned wages for private sector employees.',
-  targetAudiences: ['Salary Earners'], audienceMode: 'custom',
+  targetAudiences: ['Salary Earners'], audienceMode: 'custom', audience: null,
   minAmount: '10000', maxAmount: '500000',
   minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
   interestModel: 'Flat Rate', interestRate: '2.5', interestChargedWhen: 'Monthly',

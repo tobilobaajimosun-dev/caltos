@@ -1,8 +1,13 @@
 # Caltos Design System
 
-This is the design reference for Caltos — the visual language, component sizing standards, and UX
-principles the product should stay consistent with. It complements `CLAUDE.md` (which documents
-dev conventions and the component API table) with the *why* behind the sizing and layout rules.
+This is the design reference for the **admin SaaS dashboard** — the visual language, component
+sizing standards, and UX principles that surface should stay consistent with. It complements
+`CLAUDE.md` (which documents dev conventions and the component API table) with the *why* behind
+the sizing and layout rules.
+
+**The borrower application flow and customer tracker are on a separate design direction** —
+see `borrower-portal-design.md` for those two public-facing surfaces. Don't apply this file's
+sizing/color guidance to `/apply`, `/track`, or `/portal/repayments`; they intentionally diverge.
 
 ---
 

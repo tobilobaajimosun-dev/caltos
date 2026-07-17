@@ -85,6 +85,9 @@ export interface LoanConfig {
   description: string;
   targetAudiences: string[];
   audienceMode: 'everyone' | 'custom';
+  /** Borrower type this product is built for — a single product-level choice (not per applicant
+   * profile) that gates which income-verification methods are offered. See AUDIENCE_INCOME_METHODS. */
+  audience: AudienceCategory | null;
   minAmount: string;
   maxAmount: string;
   minTenor: string;
@@ -259,6 +262,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get quick access to your salary in advance. The process takes about 5 minutes.',
+    audience: 'salaried-worker',
   },
   public: {
     name: 'Public Sector Loan',
@@ -277,6 +281,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     // Civil service details now come from a successful WACS verification on the borrower
     // portal instead of being collected upfront as a separate section.
     collectCivilServiceInfo: false,
+    audience: 'public-civil-servant',
   },
   school: {
     name: 'School Fees Loan',
@@ -312,6 +317,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome, corps member! Quick loans to support your NYSC service year.',
     collectNyscInfo: true,
+    audience: 'corper',
   },
   sme: {
     name: 'SME Working Capital Loan',
@@ -327,6 +333,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'required', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get the working capital your business needs to grow.',
+    audience: 'sme-owner',
   },
   coop: {
     name: 'Cooperative Society Loan',
@@ -545,7 +552,7 @@ export class CreateLoanComponent implements OnInit {
   }
 
   config: LoanConfig = {
-    template: '', name: '', description: '', targetAudiences: [], audienceMode: 'everyone',
+    template: '', name: '', description: '', targetAudiences: [], audienceMode: 'everyone', audience: null,
     minAmount: '', maxAmount: '', minTenor: '', maxTenor: '', tenorUnit: 'Months',
     interestModel: 'Flat Rate', interestRate: '', interestChargedWhen: 'Monthly', minAge: '18', maxAge: '',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
@@ -872,7 +879,9 @@ export class CreateLoanComponent implements OnInit {
       policyText: `By applying for ${this.config.name || 'this product'}, you agree that we may verify your employment, salary, and credit history from third-party sources to assess your eligibility. By checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
       notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
       accountIdentifier: 'bvn',
-      applicantProfiles: this.config.applicantProfiles,
+      // audience is a single product-level choice (About Loan step) — every profile carries the
+      // same value so the borrower flow's per-profile audience check keeps working unchanged.
+      applicantProfiles: this.config.applicantProfiles.map((p) => ({ ...p, audience: this.config.audience })),
       // No wizard step for this — defaults are set at creation and reviewed/edited afterward on
       // the product detail page's Liquidation tab. When editing an existing product, carry its
       // current policy forward instead of resetting it, since this method rebuilds the whole
@@ -1378,31 +1387,33 @@ export class CreateLoanComponent implements OnInit {
   ];
 
   readonly audienceCategoryOptions: SelectOption[] = [
-    { value: '', label: 'No audience (legacy, unconstrained)' },
+    { value: '', label: 'No specific type (legacy, unconstrained)' },
     ...(Object.keys(AUDIENCE_CATEGORY_LABELS) as AudienceCategory[]).map((value) => ({
       value, label: AUDIENCE_CATEGORY_LABELS[value],
     })),
   ];
 
-  /** Income-verification options allowed for a profile's audience — unconstrained (all options)
-   * when no audience is set, since legacy profiles don't gate by audience. */
-  incomeMethodOptionsForAudience(audience: AudienceCategory | null): SelectOption[] {
-    if (!audience) return this.incomeVerificationSourceOptions;
-    const allowed = AUDIENCE_INCOME_METHODS[audience];
+  /** Income-verification options allowed for the product's audience (set once in the About Loan
+   * step) — unconstrained (all options) when no audience is set, since legacy products don't gate
+   * by audience. Applies to every applicant profile on this product; there's no per-profile
+   * override, since a product is normally built for one borrower type. */
+  get incomeMethodOptionsForAudience(): SelectOption[] {
+    if (!this.config.audience) return this.incomeVerificationSourceOptions;
+    const allowed = AUDIENCE_INCOME_METHODS[this.config.audience];
     return this.incomeVerificationSourceOptions.filter((opt) => allowed.includes(opt.value as IncomeVerificationSource));
   }
 
-  /** When a profile's audience changes, its incomeVerificationSource may no longer be a valid
-   * choice for the new audience — snap it to the audience's first allowed method. */
-  setProfileAudience(profileId: string, audienceValue: AudienceCategory | '') {
-    const profile = this.config.applicantProfiles.find((p) => p.profileId === profileId);
-    if (!profile) return;
+  /** When the product's audience changes, every profile's incomeVerificationSource may no longer
+   * be a valid choice for the new audience — snap each one to the audience's first allowed method. */
+  setProductAudience(audienceValue: AudienceCategory | '') {
     const audience: AudienceCategory | null = audienceValue || null;
+    this.config.audience = audience;
     const allowed = audience ? AUDIENCE_INCOME_METHODS[audience] : null;
-    const incomeVerificationSource = allowed && !allowed.includes(profile.incomeVerificationSource)
-      ? allowed[0]
-      : profile.incomeVerificationSource;
-    this.updateApplicantProfile(profileId, { audience, incomeVerificationSource });
+    if (!allowed) return;
+    this.config.applicantProfiles = this.config.applicantProfiles.map((p) => ({
+      ...p,
+      incomeVerificationSource: allowed.includes(p.incomeVerificationSource) ? p.incomeVerificationSource : allowed[0],
+    }));
   }
 
   readonly mandateRailOptions: SelectOption[] = Object.keys(DEDUCTION_CHANNEL_DEFS).map((id) => ({
@@ -1436,8 +1447,8 @@ export class CreateLoanComponent implements OnInit {
     const profile: ApplicantProfile = {
       profileId: 'profile-' + Date.now().toString(36),
       label: 'New Applicant Profile',
-      incomeVerificationSource: 'remita',
-      audience: null,
+      incomeVerificationSource: this.config.audience ? AUDIENCE_INCOME_METHODS[this.config.audience][0] : 'remita',
+      audience: this.config.audience,
       fieldsRequired: [],
       requiredDocuments: [],
       mandateRail: 'remita',

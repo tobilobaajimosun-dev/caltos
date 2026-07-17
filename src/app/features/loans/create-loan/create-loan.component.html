@@ -139,6 +139,17 @@
               </div>
             </div>
 
+            <!-- Borrower type — a single product-level choice that gates which income
+                 verification methods the applicant-profile step offers below. -->
+            <div class="form-card">
+              <div class="form-card-title">Who is this loan product for?</div>
+              <div class="field-group">
+                <label class="field-label">Borrower type</label>
+                <p class="field-sub">Determines which income verification methods borrowers are offered when they apply.</p>
+                <app-select [options]="audienceCategoryOptions" [value]="config.audience ?? ''" (valueChange)="setProductAudience($any($event))" />
+              </div>
+            </div>
+
             <!-- Target Audience — only meaningful for a custom, build-from-scratch product;
                  templated loan types already imply their audience. -->
             @if (config.template === 'scratch') {
@@ -337,16 +348,12 @@
 
                   <div class="field-row">
                     <div class="field-group">
-                      <label class="field-label">Who is this profile for?</label>
-                      <app-select [options]="audienceCategoryOptions" [value]="profile.audience ?? ''" (valueChange)="setProfileAudience(profile.profileId, $any($event))" />
-                    </div>
-                    <div class="field-group">
                       <label class="field-label">Income verification source</label>
-                      <app-select [options]="incomeMethodOptionsForAudience(profile.audience)" [value]="profile.incomeVerificationSource" (valueChange)="updateApplicantProfile(profile.profileId, { incomeVerificationSource: $any($event) })" />
+                      <app-select [options]="incomeMethodOptionsForAudience" [value]="profile.incomeVerificationSource" (valueChange)="updateApplicantProfile(profile.profileId, { incomeVerificationSource: $any($event) })" />
+                      @if (!config.audience) {
+                        <p class="field-sub">Set a borrower type in the About Loan step to narrow these options to what's relevant.</p>
+                      }
                     </div>
-                  </div>
-
-                  <div class="field-row">
                     <div class="field-group">
                       <label class="field-label">Mandate rail</label>
                       <app-select [options]="mandateRailOptions" [value]="profile.mandateRail" (valueChange)="updateApplicantProfile(profile.profileId, { mandateRail: $event })" />
