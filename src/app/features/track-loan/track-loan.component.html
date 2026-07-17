@@ -34,6 +34,19 @@
     </div>
 
     @if (l.status === 'disbursed' || l.status === 'closed') {
+      <div class="panel virtual-account-panel">
+        <div class="panel-head"><p class="panel-title">Virtual account</p></div>
+        <p class="danger-desc">Send repayments to this account — it's dedicated to your loan and reconciles automatically.</p>
+        <div class="va-row">
+          <div>
+            <p class="va-bank">{{ l.virtualAccountBank }}</p>
+            <p class="va-number">{{ l.virtualAccountNumber }}</p>
+            <p class="va-name">{{ l.virtualAccountName }}</p>
+          </div>
+          <button type="button" class="va-copy-btn" (click)="copyVirtualAccount(l.virtualAccountNumber)">Copy account number</button>
+        </div>
+      </div>
+
       <div class="panel table-panel">
         <div class="panel-head"><p class="panel-title">Repayment schedule</p></div>
         <table class="ref-table">
@@ -42,6 +55,7 @@
               <th><app-column-title label="Due date" /></th>
               <th><app-column-title label="Amount" /></th>
               <th><app-column-title label="Status" /></th>
+              <th><app-column-title label="Action" /></th>
             </tr>
           </thead>
           <tbody>
@@ -49,19 +63,50 @@
               <tr>
                 <td><app-table-item type="date" [date]="installment.dueDate" /></td>
                 <td><app-table-item type="amount" [amount]="'₦' + installment.amount.toLocaleString()" /></td>
-                <td><app-status-badge [status]="installment.paid ? 'successful' : 'pending'" [label]="installment.paid ? 'Paid' : 'Upcoming'" /></td>
+                <td><app-status-badge [status]="installmentStatusBadgeMap[installment.status]" [label]="installmentStatusLabels[installment.status]" /></td>
+                <td>
+                  @if (installment.status === 'overdue' || installment.status === 'upcoming' || installment.status === 'partial') {
+                    <app-button variant="outline" label="Pay now" (clicked)="openPayNow(installment)" />
+                  }
+                </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
+
+      @if (l.repayments.length) {
+        <div class="panel table-panel">
+          <div class="panel-head"><p class="panel-title">Repayment history</p></div>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th><app-column-title label="Date" /></th>
+                <th><app-column-title label="Amount" /></th>
+                <th><app-column-title label="Method" /></th>
+                <th><app-column-title label="Reference" /></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (repayment of l.repayments; track repayment.id) {
+                <tr>
+                  <td><app-table-item type="date" [date]="repayment.date" /></td>
+                  <td><app-table-item type="amount" [amount]="'₦' + repayment.amount.toLocaleString()" /></td>
+                  <td><app-table-item type="text" [text]="repayment.method" /></td>
+                  <td><app-table-item type="text" [text]="repayment.reference" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     }
 
     @if (l.status === 'disbursed') {
       <div class="panel danger-zone">
-        <div class="panel-head"><p class="panel-title">Liquidate loan</p></div>
+        <div class="panel-head"><p class="panel-title">Close this loan</p></div>
         <p class="danger-desc">Pay off your remaining balance in full and close this loan now.</p>
-        <app-button variant="outline" label="Liquidate loan" (clicked)="showLiquidateConfirm.set(true)" />
+        <app-button variant="outline" label="Liquidate now" (clicked)="showLiquidateConfirm.set(true)" />
       </div>
     }
 
@@ -76,9 +121,19 @@
     [isOpen]="showLiquidateConfirm()"
     title="Liquidate this loan?"
     message="This pays off your remaining balance and closes the loan. This can't be undone."
-    confirmLabel="Liquidate loan"
+    confirmLabel="Liquidate now"
     [danger]="true"
     (confirmed)="confirmLiquidate()"
     (cancelled)="showLiquidateConfirm.set(false)"
   />
+
+  @if (payingInstallment(); as installment) {
+    <app-modal [isOpen]="true" title="Pay now" size="sm" (closed)="closePayNow()">
+      <div class="pay-now-body">
+        <p class="danger-desc">Installment due {{ installment.dueDate }} — ₦{{ (installment.amount - installment.amountPaid) | number }} remaining.</p>
+        <app-input label="Amount to pay (₦)" [value]="payAmountInput()" (valueChange)="onPayAmountInput($event)" />
+        <app-button variant="primary" label="Confirm payment" [disabled]="!payAmountValid" (clicked)="confirmPayNow()" />
+      </div>
+    </app-modal>
+  }
 </div>

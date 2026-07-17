@@ -14,6 +14,7 @@ import {
 } from '../../../shared/utils/eligibility-scoring';
 import { FIELD_DEFS } from '../apply-profile-flow/field-defs';
 import { MANDATE_RAIL_COPY, DEFAULT_MANDATE_COPY } from '../apply-profile-flow/mandate-copy';
+import { synthesizeDefaultProfile } from '../apply-profile-flow/default-profile';
 
 type V2BucketId =
   | 'about' | 'entry' | 'profile' | 'personal' | 'contact' | 'address'
@@ -82,8 +83,12 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   // ── Bucket state machine ─────────────────────────────────────────────────────
   bucketIndex = 0;
 
+  /** Products with no Applicant Profiles configured (most products created before that field
+   * existed) get one synthesized on the fly — same fallback ApplyComponent.useV2Flow uses to
+   * decide whether to route here in the first place, so this must stay in sync with that check. */
   get profiles(): ApplicantProfile[] {
-    return this.product().applicantProfiles ?? [];
+    const configured = this.product().applicantProfiles ?? [];
+    return configured.length ? configured : [synthesizeDefaultProfile(this.product())];
   }
 
   get skipProfileBucket(): boolean {

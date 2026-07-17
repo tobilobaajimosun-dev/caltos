@@ -5,6 +5,7 @@ import { ProductsService } from '../../shared/services/products.service';
 import { OrgBrandingService } from '../../shared/services/org-branding.service';
 import { ApplyProfileFlowComponent } from './apply-profile-flow/apply-profile-flow.component';
 import { ApplyFlowV2Component } from './apply-flow-v2/apply-flow-v2.component';
+import { synthesizeDefaultProfile } from './apply-profile-flow/default-profile';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
 const FALLBACK_CONFIG: LoanConfig = {
@@ -77,13 +78,17 @@ export class ApplyComponent implements OnInit {
 
   get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
 
-  /** v2 (redesigned) /apply flow runs only once every applicant profile on this product has an
-   * `audience` set — legacy/unmigrated products (including every pre-audience product) keep
-   * rendering through the original ApplyProfileFlowComponent unchanged. See default-profile.ts's
-   * synthesized profile, which always leaves audience null, so legacy products never opt in. */
+  /** v2 (redesigned) /apply flow runs once every applicant profile on this product has an
+   * `audience` — either explicitly configured ones, or, for products with no Applicant Profiles
+   * configured at all (most products created before this field existed), the single profile
+   * default-profile.ts synthesizes on the fly. synthesizeDefaultProfile() infers an audience from
+   * the product's template/legacy flags when one hasn't been set explicitly, so existing products
+   * pick up the redesigned flow automatically rather than staying stuck on the legacy one forever. */
   get useV2Flow(): boolean {
-    const profiles = this.product.applicantProfiles ?? [];
-    return profiles.length > 0 && profiles.every((p) => !!p.audience);
+    const profiles = this.product.applicantProfiles?.length
+      ? this.product.applicantProfiles
+      : [synthesizeDefaultProfile(this.product)];
+    return profiles.every((p) => !!p.audience);
   }
 
   // True until loadProduct() finishes — the template's first render happens before this async
@@ -117,6 +122,11 @@ export class ApplyComponent implements OnInit {
       } else if (record) {
         this.product = {
           ...FALLBACK_CONFIG,
+          // Carry over the wizard's full legacy config (template, collectNyscInfo, incomeRemita,
+          // etc.) when this product has one — synthesizeDefaultProfile()'s audience inference reads
+          // these, so without this a wizard-created legacy product would fall back to
+          // FALLBACK_CONFIG's generic defaults instead of its own actual signals.
+          ...((record.wizardConfig as Partial<LoanConfig> | undefined) ?? {}),
           name: record.name,
           description: record.description,
           minAmount: record.minAmount.replace(/,/g, ''),

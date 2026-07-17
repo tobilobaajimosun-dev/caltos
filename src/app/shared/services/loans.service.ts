@@ -39,6 +39,19 @@ export interface ActivityLogEntry {
   actor: string;
 }
 
+/** A single recorded repayment (full or partial) against one scheduled installment — the actual
+ * ledger backing the tracker's repayment schedule, replacing the old date-only "is this due date
+ * in the past" heuristic in repayment-schedule.ts. */
+export interface RepaymentRecord {
+  id: string;
+  /** ISO due-date of the installment this payment applies to (matches a RepaymentInstallment.dueDate). */
+  installmentDueDate: string;
+  amount: number;
+  date: string;
+  method: string;
+  reference: string;
+}
+
 /**
  * The full commercial terms of a product at the moment an application was filed —
  * the entire ProductConfig (eligibility, fees, deduction channel definitions, etc.)
@@ -99,6 +112,15 @@ export interface LoanApplication {
   salaryBankName: string;
   salaryBankAccount: string;
   referralCode: string;
+  /** Lender-generated collection account the borrower pays into (distinct from salaryBankName/
+   * salaryBankAccount, which is the borrower's own account the repayment mandate deducts from).
+   * Auto-generated once at loan creation — see generateVirtualAccount(). */
+  virtualAccountBank: string;
+  virtualAccountNumber: string;
+  virtualAccountName: string;
+  /** Actual repayment ledger — see RepaymentRecord. Empty until the borrower (or an admin) records
+   * a payment via LoansService.recordRepayment(). */
+  repayments: RepaymentRecord[];
   status: LoanStatus;
   verificationResults: VerificationResults;
   eligibilityScore: EligibilityScoreResult;
@@ -142,7 +164,7 @@ const STORAGE_KEY = 'caltos_loans';
 
 /** Sample data for a "Load demo data" action — never auto-seeded, so a fresh browser starts empty. */
 export function demoLoans(productsService: ProductsService): LoanApplication[] {
-  const rows: Omit<LoanApplication, 'productConfigSnapshot'>[] = [
+  const rows: Omit<LoanApplication, 'productConfigSnapshot' | 'virtualAccountBank' | 'virtualAccountNumber' | 'virtualAccountName' | 'repayments'>[] = [
     {
       id: 'LN0001', loanUniqueId: 'CW001-0001', productId: 'CW001',
       applicantIdentifier: '22190034561', customerName: 'Akpan Akporigomayen', customerPhone: '08034760349', customerEmail: 'akpan.akporigomayen@example.com', customerPhoto: '',
@@ -304,7 +326,28 @@ export function demoLoans(productsService: ProductsService): LoanApplication[] {
       utmSource: 'instagram', utmMedium: 'social', appliedAt: '2026-06-18 13:20', updatedAt: '2026-06-18 13:20',
     },
   ];
-  return rows.map((row) => ({ ...row, productConfigSnapshot: buildTermsSnapshot(productsService.getById(row.productId)) }));
+  return rows.map((row) => ({
+    ...row,
+    productConfigSnapshot: buildTermsSnapshot(productsService.getById(row.productId)),
+    ...generateVirtualAccount(row.loanUniqueId, row.customerName),
+    repayments: [],
+  }));
+}
+
+const VIRTUAL_ACCOUNT_BANK = 'Providus Bank';
+
+/** Deterministic mock virtual-account generator — real integrations mint one per loan via a
+ * collection-account provider (Providus, Wema, etc.); this derives a stable-looking 10-digit
+ * number from the loan's own unique ID so it's consistent across reloads without needing storage. */
+function generateVirtualAccount(loanUniqueId: string, customerName: string): { virtualAccountBank: string; virtualAccountNumber: string; virtualAccountName: string } {
+  let hash = 0;
+  for (const ch of loanUniqueId) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  const digits = String(hash % 1_000_000_0000).padStart(10, '0').slice(-10);
+  return {
+    virtualAccountBank: VIRTUAL_ACCOUNT_BANK,
+    virtualAccountNumber: digits,
+    virtualAccountName: `${customerName} - Caltos`,
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -500,7 +543,7 @@ export class LoansService {
     }
   }
 
-  create(partial: Omit<LoanApplication, 'id' | 'loanUniqueId' | 'activityLog' | 'appliedAt' | 'updatedAt' | 'productConfigSnapshot'> & {
+  create(partial: Omit<LoanApplication, 'id' | 'loanUniqueId' | 'activityLog' | 'appliedAt' | 'updatedAt' | 'productConfigSnapshot' | 'virtualAccountBank' | 'virtualAccountNumber' | 'virtualAccountName' | 'repayments'> & {
     activityLog?: ActivityLogEntry[];
   }): LoanApplication {
     const now = new Date().toISOString();
@@ -514,6 +557,8 @@ export class LoansService {
       id,
       loanUniqueId,
       productConfigSnapshot,
+      ...generateVirtualAccount(loanUniqueId, partial.customerName),
+      repayments: [],
       activityLog: partial.activityLog ?? [
         { timestamp: now, event: 'Application submitted via public apply portal', actor: 'System' },
       ],
@@ -522,6 +567,27 @@ export class LoansService {
     };
     this._loans.update((all) => [record, ...all]);
     this.persist();
+    return record;
+  }
+
+  /** Records a full or partial payment against one scheduled installment (or, for a liquidation,
+   * the full remaining balance) — the actual ledger entry `repayment-schedule.ts` now reads from
+   * instead of guessing paid/unpaid off the due date alone. Borrower-facing "Pay now"/"Liquidate
+   * now" both call this; there's no real payment gateway in this demo app, so the payment is
+   * recorded as immediately successful. */
+  recordRepayment(loanId: string, installmentDueDate: string, amount: number, method = 'Manual payment'): RepaymentRecord | undefined {
+    const loan = this.getById(loanId);
+    if (!loan || amount <= 0) return undefined;
+    const record: RepaymentRecord = {
+      id: 'RPY-' + Date.now().toString(36).toUpperCase(),
+      installmentDueDate,
+      amount,
+      date: new Date().toISOString(),
+      method,
+      reference: 'RPY-' + Math.random().toString(36).slice(2, 10).toUpperCase(),
+    };
+    this.update(loanId, { repayments: [...loan.repayments, record] });
+    this.addActivity(loanId, `Repayment of ₦${amount.toLocaleString()} recorded for installment due ${installmentDueDate}`, 'Customer');
     return record;
   }
 

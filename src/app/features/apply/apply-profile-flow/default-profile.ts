@@ -1,5 +1,35 @@
-import { ApplicantFieldKey, ApplicantProfile, RequiredDocumentSpec, IncomeVerificationSource } from '../../../shared/services/products.service';
+import { ApplicantFieldKey, ApplicantProfile, RequiredDocumentSpec, IncomeVerificationSource, AudienceCategory } from '../../../shared/services/products.service';
 import { LoanConfig } from '../../loans/create-loan/create-loan.component';
+
+/** Maps a wizard template id straight to its audience — every audience-linked template preset
+ * (see TEMPLATE_PRESETS in create-loan.component.ts) already sets config.audience directly for
+ * products saved from now on, so this only matters for products created before that field existed. */
+const TEMPLATE_AUDIENCE: Partial<Record<string, AudienceCategory>> = {
+  salary: 'salaried-worker',
+  public: 'public-civil-servant',
+  corper: 'corper',
+  sme: 'sme-owner',
+};
+
+/**
+ * Infers a v2-flow audience for products saved before the `audience` field existed, so they pick
+ * up the redesigned borrower flow automatically rather than being permanently stuck on the legacy
+ * one. Prefers the product's own template (a direct, unambiguous signal — see TEMPLATE_AUDIENCE);
+ * falls back to the same per-type flags synthesizeDefaultProfile() already reads elsewhere in this
+ * file. Lossy by nature (a product could plausibly fit more than one audience) — returns null when
+ * no signal is confident enough, which keeps that product on the legacy flow rather than guessing
+ * wrong and offering the wrong income-verification methods.
+ */
+function inferAudience(product: LoanConfig): AudienceCategory | null {
+  if (product.audience) return product.audience;
+  if (product.template && TEMPLATE_AUDIENCE[product.template]) return TEMPLATE_AUDIENCE[product.template]!;
+  if (product.collectNyscInfo) return 'corper';
+  if (product.collectCivilServiceInfo || product.incomeIppis) return 'public-civil-servant';
+  if (product.collectBusiness && product.incomeBankStatement) return 'sme-owner';
+  if (product.incomeBankStatement && product.collectEmployment) return 'salaried-worker';
+  if (product.incomeRemita) return 'public-civil-servant';
+  return null;
+}
 
 const DOC_FIELD_MAP: { key: keyof LoanConfig; label: string }[] = [
   { key: 'docGovId', label: 'Government-issued ID' },
@@ -62,7 +92,7 @@ export function synthesizeDefaultProfile(product: LoanConfig): ApplicantProfile 
     profileId: 'default',
     label: product.name || 'Applicant',
     incomeVerificationSource,
-    audience: null,
+    audience: inferAudience(product),
     fieldsRequired,
     requiredDocuments,
     mandateRail,
