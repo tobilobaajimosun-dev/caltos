@@ -4,6 +4,7 @@ import { LoanConfig } from '../loans/create-loan/create-loan.component';
 import { ProductsService } from '../../shared/services/products.service';
 import { OrgBrandingService } from '../../shared/services/org-branding.service';
 import { ApplyProfileFlowComponent } from './apply-profile-flow/apply-profile-flow.component';
+import { ApplyFlowV2Component } from './apply-flow-v2/apply-flow-v2.component';
 
 // Default fallback config (salary advance) used when no published product is in localStorage
 const FALLBACK_CONFIG: LoanConfig = {
@@ -59,7 +60,7 @@ const FALLBACK_CONFIG: LoanConfig = {
 @Component({
   selector: 'app-apply',
   standalone: true,
-  imports: [ApplyProfileFlowComponent],
+  imports: [ApplyProfileFlowComponent, ApplyFlowV2Component],
   templateUrl: './apply.component.html',
   styleUrls: ['./apply.component.scss'],
 })
@@ -75,6 +76,15 @@ export class ApplyComponent implements OnInit {
   resolvedProductId = '';
 
   get orgLogoDataUrl() { return this.orgBranding.branding().logoDataUrl; }
+
+  /** v2 (redesigned) /apply flow runs only once every applicant profile on this product has an
+   * `audience` set — legacy/unmigrated products (including every pre-audience product) keep
+   * rendering through the original ApplyProfileFlowComponent unchanged. See default-profile.ts's
+   * synthesized profile, which always leaves audience null, so legacy products never opt in. */
+  get useV2Flow(): boolean {
+    const profiles = this.product.applicantProfiles ?? [];
+    return profiles.length > 0 && profiles.every((p) => !!p.audience);
+  }
 
   // True until loadProduct() finishes — the template's first render happens before this async
   // work resolves, so it renders a minimal shell instead of an empty/fallback product.

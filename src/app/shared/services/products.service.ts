@@ -183,11 +183,35 @@ export type MandateTiming = 'inline' | 'post_approval';
 
 /** Recognized borrower-facing income-verification mechanisms an applicant profile can select —
  * each drives a distinct verification sub-flow in the profile-driven /apply engine. */
-export type IncomeVerificationSource = 'remita' | 'wacs' | 'bank-statement' | 'business-revenue';
+export type IncomeVerificationSource = 'remita' | 'wacs' | 'bank-statement' | 'business-revenue' | 'payslip';
+
+/** The 4 fixed borrower audience categories the v2 /apply flow gates income-verification method
+ * choice on. A profile's audience (if set) constrains which IncomeVerificationSource values are
+ * offered — see AUDIENCE_INCOME_METHODS. Existing profiles with no audience set are treated as
+ * legacy/unconstrained and keep using their single incomeVerificationSource unchanged. */
+export type AudienceCategory = 'public-civil-servant' | 'salaried-worker' | 'sme-owner' | 'corper';
+
+/** Single source of truth for which income-verification methods each audience may choose between,
+ * used both by the create-loan wizard (to constrain the picker per profile) and by the v2 /apply
+ * flow's income-verification bucket (to render the choice UI). */
+export const AUDIENCE_INCOME_METHODS: Record<AudienceCategory, IncomeVerificationSource[]> = {
+  'public-civil-servant': ['remita', 'wacs'],
+  'salaried-worker': ['payslip', 'bank-statement'],
+  'sme-owner': ['bank-statement'],
+  corper: ['remita'],
+};
+
+export const AUDIENCE_CATEGORY_LABELS: Record<AudienceCategory, string> = {
+  'public-civil-servant': 'Public / Civil Servant',
+  'salaried-worker': 'Salaried Worker',
+  'sme-owner': 'SME Owner',
+  corper: 'Corper (NYSC)',
+};
 
 /** Field keys the profile-driven /apply flow's generic field renderer knows how to draw —
  * see apply-profile-flow/field-defs.ts for the label/input-type each maps to. */
 export type ApplicantFieldKey =
+  | 'fullName' | 'dateOfBirth' | 'gender'
   | 'employerName' | 'jobTitle' | 'staffId'
   | 'businessName' | 'businessCacNumber' | 'businessType' | 'businessAnnualRevenue' | 'businessRole'
   | 'monthlyIncome' | 'addressStreet' | 'addressCity' | 'addressState';
@@ -203,6 +227,10 @@ export interface ApplicantProfile {
   profileId: string;
   label: string;
   incomeVerificationSource: IncomeVerificationSource;
+  /** Which of the 4 fixed borrower audiences this profile targets — gates the income-verification
+   * method choice shown in the v2 /apply flow (see AUDIENCE_INCOME_METHODS). null means legacy/
+   * unconstrained: the borrower flow falls back to incomeVerificationSource directly with no choice. */
+  audience: AudienceCategory | null;
   fieldsRequired: ApplicantFieldKey[];
   requiredDocuments: RequiredDocumentSpec[];
   /** One of DEDUCTION_CHANNEL_DEFS's ids. */

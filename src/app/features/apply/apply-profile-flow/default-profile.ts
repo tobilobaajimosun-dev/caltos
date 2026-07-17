@@ -62,6 +62,7 @@ export function synthesizeDefaultProfile(product: LoanConfig): ApplicantProfile 
     profileId: 'default',
     label: product.name || 'Applicant',
     incomeVerificationSource,
+    audience: null,
     fieldsRequired,
     requiredDocuments,
     mandateRail,

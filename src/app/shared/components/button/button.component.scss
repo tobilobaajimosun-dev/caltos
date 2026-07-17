@@ -74,6 +74,7 @@
   background: transparent;
   border: 1.5px solid var(--color-stroke);
   color: var(--color-blue);
+  font-size: 13px;
 
   &:hover:not(:disabled) { background: var(--surface-overlay); }
 }

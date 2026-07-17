@@ -1,0 +1,54 @@
+// v2-only additions layered on top of apply-profile-flow.component.scss's shared pf- classes
+// (loaded first in this component's styleUrls, so brand-color-driven tokens like --brand are
+// already defined at :host and these rules can build on them directly).
+
+.pf-brand-lender {
+  color: var(--text-disabled);
+  font-weight: 500;
+}
+
+.v2-hero-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.v2-hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .pf-logo { height: 24px; margin-bottom: 0; }
+  .pf-brand { margin: 0; text-align: left; }
+}
+
+.v2-reject-btn {
+  align-self: center;
+  color: var(--color-error);
+}
+
+// ── Confetti ──────────────────────────────────────────────────────────────────
+.v2-confetti-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.v2-confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  animation-name: v2ConfettiFall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes v2ConfettiFall {
+  to { transform: translateY(110vh) rotate(720deg); }
+}

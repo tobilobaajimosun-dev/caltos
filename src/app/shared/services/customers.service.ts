@@ -250,6 +250,15 @@ export class CustomersService {
     return this._customers().find((c) => c.id === id);
   }
 
+  /** Returning-customer lookup for the borrower /apply v2 flow — phone is the canonical match
+   * key (most reliable identifier pre-BVN). Normalizes by stripping non-digits so formatting
+   * differences ("0803 123 4567" vs "08031234567") still match. */
+  findByPhone(phone: string): CustomerRecord | undefined {
+    const normalized = phone.replace(/\D/g, '');
+    if (!normalized) return undefined;
+    return this._customers().find((c) => c.phone.replace(/\D/g, '') === normalized);
+  }
+
   create(partial: Partial<CustomerRecord> & { name: string }): CustomerRecord {
     const record: CustomerRecord = {
       id: partial.id ?? 'CU-' + Date.now().toString().slice(-6),

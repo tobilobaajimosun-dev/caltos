@@ -211,3 +211,32 @@
   inset: 0;
   z-index: 200;
 }
+
+// ── Mobile ────────────────────────────────────────────────────────────────────
+// header-right's five items (theme toggle, help, notifications, "Give a loan",
+// balance pill, avatar) plus the full-width search box don't fit a phone-width
+// header — collapse the search box to icon-only and drop the lowest-priority
+// items (balance is already shown on the Home dashboard's Wallet card; "Give a
+// loan" stays reachable via the sidebar's Quick Actions).
+@media (max-width: 640px) {
+  .app-header { gap: var(--space-2); padding: 0 var(--space-3); }
+
+  .header-center { max-width: none; }
+
+  .search-placeholder,
+  .search-kbd {
+    display: none;
+  }
+
+  .search-trigger {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .balance-pill,
+  app-button {
+    display: none;
+  }
+}

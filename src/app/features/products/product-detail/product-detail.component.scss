@@ -885,7 +885,10 @@
 /* ══════════════════════════════════════
    TAB CONTENT (non-overview tabs)
 ══════════════════════════════════════ */
-.tab-body { padding: 12px 32px 24px; display: flex; flex-direction: column; gap: 12px; }
+/* No horizontal padding here — .content already establishes the page's left/right margin,
+   so nesting more here would indent every tab's content (including the hero image) further
+   than the back button above it. */
+.tab-body { padding: 12px 0 24px; display: flex; flex-direction: column; gap: 12px; }
 
 .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 

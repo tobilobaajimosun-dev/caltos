@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec, DEFAULT_LIQUIDATION_POLICY } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec, DEFAULT_LIQUIDATION_POLICY, AudienceCategory, AUDIENCE_INCOME_METHODS, AUDIENCE_CATEGORY_LABELS, IncomeVerificationSource } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 import {
@@ -1371,10 +1371,39 @@ export class CreateLoanComponent implements OnInit {
   // a product only uses this mechanism once its applicantProfiles array is non-empty.
   readonly incomeVerificationSourceOptions: SelectOption[] = [
     { value: 'remita', label: 'Salary verification (Remita)' },
-    { value: 'wacs', label: 'Salary verification (WACS)' },
+    { value: 'wacs', label: 'Salary verification (WACS / IPPIS)' },
+    { value: 'payslip', label: 'Payslip upload' },
     { value: 'bank-statement', label: 'Bank statement upload' },
     { value: 'business-revenue', label: 'Self-declared business revenue' },
   ];
+
+  readonly audienceCategoryOptions: SelectOption[] = [
+    { value: '', label: 'No audience (legacy, unconstrained)' },
+    ...(Object.keys(AUDIENCE_CATEGORY_LABELS) as AudienceCategory[]).map((value) => ({
+      value, label: AUDIENCE_CATEGORY_LABELS[value],
+    })),
+  ];
+
+  /** Income-verification options allowed for a profile's audience — unconstrained (all options)
+   * when no audience is set, since legacy profiles don't gate by audience. */
+  incomeMethodOptionsForAudience(audience: AudienceCategory | null): SelectOption[] {
+    if (!audience) return this.incomeVerificationSourceOptions;
+    const allowed = AUDIENCE_INCOME_METHODS[audience];
+    return this.incomeVerificationSourceOptions.filter((opt) => allowed.includes(opt.value as IncomeVerificationSource));
+  }
+
+  /** When a profile's audience changes, its incomeVerificationSource may no longer be a valid
+   * choice for the new audience — snap it to the audience's first allowed method. */
+  setProfileAudience(profileId: string, audienceValue: AudienceCategory | '') {
+    const profile = this.config.applicantProfiles.find((p) => p.profileId === profileId);
+    if (!profile) return;
+    const audience: AudienceCategory | null = audienceValue || null;
+    const allowed = audience ? AUDIENCE_INCOME_METHODS[audience] : null;
+    const incomeVerificationSource = allowed && !allowed.includes(profile.incomeVerificationSource)
+      ? allowed[0]
+      : profile.incomeVerificationSource;
+    this.updateApplicantProfile(profileId, { audience, incomeVerificationSource });
+  }
 
   readonly mandateRailOptions: SelectOption[] = Object.keys(DEDUCTION_CHANNEL_DEFS).map((id) => ({
     value: id, label: DEDUCTION_CHANNEL_DEFS[id].name,
@@ -1386,6 +1415,9 @@ export class CreateLoanComponent implements OnInit {
   ];
 
   readonly applicantFieldKeyOptions: { key: ApplicantFieldKey; label: string }[] = [
+    { key: 'fullName', label: 'Full name' },
+    { key: 'dateOfBirth', label: 'Date of birth' },
+    { key: 'gender', label: 'Gender' },
     { key: 'employerName', label: 'Employer name' },
     { key: 'jobTitle', label: 'Job title' },
     { key: 'staffId', label: 'Staff ID' },
@@ -1405,6 +1437,7 @@ export class CreateLoanComponent implements OnInit {
       profileId: 'profile-' + Date.now().toString(36),
       label: 'New Applicant Profile',
       incomeVerificationSource: 'remita',
+      audience: null,
       fieldsRequired: [],
       requiredDocuments: [],
       mandateRail: 'remita',

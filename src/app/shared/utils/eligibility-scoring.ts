@@ -210,6 +210,17 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+/**
+ * Flat-rate monthly repayment preview for the v2 /apply eligibility screen's amount/tenor
+ * sliders — mirrors the flat-rate math ApplyProfileFlowComponent.monthlyEst already uses
+ * (total = principal * (1 + rate), split evenly across tenorMonths), extracted here so both the
+ * legacy inline getter and the v2 recompute interaction share one implementation.
+ */
+export function estimateMonthlyRepayment(amount: number, tenorMonths: number, annualOrFlatRatePercent: number): number {
+  const rate = annualOrFlatRatePercent / 100;
+  return Math.ceil((amount * (1 + rate)) / Math.max(tenorMonths, 1));
+}
+
 /** Picks the first band (bands must be sorted highest-minScore-first) the score clears. */
 function pickBand<T extends { minScore: number }>(bands: T[], score: number): T {
   const match = bands.find((b) => score >= b.minScore);

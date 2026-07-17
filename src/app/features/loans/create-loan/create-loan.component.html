@@ -337,9 +337,16 @@
 
                   <div class="field-row">
                     <div class="field-group">
-                      <label class="field-label">Income verification source</label>
-                      <app-select [options]="incomeVerificationSourceOptions" [value]="profile.incomeVerificationSource" (valueChange)="updateApplicantProfile(profile.profileId, { incomeVerificationSource: $any($event) })" />
+                      <label class="field-label">Who is this profile for?</label>
+                      <app-select [options]="audienceCategoryOptions" [value]="profile.audience ?? ''" (valueChange)="setProfileAudience(profile.profileId, $any($event))" />
                     </div>
+                    <div class="field-group">
+                      <label class="field-label">Income verification source</label>
+                      <app-select [options]="incomeMethodOptionsForAudience(profile.audience)" [value]="profile.incomeVerificationSource" (valueChange)="updateApplicantProfile(profile.profileId, { incomeVerificationSource: $any($event) })" />
+                    </div>
+                  </div>
+
+                  <div class="field-row">
                     <div class="field-group">
                       <label class="field-label">Mandate rail</label>
                       <app-select [options]="mandateRailOptions" [value]="profile.mandateRail" (valueChange)="updateApplicantProfile(profile.profileId, { mandateRail: $event })" />
