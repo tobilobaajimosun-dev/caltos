@@ -82,12 +82,13 @@
       </div>
     }
 
-    <!-- PERSONAL INFORMATION -->
+    <!-- PERSONAL + ADDRESS INFORMATION (merged into one screen — issue #51; contact info was
+         already captured at Get Started, so it doesn't need its own confirmation screen here) -->
     @if (currentBucket === 'personal') {
       <div class="pf-screen">
-        <h2 class="pf-headline">Personal<br>information</h2>
-        <p class="pf-body-sm">A little about you.</p>
-        @for (key of personalFields; track key) {
+        <h2 class="pf-headline">A little<br>about you</h2>
+        <p class="pf-body-sm">Just what's needed to process your application.</p>
+        @for (key of [...personalFields, ...addressFields]; track key) {
           <div class="pf-field">
             <label class="pf-label">{{ fieldDefs[key].label }}</label>
             @if (fieldDefs[key].inputType === 'select') {
@@ -107,45 +108,6 @@
           </div>
         }
         <button class="pf-cta" [disabled]="!personalCanContinue" (click)="next()">Continue</button>
-      </div>
-    }
-
-    <!-- CONTACT INFORMATION (confirm/edit what was captured at Get Started) -->
-    @if (currentBucket === 'contact') {
-      <div class="pf-screen">
-        <h2 class="pf-headline">Contact<br>information</h2>
-        <p class="pf-body-sm">Double-check these are correct — we'll use them to reach you.</p>
-        <div class="pf-field">
-          <label class="pf-label">Phone number</label>
-          <input class="pf-input" type="tel" [(ngModel)]="entryPhone" (blur)="onSimpleFieldBlur('entryPhone')" />
-          @if (simpleFieldError('entryPhone', entryPhone); as err) {
-            <p class="pf-field-error">{{ err }}</p>
-          }
-        </div>
-        <div class="pf-field">
-          <label class="pf-label">Email address</label>
-          <input class="pf-input" type="email" [(ngModel)]="entryEmail" />
-        </div>
-        <button class="pf-cta" [disabled]="!entryPhone" (click)="next()">Continue</button>
-      </div>
-    }
-
-    <!-- ADDRESS INFORMATION -->
-    @if (currentBucket === 'address') {
-      <div class="pf-screen">
-        <h2 class="pf-headline">Address<br>information</h2>
-        <p class="pf-body-sm">Where can we reach you?</p>
-        @for (key of addressFields; track key) {
-          <div class="pf-field">
-            <label class="pf-label">{{ fieldDefs[key].label }}</label>
-            <input class="pf-input" type="text" [placeholder]="fieldDefs[key].placeholder ?? ''"
-              [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)" />
-            @if (fieldError(key); as err) {
-              <p class="pf-field-error">{{ err }}</p>
-            }
-          </div>
-        }
-        <button class="pf-cta" [disabled]="!addressCanContinue" (click)="next()">Continue</button>
       </div>
     }
 

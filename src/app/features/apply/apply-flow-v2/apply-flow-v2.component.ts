@@ -17,7 +17,7 @@ import { MANDATE_RAIL_COPY, DEFAULT_MANDATE_COPY } from '../apply-profile-flow/m
 import { synthesizeDefaultProfile } from '../apply-profile-flow/default-profile';
 
 type V2BucketId =
-  | 'about' | 'entry' | 'profile' | 'personal' | 'contact' | 'address'
+  | 'about' | 'entry' | 'profile' | 'personal'
   | 'income-verification' | 'income-amount' | 'eligibility' | 'type-details'
   | 'documents' | 'offer' | 'mandate' | 'caltos-verify' | 'review' | 'disbursement';
 
@@ -55,10 +55,11 @@ const INCOME_METHOD_LABELS: Record<IncomeVerificationSource, string> = {
  * products whose applicantProfiles all have an `audience` set. Legacy/unmigrated products keep
  * rendering through ApplyProfileFlowComponent (see ApplyComponent's routing). Ports the same
  * verify/documents/mandate/eligibility mechanics from the v1 engine, restructured into the new
- * stage order: about -> get started (+returning-customer check) -> personal/contact/address (new
- * customers only) -> income verification (audience-gated method choice) -> income amount
- * (salaried workers only) -> eligibility -> type details -> documents -> offer (accept/reject) ->
- * mandate -> Caltos Verify video -> final review -> success (with confetti).
+ * stage order: about -> get started (+returning-customer check, phone/email captured once here —
+ * no separate contact-confirmation screen, issue #51) -> personal (personal + address fields on
+ * one screen, new customers only) -> income verification (audience-gated method choice) -> income
+ * amount (salaried workers only) -> eligibility -> type details -> documents -> offer
+ * (accept/reject) -> mandate -> Caltos Verify video -> final review -> success (with confetti).
  */
 @Component({
   selector: 'app-apply-flow-v2',
@@ -98,7 +99,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   get bucketOrder(): V2BucketId[] {
     const buckets: V2BucketId[] = ['about', 'entry'];
     if (!this.skipProfileBucket) buckets.push('profile');
-    if (!this.isReturningCustomer) buckets.push('personal', 'contact', 'address');
+    if (!this.isReturningCustomer) buckets.push('personal');
     buckets.push('income-verification');
     if (this.selectedProfile?.audience === 'salaried-worker') buckets.push('income-amount');
     buckets.push('eligibility', 'type-details', 'documents', 'offer', 'mandate', 'caltos-verify', 'review', 'disbursement');
@@ -233,12 +234,9 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return this.VALIDATORS[key]?.(value) ?? null;
   }
 
+  /** Personal + address fields share one screen (issue #51) — both sets must be filled to continue. */
   get personalCanContinue(): boolean {
-    return this.personalFields.every((k) => !!this.values[k]);
-  }
-
-  get addressCanContinue(): boolean {
-    return this.addressFields.every((k) => !!this.values[k]);
+    return [...this.personalFields, ...this.addressFields].every((k) => !!this.values[k]);
   }
 
   get typeDetailsCanContinue(): boolean {
