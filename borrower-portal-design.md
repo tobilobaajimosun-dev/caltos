@@ -119,37 +119,33 @@ UX improvement over both the current implementation and the reference.
 
 ---
 
-## Checked against the actual data model
+## Data-model gaps — now fixed
 
 1. **Default brand color** — still open, needs a decision: a specific warm fallback hex (or a
    short list to pick from) for products with no `brandColor` set. I've described the direction
    ("warm, optimistic") but need an actual value before building.
 
-2. **Virtual account source** — checked. `AccountService` (`account.service.ts`) is **org-level
-   only** (one balance/accountNumber/bankName for the whole lender org, shown in the SaaS header) —
-   there's no per-loan or per-borrower virtual account concept anywhere in the data model today.
-   The closest existing field is `LoanApplication.salaryBankName` / `salaryBankAccount`, but that's
-   the *borrower's own* bank account tied to their repayment mandate (where money is deducted
-   *from*), not a lender-generated collection account (where money is paid *into*) — a different
-   thing from what "virtual account" usually means in Nigerian fintech (a dedicated
-   Paystack/Flutterwave-style account number minted per customer). **This needs a new field** —
-   e.g. `LoanApplication.virtualAccountNumber` / `virtualAccountBank` — before the tracker's Virtual
-   Account card can show real data. In the meantime it can display the existing mandate account
-   under a "Repayment source" label without inventing fake data, or the field can be added as part
-   of this build (small addition, no migration risk — new optional field).
+2. **Virtual account source** — ✅ fixed. `LoanApplication` now has `virtualAccountBank` /
+   `virtualAccountNumber` / `virtualAccountName`, auto-generated once at loan creation
+   (`LoansService.generateVirtualAccount()` — deterministic mock, "Providus Bank" + a 10-digit
+   number derived from the loan's own unique ID, distinct from `salaryBankName`/`salaryBankAccount`
+   which stays the borrower's own mandate account). `track-loan` now shows this in a dark
+   high-contrast card with a working "Copy account number" action.
 
-3. **Partial repayment ("Pay now" custom amount)** — checked. There's no per-installment
-   paid/partial/unpaid state stored anywhere; `track-loan`'s schedule table currently *derives*
-   paid/upcoming per row from `repayment-schedule.ts`'s computed schedule against the loan's
-   `appliedAt`/tenor, not from stored payment records. Recording an actual "Pay now" action (full or
-   partial) needs a new stored concept — a `RepaymentRecord` (or similar) list on `LoanApplication`,
-   or a new `RepaymentsService`, tracking amount/date/installment-reference per payment — so partial
-   payments accumulate correctly against an installment's remaining balance instead of just
-   flipping a boolean. This is real backend-shaped work, not a UI-only change.
+3. **Partial repayment ("Pay now" custom amount)** — ✅ fixed. Added `RepaymentRecord` (amount,
+   date, method, reference, installment due-date) + `LoanApplication.repayments: RepaymentRecord[]`
+   as the real ledger, and `LoansService.recordRepayment()` to append to it. `repayment-schedule.ts`
+   now derives each installment's status (`paid` / `partial` / `overdue` / `upcoming`) from actual
+   recorded payments instead of guessing off the due date. `track-loan`'s "Pay now" opens a small
+   modal prefilled with the remaining balance (editable, so a partial amount works), and a new
+   "Repayment history" table shows every recorded payment. "Liquidate now" (renamed from "Liquidate
+   loan") still settles the whole loan in one shot via the existing status-based mechanism — it
+   doesn't need per-installment records anyway.
 
-**Net effect on scope**: the visual restyle (tokens, corner radii, card layout, renamed
-sections) is a contained, low-risk pass. The two *functional* asks — a real virtual account and a
-working "Pay now" — both need small, additive data-model changes first (new fields/records, no
-breaking changes to existing loans). Recommend sequencing: (1) restyle using existing data so the
-new look ships fast, (2) add the virtual-account field and wire the card, (3) add repayment-record
-tracking and wire "Pay now"/"Liquidate now" to actually mutate state instead of just looking right.
+**Net effect on scope**: the functional groundwork (virtual account, real repayment ledger, working
+"Pay now") is done and live on `track-loan`, using the *current* visual style (not yet restyled to
+the 7Shifts-inspired direction described above). What's left is purely the visual restyle — tokens,
+corner radii, card layout, the friendlier progress indicator, mobile row-cards instead of a
+horizontally-scrolling table — plus the still-open default-brand-color decision. That's now a
+contained, lower-risk pass since it's layering a new look onto already-working data, not building
+both at once.
