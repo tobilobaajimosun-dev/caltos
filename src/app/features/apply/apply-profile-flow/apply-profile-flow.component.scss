@@ -1,107 +1,129 @@
-// Confident fintech borrower portal — Revolut's card structure, Cash App's boldness.
-// Uses the app's real design tokens (light mode) with custom easing/elevation for craft.
+// Borrower portal — clean application flow inspired by Indeed & 7Shifts.
+// Pure white, spacious, confident typography, no fintech glow.
 :host {
   display: block;
   --brand: var(--color-blue);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px rgba(16, 24, 40, 0.06);
-  --shadow-cta: 0 8px 20px -6px color-mix(in srgb, var(--brand) 45%, transparent);
+  --pf-radius: 8px;
+  --pf-input-height: 52px;
+  --pf-border: 1.5px solid #d1d5db;
+  --pf-border-focus: var(--brand);
+  --pf-ring: 0 0 0 3px color-mix(in srgb, var(--brand) 15%, transparent);
 }
 
+// ── Shell & layout ─────────────────────────────────────────────────────────────
 .pf-shell {
   min-height: 100dvh;
-  background: var(--surface-raised);
+  background: #ffffff;
   color: var(--text-primary);
   font-family: var(--font-body, -apple-system, sans-serif);
   display: flex;
   flex-direction: column;
 }
 
+// ── Sticky header: logo · step count · thick progress bar ─────────────────────
 .pf-header {
-  padding: var(--space-5, 20px) var(--space-5, 20px) 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pf-header-inner {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pf-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .pf-logo {
-  height: 32px;
-  max-width: 160px;
+  height: 28px;
+  max-width: 120px;
   object-fit: contain;
-  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .pf-brand {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-brand-lender {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.pf-header-step {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
-  margin: 0 0 14px;
-  text-align: center;
-  letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
+// Bold 6px progress bar — flush edge-to-edge below the header row
 .pf-progress-rail {
-  width: 100%;
-  height: 3px;
-  background: var(--color-stroke);
-  border-radius: 3px;
+  height: 6px;
+  background: #f3f4f6;
   overflow: hidden;
 }
 
 .pf-progress-fill {
   height: 100%;
   background: var(--brand);
-  border-radius: 3px;
-  transition: width 450ms var(--ease-in-out);
+  transition: width 500ms var(--ease-in-out);
+  min-width: 4px;
 }
 
-.pf-step-pill-row {
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  margin-top: 12px;
-}
-
-.pf-step-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-stroke);
-  transition: all 300ms var(--ease-out);
-
-  &.done { background: color-mix(in srgb, var(--brand) 45%, transparent); }
-  &.active { background: var(--brand); width: 22px; border-radius: 3px; }
-}
-
+// ── Content body ───────────────────────────────────────────────────────────────
 .pf-body {
   flex: 1;
-  padding: var(--space-6, 24px) var(--space-5, 20px) var(--space-8, 32px);
-  max-width: 480px;
+  padding: 48px 24px 64px;
+  max-width: 600px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
+// ── Step eyebrow ───────────────────────────────────────────────────────────────
 .pf-eyebrow {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
-  margin: 0 0 14px;
+  margin: 0 0 12px;
+  letter-spacing: 0;
 }
 
+// ── Screen animation ───────────────────────────────────────────────────────────
 .pf-screen {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  animation: pfScreenIn 380ms var(--ease-out);
+  gap: 24px;
+  animation: pfScreenIn 300ms var(--ease-out);
 }
 
 @keyframes pfScreenIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .pf-center {
@@ -109,12 +131,13 @@
   text-align: center;
 }
 
+// ── Typography ─────────────────────────────────────────────────────────────────
 .pf-headline {
   font-family: var(--font-heading, inherit);
   font-weight: 700;
   font-size: 32px;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
   margin: 0;
   color: var(--text-primary);
 }
@@ -123,113 +146,117 @@
   font-size: 15px;
   color: var(--text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.pf-loan-detail-card {
-  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--color-stroke));
-  border-radius: 20px;
-  background: linear-gradient(165deg, color-mix(in srgb, var(--brand) 7%, var(--surface-base)) 0%, var(--surface-base) 60%);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-card);
-}
-
-.pf-loan-detail-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 8px;
-}
-
+// ── Form fields ────────────────────────────────────────────────────────────────
 .pf-field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
+// Labels: readable weight, NO uppercase — matches Indeed
 .pf-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0;
 }
 
 .pf-opt {
-  text-transform: none;
   font-weight: 400;
-  opacity: 0.7;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 .pf-input {
-  height: 44px;
-  border-radius: 14px;
-  border: 1.5px solid var(--color-input-stroke);
-  background: var(--surface-base);
+  height: var(--pf-input-height);
+  border-radius: var(--pf-radius);
+  border: var(--pf-border);
+  background: #ffffff;
   color: var(--text-primary);
-  padding: 0 14px;
+  padding: 0 16px;
   font-size: 15px;
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 
   &:focus {
     outline: none;
-    border-color: var(--brand);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 14%, transparent);
+    border-color: var(--pf-border-focus);
+    box-shadow: var(--pf-ring);
   }
-  &::placeholder { color: var(--text-disabled); }
+  &::placeholder { color: #9ca3af; }
 }
 
-select.pf-input { appearance: none; }
+select.pf-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
 
 .pf-field-error {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-error);
   margin: 0;
 }
 
+// ── Primary CTA — solid, 8px radius, full-width ────────────────────────────────
 .pf-cta {
-  height: 44px;
-  border-radius: 22px;
+  height: 52px;
+  border-radius: var(--pf-radius);
   border: none;
   background: var(--brand);
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   width: 100%;
-  box-shadow: var(--shadow-cta);
-  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), opacity 160ms ease;
+  transition: background 150ms ease, opacity 150ms ease, transform 100ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
 
-  &:active:not(:disabled) { transform: scale(0.97); box-shadow: none; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  &:active:not(:disabled) { transform: scale(0.99); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .pf-cta:hover:not(:disabled) { transform: translateY(-1px); }
+  .pf-cta:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--brand) 88%, #000);
+  }
 }
 
+// ── Link button ────────────────────────────────────────────────────────────────
 .pf-link-btn {
   align-self: flex-start;
   background: none;
   border: none;
   color: var(--brand);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   padding: 0;
   min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   transition: opacity 140ms ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 
   &:active:not(:disabled) { opacity: 0.6; }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
+// ── Back button ────────────────────────────────────────────────────────────────
 .pf-back-btn {
-  margin-top: 16px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -246,6 +273,7 @@ select.pf-input { appearance: none; }
   &:hover { color: var(--text-secondary); }
 }
 
+// ── Profile selector cards ─────────────────────────────────────────────────────
 .pf-profile-cards {
   display: flex;
   flex-direction: column;
@@ -259,42 +287,42 @@ select.pf-input { appearance: none; }
   gap: 12px;
   text-align: left;
   padding: 18px 20px;
-  border-radius: 18px;
-  border: 1.5px solid var(--color-stroke);
-  background: var(--surface-base);
+  border-radius: 12px;
+  border: var(--pf-border);
+  background: #ffffff;
   color: var(--text-primary);
   cursor: pointer;
-  min-height: 44px;
-  box-shadow: var(--shadow-card);
-  transition: transform 160ms var(--ease-out), border-color 160ms ease, box-shadow 160ms var(--ease-out);
+  min-height: 52px;
+  box-sizing: border-box;
+  transition: border-color 150ms ease, background 150ms ease;
 
-  &:active { transform: scale(0.98); }
+  &:active { background: #f9fafb; }
 }
 
 @media (hover: hover) and (pointer: fine) {
   .pf-profile-card:hover {
     border-color: var(--brand);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px -4px color-mix(in srgb, var(--brand) 25%, transparent);
+    background: color-mix(in srgb, var(--brand) 4%, #ffffff);
+  }
+  .pf-profile-card:hover .pf-profile-chevron {
+    color: var(--brand);
+    transform: translateX(2px);
   }
 }
 
 .pf-profile-label {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 15px;
+  color: var(--text-primary);
 }
 
 .pf-profile-chevron {
   flex-shrink: 0;
-  color: var(--text-disabled);
-  transition: transform 160ms var(--ease-out), color 160ms ease;
+  color: #9ca3af;
+  transition: transform 150ms var(--ease-out), color 150ms ease;
 }
 
-.pf-profile-card:hover .pf-profile-chevron {
-  color: var(--brand);
-  transform: translateX(2px);
-}
-
+// ── Verified row ───────────────────────────────────────────────────────────────
 .pf-icon-badge {
   display: inline-flex;
   align-items: center;
@@ -315,15 +343,15 @@ select.pf-input { appearance: none; }
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--surface-base);
-  border: 1.5px solid var(--color-stroke);
-  animation: pfPopIn 320ms var(--ease-out);
+  border-radius: 10px;
+  background: #f9fafb;
+  border: var(--pf-border);
+  animation: pfPopIn 280ms var(--ease-out);
 }
 
 @keyframes pfPopIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .pf-verified-label {
@@ -331,18 +359,21 @@ select.pf-input { appearance: none; }
   color: var(--text-muted);
   margin: 0;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .pf-verified-value {
   font-size: 15px;
-  font-weight: 700;
-  margin: 2px 0 0;
+  font-weight: 600;
+  margin: 3px 0 0;
   color: var(--text-primary);
 }
 
+// ── Notice banner ──────────────────────────────────────────────────────────────
 .pf-notice {
   padding: 14px 16px;
-  border-radius: 16px;
+  border-radius: 10px;
   background: var(--color-warning-bg);
   border: 1.5px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
   font-size: 13px;
@@ -356,26 +387,92 @@ select.pf-input { appearance: none; }
   font-weight: 400;
 }
 
+// ── Loan detail card (About screen) ───────────────────────────────────────────
+.pf-loan-detail-card {
+  border: var(--pf-border);
+  border-radius: 12px;
+  background: #f9fafb;
+  padding: 18px 20px;
+}
+
+.pf-loan-detail-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// ── Summary rows ───────────────────────────────────────────────────────────────
+.pf-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 8px 0;
+  gap: 12px;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:last-child { border-bottom: none; }
+  span { color: var(--text-muted); }
+  strong { color: var(--text-primary); font-weight: 600; text-align: right; }
+}
+
+// ── Review card ────────────────────────────────────────────────────────────────
+.pf-review-card {
+  padding: 20px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: var(--pf-border);
+}
+
+.pf-review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pf-review-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pf-review-edit {
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 32px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+// ── Document upload rows ───────────────────────────────────────────────────────
 .pf-doc-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--surface-base);
-  border: 1.5px solid var(--color-stroke);
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: var(--pf-border);
+  transition: border-color 150ms ease;
 
-  &.done {
-    border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 8%, transparent);
-  }
+  &.done { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 4%, #fff); }
 }
 
 .pf-doc-label {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
   color: var(--text-primary);
 }
@@ -383,25 +480,28 @@ select.pf-input { appearance: none; }
 .pf-doc-sub {
   font-size: 12px;
   color: var(--text-muted);
-  margin: 2px 0 0;
+  margin: 3px 0 0;
 }
+
+.pf-doc-info { flex: 1; min-width: 0; }
 
 .pf-doc-upload-btn {
   position: relative;
-  height: 44px;
+  height: 40px;
   padding: 0 16px;
-  border-radius: 22px;
-  border: 1.5px solid var(--color-input-stroke);
+  border-radius: var(--pf-radius);
+  border: var(--pf-border);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   color: var(--text-primary);
   flex-shrink: 0;
-  transition: transform 160ms var(--ease-out), border-color 160ms ease;
+  background: #fff;
+  transition: border-color 150ms ease, background 150ms ease;
 
-  &:active { transform: scale(0.96); }
+  &:hover { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 4%, #fff); }
 
   input[type='file'] {
     position: absolute;
@@ -411,33 +511,44 @@ select.pf-input { appearance: none; }
   }
 }
 
+// ── Consent row ────────────────────────────────────────────────────────────────
 .pf-consent-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   cursor: pointer;
-  line-height: 1.4;
+  line-height: 1.5;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--brand);
+    cursor: pointer;
+  }
 }
 
+// ── Eligibility / loading states ───────────────────────────────────────────────
 .pf-calculating {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 48px 0;
+  padding: 64px 0;
   color: var(--text-muted);
   font-size: 14px;
 }
 
 .pf-loader-ring {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 3px solid var(--color-stroke);
+  border: 3px solid #e5e7eb;
   border-top-color: var(--brand);
-  animation: pfSpin 0.7s linear infinite;
+  animation: pfSpin 0.8s linear infinite;
 }
 
 @keyframes pfSpin {
@@ -445,7 +556,7 @@ select.pf-input { appearance: none; }
 }
 
 .pf-eligible-eyebrow {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
   margin: 0;
@@ -454,56 +565,14 @@ select.pf-input { appearance: none; }
 .pf-eligible-amount {
   font-family: var(--font-heading, inherit);
   font-size: 48px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
   color: var(--text-primary);
-  animation: pfPopIn 380ms var(--ease-out);
+  animation: pfPopIn 360ms var(--ease-out);
 }
 
-.pf-summary-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 7px 0;
-  gap: 12px;
-
-  span { color: var(--text-muted); }
-  strong { color: var(--text-primary); font-weight: 700; text-align: right; }
-}
-
-.pf-review-card {
-  padding: 18px;
-  border-radius: 18px;
-  background: var(--surface-base);
-  border: 1.5px solid var(--color-stroke);
-  box-shadow: var(--shadow-card);
-}
-
-.pf-review-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.pf-review-title {
-  font-size: 13px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.pf-review-edit {
-  background: none;
-  border: none;
-  color: var(--brand);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 44px;
-}
-
+// ── Success badge ──────────────────────────────────────────────────────────────
 .pf-success-badge {
   width: 64px;
   height: 64px;
@@ -517,66 +586,67 @@ select.pf-input { appearance: none; }
 }
 
 @keyframes pfSuccessIn {
-  0% { opacity: 0; transform: scale(0.7); }
+  0%   { opacity: 0; transform: scale(0.7); }
   100% { opacity: 1; transform: scale(1); }
 }
 
+// ── OTP modal ──────────────────────────────────────────────────────────────────
 .pf-otp-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(16, 24, 40, 0.4);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   z-index: 100;
-  animation: pfFadeIn 200ms ease-out;
+  animation: pfFadeIn 180ms ease-out;
 }
 
 @keyframes pfFadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 .pf-otp-dialog {
   width: 100%;
-  max-width: 320px;
-  background: var(--surface-base);
-  border: 1px solid var(--color-stroke);
-  border-radius: 24px;
-  padding: 24px;
+  max-width: 360px;
+  background: #ffffff;
+  border: var(--pf-border);
+  border-radius: 16px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   box-sizing: border-box;
-  box-shadow: 0 24px 48px -12px rgba(16, 24, 40, 0.25);
-  animation: pfDialogIn 240ms var(--ease-out);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: pfDialogIn 220ms var(--ease-out);
 }
 
 @keyframes pfDialogIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .pf-otp-title {
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: 15px;
+  color: var(--text-primary);
   margin: 0;
-  text-align: center;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .pf-otp-input {
   text-align: center;
-  letter-spacing: 8px;
-  font-size: 22px;
+  letter-spacing: 10px;
+  font-size: 24px;
   font-weight: 700;
 }
 
-// ── Mobile ────────────────────────────────────────────────────────────────────
-@media (max-width: 480px) {
+// ── Mobile ─────────────────────────────────────────────────────────────────────
+@media (max-width: 640px) {
   .pf-body {
-    padding: var(--space-4, 16px) var(--space-4, 16px) var(--space-6, 24px);
+    padding: 32px 20px 48px;
   }
 
   .pf-headline {
@@ -587,9 +657,8 @@ select.pf-input { appearance: none; }
     font-size: 36px;
   }
 
-  .pf-otp-dialog {
-    max-width: calc(100% - 32px);
-    padding: 20px;
+  .pf-header-inner {
+    padding: 12px 20px;
   }
 }
 

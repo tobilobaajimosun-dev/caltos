@@ -16,10 +16,15 @@ import { FIELD_DEFS } from '../apply-profile-flow/field-defs';
 import { MANDATE_RAIL_COPY, DEFAULT_MANDATE_COPY } from '../apply-profile-flow/mandate-copy';
 import { synthesizeDefaultProfile } from '../apply-profile-flow/default-profile';
 
+/** BNPL-specific audience categories — wider than the standard AudienceCategory,
+ * includes paramilitary and an "others" catch-all that results in a not-served screen. */
+type BnplAudience = 'public-servant' | 'sme-owner' | 'private-worker' | 'paramilitary' | 'others';
+
 type V2BucketId =
   | 'about' | 'entry' | 'profile' | 'personal'
-  | 'income-verification' | 'income-amount' | 'eligibility' | 'type-details'
-  | 'documents' | 'offer' | 'mandate' | 'caltos-verify' | 'review' | 'disbursement';
+  | 'income-verification' | 'eligibility' | 'type-details'
+  | 'documents' | 'offer' | 'mandate' | 'caltos-verify' | 'review' | 'disbursement'
+  | 'bnpl-vendor' | 'bnpl-invoice' | 'bnpl-profile' | 'bnpl-not-served';
 
 interface DraftSnapshotV2 {
   bucketIndex: number;
@@ -36,23 +41,25 @@ interface DraftSnapshotV2 {
   accountFetched: boolean;
   accountName: string;
   fetchedMonthlyIncome: number;
-  declaredRevenue: string;
+  loanAmount: string;
+  loanTenor: string;
   mandateBankName: string;
   mandateAccountNumber: string;
   mandateConsent: boolean;
+  bnplVendor: string;
+  bnplInvoiceAmount: string;
+  bnplInvoiceFileName: string;
+  bnplAudience: BnplAudience | null;
 }
 
 const INCOME_METHOD_LABELS: Record<IncomeVerificationSource, string> = {
-  remita: 'Verify via Remita',
-  wacs: 'Verify via IPPIS / WACS',
+  remita: 'Remita',
+  wacs: 'IPPIS / WACS',
   payslip: 'Upload payslip',
   'bank-statement': 'Upload bank statement',
   'business-revenue': 'Declare business revenue',
 };
 
-/** Short noun-phrase form of the same methods, for the About screen's compact eligibility/method
- * summary line — INCOME_METHOD_LABELS above reads naturally as a button/heading ("Upload payslip"),
- * these read naturally joined with "or" ("Remita or IPPIS/WACS"). */
 const INCOME_METHOD_SHORT_LABELS: Record<IncomeVerificationSource, string> = {
   remita: 'Remita',
   wacs: 'IPPIS/WACS',
@@ -61,17 +68,6 @@ const INCOME_METHOD_SHORT_LABELS: Record<IncomeVerificationSource, string> = {
   'business-revenue': 'Business revenue',
 };
 
-/**
- * The v2 borrower application flow — a redesigned bucket order (issue #47) that runs only for
- * products whose applicantProfiles all have an `audience` set. Legacy/unmigrated products keep
- * rendering through ApplyProfileFlowComponent (see ApplyComponent's routing). Ports the same
- * verify/documents/mandate/eligibility mechanics from the v1 engine, restructured into the new
- * stage order: about -> get started (+returning-customer check, phone/email captured once here —
- * no separate contact-confirmation screen, issue #51) -> personal (personal + address fields on
- * one screen, new customers only) -> income verification (audience-gated method choice) -> income
- * amount (salaried workers only) -> eligibility -> type details -> documents -> offer
- * (accept/reject) -> mandate -> Caltos Verify video -> final review -> success (with confetti).
- */
 @Component({
   selector: 'app-apply-flow-v2',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,8 +79,6 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   product = input.required<LoanConfig>();
   productId = input.required<string>();
   orgLogoDataUrl = input<string | null>(null);
-  /** The lender's own name (e.g. "Princeps Finance") — always shown on the About screen so the
-   * borrower knows who they're actually borrowing from, distinct from the product's own name. */
   orgName = input<string>('');
 
   private readonly cdr = inject(ChangeDetectorRef);
@@ -98,9 +92,8 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   // ── Bucket state machine ─────────────────────────────────────────────────────
   bucketIndex = 0;
 
-  /** Products with no Applicant Profiles configured (most products created before that field
-   * existed) get one synthesized on the fly — same fallback ApplyComponent.useV2Flow uses to
-   * decide whether to route here in the first place, so this must stay in sync with that check. */
+  get isBnpl(): boolean { return this.product().template === 'bnpl'; }
+
   get profiles(): ApplicantProfile[] {
     const configured = this.product().applicantProfiles ?? [];
     return configured.length ? configured : [synthesizeDefaultProfile(this.product())];
@@ -111,12 +104,32 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   }
 
   get bucketOrder(): V2BucketId[] {
+    const isBnpl = this.isBnpl;
     const buckets: V2BucketId[] = ['about', 'entry'];
-    if (!this.skipProfileBucket) buckets.push('profile');
+
+    if (isBnpl) {
+      buckets.push('bnpl-vendor', 'bnpl-invoice');
+    }
+
+    if (!this.skipProfileBucket && !isBnpl) buckets.push('profile');
     if (!this.isReturningCustomer) buckets.push('personal');
-    buckets.push('income-verification');
-    if (this.selectedProfile?.audience === 'salaried-worker') buckets.push('income-amount');
-    buckets.push('eligibility', 'type-details', 'documents', 'offer', 'mandate', 'caltos-verify', 'review', 'disbursement');
+
+    if (isBnpl) {
+      buckets.push('bnpl-profile');
+      if (this.bnplAudience === 'others') {
+        buckets.push('bnpl-not-served');
+        return buckets;
+      }
+      if (this.bnplAudience !== 'paramilitary') {
+        buckets.push('income-verification');
+      }
+    } else {
+      buckets.push('income-verification');
+    }
+
+    buckets.push('eligibility', 'type-details', 'documents', 'offer', 'mandate');
+    if (this.product().videoConfirmation) buckets.push('caltos-verify');
+    buckets.push('review', 'disbursement');
     return buckets;
   }
 
@@ -128,10 +141,34 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return (this.bucketIndex / Math.max(this.bucketOrder.length - 1, 1)) * 100;
   }
 
-  /** True once the borrower has moved past "Get started" — the persistent header (product +
-   * lender name) shows from here onward; the "about" screen already has the full intro. */
+  // 'about', 'eligibility', 'disbursement', and 'bnpl-not-served' are not counted in "Step X of Y".
+  private readonly hiddenFromStepCount: V2BucketId[] = ['about', 'eligibility', 'disbursement', 'bnpl-not-served'];
+
+  get visibleStepIndex(): number {
+    const visible = this.bucketOrder.filter(b => !this.hiddenFromStepCount.includes(b));
+    return visible.indexOf(this.currentBucket) + 1;
+  }
+
+  get visibleStepTotal(): number {
+    return this.bucketOrder.filter(b => !this.hiddenFromStepCount.includes(b)).length;
+  }
+
   get showHeader(): boolean {
     return this.currentBucket !== 'about';
+  }
+
+  get orgInitials(): string {
+    const name = this.product().brandName || this.orgName();
+    return name.split(' ').slice(0, 2).map((w: string) => w[0] ?? '').join('').toUpperCase() || 'LN';
+  }
+
+  get borrowerName(): string {
+    return this.values['fullName'] || this.accountName || 'Applicant';
+  }
+
+  get offerDate(): string {
+    const d = new Date();
+    return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   next() {
@@ -142,6 +179,10 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.bucketIndex++;
       this.saveDraft();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Auto-trigger eligibility when its bucket becomes active.
+      if (this.currentBucket === 'eligibility' && !this.eligibilityResult && !this.isCalculatingEligibility) {
+        this.calculateEligibility();
+      }
     }
   }
 
@@ -163,9 +204,6 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return this.profiles.map((p) => p.label).filter(Boolean);
   }
 
-  /** Human-readable eligibility line for the About screen — age range plus the borrower-type
-   * label(s) this product is configured for, so "who can apply" is answered up front instead of
-   * only implicitly, several screens later, by which questions happen to get asked. */
   get eligibilitySummary(): string {
     const parts: string[] = [];
     const minAge = this.product().minAge;
@@ -177,19 +215,16 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return parts.join(' · ');
   }
 
-  /** Every distinct income-verification method offered across this product's applicant profiles —
-   * shown up front on the About screen (issue: borrowers previously only discovered how their
-   * income would be verified several screens in, at the income-verification bucket itself). */
   get incomeVerificationSummary(): string {
     const methods = new Set<IncomeVerificationSource>();
     for (const profile of this.profiles) {
       const allowed = profile.audience ? AUDIENCE_INCOME_METHODS[profile.audience] : [profile.incomeVerificationSource];
-      allowed.forEach((m) => methods.add(m));
+      allowed.forEach((m) => m !== 'business-revenue' && methods.add(m));
     }
     return Array.from(methods).map((m) => INCOME_METHOD_SHORT_LABELS[m]).join(' or ');
   }
 
-  // ── Get started + returning-customer detection ───────────────────────────────
+  // ── Entry + returning-customer detection ──────────────────────────────────────
   entryPhone = '';
   entryEmail = '';
   isReturningCustomer = false;
@@ -211,7 +246,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     }
   }
 
-  // ── Applicant profile selector ───────────────────────────────────────────────
+  // ── Applicant profile selector ────────────────────────────────────────────────
   selectedProfileId = '';
 
   get selectedProfile(): ApplicantProfile | undefined {
@@ -223,7 +258,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     this.next();
   }
 
-  // ── Personal / Contact / Address (new customers only) ────────────────────────
+  // ── Personal + Address + BVN (new customers only) ─────────────────────────────
   values: Record<string, string> = {};
   touched = new Set<string>();
 
@@ -235,9 +270,6 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return (this.selectedProfile?.fieldsRequired ?? []).filter((k) => this.fieldDefs[k].screenCategory === 'address');
   }
 
-  /** Work/business fields shown in the post-eligibility type-details bucket — excludes
-   * monthlyIncome, which is either its own income-amount bucket (salaried workers) or derived
-   * from the income-verification fetch (everyone else), never asked here. */
   get typeDetailFields() {
     return (this.selectedProfile?.fieldsRequired ?? []).filter(
       (k) => (this.fieldDefs[k].screenCategory === 'work' || this.fieldDefs[k].screenCategory === 'business') && k !== 'monthlyIncome',
@@ -274,37 +306,21 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return this.VALIDATORS[key]?.(value) ?? null;
   }
 
-  /** Personal + address fields share one screen (issue #51) — both sets must be filled to continue. */
   get personalCanContinue(): boolean {
-    return [...this.personalFields, ...this.addressFields].every((k) => !!this.values[k]);
+    const fieldsFilled = [...this.personalFields, ...this.addressFields].every((k) => !!this.values[k]);
+    return fieldsFilled && this.bvnVerified;
   }
 
   get typeDetailsCanContinue(): boolean {
     return this.typeDetailFields.every((k) => !!this.values[k]);
   }
 
-  // ── Income verification (audience-gated method choice) ──────────────────────
+  // ── BVN identity verification (in personal bucket, separate from income) ──────
   bvn = '';
   bvnOtpOpen = false;
   bvnOtpCode = '';
   bvnVerified = false;
   exposureMatches: { productName: string; loanUniqueId: string; status: string }[] = [];
-
-  selectedIncomeMethod: IncomeVerificationSource | null = null;
-
-  get allowedIncomeMethods(): IncomeVerificationSource[] {
-    const audience = this.selectedProfile?.audience;
-    return audience ? AUDIENCE_INCOME_METHODS[audience] : (this.selectedProfile ? [this.selectedProfile.incomeVerificationSource] : []);
-  }
-
-  get effectiveIncomeMethod(): IncomeVerificationSource | null {
-    if (this.selectedIncomeMethod) return this.selectedIncomeMethod;
-    return this.allowedIncomeMethods.length === 1 ? this.allowedIncomeMethods[0] : null;
-  }
-
-  selectIncomeMethod(method: IncomeVerificationSource) {
-    this.selectedIncomeMethod = method;
-  }
 
   sendBvnOtp() {
     if (!/^\d{11}$/.test(this.bvn)) return;
@@ -325,13 +341,71 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     this.bvnOtpOpen = false;
   }
 
+  // ── BNPL-specific state ───────────────────────────────────────────────────────
+  bnplVendor = '';
+  bnplInvoiceAmount = '';
+  bnplInvoiceFileName = '';
+  bnplAudience: BnplAudience | null = null;
+
+  get bnplVendorCanContinue(): boolean { return !!this.bnplVendor; }
+  get bnplInvoiceCanContinue(): boolean { return !!this.bnplInvoiceAmount; }
+  get bnplProfileCanContinue(): boolean { return !!this.bnplAudience; }
+  get bnplInvoiceAmountNum(): number { return parseThousands(this.bnplInvoiceAmount) || 0; }
+
+  get bnplIsEligibleForFullInvoice(): boolean {
+    if (!this.eligibilityResult || !this.bnplInvoiceAmountNum) return false;
+    return this.eligibilityResult.maxEligibleAmount >= this.bnplInvoiceAmountNum;
+  }
+
+  selectBnplAudience(audience: BnplAudience) {
+    if (this.bnplAudience !== audience) {
+      this.bnplAudience = audience;
+      this.selectedIncomeMethod = null;
+    }
+  }
+
+  onBnplInvoiceFileChange(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.bnplInvoiceFileName = file.name;
+    this.saveDraft();
+  }
+
+  // ── Income verification (Remita / WACS / bank-statement / payslip only) ───────
+  selectedIncomeMethod: IncomeVerificationSource | null = null;
+
+  get allowedIncomeMethods(): IncomeVerificationSource[] {
+    if (this.isBnpl) {
+      switch (this.bnplAudience) {
+        case 'public-servant': return ['remita', 'wacs'];
+        case 'sme-owner': return ['bank-statement'];
+        case 'private-worker': return ['payslip', 'bank-statement'];
+        case 'paramilitary': return [];
+        default: return [];
+      }
+    }
+    const audience = this.selectedProfile?.audience;
+    const methods = audience
+      ? AUDIENCE_INCOME_METHODS[audience]
+      : (this.selectedProfile ? [this.selectedProfile.incomeVerificationSource] : []);
+    return methods.filter((m) => m !== 'business-revenue');
+  }
+
+  get effectiveIncomeMethod(): IncomeVerificationSource | null {
+    if (this.isBnpl && this.bnplAudience === 'private-worker') return null;
+    if (this.selectedIncomeMethod) return this.selectedIncomeMethod;
+    return this.allowedIncomeMethods.length === 1 ? this.allowedIncomeMethods[0] : null;
+  }
+
+  selectIncomeMethod(method: IncomeVerificationSource) {
+    this.selectedIncomeMethod = method;
+  }
+
   bankName = '';
   accountNumber = '';
   fetchingAccount = false;
   accountFetched = false;
   accountName = '';
-  /** Monthly income derived from the income-verification fetch — used for eligibility scoring
-   * on every audience except salaried-worker, which collects it directly (income-amount bucket). */
   fetchedMonthlyIncome = 0;
 
   fetchAccountDetails() {
@@ -349,13 +423,6 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     }, 1200);
   }
 
-  declaredRevenue = '';
-
-  onDeclaredRevenueInput(raw: string) {
-    this.declaredRevenue = formatThousands(raw);
-    this.fetchedMonthlyIncome = parseThousands(this.declaredRevenue) / 12;
-  }
-
   onIncomeDocFileChange(key: string, event: Event) {
     this.onDocFileChange(key, event);
     if (this.isDocComplete(key)) {
@@ -364,20 +431,32 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     }
   }
 
+  get showMonthlyIncomeField(): boolean {
+    if (this.isBnpl && this.bnplAudience === 'private-worker') return true;
+    const method = this.effectiveIncomeMethod;
+    return this.selectedProfile?.audience === 'salaried-worker' &&
+      (method === 'payslip' || method === 'bank-statement');
+  }
+
   get incomeVerificationCanContinue(): boolean {
-    if (!this.bvnVerified) return false;
+    // BNPL private workers must upload payslip + bank statement + enter income
+    if (this.isBnpl && this.bnplAudience === 'private-worker') {
+      return !!this.docs['payslip-upload']?.fileName &&
+             !!this.docs['bank-statement-upload']?.fileName &&
+             !!this.values['monthlyIncome'];
+    }
     const method = this.effectiveIncomeMethod;
     if (!method) return false;
     if (method === 'remita' || method === 'wacs') return this.accountFetched;
-    if (method === 'bank-statement') return !!this.docs['bank-statement-upload']?.fileName;
-    if (method === 'payslip') return !!this.docs['payslip-upload']?.fileName;
-    if (method === 'business-revenue') return !!this.declaredRevenue;
-    return true;
-  }
-
-  // ── Income amount (salaried workers only) ────────────────────────────────────
-  get incomeAmountCanContinue(): boolean {
-    return !!this.values['monthlyIncome'];
+    if (method === 'bank-statement') {
+      return !!this.docs['bank-statement-upload']?.fileName &&
+        (!this.showMonthlyIncomeField || !!this.values['monthlyIncome']);
+    }
+    if (method === 'payslip') {
+      return !!this.docs['payslip-upload']?.fileName &&
+        (!this.showMonthlyIncomeField || !!this.values['monthlyIncome']);
+    }
+    return false;
   }
 
   // ── Documents ─────────────────────────────────────────────────────────────────
@@ -408,7 +487,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return this.completedDocsCount === (this.selectedProfile?.requiredDocuments ?? []).length;
   }
 
-  // ── Eligibility ───────────────────────────────────────────────────────────────
+  // ── Eligibility (silent auto-trigger, auto-advances on approval) ──────────────
   isCalculatingEligibility = false;
   eligibilityResult: EligibilityResult | null = null;
   loanAmount = '';
@@ -416,13 +495,15 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   private buildEligibilityInput(): EligibilityInput {
     const method = this.effectiveIncomeMethod;
-    const incomeSourceMap: Record<string, IncomeSource> = { wacs: 'wacs', remita: 'remita', payslip: 'other', 'bank-statement': 'other', 'business-revenue': 'other' };
-    const monthlyAmount = this.selectedProfile?.audience === 'salaried-worker'
-      ? parseThousands(this.values['monthlyIncome'] || '0')
+    const incomeSourceMap: Record<string, IncomeSource> = {
+      wacs: 'wacs', remita: 'remita', payslip: 'other', 'bank-statement': 'other',
+    };
+    const monthlyAmount = (this.selectedProfile?.audience === 'salaried-worker' || (this.isBnpl && this.bnplAudience === 'private-worker'))
+      ? parseThousands(this.values['monthlyIncome'] || '0') || this.fetchedMonthlyIncome
       : this.fetchedMonthlyIncome;
     return {
       income: { source: incomeSourceMap[method ?? 'other'] ?? 'other', monthlyAmount },
-      stability: this.selectedProfile?.audience === 'sme-owner'
+      stability: (this.selectedProfile?.audience === 'sme-owner' || (this.isBnpl && this.bnplAudience === 'sme-owner'))
         ? { type: 'mda', category: 'sme' }
         : { type: 'mda', category: 'private-large' },
       repaymentHistory: { isRepeatBorrower: this.isReturningCustomer },
@@ -443,20 +524,22 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.eligibilityResult = result;
       this.isCalculatingEligibility = false;
       if (result.decision === 'approved') {
-        this.loanAmount = String(result.maxEligibleAmount);
+        const invoiceAmt = this.isBnpl ? this.bnplInvoiceAmountNum : 0;
+        // For BNPL, offer the invoice amount (capped at eligible max). For regular loans, offer max eligible.
+        this.loanAmount = this.isBnpl && invoiceAmt > 0
+          ? String(Math.min(result.maxEligibleAmount, invoiceAmt))
+          : String(result.maxEligibleAmount);
         this.loanTenor = String(result.tenorMonths);
+        this.saveDraft();
+        this.cdr.markForCheck();
+        setTimeout(() => this.next(), 400);
+      } else {
+        this.saveDraft();
+        this.cdr.markForCheck();
       }
-      this.saveDraft();
-      this.cdr.markForCheck();
     }, 1500);
   }
 
-  /** Editing the desired amount clamps to the score-derived ceiling rather than re-running
-   * scoreEligibility() — matches a standard loan-calculator UX (fixed cap, live recompute).
-   * When the clamped result equals the value already bound to [value] (e.g. the borrower typed
-   * above the ceiling and got clamped straight back to it), Angular's binding-diff sees no change
-   * from its own last-set value and skips re-writing the DOM, leaving the borrower's raw keystrokes
-   * visibly stuck on screen — so the input element is written to directly as a fallback. */
   onLoanAmountInput(raw: string, inputEl: HTMLInputElement) {
     const max = this.eligibilityResult?.maxEligibleAmount ?? 0;
     const parsed = Math.min(parseThousands(raw), max);
@@ -473,7 +556,11 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return estimateMonthlyRepayment(+this.loanAmount || 0, +this.loanTenor || 1, +(this.product().interestRate || 0));
   }
 
-  // ── Offer (accept / reject) ──────────────────────────────────────────────────
+  get totalInterest(): number {
+    return (this.monthlyEst * (+this.loanTenor || 1)) - (+this.loanAmount || 0);
+  }
+
+  // ── Offer ──────────────────────────────────────────────────────────────────────
   offerDeclined = false;
   offerExited = false;
 
@@ -497,7 +584,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     this.loansService.create({
       productId: this.productId(),
       applicantIdentifier: this.bvn,
-      customerName: this.values['fullName'] || this.accountName || 'Applicant',
+      customerName: this.borrowerName,
       customerPhone: this.entryPhone,
       customerEmail: this.entryEmail,
       customerPhoto: '',
@@ -534,14 +621,14 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   adjustLoanAmount() {
     this.offerDeclined = false;
-    this.jumpTo('eligibility');
+    this.jumpTo('offer');
   }
 
   exitApplication() {
     this.offerExited = true;
   }
 
-  // ── Mandate setup (always after offer acceptance in v2) ──────────────────────
+  // ── Mandate setup ──────────────────────────────────────────────────────────────
   mandateBankName = '';
   mandateAccountNumber = '';
   mandateConsent = false;
@@ -555,7 +642,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return !!this.mandateBankName && !!this.mandateAccountNumber && this.mandateConsent;
   }
 
-  // ── Caltos Verify (borrower-facing video, post-offer-acceptance) ────────────
+  // ── Caltos Verify (only if product.videoConfirmation is true) ─────────────────
   caltosVerifyVideo: string | null = null;
 
   onCaltosVerifyVideoChange(dataUrl: string | null) {
@@ -567,9 +654,10 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return !!this.caltosVerifyVideo;
   }
 
-  // ── Review & submit ───────────────────────────────────────────────────────────
+  // ── Review & submit ────────────────────────────────────────────────────────────
   submitted = false;
   refNumber = '';
+  finalConsent = false;
 
   railName(id: string): string {
     return DEDUCTION_CHANNEL_DEFS[id]?.name ?? id;
@@ -580,7 +668,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     const created = this.loansService.create({
       productId: this.productId(),
       applicantIdentifier: this.bvn,
-      customerName: this.values['fullName'] || this.accountName || 'Applicant',
+      customerName: this.borrowerName,
       customerPhone: this.entryPhone,
       customerEmail: this.entryEmail,
       customerPhoto: '',
@@ -614,19 +702,12 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     this.refNumber = created.loanUniqueId;
     this.upsertCustomerRecord();
     this.next();
-    // next() unconditionally re-saves a draft snapshot for the bucket it just entered — clear
-    // *after* so a reload of the success screen starts a brand-new application rather than
-    // replaying this completed one indefinitely.
     this.clearDraft();
     this.triggerConfetti();
   }
 
-  /** Records this applicant as a known customer so a future application with the same phone
-   * number is recognized as returning (see checkReturningCustomer) — without this, the
-   * new-vs-returning detection could never actually trigger since nothing else in the app writes
-   * borrower-submitted contact details into CustomersService. */
   private upsertCustomerRecord() {
-    const name = this.values['fullName'] || this.accountName || 'Applicant';
+    const name = this.borrowerName;
     const existing = this.customersService.findByPhone(this.entryPhone);
     if (existing) {
       this.customersService.update(existing.id, {
@@ -643,7 +724,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     }
   }
 
-  // ── Confetti (hand-built CSS/DOM particles, no new dependency) ──────────────
+  // ── Confetti ───────────────────────────────────────────────────────────────────
   confettiPieces: { left: number; delay: number; duration: number; color: string; rotate: number }[] = [];
 
   private triggerConfetti() {
@@ -663,7 +744,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     }, 4500);
   }
 
-  // ── Autosave ──────────────────────────────────────────────────────────────────
+  // ── Autosave ───────────────────────────────────────────────────────────────────
   private get draftKey(): string {
     return `caltos_apply_v2_draft_${this.productId()}`;
   }
@@ -684,16 +765,19 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       accountFetched: this.accountFetched,
       accountName: this.accountName,
       fetchedMonthlyIncome: this.fetchedMonthlyIncome,
-      declaredRevenue: this.declaredRevenue,
+      loanAmount: this.loanAmount,
+      loanTenor: this.loanTenor,
       mandateBankName: this.mandateBankName,
       mandateAccountNumber: this.mandateAccountNumber,
       mandateConsent: this.mandateConsent,
+      bnplVendor: this.bnplVendor,
+      bnplInvoiceAmount: this.bnplInvoiceAmount,
+      bnplInvoiceFileName: this.bnplInvoiceFileName,
+      bnplAudience: this.bnplAudience,
     };
     try {
       localStorage.setItem(this.draftKey, JSON.stringify(snapshot));
-    } catch {
-      // Best-effort only — losing autosave shouldn't block the flow.
-    }
+    } catch { /* best-effort only */ }
   }
 
   private restoreDraft() {
@@ -716,24 +800,23 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.accountFetched = snapshot.accountFetched ?? false;
       this.accountName = snapshot.accountName ?? '';
       this.fetchedMonthlyIncome = snapshot.fetchedMonthlyIncome ?? 0;
-      this.declaredRevenue = snapshot.declaredRevenue ?? '';
+      this.loanAmount = snapshot.loanAmount ?? '';
+      this.loanTenor = snapshot.loanTenor ?? '';
       this.mandateBankName = snapshot.mandateBankName ?? '';
       this.mandateAccountNumber = snapshot.mandateAccountNumber ?? '';
       this.mandateConsent = snapshot.mandateConsent ?? false;
+      this.bnplVendor = snapshot.bnplVendor ?? '';
+      this.bnplInvoiceAmount = snapshot.bnplInvoiceAmount ?? '';
+      this.bnplInvoiceFileName = snapshot.bnplInvoiceFileName ?? '';
+      this.bnplAudience = snapshot.bnplAudience ?? null;
       if (this.bvnVerified && this.bvn) {
         this.exposureMatches = this.loansService.getCrossProductExposure(this.bvn);
       }
-    } catch {
-      // Corrupt/old-shape draft — start fresh rather than throwing.
-    }
+    } catch { /* corrupt/old draft — start fresh */ }
   }
 
   private clearDraft() {
-    try {
-      localStorage.removeItem(this.draftKey);
-    } catch {
-      // Not fatal — the draft is best-effort.
-    }
+    try { localStorage.removeItem(this.draftKey); } catch { /* not fatal */ }
   }
 
   ngOnInit() {

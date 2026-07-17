@@ -1,62 +1,564 @@
-// v2-only additions layered on top of apply-profile-flow.component.scss's shared pf- classes
-// (loaded first in this component's styleUrls, so brand-color-driven tokens like --brand are
-// already defined at :host and these rules can build on them directly).
+// v2-only additions — layered on top of the shared pf- classes.
 
-.pf-brand-lender {
-  color: var(--text-disabled);
-  font-weight: 500;
+// ── Header avatar ──────────────────────────────────────────────────────────────
+.pf-header-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--brand) 12%, #f3f4f6);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+  border: 1.5px solid color-mix(in srgb, var(--brand) 20%, #e5e7eb);
 }
 
-.v2-hero-image {
+// ── About screen — 2-col layout ───────────────────────────────────────────────
+.pf-body--about {
+  max-width: 980px;
+  padding-top: 48px;
+  padding-bottom: 64px;
+}
+
+.pf-about-screen { gap: 0; }
+
+.pf-about-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    gap: 56px;
+    align-items: flex-start;
+  }
+}
+
+.pf-about-image-col {
+  flex-shrink: 0;
+
+  @media (min-width: 640px) {
+    width: 44%;
+    position: sticky;
+    top: 80px;
+  }
+}
+
+.pf-about-hero {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 20px;
-  box-shadow: var(--shadow-card);
+  border-radius: 16px;
+  border: 1.5px solid #e5e7eb;
+  display: block;
 }
 
-.v2-hero-brand {
+.pf-about-hero-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.pf-about-detail-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+// ── Lender identity ────────────────────────────────────────────────────────────
+.pf-lender-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  .pf-logo { height: 24px; margin-bottom: 0; }
-  .pf-brand { margin: 0; text-align: left; }
+  gap: 12px;
 }
 
-// Secondary button — the outline counterpart to .pf-cta (apply-profile-flow.component.scss),
-// same height/radius so the two stack as a matched pair rather than a filled pill next to a
-// bare text link with no visible boundary.
-.pf-cta-outline {
+.pf-lender-logo {
+  height: 36px;
+  max-width: 110px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  padding: 5px 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.pf-lender-avatar {
+  width: 44px;
   height: 44px;
-  border-radius: 22px;
-  border: 1.5px solid var(--brand);
-  background: transparent;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand) 10%, #f3f4f6);
   color: var(--brand);
   font-size: 15px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid color-mix(in srgb, var(--brand) 18%, #e5e7eb);
+  letter-spacing: 0.04em;
+
+  &--sm {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+}
+
+.pf-lender-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pf-lender-type {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+// ── About titles ───────────────────────────────────────────────────────────────
+.pf-about-title {
+  font-family: var(--font-heading, inherit);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--text-primary);
+
+  @media (min-width: 640px) { font-size: 34px; }
+}
+
+.pf-about-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.55;
+}
+
+// ── 4 info cards ──────────────────────────────────────────────────────────────
+.pf-info-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pf-info-card {
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pf-info-icon-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand);
+  margin: 0 0 4px;
+  line-height: 1;
+}
+
+.pf-info-icon-svg {
+  color: var(--brand);
+  margin-bottom: 4px;
+}
+
+.pf-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.pf-info-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+// ── Audience pills ─────────────────────────────────────────────────────────────
+.pf-audience-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-audience-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0;
+}
+
+.pf-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pf-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--brand) 8%, #f3f4f6);
+  color: var(--brand);
+  border: 1.5px solid color-mix(in srgb, var(--brand) 22%, #e5e7eb);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// ── BVN section in personal bucket ───────────────────────────────────────────
+.pf-bvn-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+}
+
+.pf-bvn-heading {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+// ── Income method badge ────────────────────────────────────────────────────────
+.pf-income-method-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--brand) 8%, #f3f4f6);
+  color: var(--brand);
+  border: 1.5px solid color-mix(in srgb, var(--brand) 22%, #e5e7eb);
+  font-size: 13px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.pf-field-label-sm {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.pf-field-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+// ── Offer adjuster ─────────────────────────────────────────────────────────────
+.pf-offer-adjuster {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand) 4%, #f9fafb);
+  border: 1.5px solid color-mix(in srgb, var(--brand) 18%, #e5e7eb);
+}
+
+.pf-range {
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  background: #e5e7eb;
+  border-radius: 3px;
+  cursor: pointer;
+  accent-color: var(--brand);
+  margin-top: 4px;
+}
+
+// ── Offer letter ───────────────────────────────────────────────────────────────
+.pf-offer-letter {
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-offer-letter-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.pf-offer-logo {
+  height: 30px;
+  max-width: 90px;
+  object-fit: contain;
+}
+
+.pf-offer-lender-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pf-offer-letter-date {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+.pf-offer-greeting {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pf-offer-intro {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pf-offer-section {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 14px;
+}
+
+.pf-offer-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0 0 8px;
+}
+
+.pf-offer-conditions {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 14px;
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.pf-summary-row--total {
+  border-top: 1px solid #e5e7eb !important;
+  padding-top: 10px !important;
+  margin-top: 4px;
+
+  span { color: var(--text-primary) !important; font-weight: 700 !important; }
+  strong { color: var(--brand) !important; font-size: 15px !important; }
+}
+
+// ── Review card variants ───────────────────────────────────────────────────────
+.pf-review-card--highlight {
+  border-color: color-mix(in srgb, var(--brand) 28%, #e5e7eb);
+  background: color-mix(in srgb, var(--brand) 3%, #f9fafb);
+}
+
+.pf-review-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pf-review-amount-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin: 0 0 6px;
+}
+
+.pf-review-amount {
+  font-family: var(--font-heading, inherit);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pf-review-monthly {
+  font-family: var(--font-heading, inherit);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+  margin: 0;
+}
+
+.pf-review-amount-right { text-align: right; }
+
+.pf-review-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin-bottom: 10px;
+}
+
+// ── Legal section ──────────────────────────────────────────────────────────────
+.pf-legal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+}
+
+.pf-legal-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0;
+}
+
+.pf-legal-link {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+// ── Submit CTA — slightly taller for the final action ─────────────────────────
+.pf-cta--submit {
+  height: 56px;
+  font-size: 16px;
+  border-radius: 10px;
+  letter-spacing: 0.01em;
+}
+
+// ── Success ────────────────────────────────────────────────────────────────────
+.pf-ref-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 17px;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.pf-success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.pf-cta--track {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.pf-cta--repayments {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  height: 52px;
+  border-radius: 8px;
+}
+
+// ── Decline icon ───────────────────────────────────────────────────────────────
+.pf-decline-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ── Outline CTA ───────────────────────────────────────────────────────────────
+.pf-cta-outline {
+  height: 52px;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   width: 100%;
-  transition: background 160ms ease, opacity 160ms var(--ease-out);
+  transition: border-color 150ms ease, background 150ms ease;
 
-  &:active:not(:disabled) { opacity: 0.7; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &:active:not(:disabled) { background: #f9fafb; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .pf-cta-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 8%, transparent); }
+  .pf-cta-outline:hover:not(:disabled) { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 4%, #fff); }
 }
 
-// Groups 2+ related action buttons (e.g. accept/reject, adjust/exit) with a tighter, deliberate
-// gap than the screen's general 18px content rhythm — reads as one decision, not two separate
-// unrelated elements.
 .pf-button-stack {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-// ── Confetti ──────────────────────────────────────────────────────────────────
+// ── Confetti ───────────────────────────────────────────────────────────────────
 .v2-confetti-layer {
   position: fixed;
   inset: 0;
@@ -78,4 +580,152 @@
 
 @keyframes v2ConfettiFall {
   to { transform: translateY(110vh) rotate(720deg); }
+}
+
+// ── BNPL-specific styles ────────────────────────────────────────────────────────
+
+// Profile cards with subtitles (used by bnpl-profile 5-option selector)
+.pf-profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: left;
+}
+
+.pf-profile-sub {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.pf-profile-card--selected {
+  border-color: var(--brand, var(--color-blue));
+  background: color-mix(in srgb, var(--brand, var(--color-blue)) 6%, #fff);
+
+  .pf-profile-label { color: var(--brand, var(--color-blue)); }
+}
+
+// Paramilitary deduction info box
+.pf-bnpl-deduction-notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+
+  svg { flex-shrink: 0; margin-top: 2px; color: #0284c7; }
+
+  p { font-size: 13px; color: #0369a1; line-height: 1.5; margin: 0; }
+}
+
+// "Not served" standalone back button
+.pf-back-btn--standalone {
+  margin-top: 16px;
+}
+
+// BNPL invoice upload section label
+.pf-bnpl-upload-label {
+  margin-top: 8px;
+  margin-bottom: 6px;
+}
+
+// Money input (right-align amounts)
+.pf-input--money {
+  font-variant-numeric: tabular-nums;
+}
+
+// BNPL eligibility comparison block
+.pf-bnpl-eligibility-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.pf-bnpl-compare-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-bnpl-compare-item {
+  flex: 1;
+  text-align: center;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 10px;
+}
+
+.pf-bnpl-compare-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.pf-bnpl-compare-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+
+  &--eligible { color: #059669; }
+}
+
+.pf-bnpl-compare-divider {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.pf-bnpl-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+
+  &--ok {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    svg { color: #16a34a; }
+  }
+
+  &--partial {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    svg { color: #d97706; }
+  }
+}
+
+// "body-muted" helper used in decline state
+.pf-body-muted {
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: -8px;
+}
+
+// ── Mobile ─────────────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .pf-about-title { font-size: 24px; }
+  .pf-info-cards { gap: 8px; }
+  .pf-info-card { padding: 12px; }
+  .pf-review-amount { font-size: 26px; }
+  .pf-review-monthly { font-size: 20px; }
+  .pf-bnpl-compare-value { font-size: 16px; }
 }

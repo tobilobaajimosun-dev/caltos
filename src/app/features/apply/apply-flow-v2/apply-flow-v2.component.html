@@ -1,298 +1,695 @@
 <div class="pf-shell" [style.--brand]="product().brandColor">
+
+  <!-- STICKY HEADER: logo · product name · step count — bold progress bar sits flush below -->
   @if (showHeader) {
-    <div class="pf-header">
-      @if (orgLogoDataUrl()) {
-        <img class="pf-logo" [src]="orgLogoDataUrl()" alt="" />
-      }
-      <p class="pf-brand">{{ product().name }} <span class="pf-brand-lender">· {{ product().brandName || orgName() }}</span></p>
+    <header class="pf-header">
+      <div class="pf-header-inner">
+        <div class="pf-header-brand">
+          @if (orgLogoDataUrl()) {
+            <img class="pf-logo" [src]="orgLogoDataUrl()" alt="" />
+          } @else {
+            <div class="pf-header-avatar">{{ orgInitials }}</div>
+          }
+          <p class="pf-brand">{{ product().name }} <span class="pf-brand-lender">· {{ product().brandName || orgName() }}</span></p>
+        </div>
+        @if (visibleStepIndex > 0) {
+          <span class="pf-header-step">{{ visibleStepIndex }} / {{ visibleStepTotal }}</span>
+        }
+      </div>
       <div class="pf-progress-rail">
         <div class="pf-progress-fill" [style.width.%]="progress"></div>
       </div>
-    </div>
+    </header>
   }
 
-  <div class="pf-body">
-    @if (currentBucket !== 'about' && currentBucket !== 'disbursement') {
-      <p class="pf-eyebrow">Step {{ bucketIndex + 1 }} of {{ bucketOrder.length }}</p>
+  <div class="pf-body" [class.pf-body--about]="currentBucket === 'about'">
+
+    <!-- STEP EYEBROW -->
+    @if (currentBucket !== 'about' && currentBucket !== 'eligibility' && currentBucket !== 'disbursement' && visibleStepIndex > 0) {
+      <p class="pf-eyebrow">Step {{ visibleStepIndex }} of {{ visibleStepTotal }}</p>
     }
 
-    <!-- ABOUT: product intro -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         ABOUT — split layout: hero image left, product details right
+    ═══════════════════════════════════════════════════════════════════ -->
     @if (currentBucket === 'about') {
-      <div class="pf-screen">
-        @if (product().bannerImageDataUrl) {
-          <img class="v2-hero-image" [src]="product().bannerImageDataUrl" alt="" />
-        }
-        <div class="v2-hero-brand">
-          @if (orgLogoDataUrl()) {
-            <img class="pf-logo" [src]="orgLogoDataUrl()" alt="" />
-          }
-          <p class="pf-brand">By {{ product().brandName || orgName() }}</p>
-        </div>
-        <h2 class="pf-headline">{{ product().name }}</h2>
-        <p class="pf-body-sm">{{ product().description }}</p>
+      <div class="pf-screen pf-about-screen">
+        <div class="pf-about-layout">
 
-        <div class="pf-loan-detail-card">
-          <p class="pf-loan-detail-title">About this loan</p>
-          <div class="pf-summary-row"><span>Amount range</span><strong>₦{{ +product().minAmount | number }} – ₦{{ +product().maxAmount | number }}</strong></div>
-          <div class="pf-summary-row"><span>Tenor range</span><strong>{{ product().minTenor }} – {{ product().maxTenor }} {{ product().tenorUnit }}</strong></div>
-          <div class="pf-summary-row"><span>Interest</span><strong>{{ product().interestRate }}% {{ product().interestChargedWhen }}</strong></div>
-          @if (eligibilitySummary) {
-            <div class="pf-summary-row"><span>Who can apply</span><strong>{{ eligibilitySummary }}</strong></div>
-          }
-          @if (incomeVerificationSummary) {
-            <div class="pf-summary-row"><span>Income verification</span><strong>{{ incomeVerificationSummary }}</strong></div>
-          }
-        </div>
+          <!-- LEFT: hero image -->
+          <div class="pf-about-image-col">
+            @if (product().bannerImageDataUrl) {
+              <img class="pf-about-hero" [src]="product().bannerImageDataUrl" alt="{{ product().name }}" />
+            } @else {
+              <div class="pf-about-hero-placeholder">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M6 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <p>{{ product().name }}</p>
+              </div>
+            }
+          </div>
 
-        <button class="pf-cta" [style.--brand]="product().brandColor" (click)="next()">Begin application</button>
+          <!-- RIGHT: product details -->
+          <div class="pf-about-detail-col">
+
+            <!-- Lender identity -->
+            <div class="pf-lender-row">
+              @if (orgLogoDataUrl()) {
+                <img class="pf-lender-logo" [src]="orgLogoDataUrl()" alt="{{ product().brandName || orgName() }}" />
+              } @else {
+                <div class="pf-lender-avatar">{{ orgInitials }}</div>
+              }
+              <div>
+                <p class="pf-lender-name">{{ product().brandName || orgName() }}</p>
+                <p class="pf-lender-type">Licensed Lender</p>
+              </div>
+            </div>
+
+            <h1 class="pf-about-title">{{ product().name }}</h1>
+            @if (product().description) {
+              <p class="pf-about-desc">{{ product().description }}</p>
+            }
+
+            <!-- 4 info cards in a 2×2 grid -->
+            <div class="pf-info-cards">
+              <div class="pf-info-card">
+                <p class="pf-info-icon-text">₦</p>
+                <p class="pf-info-label">Loan Amount</p>
+                <p class="pf-info-value">₦{{ +product().minAmount | number }} – ₦{{ +product().maxAmount | number }}</p>
+              </div>
+              <div class="pf-info-card">
+                <svg class="pf-info-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p class="pf-info-label">Tenor</p>
+                <p class="pf-info-value">{{ product().minTenor }} – {{ product().maxTenor }} {{ product().tenorUnit }}</p>
+              </div>
+              <div class="pf-info-card">
+                <svg class="pf-info-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M19 5L5 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                  <circle cx="17" cy="17" r="2" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                <p class="pf-info-label">Interest Rate</p>
+                <p class="pf-info-value">{{ product().interestRate }}% {{ product().interestChargedWhen }}</p>
+              </div>
+              <div class="pf-info-card">
+                <svg class="pf-info-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                <p class="pf-info-label">Age Range</p>
+                <p class="pf-info-value">
+                  {{ product().minAge || '18' }}{{ product().maxAge ? ' – ' + product().maxAge + ' yrs' : '+ years' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Who can apply pills -->
+            @if (audienceLabels.length) {
+              <div class="pf-audience-section">
+                <p class="pf-audience-heading">Who can apply</p>
+                <div class="pf-pills">
+                  @for (label of audienceLabels; track label) {
+                    <span class="pf-pill">{{ label }}</span>
+                  }
+                </div>
+              </div>
+            }
+
+            <button class="pf-cta" (click)="next()">Begin application</button>
+          </div>
+        </div>
       </div>
     }
 
-    <!-- GET STARTED (+ returning-customer detection) -->
+    <!-- ═══════════════════════════════════════════════════
+         GET STARTED — phone / email capture
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'entry') {
       <div class="pf-screen">
-        <h2 class="pf-headline">Let's get<br>started</h2>
-        <p class="pf-body-sm">Tell us how to reach you.</p>
+        <h2 class="pf-headline">Let's get<br>you started</h2>
+        <p class="pf-body-sm">Enter your contact details so we can retrieve your application if you get interrupted.</p>
 
         <div class="pf-field">
-          <label class="pf-label">Phone number</label>
-          <input class="pf-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="entryPhone" (blur)="onSimpleFieldBlur('entryPhone')" />
+          <label class="pf-label" for="entry-phone">Phone number</label>
+          <input id="entry-phone" class="pf-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="entryPhone" (blur)="onSimpleFieldBlur('entryPhone')" />
           @if (simpleFieldError('entryPhone', entryPhone); as err) {
-            <p class="pf-field-error">{{ err }}</p>
+            <p class="pf-field-error" role="alert">{{ err }}</p>
           }
         </div>
         <div class="pf-field">
-          <label class="pf-label">Email address <span class="pf-opt">Optional</span></label>
-          <input class="pf-input" type="email" placeholder="you@example.com" [(ngModel)]="entryEmail" />
+          <label class="pf-label" for="entry-email">Email address <span class="pf-opt">optional</span></label>
+          <input id="entry-email" class="pf-input" type="email" placeholder="you@example.com" [(ngModel)]="entryEmail" />
         </div>
-        <button class="pf-cta" [disabled]="!entryCanContinue" (click)="next()">Continue</button>
+        <button class="pf-cta" [disabled]="!entryCanContinue" (click)="next()">Continue →</button>
       </div>
     }
 
-    <!-- APPLICANT PROFILE SELECTOR -->
+    <!-- ═══════════════════════════════════════════════════
+         BNPL: VENDOR SELECTION
+    ═══════════════════════════════════════════════════════ -->
+    @if (currentBucket === 'bnpl-vendor') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">Where are<br>you shopping?</h2>
+        <p class="pf-body-sm">Tell us which vendor or store you're purchasing from — this helps us verify your invoice faster.</p>
+
+        @if ((product().bnplCategories ?? []).length) {
+          <div class="pf-field">
+            <label class="pf-label" for="bnpl-vendor-select">Vendor category</label>
+            <select id="bnpl-vendor-select" class="pf-input" [(ngModel)]="bnplVendor">
+              <option value="" disabled selected>Choose a category…</option>
+              @for (cat of product().bnplCategories ?? []; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="bnpl-vendor-name">Vendor or store name <span class="pf-opt">optional</span></label>
+            <input id="bnpl-vendor-name" class="pf-input" type="text" placeholder="e.g. TechMart Lagos" [(ngModel)]="values['bnplVendorName']" />
+          </div>
+        } @else {
+          <div class="pf-field">
+            <label class="pf-label" for="bnpl-vendor-free">Vendor or store name</label>
+            <input id="bnpl-vendor-free" class="pf-input" type="text" placeholder="e.g. TechMart Lagos" [(ngModel)]="bnplVendor" />
+          </div>
+        }
+
+        <button class="pf-cta" [disabled]="!bnplVendorCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════
+         BNPL: INVOICE AMOUNT + UPLOAD
+    ═══════════════════════════════════════════════════════ -->
+    @if (currentBucket === 'bnpl-invoice') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">How much is<br>the purchase?</h2>
+        <p class="pf-body-sm">Enter the total invoice amount, then upload your invoice so we can verify it.</p>
+
+        <div class="pf-field">
+          <label class="pf-label" for="invoice-amount">Invoice total (₦)</label>
+          <input id="invoice-amount" class="pf-input pf-input--money" type="text" placeholder="e.g. 150,000"
+            [ngModel]="bnplInvoiceAmount" (ngModelChange)="bnplInvoiceAmount = $event" />
+        </div>
+
+        <div class="pf-bnpl-upload-label">
+          <p class="pf-label">Invoice or proforma</p>
+          <p class="pf-field-hint">Upload the vendor's invoice or proforma document.</p>
+        </div>
+        <div class="pf-doc-row" [class.done]="!!bnplInvoiceFileName">
+          <div class="pf-doc-info">
+            <p class="pf-doc-label">Invoice document</p>
+            @if (bnplInvoiceFileName) {
+              <p class="pf-doc-sub">{{ bnplInvoiceFileName }} · Uploaded</p>
+            } @else {
+              <p class="pf-doc-sub">PDF or image, under 5MB</p>
+            }
+          </div>
+          @if (!bnplInvoiceFileName) {
+            <label class="pf-doc-upload-btn" aria-label="Upload invoice">
+              Upload
+              <input type="file" accept="image/*,.pdf" (change)="onBnplInvoiceFileChange($event)" />
+            </label>
+          } @else {
+            <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          }
+        </div>
+
+        <button class="pf-cta" [disabled]="!bnplInvoiceCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════
+         PROFILE SELECTOR
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'profile') {
       <div class="pf-screen">
         <h2 class="pf-headline">How do<br>you earn?</h2>
-        <p class="pf-body-sm">This helps us ask you the right questions next.</p>
+        <p class="pf-body-sm">Pick your employment type — this determines which documents we'll ask for.</p>
         <div class="pf-profile-cards">
           @for (p of profiles; track p.profileId) {
             <button type="button" class="pf-profile-card" (click)="selectProfile(p.profileId)">
               <span class="pf-profile-label">{{ p.label }}</span>
-              <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </button>
           }
         </div>
       </div>
     }
 
-    <!-- PERSONAL + ADDRESS INFORMATION (merged into one screen — issue #51; contact info was
-         already captured at Get Started, so it doesn't need its own confirmation screen here) -->
+    <!-- ═══════════════════════════════════════════════════
+         BNPL: AUDIENCE / PROFILE SELECTOR (5 options)
+    ═══════════════════════════════════════════════════════ -->
+    @if (currentBucket === 'bnpl-profile') {
+      <div class="pf-screen">
+        <h2 class="pf-headline">What best<br>describes you?</h2>
+        <p class="pf-body-sm">Your employment type determines the fastest way to verify your income.</p>
+
+        <div class="pf-profile-cards">
+          <button type="button" class="pf-profile-card" [class.pf-profile-card--selected]="bnplAudience === 'public-servant'" (click)="selectBnplAudience('public-servant')">
+            <div class="pf-profile-content">
+              <span class="pf-profile-label">Public / Civil Servant</span>
+              <span class="pf-profile-sub">Federal, state, or local government employee</span>
+            </div>
+            <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button type="button" class="pf-profile-card" [class.pf-profile-card--selected]="bnplAudience === 'sme-owner'" (click)="selectBnplAudience('sme-owner')">
+            <div class="pf-profile-content">
+              <span class="pf-profile-label">SME / Business Owner</span>
+              <span class="pf-profile-sub">Self-employed or run your own business</span>
+            </div>
+            <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button type="button" class="pf-profile-card" [class.pf-profile-card--selected]="bnplAudience === 'private-worker'" (click)="selectBnplAudience('private-worker')">
+            <div class="pf-profile-content">
+              <span class="pf-profile-label">Private Sector Worker</span>
+              <span class="pf-profile-sub">Employed by a private company or organisation</span>
+            </div>
+            <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button type="button" class="pf-profile-card" [class.pf-profile-card--selected]="bnplAudience === 'paramilitary'" (click)="selectBnplAudience('paramilitary')">
+            <div class="pf-profile-content">
+              <span class="pf-profile-label">Paramilitary / Armed Forces</span>
+              <span class="pf-profile-sub">Police, military, DSS, customs, or immigration officer</span>
+            </div>
+            <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button type="button" class="pf-profile-card" [class.pf-profile-card--selected]="bnplAudience === 'others'" (click)="selectBnplAudience('others')">
+            <div class="pf-profile-content">
+              <span class="pf-profile-label">Other / Not listed</span>
+              <span class="pf-profile-sub">My employment type isn't listed above</span>
+            </div>
+            <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        @if (bnplAudience === 'paramilitary') {
+          <div class="pf-bnpl-deduction-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <p>Your repayments will be deducted directly at source via the appropriate payroll channel. No bank statements or payslips are needed.</p>
+          </div>
+        }
+
+        <button class="pf-cta" [disabled]="!bnplProfileCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════
+         BNPL: NOT SERVED (audience = 'others')
+    ═══════════════════════════════════════════════════════ -->
+    @if (currentBucket === 'bnpl-not-served') {
+      <div class="pf-screen pf-center">
+        <div class="pf-decline-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h2 class="pf-headline">Not available<br>for you yet</h2>
+        <p class="pf-body-sm">
+          We're currently unable to process Buy Now Pay Later applications for your employment type.
+          We're working hard to expand our coverage.
+        </p>
+        <p class="pf-body-sm">If you think this is an error or you have questions, please reach out to us.</p>
+        <button class="pf-back-btn pf-back-btn--standalone" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Change my selection
+        </button>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════
+         PERSONAL + ADDRESS + BVN (new customers only)
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'personal') {
       <div class="pf-screen">
-        <h2 class="pf-headline">A little<br>about you</h2>
-        <p class="pf-body-sm">Just what's needed to process your application.</p>
+        <h2 class="pf-headline">About<br>you</h2>
+        <p class="pf-body-sm">Just a few basics to confirm your identity. Your information is encrypted and secure.</p>
+
         @for (key of [...personalFields, ...addressFields]; track key) {
           <div class="pf-field">
-            <label class="pf-label">{{ fieldDefs[key].label }}</label>
+            <label class="pf-label" [for]="'field-' + key">{{ fieldDefs[key].label }}</label>
             @if (fieldDefs[key].inputType === 'select') {
-              <select class="pf-input" [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)">
+              <select [id]="'field-' + key" class="pf-input" [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)">
                 <option value="" disabled selected>Select…</option>
                 @for (opt of fieldDefs[key].options ?? []; track opt) {
                   <option [value]="opt">{{ opt }}</option>
                 }
               </select>
             } @else {
-              <input class="pf-input" [type]="fieldDefs[key].inputType === 'date' ? 'date' : 'text'" [placeholder]="fieldDefs[key].placeholder ?? ''"
+              <input [id]="'field-' + key" class="pf-input" [type]="fieldDefs[key].inputType === 'date' ? 'date' : 'text'"
+                [placeholder]="fieldDefs[key].placeholder ?? ''"
                 [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)" />
             }
             @if (fieldError(key); as err) {
-              <p class="pf-field-error">{{ err }}</p>
+              <p class="pf-field-error" role="alert">{{ err }}</p>
             }
           </div>
         }
-        <button class="pf-cta" [disabled]="!personalCanContinue" (click)="next()">Continue</button>
+
+        <!-- BVN — identity verification, separate from income verification -->
+        <div class="pf-bvn-section">
+          <p class="pf-bvn-heading">Identity verification</p>
+          @if (!bvnVerified) {
+            <div class="pf-field">
+              <label class="pf-label" for="bvn-input">Bank Verification Number (BVN)</label>
+              <input id="bvn-input" class="pf-input" type="tel" placeholder="11-digit BVN" [(ngModel)]="bvn" (blur)="onSimpleFieldBlur('bvn')" />
+              @if (simpleFieldError('bvn', bvn); as err) {
+                <p class="pf-field-error" role="alert">{{ err }}</p>
+              }
+            </div>
+            <button class="pf-link-btn" [disabled]="!bvn || bvn.length !== 11" (click)="sendBvnOtp()">Verify BVN via OTP →</button>
+          } @else {
+            <div class="pf-verified-row" role="status">
+              <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div>
+                <p class="pf-verified-label">BVN verified</p>
+                <p class="pf-verified-value">{{ bvn }}</p>
+              </div>
+            </div>
+            @if (exposureMatches.length) {
+              <div class="pf-notice" role="alert">
+                You have {{ exposureMatches.length === 1 ? 'an active application' : 'active applications' }} with another lender using this BVN.
+              </div>
+            }
+          }
+        </div>
+
+        <button class="pf-cta" [disabled]="!personalCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
       </div>
     }
 
-    <!-- INCOME VERIFICATION (audience-gated) -->
+    <!-- ═══════════════════════════════════════════════════
+         INCOME VERIFICATION (Remita / WACS / payslip / bank statement)
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'income-verification') {
       <div class="pf-screen">
         <h2 class="pf-headline">Verify your<br>income</h2>
-        <p class="pf-body-sm">256-bit encrypted. Never shared with third parties.</p>
+        <p class="pf-body-sm">This helps us calculate how much you can borrow. Your data is 256-bit encrypted and never shared.</p>
 
-        @if (!bvnVerified) {
-          <div class="pf-field">
-            <label class="pf-label">Bank Verification Number (BVN)</label>
-            <input class="pf-input" type="tel" placeholder="11-digit BVN" [(ngModel)]="bvn" (blur)="onSimpleFieldBlur('bvn')" />
-            @if (simpleFieldError('bvn', bvn); as err) {
-              <p class="pf-field-error">{{ err }}</p>
+        <!-- BNPL private worker: upload payslip + bank statement + enter monthly income (all 3 required) -->
+        @if (isBnpl && bnplAudience === 'private-worker') {
+          <p class="pf-field-label-sm">We need your payslip, a 3-month bank statement, and your monthly salary.</p>
+
+          <div class="pf-doc-row" [class.done]="isDocComplete('payslip-upload')">
+            <div class="pf-doc-info">
+              <p class="pf-doc-label">Most recent payslip</p>
+              @if (isDocComplete('payslip-upload')) {
+                <p class="pf-doc-sub">{{ docs['payslip-upload']?.fileName }} · Uploaded</p>
+              } @else {
+                <p class="pf-doc-sub">PDF or image, under 5MB</p>
+              }
+            </div>
+            @if (!isDocComplete('payslip-upload')) {
+              <label class="pf-doc-upload-btn" aria-label="Upload payslip">
+                Upload
+                <input type="file" accept="application/pdf,image/*" (change)="onIncomeDocFileChange('payslip-upload', $event)" />
+              </label>
+            } @else {
+              <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
             }
           </div>
-          <button class="pf-link-btn" [disabled]="!bvn || bvn.length !== 11" (click)="sendBvnOtp()">Verify via OTP</button>
-        } @else {
-          <div class="pf-verified-row">
-            <span class="pf-icon-badge pf-icon-badge-sm">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <div>
-              <p class="pf-verified-label">BVN</p>
-              <p class="pf-verified-value">{{ bvn }}</p>
+
+          <div class="pf-doc-row" [class.done]="isDocComplete('bank-statement-upload')">
+            <div class="pf-doc-info">
+              <p class="pf-doc-label">3-month bank statement</p>
+              @if (isDocComplete('bank-statement-upload')) {
+                <p class="pf-doc-sub">{{ docs['bank-statement-upload']?.fileName }} · Uploaded</p>
+              } @else {
+                <p class="pf-doc-sub">PDF, under 5MB</p>
+              }
             </div>
+            @if (!isDocComplete('bank-statement-upload')) {
+              <label class="pf-doc-upload-btn" aria-label="Upload bank statement">
+                Upload
+                <input type="file" accept="application/pdf" (change)="onIncomeDocFileChange('bank-statement-upload', $event)" />
+              </label>
+            } @else {
+              <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            }
           </div>
 
-          @if (exposureMatches.length) {
-            <div class="pf-notice">
-              You already have {{ exposureMatches.length === 1 ? 'an application' : 'applications' }} elsewhere:
-              @for (m of exposureMatches; track m.loanUniqueId) {
-                <p class="pf-notice-line">{{ m.productName }} — {{ m.loanUniqueId }} ({{ m.status }})</p>
+          <div class="pf-field">
+            <label class="pf-label" for="monthly-income-bnpl">Net monthly salary (₦)</label>
+            <input id="monthly-income-bnpl" class="pf-input" type="text" placeholder="e.g. 250,000"
+              [ngModel]="values['monthlyIncome']" (ngModelChange)="onFieldInput('monthlyIncome', $event)" (blur)="onFieldBlur('monthlyIncome')" />
+          </div>
+
+          <button class="pf-cta" [disabled]="!incomeVerificationCanContinue" (click)="next()">Continue →</button>
+          <button class="pf-back-btn" (click)="back()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
+        } @else {
+
+        @if (allowedIncomeMethods.length > 1 && !selectedIncomeMethod) {
+          <p class="pf-field-label-sm">How would you like to verify your income?</p>
+          <div class="pf-profile-cards">
+            @for (m of allowedIncomeMethods; track m) {
+              <button type="button" class="pf-profile-card" (click)="selectIncomeMethod(m)">
+                <span class="pf-profile-label">{{ incomeMethodLabels[m] }}</span>
+                <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            }
+          </div>
+        } @else if (effectiveIncomeMethod === 'remita' || effectiveIncomeMethod === 'wacs') {
+          <div class="pf-income-method-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg>
+            {{ incomeMethodLabels[effectiveIncomeMethod] }}
+          </div>
+          @if (!accountFetched) {
+            <div class="pf-field">
+              <label class="pf-label">Salary bank</label>
+              <app-bank-select [value]="bankName" (valueChange)="bankName = $event" />
+            </div>
+            <div class="pf-field">
+              <label class="pf-label" for="acc-number">Account number</label>
+              <input id="acc-number" class="pf-input" type="tel" placeholder="10-digit account number" [(ngModel)]="accountNumber" (blur)="onSimpleFieldBlur('accountNumber')" />
+              @if (simpleFieldError('accountNumber', accountNumber); as err) {
+                <p class="pf-field-error" role="alert">{{ err }}</p>
               }
+            </div>
+            <button class="pf-cta" [disabled]="!bankName || !accountNumber || fetchingAccount" (click)="fetchAccountDetails()">
+              @if (fetchingAccount) { Fetching… } @else { Fetch salary details }
+            </button>
+          } @else {
+            <div class="pf-verified-row" role="status">
+              <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <div>
+                <p class="pf-verified-label">Salary account verified</p>
+                <p class="pf-verified-value">{{ accountName }}</p>
+              </div>
             </div>
           }
-
-          @if (allowedIncomeMethods.length > 1 && !selectedIncomeMethod) {
-            <div class="pf-field">
-              <label class="pf-label">How would you like to verify your income?</label>
-            </div>
-            <div class="pf-profile-cards">
-              @for (m of allowedIncomeMethods; track m) {
-                <button type="button" class="pf-profile-card" (click)="selectIncomeMethod(m)">
-                  <span class="pf-profile-label">{{ incomeMethodLabels[m] }}</span>
-                  <svg class="pf-profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
+        } @else if (effectiveIncomeMethod === 'bank-statement') {
+          <div class="pf-income-method-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            Upload bank statement
+          </div>
+          <div class="pf-doc-row" [class.done]="isDocComplete('bank-statement-upload')">
+            <div class="pf-doc-info">
+              <p class="pf-doc-label">3-month bank statement</p>
+              @if (isDocComplete('bank-statement-upload')) {
+                <p class="pf-doc-sub">{{ docs['bank-statement-upload']?.fileName }} · Uploaded</p>
+              } @else {
+                <p class="pf-doc-sub">PDF, under 5MB</p>
               }
             </div>
-          } @else if (effectiveIncomeMethod === 'remita' || effectiveIncomeMethod === 'wacs') {
-            @if (!accountFetched) {
-              <div class="pf-field">
-                <label class="pf-label">Bank</label>
-                <app-bank-select [value]="bankName" (valueChange)="bankName = $event" />
-              </div>
-              <div class="pf-field">
-                <label class="pf-label">Account number</label>
-                <input class="pf-input" type="tel" [(ngModel)]="accountNumber" (blur)="onSimpleFieldBlur('accountNumber')" />
-                @if (simpleFieldError('accountNumber', accountNumber); as err) {
-                  <p class="pf-field-error">{{ err }}</p>
-                }
-              </div>
-              <button class="pf-link-btn" [disabled]="!bankName || !accountNumber || fetchingAccount" (click)="fetchAccountDetails()">
-                {{ fetchingAccount ? 'Fetching…' : 'Fetch account details' }}
-              </button>
+            @if (!isDocComplete('bank-statement-upload')) {
+              <label class="pf-doc-upload-btn">
+                Upload
+                <input type="file" accept="application/pdf" (change)="onIncomeDocFileChange('bank-statement-upload', $event)" />
+              </label>
             } @else {
-              <div class="pf-verified-row">
-                <span class="pf-icon-badge pf-icon-badge-sm">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-                <div>
-                  <p class="pf-verified-label">Account verified</p>
-                  <p class="pf-verified-value">{{ accountName }}</p>
-                </div>
-              </div>
+              <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
             }
-          } @else if (effectiveIncomeMethod === 'bank-statement') {
+          </div>
+          @if (showMonthlyIncomeField) {
             <div class="pf-field">
-              <label class="pf-label">Upload a 3-month bank statement</label>
-              <input type="file" accept="application/pdf" (change)="onIncomeDocFileChange('bank-statement-upload', $event)" />
+              <label class="pf-label" for="monthly-income">Net monthly salary (₦)</label>
+              <input id="monthly-income" class="pf-input" type="text" placeholder="e.g. 250,000"
+                [ngModel]="values['monthlyIncome']" (ngModelChange)="onFieldInput('monthlyIncome', $event)" (blur)="onFieldBlur('monthlyIncome')" />
             </div>
-          } @else if (effectiveIncomeMethod === 'payslip') {
-            <div class="pf-field">
-              <label class="pf-label">Upload your most recent payslip</label>
-              <input type="file" accept="application/pdf,image/*" (change)="onIncomeDocFileChange('payslip-upload', $event)" />
+          }
+        } @else if (effectiveIncomeMethod === 'payslip') {
+          <div class="pf-income-method-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            Upload payslip
+          </div>
+          <div class="pf-doc-row" [class.done]="isDocComplete('payslip-upload')">
+            <div class="pf-doc-info">
+              <p class="pf-doc-label">Most recent payslip</p>
+              @if (isDocComplete('payslip-upload')) {
+                <p class="pf-doc-sub">{{ docs['payslip-upload']?.fileName }} · Uploaded</p>
+              } @else {
+                <p class="pf-doc-sub">PDF or image, under 5MB</p>
+              }
             </div>
-          } @else if (effectiveIncomeMethod === 'business-revenue') {
+            @if (!isDocComplete('payslip-upload')) {
+              <label class="pf-doc-upload-btn">
+                Upload
+                <input type="file" accept="application/pdf,image/*" (change)="onIncomeDocFileChange('payslip-upload', $event)" />
+              </label>
+            } @else {
+              <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            }
+          </div>
+          @if (showMonthlyIncomeField) {
             <div class="pf-field">
-              <label class="pf-label">Estimated annual business revenue (₦)</label>
-              <input class="pf-input" type="text" placeholder="e.g. 5,000,000" [ngModel]="declaredRevenue" (ngModelChange)="onDeclaredRevenueInput($event)" />
+              <label class="pf-label" for="monthly-income-ps">Net monthly salary (₦)</label>
+              <input id="monthly-income-ps" class="pf-input" type="text" placeholder="e.g. 250,000"
+                [ngModel]="values['monthlyIncome']" (ngModelChange)="onFieldInput('monthlyIncome', $event)" (blur)="onFieldBlur('monthlyIncome')" />
             </div>
           }
         }
 
-        <button class="pf-cta" [disabled]="!incomeVerificationCanContinue" (click)="next()">Continue</button>
+        @if (effectiveIncomeMethod) {
+          <button class="pf-cta" [disabled]="!incomeVerificationCanContinue" (click)="next()">Continue →</button>
+        }
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+        } <!-- end @else (non-private-worker) -->
       </div>
     }
 
-    <!-- INCOME AMOUNT (salaried workers only) -->
-    @if (currentBucket === 'income-amount') {
-      <div class="pf-screen">
-        <h2 class="pf-headline">Your monthly<br>income</h2>
-        <p class="pf-body-sm">This helps us calculate what you're eligible for.</p>
-        <div class="pf-field">
-          <label class="pf-label">{{ fieldDefs.monthlyIncome.label }}</label>
-          <input class="pf-input" type="text" [placeholder]="fieldDefs.monthlyIncome.placeholder ?? ''"
-            [ngModel]="values['monthlyIncome']" (ngModelChange)="onFieldInput('monthlyIncome', $event)" (blur)="onFieldBlur('monthlyIncome')" />
-          @if (fieldError('monthlyIncome'); as err) {
-            <p class="pf-field-error">{{ err }}</p>
-          }
-        </div>
-        <button class="pf-cta" [disabled]="!incomeAmountCanContinue" (click)="next()">Continue</button>
-      </div>
-    }
-
-    <!-- ELIGIBILITY -->
+    <!-- ═══════════════════════════════════════════════════
+         ELIGIBILITY — silent auto-trigger, auto-advances
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'eligibility') {
-      <div class="pf-screen">
-        @if (isCalculatingEligibility) {
+      <div class="pf-screen pf-center">
+        @if (isCalculatingEligibility || !eligibilityResult) {
           <div class="pf-calculating">
-            <div class="pf-loader-ring"></div>
-            <p>Calculating your eligible amount…</p>
+            <div class="pf-loader-ring" role="status" aria-label="Checking your eligibility"></div>
+            <p>Checking your eligibility…</p>
           </div>
-        } @else if (!eligibilityResult) {
-          <h2 class="pf-headline">Ready to see<br>your amount?</h2>
-          <button class="pf-cta" (click)="calculateEligibility()">Calculate my eligible amount</button>
         } @else if (eligibilityResult.decision === 'declined') {
+          <div class="pf-decline-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
           <h2 class="pf-headline">Not eligible<br>right now</h2>
           <p class="pf-body-sm">{{ eligibilityResult.reasons.join(' ') }}</p>
-        } @else {
-          <p class="pf-eligible-eyebrow">You're eligible for up to</p>
-          <p class="pf-eligible-amount">₦{{ eligibilityResult.maxEligibleAmount | number }}</p>
-          <div class="pf-field">
-            <label class="pf-label">Desired amount (₦)</label>
-            <input class="pf-input" type="text" #loanAmountInput [value]="loanAmountDisplay" (input)="onLoanAmountInput($any($event.target).value, loanAmountInput)" />
+          <p class="pf-body-sm pf-body-muted">You can contact the lender for more information or try again in the future.</p>
+        } @else if (isBnpl && bnplInvoiceAmountNum > 0) {
+          <!-- BNPL: show invoice vs eligible comparison before auto-advance -->
+          <div class="pf-bnpl-eligibility-compare">
+            <div class="pf-bnpl-compare-row">
+              <div class="pf-bnpl-compare-item">
+                <p class="pf-bnpl-compare-label">Invoice amount</p>
+                <p class="pf-bnpl-compare-value">₦{{ bnplInvoiceAmountNum | number }}</p>
+              </div>
+              <div class="pf-bnpl-compare-divider" aria-hidden="true">vs</div>
+              <div class="pf-bnpl-compare-item">
+                <p class="pf-bnpl-compare-label">Your limit</p>
+                <p class="pf-bnpl-compare-value pf-bnpl-compare-value--eligible">₦{{ eligibilityResult.maxEligibleAmount | number }}</p>
+              </div>
+            </div>
+            @if (bnplIsEligibleForFullInvoice) {
+              <div class="pf-bnpl-result pf-bnpl-result--ok">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg>
+                You can cover this purchase in full. Proceeding…
+              </div>
+            } @else {
+              <div class="pf-bnpl-result pf-bnpl-result--partial">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Your limit covers part of this purchase. You can still proceed for up to ₦{{ eligibilityResult.maxEligibleAmount | number }}.
+              </div>
+            }
           </div>
-          <div class="pf-field">
-            <label class="pf-label">Repayment period — {{ loanTenor }} month(s)</label>
-            <input type="range" [min]="+(product().minTenor || 1)" [max]="eligibilityResult.tenorMonths" [(ngModel)]="loanTenor" />
-          </div>
-          <div class="pf-summary-row"><span>Monthly est.</span><strong>₦{{ monthlyEst | number }}</strong></div>
-          <button class="pf-cta" (click)="next()">Continue</button>
         }
       </div>
     }
 
-    <!-- TYPE DETAILS (post-eligibility, may be prefilled from income-verification fetch) -->
+    <!-- ═══════════════════════════════════════════════════
+         TYPE DETAILS (post-eligibility work/business fields)
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'type-details') {
       <div class="pf-screen">
-        <h2 class="pf-headline">A few more<br>details</h2>
-        <p class="pf-body-sm">Just what's needed to process your application.</p>
+        <h2 class="pf-headline">A little more<br>about your work</h2>
+        <p class="pf-body-sm">These details help us complete your loan record. Almost there!</p>
 
         @for (key of typeDetailFields; track key) {
           <div class="pf-field">
-            <label class="pf-label">{{ fieldDefs[key].label }}</label>
+            <label class="pf-label" [for]="'td-' + key">{{ fieldDefs[key].label }}</label>
             @if (fieldDefs[key].inputType === 'select') {
-              <select class="pf-input" [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)">
+              <select [id]="'td-' + key" class="pf-input" [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)">
                 <option value="" disabled selected>Select…</option>
                 @for (opt of fieldDefs[key].options ?? []; track opt) {
                   <option [value]="opt">{{ opt }}</option>
                 }
               </select>
             } @else {
-              <input class="pf-input" type="text" [placeholder]="fieldDefs[key].placeholder ?? ''"
+              <input [id]="'td-' + key" class="pf-input" type="text" [placeholder]="fieldDefs[key].placeholder ?? ''"
                 [ngModel]="values[key]" (ngModelChange)="onFieldInput(key, $event)" (blur)="onFieldBlur(key)" />
             }
             @if (fieldError(key); as err) {
-              <p class="pf-field-error">{{ err }}</p>
+              <p class="pf-field-error" role="alert">{{ err }}</p>
             }
           </div>
         }
 
-        <button class="pf-cta" [disabled]="!typeDetailsCanContinue" (click)="next()">Continue</button>
+        <button class="pf-cta" [disabled]="!typeDetailsCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
       </div>
     }
 
-    <!-- DOCUMENTS -->
+    <!-- ═══════════════════════════════════════════════════
+         DOCUMENTS
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'documents') {
       <div class="pf-screen">
-        <h2 class="pf-headline">Upload<br>documents</h2>
-        <p class="pf-body-sm">{{ completedDocsCount }} of {{ (selectedProfile?.requiredDocuments ?? []).length }} complete</p>
+        <h2 class="pf-headline">Supporting<br>documents</h2>
+        <p class="pf-body-sm">{{ completedDocsCount }} of {{ (selectedProfile?.requiredDocuments ?? []).length }} uploaded — clear scans process faster.</p>
 
         @for (doc of selectedProfile?.requiredDocuments ?? []; track doc.key) {
           @if (doc.captureMethod === 'in_app_recording') {
@@ -313,7 +710,7 @@
                   <input type="file" accept="image/*,.pdf" (change)="onDocFileChange(doc.key, $event)" />
                 </label>
               } @else {
-                <span class="pf-icon-badge pf-icon-badge-sm">
+                <span class="pf-icon-badge pf-icon-badge-sm" aria-hidden="true">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </span>
               }
@@ -321,156 +718,289 @@
           }
         }
 
-        <button class="pf-cta" [disabled]="!documentsCanContinue" (click)="next()">Continue</button>
+        <button class="pf-cta" [disabled]="!documentsCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
       </div>
     }
 
-    <!-- OFFER (accept / reject) -->
+    <!-- ═══════════════════════════════════════════════════
+         OFFER — full loan offer letter
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'offer') {
       @if (offerExited) {
         <div class="pf-screen pf-center">
-          <h2 class="pf-headline">You've exited<br>this application</h2>
+          <h2 class="pf-headline">Application<br>exited</h2>
           <p class="pf-body-sm">You can close this window. No loan was created.</p>
         </div>
       } @else if (offerDeclined) {
         <div class="pf-screen pf-center">
-          <h2 class="pf-headline">Offer<br>declined</h2>
-          <p class="pf-body-sm">No problem — you can adjust your desired amount or repayment period and see a new offer.</p>
+          <h2 class="pf-headline">No problem —<br>want to adjust?</h2>
+          <p class="pf-body-sm">You can tweak the amount or repayment period to see a revised offer, or exit if you change your mind.</p>
           <div class="pf-button-stack">
-            <button class="pf-cta" (click)="adjustLoanAmount()">Adjust loan amount</button>
-            <button class="pf-link-btn" (click)="exitApplication()">Exit application</button>
+            <button class="pf-cta" (click)="adjustLoanAmount()">Adjust my offer</button>
+            <button class="pf-cta-outline" (click)="exitApplication()">Exit application</button>
           </div>
         </div>
       } @else {
         <div class="pf-screen">
-          <h2 class="pf-headline">Your loan<br>offer</h2>
-          <p class="pf-body-sm">Review your terms before you continue.</p>
-          <div class="pf-review-card">
-            <div class="pf-summary-row"><span>Loan amount</span><strong>₦{{ +loanAmount | number }}</strong></div>
-            <div class="pf-summary-row"><span>Repayment period</span><strong>{{ loanTenor }} month(s)</strong></div>
-            <div class="pf-summary-row"><span>Monthly repayment</span><strong>₦{{ monthlyEst | number }}</strong></div>
-            <div class="pf-summary-row"><span>Processing fee</span><strong>₦{{ processingFeeAmount | number }}</strong></div>
-            <div class="pf-summary-row"><span>Total repayment</span><strong>₦{{ totalRepaymentAmount | number }}</strong></div>
+          @if (isBnpl) {
+            <h2 class="pf-headline">Your BNPL<br>offer</h2>
+            <p class="pf-body-sm">Here's your approved purchase limit. Adjust if needed before accepting.</p>
+          } @else {
+            <h2 class="pf-headline">You're<br>approved!</h2>
+            <p class="pf-body-sm">Here's your personalised offer. Adjust the amount or repayment period before you accept.</p>
+          }
+
+          <!-- Adjustable amount + tenor -->
+          <div class="pf-offer-adjuster">
+            <div class="pf-field">
+              <label class="pf-label" for="desired-amount">{{ isBnpl ? 'Purchase amount' : 'Desired amount' }} (₦)</label>
+              <input id="desired-amount" class="pf-input" type="text" #loanAmountInput [value]="loanAmountDisplay"
+                (input)="onLoanAmountInput($any($event.target).value, loanAmountInput)" />
+              @if (isBnpl && bnplInvoiceAmountNum > 0) {
+                <p class="pf-field-hint">Invoice: ₦{{ bnplInvoiceAmountNum | number }} · Your limit: ₦{{ eligibilityResult?.maxEligibleAmount | number }}</p>
+              } @else {
+                <p class="pf-field-hint">Your approved limit: ₦{{ eligibilityResult?.maxEligibleAmount | number }}</p>
+              }
+            </div>
+            <div class="pf-field">
+              <label class="pf-label" for="tenor-range">Repayment period — <strong>{{ loanTenor }} month(s)</strong></label>
+              <input id="tenor-range" type="range"
+                [min]="+(product().minTenor || 1)"
+                [max]="eligibilityResult?.tenorMonths || +(product().maxTenor || 12)"
+                [(ngModel)]="loanTenor" class="pf-range" />
+            </div>
           </div>
+
+          <!-- Formal offer letter -->
+          <div class="pf-offer-letter" role="region" aria-label="Loan offer letter">
+            <div class="pf-offer-letter-header">
+              @if (orgLogoDataUrl()) {
+                <img class="pf-offer-logo" [src]="orgLogoDataUrl()" alt="" />
+              } @else {
+                <div class="pf-lender-avatar pf-lender-avatar--sm">{{ orgInitials }}</div>
+              }
+              <div>
+                <p class="pf-offer-lender-name">{{ product().brandName || orgName() }}</p>
+                <p class="pf-offer-letter-date">{{ offerDate }}</p>
+              </div>
+            </div>
+
+            <p class="pf-offer-greeting">Dear {{ borrowerName }},</p>
+            <p class="pf-offer-intro">
+              We are pleased to offer you a loan facility under the following terms and conditions. Please review carefully before accepting.
+            </p>
+
+            <div class="pf-offer-section">
+              <p class="pf-offer-section-title">Loan Terms</p>
+              <div class="pf-summary-row"><span>Principal amount</span><strong>₦{{ +loanAmount | number }}</strong></div>
+              <div class="pf-summary-row"><span>Loan product</span><strong>{{ product().name }}</strong></div>
+              <div class="pf-summary-row"><span>Interest rate</span><strong>{{ product().interestRate }}% {{ product().interestChargedWhen }}</strong></div>
+              <div class="pf-summary-row"><span>Repayment period</span><strong>{{ loanTenor }} month(s)</strong></div>
+              <div class="pf-summary-row"><span>Monthly repayment</span><strong>₦{{ monthlyEst | number }}</strong></div>
+              <div class="pf-summary-row"><span>Total interest</span><strong>₦{{ totalInterest | number }}</strong></div>
+              @if (processingFeeAmount > 0) {
+                <div class="pf-summary-row"><span>Processing fee</span><strong>₦{{ processingFeeAmount | number }}</strong></div>
+              }
+              <div class="pf-summary-row pf-summary-row--total">
+                <span>Total amount payable</span><strong>₦{{ totalRepaymentAmount | number }}</strong>
+              </div>
+            </div>
+
+            <div class="pf-offer-section">
+              <p class="pf-offer-section-title">Disbursement</p>
+              <div class="pf-summary-row"><span>Repayment account</span><strong>{{ mandateBankName || 'To be provided' }}</strong></div>
+              <div class="pf-summary-row"><span>Repayment frequency</span><strong>Monthly</strong></div>
+            </div>
+
+            <div class="pf-offer-conditions">
+              <p>This offer is valid for 24 hours and is subject to final verification of the information provided. Acceptance of this offer constitutes agreement to the full terms and conditions of the loan agreement.</p>
+            </div>
+          </div>
+
           <div class="pf-button-stack">
-            <button class="pf-cta" (click)="acceptOffer()">I have reviewed and agree</button>
-            <button class="pf-cta-outline" (click)="rejectOffer()">Reject loan offer</button>
+            <button class="pf-cta" (click)="acceptOffer()">Accept this offer →</button>
+            <button class="pf-cta-outline" (click)="rejectOffer()">Decline offer</button>
           </div>
+          <button class="pf-back-btn" (click)="back()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
         </div>
       }
     }
 
-    <!-- MANDATE (always after offer acceptance in v2) -->
+    <!-- ═══════════════════════════════════════════════════
+         MANDATE SETUP
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'mandate') {
       <div class="pf-screen">
         <h2 class="pf-headline">{{ mandateCopy.heading }}</h2>
-        <p class="pf-body-sm">{{ mandateCopy.description }}</p>
+        <p class="pf-body-sm">{{ mandateCopy.description }} This account will only be debited on the agreed repayment dates.</p>
 
         <div class="pf-field">
-          <label class="pf-label">Bank</label>
+          <label class="pf-label">Repayment bank</label>
           <app-bank-select [value]="mandateBankName" (valueChange)="mandateBankName = $event" />
         </div>
         <div class="pf-field">
-          <label class="pf-label">Account number</label>
-          <input class="pf-input" type="tel" [(ngModel)]="mandateAccountNumber" (blur)="onSimpleFieldBlur('mandateAccountNumber')" />
+          <label class="pf-label" for="mandate-acc">Account number</label>
+          <input id="mandate-acc" class="pf-input" type="tel" placeholder="10-digit account number" [(ngModel)]="mandateAccountNumber" (blur)="onSimpleFieldBlur('mandateAccountNumber')" />
           @if (simpleFieldError('mandateAccountNumber', mandateAccountNumber); as err) {
-            <p class="pf-field-error">{{ err }}</p>
+            <p class="pf-field-error" role="alert">{{ err }}</p>
           }
         </div>
         <label class="pf-consent-row">
           <input type="checkbox" [(ngModel)]="mandateConsent" />
-          <span>I authorise this repayment mandate.</span>
+          <span>I authorise the deduction of monthly repayments from this account.</span>
         </label>
 
-        <button class="pf-cta" [disabled]="!mandateCanContinue" (click)="next()">Continue</button>
+        <button class="pf-cta" [disabled]="!mandateCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
       </div>
     }
 
-    <!-- CALTOS VERIFY -->
+    <!-- ═══════════════════════════════════════════════════
+         CALTOS VERIFY (only when product.videoConfirmation is true)
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'caltos-verify') {
       <div class="pf-screen">
-        <h2 class="pf-headline">Caltos<br>Verify</h2>
-        <p class="pf-body-sm">Record a short video to confirm your identity before we finalise your application.</p>
-        <app-video-capture-field label="Caltos Verify" [value]="caltosVerifyVideo" (valueChange)="onCaltosVerifyVideoChange($event)" />
-        <button class="pf-cta" [disabled]="!caltosVerifyCanContinue" (click)="next()">Continue</button>
+        <h2 class="pf-headline">One last<br>thing</h2>
+        <p class="pf-body-sm">Record a short video to confirm your identity. This usually takes less than 30 seconds.</p>
+        <app-video-capture-field label="Record verification video" [value]="caltosVerifyVideo" (valueChange)="onCaltosVerifyVideoChange($event)" />
+        <button class="pf-cta" [disabled]="!caltosVerifyCanContinue" (click)="next()">Continue →</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
       </div>
     }
 
-    <!-- FINAL TERMS & REVIEW -->
+    <!-- ═══════════════════════════════════════════════════
+         REVIEW — loan summary + legal + submit
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'review') {
       <div class="pf-screen">
-        <h2 class="pf-headline">Final<br>terms</h2>
+        <h2 class="pf-headline">Almost<br>there!</h2>
+        <p class="pf-body-sm">Review your {{ isBnpl ? 'purchase' : 'loan' }} details, give your consent, and submit. This is the last step.</p>
 
-        <div class="pf-review-card">
-          <div class="pf-review-head">
-            <p class="pf-review-title">Loan</p>
-            <button class="pf-review-edit" (click)="jumpTo('eligibility')">Edit</button>
+        <!-- Loan amount summary -->
+        <div class="pf-review-card pf-review-card--highlight">
+          <div class="pf-review-amount-row">
+            <div>
+              <p class="pf-review-amount-label">Loan amount</p>
+              <p class="pf-review-amount">₦{{ +loanAmount | number }}</p>
+            </div>
+            <div class="pf-review-amount-right">
+              <p class="pf-review-amount-label">Monthly repayment</p>
+              <p class="pf-review-monthly">₦{{ monthlyEst | number }}</p>
+            </div>
           </div>
-          <div class="pf-summary-row"><span>Amount</span><strong>₦{{ +loanAmount | number }}</strong></div>
-          <div class="pf-summary-row"><span>Tenor</span><strong>{{ loanTenor }} months</strong></div>
-          <div class="pf-summary-row"><span>Total repayment</span><strong>₦{{ totalRepaymentAmount | number }}</strong></div>
-        </div>
-
-        <div class="pf-review-card">
-          <div class="pf-review-head">
-            <p class="pf-review-title">Details</p>
-            <button class="pf-review-edit" (click)="jumpTo('type-details')">Edit</button>
-          </div>
-          @for (key of typeDetailFields; track key) {
-            <div class="pf-summary-row"><span>{{ fieldDefs[key].label }}</span><strong>{{ values[key] }}</strong></div>
+          <div class="pf-review-divider"></div>
+          <div class="pf-summary-row"><span>Repayment period</span><strong>{{ loanTenor }} months</strong></div>
+          <div class="pf-summary-row"><span>Interest rate</span><strong>{{ product().interestRate }}% {{ product().interestChargedWhen }}</strong></div>
+          @if (processingFeeAmount > 0) {
+            <div class="pf-summary-row"><span>Processing fee</span><strong>₦{{ processingFeeAmount | number }}</strong></div>
           }
+          <div class="pf-summary-row pf-summary-row--total">
+            <span>Total repayment</span><strong>₦{{ totalRepaymentAmount | number }}</strong>
+          </div>
         </div>
 
+        <!-- Repayment mandate summary -->
         <div class="pf-review-card">
           <div class="pf-review-head">
-            <p class="pf-review-title">Repayment mandate</p>
+            <p class="pf-review-title">Repayment account</p>
             <button class="pf-review-edit" (click)="jumpTo('mandate')">Edit</button>
           </div>
           <div class="pf-summary-row"><span>Bank</span><strong>{{ mandateBankName }}</strong></div>
           <div class="pf-summary-row"><span>Account</span><strong>{{ mandateAccountNumber }}</strong></div>
         </div>
 
-        <label class="pf-consent-row">
-          <input type="checkbox" [(ngModel)]="mandateConsent" />
-          <span>I confirm all information is accurate and agree to the Terms and Privacy Policy.</span>
-        </label>
+        <!-- Legal consent -->
+        <div class="pf-legal-section">
+          <p class="pf-legal-heading">Terms &amp; consent</p>
+          <label class="pf-consent-row">
+            <input type="checkbox" [(ngModel)]="finalConsent" />
+            <span>
+              I confirm all information I've provided is accurate and complete. I have read and agree to the
+              <a class="pf-legal-link" href="#" target="_blank" rel="noopener">Terms &amp; Conditions</a> and
+              <a class="pf-legal-link" href="#" target="_blank" rel="noopener">Privacy Policy</a>.
+              I authorise {{ product().brandName || orgName() }} to deduct repayments from my nominated account on the agreed dates.
+            </span>
+          </label>
+        </div>
 
-        <button class="pf-cta" [disabled]="!mandateConsent" (click)="submit()">Submit application</button>
+        <button class="pf-cta pf-cta--submit" [disabled]="!finalConsent" (click)="submit()">{{ isBnpl ? 'Submit BNPL application' : 'Submit loan application' }}</button>
+        <button class="pf-back-btn" (click)="back()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
       </div>
     }
 
-    <!-- SUCCESS -->
+    <!-- ═══════════════════════════════════════════════════
+         SUCCESS
+    ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'disbursement') {
       <div class="v2-confetti-layer" aria-hidden="true">
         @for (p of confettiPieces; track $index) {
-          <span class="v2-confetti-piece" [style.left.%]="p.left" [style.animation-delay.s]="p.delay" [style.animation-duration.s]="p.duration" [style.background]="p.color" [style.transform]="'rotate(' + p.rotate + 'deg)'"></span>
+          <span class="v2-confetti-piece"
+            [style.left.%]="p.left"
+            [style.animation-delay.s]="p.delay"
+            [style.animation-duration.s]="p.duration"
+            [style.background]="p.color"
+            [style.transform]="'rotate(' + p.rotate + 'deg)'">
+          </span>
         }
       </div>
       <div class="pf-screen pf-center">
-        <div class="pf-success-badge">
+        <div class="pf-success-badge" role="img" aria-label="Application submitted">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <h2 class="pf-headline">Application<br>submitted</h2>
-        <p class="pf-body-sm">Your loan of ₦{{ +loanAmount | number }} will be disbursed to {{ mandateBankName }} ({{ mandateAccountNumber }}) once approved. Reference: {{ refNumber }}</p>
+        @if (isBnpl) {
+          <h2 class="pf-headline">Purchase<br>approved!</h2>
+          <p class="pf-body-sm">
+            Your Buy Now Pay Later application for <strong>₦{{ +loanAmount | number }}</strong> has been submitted.
+            We'll notify you as soon as it's confirmed with the vendor.
+          </p>
+        } @else {
+          <h2 class="pf-headline">Application<br>submitted!</h2>
+          <p class="pf-body-sm">
+            Your loan of <strong>₦{{ +loanAmount | number }}</strong> is under review.
+            We'll send you a notification once it's approved and disbursed — usually within 24 hours.
+          </p>
+        }
+        <div class="pf-ref-pill">Ref: {{ refNumber }}</div>
+
+        <div class="pf-success-actions">
+          <a [href]="'/track?ref=' + refNumber" class="pf-cta pf-cta--track">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Track {{ isBnpl ? 'your purchase' : 'disbursement' }} status
+          </a>
+          <a href="/portal/repayments" class="pf-cta-outline pf-cta--repayments">View repayment schedule</a>
+        </div>
       </div>
     }
 
-    @if (currentBucket !== 'about' && currentBucket !== 'entry' && currentBucket !== 'profile' && currentBucket !== 'disbursement') {
-      <button class="pf-back-btn" (click)="back()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back
-      </button>
-    }
-  </div>
+  </div><!-- /pf-body -->
 
   <!-- BVN OTP MODAL -->
   @if (bvnOtpOpen) {
-    <div class="pf-otp-backdrop" (click)="closeBvnOtp()">
+    <div class="pf-otp-backdrop" role="dialog" aria-modal="true" aria-label="BVN verification" (click)="closeBvnOtp()">
       <div class="pf-otp-dialog" (click)="$event.stopPropagation()">
-        <p class="pf-otp-title">Enter the code sent to your BVN-registered phone number</p>
-        <input class="pf-input pf-otp-input" type="tel" maxlength="6" placeholder="······" [(ngModel)]="bvnOtpCode" />
+        <p class="pf-otp-title">Enter the 6-digit code sent to your BVN-registered phone</p>
+        <input class="pf-input pf-otp-input" type="tel" maxlength="6" placeholder="······"
+          [(ngModel)]="bvnOtpCode" aria-label="OTP code" />
         <button class="pf-cta" [disabled]="bvnOtpCode.length !== 6" (click)="verifyBvnOtp()">Verify</button>
+        <button class="pf-link-btn" (click)="closeBvnOtp()">Cancel</button>
       </div>
     </div>
   }
+
 </div>
