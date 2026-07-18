@@ -1103,7 +1103,9 @@ export class ProductDetailComponent implements OnInit {
 
       this.product = mapRecordToProductData(record);
       this.productStats = record.stats;
-      this.vendors = this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : [];
+      this.vendors = record.vendors !== undefined
+        ? record.vendors.map(v => ({ ...v, status: 'active' as const, settlementBank: '', settlementAccount: '', dateAdded: '' }))
+        : (this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : []);
       this.activeTab = 'overview';
       this.connectedIntegrationIds = new Set(
         record.config.deductionChannels.filter((c) => c.status === 'live').map((c) => c.id),
@@ -1314,6 +1316,7 @@ export class ProductDetailComponent implements OnInit {
       dateAdded: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       slug,
     });
+    this.productsService.update(this.productId, { vendors: this.vendors.map(v => ({ id: v.id, businessName: v.businessName, category: v.category, slug: v.slug })) });
     this.showOnboardModal = false;
     this.activeTab = 'vendors';
   }
@@ -1335,5 +1338,6 @@ export class ProductDetailComponent implements OnInit {
 
   removeVendor(id: string) {
     this.vendors = this.vendors.filter(v => v.id !== id);
+    this.productsService.update(this.productId, { vendors: this.vendors.map(v => ({ id: v.id, businessName: v.businessName, category: v.category, slug: v.slug })) });
   }
 }

@@ -374,6 +374,11 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   }
 
   get bnplVendorOptions(): SelectOption[] {
+    const vendors = this.product().vendors;
+    if (vendors && vendors.length > 0) {
+      return vendors
+        .map(v => ({ value: v.businessName, label: `${v.businessName} · ${v.category}` }));
+    }
     return (this.product().bnplCategories ?? []).map(cat => ({ value: cat, label: cat }));
   }
 

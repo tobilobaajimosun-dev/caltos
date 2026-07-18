@@ -166,7 +166,7 @@
 }
 
 .pf-info-card {
-  background: #f9fafb;
+  background: #ffffff;
   border: 1.5px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
@@ -205,40 +205,42 @@
   line-height: 1.3;
 }
 
-// ── Info card color variants (Indeed-style warm cards) ────────────────────────
+// ── Info card color variants — Indeed style: white card, icon accent only ────
+// Card bg stays white/near-white; only the icon picks up a colour.
+// No card-level tints: colour = interaction state, weight = content hierarchy.
 .pf-info-card--blue {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  .pf-info-icon-text, .pf-info-icon-svg { color: #3b82f6; }
+  background: #ffffff;
+  border-color: #e5e7eb;
+  .pf-info-icon-text, .pf-info-icon-svg { color: var(--brand); }
 }
 
 .pf-info-card--purple {
-  background: #f5f3ff;
-  border-color: #ddd6fe;
-  .pf-info-icon-text, .pf-info-icon-svg { color: #8b5cf6; }
+  background: #ffffff;
+  border-color: #e5e7eb;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #6941c6; }
 }
 
 .pf-info-card--green {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-  .pf-info-icon-text, .pf-info-icon-svg { color: #22c55e; }
+  background: #ffffff;
+  border-color: #e5e7eb;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #15803d; }
 }
 
 .pf-info-card--amber {
-  background: #fffbeb;
-  border-color: #fde68a;
-  .pf-info-icon-text, .pf-info-icon-svg { color: #f59e0b; }
+  background: #ffffff;
+  border-color: #e5e7eb;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #b45309; }
 }
 
-// ── Resume draft banner ────────────────────────────────────────────────────────
+// ── Resume draft banner — white, grey stroke, brand icon only ─────────────────
 .pf-resume-banner {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--brand) 6%, #eff6ff);
-  border: 1.5px solid color-mix(in srgb, var(--brand) 28%, #bfdbfe);
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
   color: var(--text-primary);
 
   svg { flex-shrink: 0; color: var(--brand); }
@@ -725,38 +727,35 @@
   width: 100%;
 }
 
-// Large card (Indeed salary-card style)
+// Large card (Indeed salary-card style) — white bg, 1.5px grey stroke,
+// left-border accent for state (not a filled background).
 .pf-bnpl-compare-card {
   display: flex;
   align-items: flex-start;
   gap: 16px;
   padding: 20px 22px;
   border-radius: 14px;
-  background: #f9fafb;
+  background: #ffffff;
   border: 1.5px solid #e5e7eb;
+  border-left-width: 4px;
+  border-left-color: #e5e7eb;
   transition: border-color 150ms ease;
 
   &--invoice {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-
-    .pf-bnpl-compare-card-icon { background: #dbeafe; color: #3b82f6; }
-    .pf-bnpl-compare-card-value { color: #1e40af; }
+    border-left-color: var(--brand);
+    .pf-bnpl-compare-card-icon { background: color-mix(in srgb, var(--brand) 10%, #f3f4f6); color: var(--brand); }
+    .pf-bnpl-compare-card-value { color: var(--text-primary); }
   }
 
   &--eligible {
-    background: #f0fdf4;
-    border-color: #86efac;
-
-    .pf-bnpl-compare-card-icon { background: #dcfce7; color: #16a34a; }
+    border-left-color: #16a34a;
+    .pf-bnpl-compare-card-icon { background: #f0fdf4; color: #16a34a; }
     .pf-bnpl-compare-card-value { color: #15803d; }
   }
 
   &--partial {
-    background: #fffbeb;
-    border-color: #fde68a;
-
-    .pf-bnpl-compare-card-icon { background: #fef3c7; color: #d97706; }
+    border-left-color: #d97706;
+    .pf-bnpl-compare-card-icon { background: #fffbeb; color: #d97706; }
     .pf-bnpl-compare-card-value { color: #92400e; }
   }
 }
@@ -766,7 +765,7 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #e5e7eb;
+  background: #f3f4f6;
   color: #6b7280;
   display: flex;
   align-items: center;
@@ -840,8 +839,9 @@
   width: 100%;
   padding: 24px 20px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--brand) 6%, #f0fdf4);
-  border: 1.5px solid color-mix(in srgb, var(--brand) 25%, #86efac);
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-top: 4px solid #16a34a;
   display: flex;
   flex-direction: column;
   align-items: center;

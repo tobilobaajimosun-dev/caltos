@@ -139,14 +139,26 @@
               </div>
             </div>
 
-            <!-- Borrower type — a single product-level choice that gates which income
-                 verification methods the applicant-profile step offers below. -->
+            <!-- Borrower type — multi-select checkboxes so one product can serve multiple audience types. -->
             <div class="form-card">
               <div class="form-card-title">Who is this loan product for?</div>
               <div class="field-group">
-                <label class="field-label">Borrower type</label>
-                <p class="field-sub">Determines which income verification methods borrowers are offered when they apply.</p>
-                <app-select [options]="audienceCategoryOptions" [value]="config.audience ?? ''" (valueChange)="setProductAudience($any($event))" />
+                <p class="field-sub">Select all borrower types this product is designed for. This determines which income verification methods are offered at application.</p>
+                <div class="audience-category-checks">
+                  @for (opt of audienceCategoryOptions; track opt.value) {
+                    @if (opt.value) {
+                      <label class="audience-cat-row">
+                        <input type="checkbox"
+                          [checked]="(config.audienceCategories ?? []).includes($any(opt.value))"
+                          (change)="toggleAudienceCategory($any(opt.value))" />
+                        <span class="audience-cat-label">{{ opt.label }}</span>
+                      </label>
+                    }
+                  }
+                </div>
+                @if ((config.audienceCategories ?? []).length === 0) {
+                  <p class="field-hint">No type selected — all income verification methods will be available (legacy mode).</p>
+                }
               </div>
             </div>
 

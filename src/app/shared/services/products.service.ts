@@ -361,6 +361,8 @@ export interface ProductRecord {
    * Optional because products seeded outside the wizard (e.g. demo data) won't have it.
    */
   wizardConfig?: Record<string, unknown>;
+  /** Onboarded vendors for BNPL products. Populated from product-detail's vendor management tab. */
+  vendors?: { id: string; businessName: string; category: string; slug: string }[];
 }
 
 /** Days a 'live' channel is trusted after its last successful testConnection() before it needs re-verification. */

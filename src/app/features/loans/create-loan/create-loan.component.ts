@@ -88,6 +88,8 @@ export interface LoanConfig {
   /** Borrower type this product is built for — a single product-level choice (not per applicant
    * profile) that gates which income-verification methods are offered. See AUDIENCE_INCOME_METHODS. */
   audience: AudienceCategory | null;
+  /** Multi-select list of audience categories this product targets. Synced from the UI's checkbox list. */
+  audienceCategories: AudienceCategory[];
   minAmount: string;
   maxAmount: string;
   minTenor: string;
@@ -222,6 +224,8 @@ export interface LoanConfig {
   bnplDefaultVendorLimit?: string;
   /** BNPL only — whether the customer enters the purchase amount or the vendor sends an invoice. */
   bnplPurchaseMode?: 'amount' | 'invoice';
+  /** BNPL only — onboarded vendors linked to this product. Passed through to the apply portal. */
+  vendors?: { id: string; businessName: string; category: string; slug: string }[];
   /**
    * Any product's set of lender-configurable applicant types (e.g. "Government Employee" vs.
    * "Business Owner"). Non-empty opts this product into the new profile-driven /apply engine
@@ -552,7 +556,7 @@ export class CreateLoanComponent implements OnInit {
   }
 
   config: LoanConfig = {
-    template: '', name: '', description: '', targetAudiences: [], audienceMode: 'everyone', audience: null,
+    template: '', name: '', description: '', targetAudiences: [], audienceMode: 'everyone', audience: null, audienceCategories: [],
     minAmount: '', maxAmount: '', minTenor: '', maxTenor: '', tenorUnit: 'Months',
     interestModel: 'Flat Rate', interestRate: '', interestChargedWhen: 'Monthly', minAge: '18', maxAge: '',
     entryPhone: true, entryEmail: true, entryBvn: false, entryNin: false,
@@ -1398,9 +1402,22 @@ export class CreateLoanComponent implements OnInit {
    * by audience. Applies to every applicant profile on this product; there's no per-profile
    * override, since a product is normally built for one borrower type. */
   get incomeMethodOptionsForAudience(): SelectOption[] {
-    if (!this.config.audience) return this.incomeVerificationSourceOptions;
-    const allowed = AUDIENCE_INCOME_METHODS[this.config.audience];
-    return this.incomeVerificationSourceOptions.filter((opt) => allowed.includes(opt.value as IncomeVerificationSource));
+    const cats = (this.config.audienceCategories ?? []).length > 0
+      ? this.config.audienceCategories
+      : (this.config.audience ? [this.config.audience] : []);
+    if (!cats.length) return this.incomeVerificationSourceOptions;
+    const allowed = new Set(cats.flatMap(c => AUDIENCE_INCOME_METHODS[c]));
+    return this.incomeVerificationSourceOptions.filter(opt => allowed.has(opt.value as IncomeVerificationSource));
+  }
+
+  toggleAudienceCategory(cat: AudienceCategory) {
+    const current = this.config.audienceCategories ?? [];
+    const next = current.includes(cat) ? current.filter(c => c !== cat) : [...current, cat];
+    this.config.audienceCategories = next;
+    // keep the legacy single-value synced to the first selected item
+    this.config.audience = (next[0] ?? null) as AudienceCategory | null;
+    // re-run income method constraint when audience changes
+    this.setProductAudience(this.config.audience ?? '');
   }
 
   /** When the product's audience changes, every profile's incomeVerificationSource may no longer

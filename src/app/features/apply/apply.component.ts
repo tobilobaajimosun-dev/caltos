@@ -12,7 +12,7 @@ const FALLBACK_CONFIG: LoanConfig = {
   template: 'salary',
   name: 'Salary Advance Loan',
   description: 'Quick access to earned wages for private sector employees.',
-  targetAudiences: ['Salary Earners'], audienceMode: 'custom', audience: null,
+  targetAudiences: ['Salary Earners'], audienceMode: 'custom', audience: null, audienceCategories: [],
   minAmount: '10000', maxAmount: '500000',
   minTenor: '1', maxTenor: '12', tenorUnit: 'Months',
   interestModel: 'Flat Rate', interestRate: '2.5', interestChargedWhen: 'Monthly',
@@ -144,6 +144,7 @@ export class ApplyComponent implements OnInit {
           interestChargedWhen: record.interestFrequency,
           bannerImageDataUrl: record.bannerImageDataUrl,
           applicantProfiles: record.config.applicantProfiles ?? [],
+          vendors: record.vendors ?? [],
         };
         this.configSource = 'localStorage';
         this.resolvedProductId = productId!;
