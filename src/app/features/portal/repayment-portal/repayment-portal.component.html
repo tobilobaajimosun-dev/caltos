@@ -5,13 +5,15 @@
   <div class="rp-gate">
     <div class="rp-gate-card">
       <div class="rp-gate-logo" aria-hidden="true">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="7" width="20" height="14" rx="2" stroke="var(--color-blue)" stroke-width="1.5"/>
-          <path d="M16 7V5a4 4 0 00-8 0v2" stroke="var(--color-blue)" stroke-width="1.5" stroke-linecap="round"/>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="7" width="20" height="14" rx="2" stroke="#2557a7" stroke-width="1.5"/>
+          <path d="M16 7V5a4 4 0 00-8 0v2" stroke="#2557a7" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
-      <h1 class="rp-gate-title">Access your loan portal</h1>
-      <p class="rp-gate-sub">Enter your BVN to securely view your loan dashboard, repayment history, and make payments.</p>
+      <div class="rp-gate-heading">
+        <h1 class="rp-gate-title">Your loan portal</h1>
+        <p class="rp-gate-sub">Enter your 11-digit BVN to securely access your loan information.</p>
+      </div>
 
       <div class="rp-gate-field">
         <label class="rp-gate-label" for="bvn-input">Bank Verification Number (BVN)</label>
@@ -26,22 +28,23 @@
           [(ngModel)]="bvnInput"
           (keyup.enter)="verifyBvn()"
           autocomplete="off"
+          aria-describedby="bvn-error bvn-note"
         />
         @if (bvnError) {
-          <p class="rp-gate-error" role="alert">{{ bvnError }}</p>
+          <p class="rp-gate-error" id="bvn-error" role="alert">{{ bvnError }}</p>
         }
       </div>
 
-      <button class="rp-gate-btn" [disabled]="isVerifying" (click)="verifyBvn()">
+      <button class="rp-gate-btn" [disabled]="isVerifying" (click)="verifyBvn()" aria-live="polite">
         @if (isVerifying) {
           <span class="rp-gate-spinner" aria-hidden="true"></span>
           Verifying…
         } @else {
-          Continue →
+          Access my portal
         }
       </button>
 
-      <p class="rp-gate-note">
+      <p class="rp-gate-note" id="bvn-note">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
           <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -53,276 +56,439 @@
 }
 
 <!-- ═══════════════════════════════════════════════════════════════
-     MAIN APP SHELL — three-column layout: left nav | content | chat
+     MAIN APP SHELL — three-column: left nav | content | chat panel
 ═══════════════════════════════════════════════════════════════ -->
 @if (isAuthenticated) {
   <div class="rp-app">
 
-    <!-- ── Left sidebar nav ──────────────────────────────────────────────────── -->
-    <nav class="rp-nav" aria-label="Loan portal navigation">
-      <div class="rp-nav-brand">
-        <div class="rp-nav-logo" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <!-- ── Top nav bar (Indeed-style header) ────────────────────────────────── -->
+    <header class="rp-topnav" role="banner">
+      <div class="rp-topnav-brand">
+        <div class="rp-topnav-logo" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
             <path d="M16 7V5a4 4 0 00-8 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </div>
-        <div>
-          <p class="rp-nav-org">Caltos</p>
-          <p class="rp-nav-user">{{ borrowerName }}</p>
+        <span class="rp-topnav-name">Caltos</span>
+      </div>
+      <div class="rp-topnav-right">
+        <div class="rp-topnav-user">
+          <div class="rp-topnav-avatar" aria-hidden="true">{{ borrowerName.charAt(0) }}</div>
+          <span class="rp-topnav-borrower">{{ borrowerName }}</span>
         </div>
       </div>
+    </header>
 
-      <ul class="rp-nav-list" role="list">
-        <li>
-          <button class="rp-nav-item" [class.rp-nav-item--active]="activeNav === 'overview'" (click)="setNav('overview')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
-              <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
-              <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
-              <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
-            </svg>
-            Overview
-          </button>
-        </li>
-        <li>
-          <button class="rp-nav-item" [class.rp-nav-item--active]="activeNav === 'history'" (click)="setNav('history')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.5"/>
-              <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            Repayment History
-          </button>
-        </li>
-        <li>
-          <button class="rp-nav-item" [class.rp-nav-item--active]="activeNav === 'virtual-account'" (click)="setNav('virtual-account')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M6 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            Virtual Account
-          </button>
-        </li>
-        <li>
-          <button class="rp-nav-item" [class.rp-nav-item--active]="activeNav === 'documents'" (click)="setNav('documents')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-              <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            Documents
-          </button>
-        </li>
-      </ul>
+    <div class="rp-body">
 
-      <div class="rp-nav-footer">
-        <div class="rp-nav-loan-badge">
-          <p class="rp-nav-loan-ref">{{ loanRef }}</p>
-          <p class="rp-nav-loan-prod">{{ product }}</p>
-        </div>
-      </div>
-    </nav>
+      <!-- ── Left sidebar nav ──────────────────────────────────────────────── -->
+      <nav class="rp-nav" aria-label="Loan portal navigation">
+        <ul class="rp-nav-list" role="list">
+          <li>
+            <button
+              class="rp-nav-item"
+              [class.rp-nav-item--active]="activeNav === 'home'"
+              (click)="setNav('home')"
+              [attr.aria-current]="activeNav === 'home' ? 'page' : null"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M9 21V12h6v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Home
+            </button>
+          </li>
+          <li>
+            <button
+              class="rp-nav-item"
+              [class.rp-nav-item--active]="activeNav === 'history'"
+              (click)="setNav('history')"
+              [attr.aria-current]="activeNav === 'history' ? 'page' : null"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.5"/>
+                <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Repayment History
+            </button>
+          </li>
+          <li>
+            <button
+              class="rp-nav-item"
+              [class.rp-nav-item--active]="activeNav === 'documents'"
+              (click)="setNav('documents')"
+              [attr.aria-current]="activeNav === 'documents' ? 'page' : null"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Loan Documents
+            </button>
+          </li>
+        </ul>
 
-    <!-- ── Main content ──────────────────────────────────────────────────────── -->
-    <main class="rp-main" id="rp-main-content">
-
-      <!-- OVERVIEW ─────────────────────────────────────────────────────────── -->
-      @if (activeNav === 'overview') {
-        <div class="rp-section-header">
-          <div>
-            <h1 class="rp-section-title">Overview</h1>
-            <p class="rp-section-sub">Welcome back, {{ borrowerName.split(' ')[0] }} · Next payment due {{ nextDueDate }}</p>
-          </div>
-          <div class="rp-streak-pill">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            {{ paymentStreak }}-month streak
+        <div class="rp-nav-footer">
+          <div class="rp-nav-loan-badge">
+            <p class="rp-nav-loan-ref">{{ loanRef }}</p>
+            <p class="rp-nav-loan-prod">{{ product }}</p>
           </div>
         </div>
+      </nav>
 
-        <div class="rp-kpi-row">
-          <app-kpi-card label="Outstanding balance" [value]="'₦' + outstandingBalance.toLocaleString()" />
-          <app-kpi-card label="Total repayable" [value]="'₦' + totalRepayable.toLocaleString()" />
-          <app-kpi-card label="Amount repaid" [value]="'₦' + amountRepaid.toLocaleString()" />
-          <app-kpi-card label="Next payment" [value]="'₦' + nextPaymentAmount.toLocaleString()" />
-        </div>
+      <!-- ── Main content ────────────────────────────────────────────────────── -->
+      <main class="rp-main" id="rp-main-content">
 
-        <!-- Progress -->
-        <div class="rp-card">
-          <div class="rp-card-head">
-            <p class="rp-card-title">Repayment progress</p>
-            <span class="rp-progress-pct">{{ repaymentProgress }}% paid</span>
-          </div>
-          <div class="rp-progress-track" role="progressbar" [attr.aria-valuenow]="repaymentProgress" aria-valuemin="0" aria-valuemax="100">
-            <div class="rp-progress-fill" [style.width.%]="repaymentProgress"></div>
-          </div>
-          <div class="rp-progress-legend">
-            <span>₦{{ amountRepaid.toLocaleString() }} paid</span>
-            <span>₦{{ outstandingBalance.toLocaleString() }} remaining</span>
-          </div>
-        </div>
+        <!-- HOME ──────────────────────────────────────────────────────────── -->
+        @if (activeNav === 'home') {
 
-        <!-- Mandate status -->
-        <div class="rp-card">
-          <p class="rp-card-title" style="margin-bottom:14px">Auto-deduction mandate</p>
-          <div class="rp-mandate-grid">
-            <div class="rp-mandate-item">
-              <span class="rp-mandate-label">Channel</span>
-              <span class="rp-mandate-val">{{ mandateChannel }}</span>
+          <!-- Welcome header -->
+          <div class="rp-section-header">
+            <div>
+              <h1 class="rp-section-title">Welcome back, {{ borrowerName.split(' ')[0] }}</h1>
+              <p class="rp-section-sub">Next payment due <strong>{{ nextDueDate }}</strong></p>
             </div>
-            <div class="rp-mandate-item">
-              <span class="rp-mandate-label">Account</span>
-              <span class="rp-mandate-val">{{ mandateAccountNumber }} · {{ mandateBank }}</span>
-            </div>
-            <div class="rp-mandate-item">
-              <span class="rp-mandate-label">Status</span>
-              <app-status-badge [status]="mandateStatus" label="Active" />
-            </div>
-            <div class="rp-mandate-item">
-              <span class="rp-mandate-label">Next deduction</span>
-              <span class="rp-mandate-val">{{ nextDueDate }}</span>
+            <div class="rp-streak-pill" role="status" aria-label="{{ paymentStreak }}-month payment streak">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {{ paymentStreak }}-month streak
             </div>
           </div>
-        </div>
 
-        <!-- Upcoming schedule -->
-        <div class="rp-card rp-card--table">
-          <div class="rp-card-head rp-card-head--padded">
-            <p class="rp-card-title">Upcoming payments</p>
+          <!-- KPI row -->
+          <div class="rp-kpi-row">
+            <app-kpi-card label="Outstanding balance" [value]="'₦' + outstandingBalance.toLocaleString()" />
+            <app-kpi-card label="Total repayable" [value]="'₦' + totalRepayable.toLocaleString()" />
+            <app-kpi-card label="Amount repaid" [value]="'₦' + amountRepaid.toLocaleString()" />
+            <app-kpi-card label="Next payment" [value]="'₦' + nextPaymentAmount.toLocaleString()" />
           </div>
-          <table class="rp-table">
-            <thead>
-              <tr>
-                <th><app-column-title label="Due date" /></th>
-                <th><app-column-title label="Total" /></th>
-                <th><app-column-title label="Principal" /></th>
-                <th><app-column-title label="Interest" /></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of schedule; track row.dueDate) {
-                <tr>
-                  <td><app-table-item type="date" [date]="row.dueDate" /></td>
-                  <td><app-table-item type="amount" [amount]="row.amount" /></td>
-                  <td><app-table-item type="text" [text]="row.principal" /></td>
-                  <td><app-table-item type="text" [text]="row.interest" /></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
 
-      <!-- REPAYMENT HISTORY ─────────────────────────────────────────────────── -->
-      @if (activeNav === 'history') {
-        <div class="rp-section-header">
-          <div>
-            <h1 class="rp-section-title">Repayment History</h1>
-            <p class="rp-section-sub">{{ history.length }} transactions · {{ borrowerName }}</p>
-          </div>
-          <div class="rp-statement-actions">
-            <app-button variant="outline" label="CSV" (clicked)="downloadStatement('csv')" />
-            <app-button variant="outline" label="PDF" (clicked)="downloadStatement('pdf')" />
-          </div>
-        </div>
-
-        <div class="rp-card rp-card--table">
-          <table class="rp-table">
-            <thead>
-              <tr>
-                <th><app-column-title label="Date" /></th>
-                <th><app-column-title label="Amount" /></th>
-                <th><app-column-title label="Channel" /></th>
-                <th><app-column-title label="Status" /></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of history; track row.date + row.amount) {
-                <tr>
-                  <td><app-table-item type="date" [date]="row.date" /></td>
-                  <td><app-table-item type="amount" [amount]="row.amount" /></td>
-                  <td><app-table-item type="text" [text]="row.channel" /></td>
-                  <td><app-status-badge [status]="row.status" [label]="statusLabel(row.status)" /></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-
-      <!-- VIRTUAL ACCOUNT ──────────────────────────────────────────────────── -->
-      @if (activeNav === 'virtual-account') {
-        <div class="rp-section-header">
-          <h1 class="rp-section-title">Virtual Account</h1>
-        </div>
-        <div class="rp-card rp-va-card-outer">
-          <p class="rp-card-title" style="margin-bottom:8px">Make a bank transfer to this account</p>
-          <p class="rp-va-hint">Transfers are processed within 30 minutes. Always use your loan reference as the payment description.</p>
-          <div class="rp-va-display">
-            <div class="rp-va-bank-label">{{ virtualAccountBank }}</div>
-            <div class="rp-va-number-row">
-              <span class="rp-va-number">{{ virtualAccountNumber }}</span>
-              <button class="rp-copy-btn" (click)="copyAccountNumber()">
-                @if (virtualAccountCopied) {
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  Copied!
-                } @else {
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
-                  Copy number
-                }
-              </button>
+          <!-- Virtual account -->
+          <div class="rp-card rp-va-card">
+            <div class="rp-va-card-header">
+              <div>
+                <p class="rp-card-title">Pay via bank transfer</p>
+                <p class="rp-va-hint">Transfer directly to your dedicated account to make a repayment. Payments reflect within 30 minutes.</p>
+              </div>
+              <div class="rp-va-bank-badge">{{ virtualAccountBank }}</div>
             </div>
-            <div class="rp-va-acct-name">{{ virtualAccountName }}</div>
-          </div>
-          <div class="rp-va-ref-row">
-            <span class="rp-va-ref-label">Use payment reference</span>
-            <span class="rp-va-ref-val">{{ loanRef }}</span>
-          </div>
-        </div>
-      }
-
-      <!-- DOCUMENTS ────────────────────────────────────────────────────────── -->
-      @if (activeNav === 'documents') {
-        <div class="rp-section-header">
-          <h1 class="rp-section-title">Documents</h1>
-        </div>
-        <div class="rp-card">
-          <p class="rp-card-title" style="margin-bottom:14px">Your loan documents</p>
-          <div class="rp-doc-list">
-            @for (doc of [
-              { name: 'Loan Agreement', type: 'PDF', date: '2026-02-01' },
-              { name: 'Repayment Schedule', type: 'PDF', date: '2026-02-01' },
-              { name: 'Offer Letter', type: 'PDF', date: '2026-02-01' }
-            ]; track doc.name) {
-              <div class="rp-doc-row">
-                <div class="rp-doc-icon" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                    <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-                <div class="rp-doc-info">
-                  <p class="rp-doc-name">{{ doc.name }}</p>
-                  <p class="rp-doc-meta">{{ doc.type }} · Issued {{ doc.date }}</p>
-                </div>
-                <button class="rp-doc-dl-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                  Download
+            <div class="rp-va-display">
+              <div class="rp-va-number-row">
+                <span class="rp-va-number" aria-label="Account number {{ virtualAccountNumber }}">{{ virtualAccountNumber }}</span>
+                <button
+                  class="rp-copy-btn"
+                  (click)="copyAccountNumber()"
+                  [attr.aria-label]="virtualAccountCopied ? 'Account number copied' : 'Copy account number'"
+                >
+                  @if (virtualAccountCopied) {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Copied!
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                    Copy number
+                  }
                 </button>
               </div>
-            }
+              <p class="rp-va-acct-name">{{ virtualAccountName }}</p>
+            </div>
+            <div class="rp-va-ref-row">
+              <span class="rp-va-ref-label">Always include your loan reference</span>
+              <span class="rp-va-ref-val">{{ loanRef }}</span>
+            </div>
+          </div>
+
+          <!-- Repayment progress -->
+          <div class="rp-card">
+            <div class="rp-card-head">
+              <p class="rp-card-title">Repayment progress</p>
+              <span class="rp-progress-pct">{{ repaymentProgress }}% paid</span>
+            </div>
+            <div
+              class="rp-progress-track"
+              role="progressbar"
+              [attr.aria-valuenow]="repaymentProgress"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-label]="repaymentProgress + '% of loan repaid'"
+            >
+              <div class="rp-progress-fill" [style.width.%]="repaymentProgress"></div>
+            </div>
+            <p class="rp-progress-caption">
+              You've repaid {{ repaymentProgress }}% of your loan — keep it up!
+            </p>
+            <div class="rp-progress-legend">
+              <span>₦{{ amountRepaid.toLocaleString() }} paid</span>
+              <span>₦{{ outstandingBalance.toLocaleString() }} remaining</span>
+            </div>
+          </div>
+
+          <!-- Auto-deduction mandate -->
+          <div class="rp-card">
+            <div class="rp-card-head" style="margin-bottom: 20px">
+              <div>
+                <p class="rp-card-title">Auto-deduction mandate</p>
+                <p class="rp-card-subtitle">Your repayments are on autopilot</p>
+              </div>
+              <app-status-badge [status]="mandateStatus" label="Active" />
+            </div>
+            <div class="rp-mandate-grid">
+              <div class="rp-mandate-item">
+                <span class="rp-mandate-label">Channel</span>
+                <span class="rp-mandate-val">{{ mandateChannel }}</span>
+              </div>
+              <div class="rp-mandate-item">
+                <span class="rp-mandate-label">Linked account</span>
+                <span class="rp-mandate-val">{{ mandateAccountNumber }} · {{ mandateBank }}</span>
+              </div>
+              <div class="rp-mandate-item">
+                <span class="rp-mandate-label">Next deduction</span>
+                <span class="rp-mandate-val">{{ nextDueDate }}</span>
+              </div>
+              <div class="rp-mandate-item">
+                <span class="rp-mandate-label">Amount</span>
+                <span class="rp-mandate-val">₦{{ nextPaymentAmount.toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming schedule -->
+          <div class="rp-card rp-card--table">
+            <div class="rp-card-head rp-card-head--padded">
+              <p class="rp-card-title">Upcoming payments</p>
+            </div>
+            <table class="rp-table" aria-label="Upcoming payment schedule">
+              <thead>
+                <tr>
+                  <th scope="col"><app-column-title label="Due date" /></th>
+                  <th scope="col"><app-column-title label="Total" /></th>
+                  <th scope="col"><app-column-title label="Principal" /></th>
+                  <th scope="col"><app-column-title label="Interest" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of schedule; track row.dueDate) {
+                  <tr>
+                    <td><app-table-item type="date" [date]="row.dueDate" /></td>
+                    <td><app-table-item type="amount" [amount]="row.amount" /></td>
+                    <td><app-table-item type="text" [text]="row.principal" /></td>
+                    <td><app-table-item type="text" [text]="row.interest" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <!-- REPAYMENT HISTORY ───────────────────────────────────────────────── -->
+        @if (activeNav === 'history') {
+          <div class="rp-section-header">
+            <div>
+              <h1 class="rp-section-title">Repayment History</h1>
+              <p class="rp-section-sub">Your full payment history · {{ history.length }} transactions</p>
+            </div>
+            <div class="rp-statement-actions">
+              <app-button variant="outline" label="Export CSV" (clicked)="downloadStatement('csv')" />
+              <app-button variant="outline" label="Export PDF" (clicked)="downloadStatement('pdf')" />
+            </div>
+          </div>
+
+          <div class="rp-card rp-card--table">
+            <table class="rp-table" aria-label="Repayment history">
+              <thead>
+                <tr>
+                  <th scope="col"><app-column-title label="Date" /></th>
+                  <th scope="col"><app-column-title label="Amount" /></th>
+                  <th scope="col"><app-column-title label="Channel" /></th>
+                  <th scope="col"><app-column-title label="Status" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of history; track row.date + row.channel) {
+                  <tr>
+                    <td><app-table-item type="date" [date]="row.date" /></td>
+                    <td><app-table-item type="amount" [amount]="row.amount" /></td>
+                    <td><app-table-item type="text" [text]="row.channel" /></td>
+                    <td><app-status-badge [status]="row.status" [label]="statusLabel(row.status)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <!-- LOAN DOCUMENTS ─────────────────────────────────────────────────── -->
+        @if (activeNav === 'documents') {
+          <div class="rp-section-header">
+            <div>
+              <h1 class="rp-section-title">Loan Documents</h1>
+              <p class="rp-section-sub">Download your loan documents or request official letters.</p>
+            </div>
+          </div>
+
+          <!-- Document list -->
+          <div class="rp-card">
+            <p class="rp-card-title" style="margin-bottom: 20px">Your loan documents</p>
+            <div class="rp-doc-list">
+              @for (doc of [
+                { name: 'Loan Agreement', type: 'PDF', date: '2026-02-01' },
+                { name: 'Repayment Schedule', type: 'PDF', date: '2026-02-01' },
+                { name: 'Offer Letter', type: 'PDF', date: '2026-02-01' }
+              ]; track doc.name) {
+                <div class="rp-doc-row">
+                  <div class="rp-doc-icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                      <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div class="rp-doc-info">
+                    <p class="rp-doc-name">{{ doc.name }}</p>
+                    <p class="rp-doc-meta">{{ doc.type }} · Issued {{ doc.date }}</p>
+                  </div>
+                  <button class="rp-doc-dl-btn" [attr.aria-label]="'Download ' + doc.name">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    Download
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Letter requests -->
+          <div class="rp-card">
+            <p class="rp-card-title" style="margin-bottom: 6px">Request official letters</p>
+            <p class="rp-card-subtitle" style="margin-bottom: 24px">Letters are processed within 1–2 business days and sent to your registered email.</p>
+
+            <div class="rp-letter-list">
+
+              <!-- Letter of Indebtedness -->
+              <div class="rp-letter-row">
+                <div class="rp-letter-info">
+                  <p class="rp-letter-name">Letter of Indebtedness</p>
+                  <p class="rp-letter-desc">An official letter confirming your outstanding loan balance — often required for financial records or employer requests.</p>
+                </div>
+                <div class="rp-letter-action">
+                  @if (letterIndebtednessRequested) {
+                    <div class="rp-letter-sent" role="status">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      Request sent
+                    </div>
+                  } @else {
+                    <button
+                      class="rp-letter-btn"
+                      [disabled]="letterIndebtednessLoading"
+                      (click)="requestLetter('indebtedness')"
+                    >
+                      @if (letterIndebtednessLoading) {
+                        <span class="rp-btn-spinner" aria-hidden="true"></span>
+                        Sending…
+                      } @else {
+                        Request letter
+                      }
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Letter of No Indebtedness (Clearance) -->
+              <div class="rp-letter-row">
+                <div class="rp-letter-info">
+                  <p class="rp-letter-name">Letter of No Indebtedness (Clearance)</p>
+                  <p class="rp-letter-desc">An official clearance letter confirming you have no outstanding balance — required when your loan is fully repaid.</p>
+                </div>
+                <div class="rp-letter-action">
+                  @if (letterClearanceRequested) {
+                    <div class="rp-letter-sent" role="status">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      Request sent
+                    </div>
+                  } @else {
+                    <button
+                      class="rp-letter-btn"
+                      [disabled]="letterClearanceLoading"
+                      (click)="requestLetter('clearance')"
+                    >
+                      @if (letterClearanceLoading) {
+                        <span class="rp-btn-spinner" aria-hidden="true"></span>
+                        Sending…
+                      } @else {
+                        Request letter
+                      }
+                    </button>
+                  }
+                </div>
+              </div>
+
+            </div>
+          </div>
+        }
+
+      </main>
+
+      <!-- ── Chat sidebar ──────────────────────────────────────────────────────── -->
+      <aside class="rp-chat" aria-label="Support chat">
+        <div class="rp-chat-header">
+          <div class="rp-chat-header-text">
+            <p class="rp-chat-title">Support Chat</p>
+            <p class="rp-chat-subtitle">Powered by Zoho SalesIQ</p>
+          </div>
+          <div class="rp-chat-status-dot" aria-label="Support online" title="Support online"></div>
+        </div>
+
+        <div class="rp-chat-messages" aria-live="polite" aria-label="Chat messages">
+          <!-- Hardcoded preview messages — replace with Zoho SalesIQ widget -->
+          <div class="rp-chat-msg rp-chat-msg--agent">
+            <div class="rp-chat-avatar" aria-hidden="true">C</div>
+            <div class="rp-chat-bubble rp-chat-bubble--agent">
+              <p class="rp-chat-bubble-text">Hi {{ borrowerName.split(' ')[0] }}! 👋 How can I help you today?</p>
+              <span class="rp-chat-time">Just now</span>
+            </div>
+          </div>
+          <div class="rp-chat-msg rp-chat-msg--agent">
+            <div class="rp-chat-avatar" aria-hidden="true">C</div>
+            <div class="rp-chat-bubble rp-chat-bubble--agent">
+              <p class="rp-chat-bubble-text">You can ask about your repayment schedule, virtual account, or loan documents.</p>
+              <span class="rp-chat-time">Just now</span>
+            </div>
           </div>
         </div>
-      }
 
-    </main>
+        <!-- Zoho SalesIQ widget loads here — replace with actual embed code -->
+        <!-- <script type="text/javascript" id="zsiqscript">...</script> -->
 
-  </div>
+        <div class="rp-chat-input-row">
+          <input
+            class="rp-chat-input"
+            type="text"
+            placeholder="Type a message…"
+            aria-label="Type a message"
+          />
+          <button class="rp-chat-send" aria-label="Send message">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L15 22 11 13 2 9l20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+    </div><!-- /.rp-body -->
+  </div><!-- /.rp-app -->
 }

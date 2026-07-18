@@ -242,7 +242,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   isReturningCustomer = false;
   returningCustomerChecked = false;
 
-  get entryCanContinue(): boolean {
+  get entryCanContinueBase(): boolean {
     return !!this.entryPhone || !!this.entryEmail;
   }
 
@@ -407,6 +407,53 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   /** True when one profile type can apply but that profile has multiple income methods to choose from. */
   get singleProfileMultipleMethods(): boolean {
     return !this.isBnpl && this.profiles.length === 1 && this.allowedIncomeMethods.length > 1;
+  }
+
+  /** Dynamic headline for the income-verification bucket. */
+  get incomeVerificationHeadline(): string {
+    if (this.allowedIncomeMethods.length > 1 && !this.selectedIncomeMethod) {
+      return 'How do you get paid?';
+    }
+    const method = this.effectiveIncomeMethod;
+    if (method === 'bank-statement' || method === 'payslip') {
+      return 'Verify your eligibility';
+    }
+    return 'Verify your income';
+  }
+
+  /** Whether the product has an age restriction requiring DOB capture on the entry screen. */
+  get hasAgeRestriction(): boolean {
+    return !!(this.product().minAge || this.product().maxAge);
+  }
+
+  dob = '';
+
+  get dobAgeYears(): number {
+    if (!this.dob) return 0;
+    const birth = new Date(this.dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  }
+
+  get dobAgeError(): string | null {
+    if (!this.dob) return null;
+    const age = this.dobAgeYears;
+    const min = +(this.product().minAge || 18);
+    const max = +(this.product().maxAge || 0);
+    if (age < min) return `You must be at least ${min} years old to apply.`;
+    if (max && age > max) return `This product is only available for applicants up to ${max} years old.`;
+    return null;
+  }
+
+  get entryCanContinue(): boolean {
+    const contactOk = !!this.entryPhone || !!this.entryEmail;
+    if (this.hasAgeRestriction) {
+      return contactOk && !!this.dob && !this.dobAgeError;
+    }
+    return contactOk;
   }
 
   // ── Income verification (Remita / WACS / bank-statement / payslip only) ───────
@@ -594,7 +641,12 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   }
 
   get monthlyEst(): number {
-    return estimateMonthlyRepayment(+this.loanAmount || 0, +this.loanTenor || 1, +(this.product().interestRate || 0));
+    return estimateMonthlyRepayment(
+      +this.loanAmount || 0,
+      +this.loanTenor || 1,
+      +(this.product().interestRate || 0),
+      (this.product().interestModel as 'Flat Rate' | 'Reducing Balance' | 'Percentage Based') || 'Flat Rate',
+    );
   }
 
   get totalInterest(): number {

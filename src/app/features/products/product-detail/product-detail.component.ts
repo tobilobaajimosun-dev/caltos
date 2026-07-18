@@ -1249,7 +1249,9 @@ export class ProductDetailComponent implements OnInit {
 
   goToTab(tab: DetailTab) {
     this.setTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      document.querySelector('app-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }
 
   linkCopiedToastVisible = false;

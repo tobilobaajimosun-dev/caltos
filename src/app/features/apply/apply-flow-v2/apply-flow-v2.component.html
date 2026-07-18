@@ -147,6 +147,13 @@
         <h2 class="pf-headline">Let's get you started</h2>
         <p class="pf-body-sm">Enter your contact details so we can retrieve your application if you get interrupted.</p>
 
+        @if (hasAgeRestriction) {
+          <div class="pf-age-notice" role="note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            This product is open to applicants aged {{ product().minAge || '18' }}{{ product().maxAge ? '–' + product().maxAge : '+' }}. Your date of birth is required to confirm eligibility.
+          </div>
+        }
+
         <div class="pf-field">
           <label class="pf-label" for="entry-phone">Phone number</label>
           <input id="entry-phone" class="pf-input" type="tel" placeholder="080XXXXXXXX" [(ngModel)]="entryPhone" (blur)="onSimpleFieldBlur('entryPhone')" />
@@ -158,6 +165,17 @@
           <label class="pf-label" for="entry-email">Email address <span class="pf-opt">optional</span></label>
           <input id="entry-email" class="pf-input" type="email" placeholder="you@example.com" [(ngModel)]="entryEmail" />
         </div>
+
+        @if (hasAgeRestriction) {
+          <div class="pf-field">
+            <label class="pf-label" for="entry-dob">Date of birth</label>
+            <input id="entry-dob" class="pf-input" type="date" [(ngModel)]="dob" />
+            @if (dobAgeError) {
+              <p class="pf-field-error" role="alert">{{ dobAgeError }}</p>
+            }
+          </div>
+        }
+
         <div class="pf-btn-stack">
           <button class="pf-cta" [disabled]="!entryCanContinue" (click)="next()">Continue →</button>
         </div>
@@ -423,8 +441,8 @@
     ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'income-verification') {
       <div class="pf-screen">
-        <h2 class="pf-headline">{{ singleProfileMultipleMethods ? 'How do you get paid?' : 'Verify your income' }}</h2>
-        <p class="pf-body-sm">This helps us calculate how much you can borrow. Your data is 256-bit encrypted and never shared.</p>
+        <h2 class="pf-headline">{{ incomeVerificationHeadline }}</h2>
+        <p class="pf-body-sm">This helps us determine how much you can borrow. Your data is 256-bit encrypted and never shared.</p>
 
         @if (isBnpl && bnplAudience === 'private-worker') {
           <!-- Private sector workers: upload both payslip + bank statement + declare income -->
@@ -626,7 +644,7 @@
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           </div>
           <h2 class="pf-headline">Not eligible right now</h2>
-          <p class="pf-body-sm">{{ eligibilityResult.reasons.join(' ') }}</p>
+          <p class="pf-body-sm">{{ eligibilityResult.reasons.length ? eligibilityResult.reasons.join(' ') : 'You don\'t meet the eligibility requirements for this product at this time.' }}</p>
           <p class="pf-body-sm pf-body-muted">You can contact the lender for more information or try again in the future.</p>
           <div class="pf-btn-stack">
             <button class="pf-back-btn" (click)="back()">Go back</button>
@@ -708,8 +726,9 @@
             <label class="pf-label" for="tenor-range-elig">Repayment period — <strong>{{ loanTenor }} month(s)</strong></label>
             <input id="tenor-range-elig" type="range"
               [min]="+(product().minTenor || 1)"
-              [max]="eligibilityResult.tenorMonths || +(product().maxTenor || 12)"
+              [max]="+(product().maxTenor || 12)"
               [(ngModel)]="loanTenor" class="pf-range" />
+            <p class="pf-field-hint">Recommended based on your eligibility: {{ eligibilityResult.tenorMonths }} month(s)</p>
           </div>
 
           <div class="pf-btn-stack">
@@ -863,8 +882,9 @@
 
             <div class="pf-offer-section">
               <p class="pf-offer-section-title">Disbursement</p>
-              <div class="pf-summary-row"><span>Repayment account</span><strong>{{ mandateBankName || 'To be provided' }}</strong></div>
+              <div class="pf-summary-row"><span>Disbursement account</span><strong>Your verified salary account</strong></div>
               <div class="pf-summary-row"><span>Repayment frequency</span><strong>Monthly</strong></div>
+              <div class="pf-summary-row"><span>Disbursement timeline</span><strong>Within 24 hours of approval</strong></div>
             </div>
 
             <div class="pf-offer-conditions">
@@ -1023,9 +1043,9 @@
         <div class="pf-ref-pill">Ref: {{ refNumber }}</div>
 
         <div class="pf-success-actions">
-          <a [href]="'/track?ref=' + refNumber" class="pf-cta pf-cta--track">
+          <a [href]="'/portal/repayments?ref=' + refNumber" class="pf-cta pf-cta--track">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h18M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Track {{ isBnpl ? 'your purchase' : 'disbursement' }} status
+            {{ isBnpl ? 'Track your purchase' : 'Track repayment & disbursement' }}
           </a>
           <a href="/portal/repayments" class="pf-cta-outline pf-cta--repayments">View repayment schedule</a>
         </div>

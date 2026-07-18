@@ -13,7 +13,7 @@ import {
   ButtonComponent,
 } from '../../../shared/components';
 
-type NavItem = 'overview' | 'history' | 'virtual-account' | 'documents';
+type NavItem = 'home' | 'history' | 'documents';
 
 interface RepaymentRow {
   date: string;
@@ -31,7 +31,6 @@ interface ScheduleRow {
 
 @Component({
   selector: 'app-repayment-portal',
-  standalone: true,
   imports: [FormsModule, KpiCardComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './repayment-portal.component.html',
@@ -50,11 +49,10 @@ export class RepaymentPortalComponent {
   get bvnValid(): boolean { return /^\d{11}$/.test(this.bvnInput); }
 
   verifyBvn() {
-    if (!this.bvnValid) { this.bvnError = 'Enter a valid 11-digit BVN.'; return; }
+    if (!this.bvnValid) { this.bvnError = 'Please enter a valid 11-digit BVN.'; return; }
     this.bvnError = '';
     this.isVerifying = true;
     this.cdr.markForCheck();
-    // Simulate verification — swap for real BVN lookup in production
     setTimeout(() => {
       this.isVerifying = false;
       this.isAuthenticated = true;
@@ -63,7 +61,7 @@ export class RepaymentPortalComponent {
   }
 
   // ── Navigation ───────────────────────────────────────────────────────────────
-  activeNav: NavItem = 'overview';
+  activeNav: NavItem = 'home';
   setNav(nav: NavItem) { this.activeNav = nav; this.cdr.markForCheck(); }
 
   // ── Loan data ────────────────────────────────────────────────────────────────
@@ -140,5 +138,33 @@ export class RepaymentPortalComponent {
     a.download = `repayment-${this.borrowerName.toLowerCase().replace(/\s+/g, '-')}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // ── Letter requests ───────────────────────────────────────────────────────────
+  letterIndebtednessRequested = false;
+  letterClearanceRequested = false;
+  letterIndebtednessLoading = false;
+  letterClearanceLoading = false;
+
+  requestLetter(type: 'indebtedness' | 'clearance') {
+    if (type === 'indebtedness') {
+      if (this.letterIndebtednessRequested || this.letterIndebtednessLoading) return;
+      this.letterIndebtednessLoading = true;
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.letterIndebtednessLoading = false;
+        this.letterIndebtednessRequested = true;
+        this.cdr.markForCheck();
+      }, 1000);
+    } else {
+      if (this.letterClearanceRequested || this.letterClearanceLoading) return;
+      this.letterClearanceLoading = true;
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.letterClearanceLoading = false;
+        this.letterClearanceRequested = true;
+        this.cdr.markForCheck();
+      }, 1000);
+    }
   }
 }

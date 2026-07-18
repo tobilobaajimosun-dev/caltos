@@ -1212,7 +1212,20 @@ export class CreateLoanComponent implements OnInit {
 
   get showIncomeVerification(): boolean { return true; }
   get noIncomeSelected(): boolean {
-    return !this.config.incomeRemita && !this.config.incomeIppis && !this.config.incomeBankStatement && !this.config.incomeDedukt;
+    return !this.config.incomeRemita && !this.config.incomeIppis && !this.config.incomeBankStatement;
+  }
+
+  get deductionKeyChannelNames(): string {
+    return [
+      this.config.deductIppis && 'IPPIS',
+      this.config.deductRemita && 'Remita',
+      this.config.deductWacs && 'WACS',
+      this.config.deductDedukt && 'Dedukt',
+    ].filter(Boolean).join(', ');
+  }
+
+  get deductionKeyChannelCount(): number {
+    return [this.config.deductIppis, this.config.deductRemita, this.config.deductWacs, this.config.deductDedukt].filter(Boolean).length;
   }
 
   get noDeductionSelected(): boolean {

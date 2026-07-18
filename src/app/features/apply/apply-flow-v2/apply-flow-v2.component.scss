@@ -889,6 +889,23 @@
   margin-bottom: 4px;
 }
 
+// Age restriction notice on entry screen
+.pf-age-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1e40af;
+  margin-bottom: var(--space-2);
+  line-height: 1.5;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+}
+
 // "body-muted" helper used in decline state
 .pf-body-muted {
   color: #9ca3af;

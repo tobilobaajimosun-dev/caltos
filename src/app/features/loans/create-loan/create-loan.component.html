@@ -278,7 +278,7 @@
               @if (config.minAge || config.maxAge) {
                 <div class="info-callout" style="margin-top:12px">
                   <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
-                  Borrowers will be asked for their date of birth so their age can be verified against this range.
+                  Applicants will be asked for their date of birth on the first screen. Anyone outside the {{ config.minAge || '18' }}{{ config.maxAge ? '–' + config.maxAge : '+' }} age range will not be able to proceed.
                 </div>
               }
             </div>
@@ -529,24 +529,7 @@
                     <div class="verify-title">Bank Statement</div>
                     <div class="verify-sub">Analyse bank statements automatically</div>
                   </button>
-                  <button class="verify-card" [class.selected]="config.incomeDedukt" (click)="config.incomeDedukt = !config.incomeDedukt">
-                    <div class="verify-check" [class.active]="config.incomeDedukt"></div>
-                    <div class="verify-title">Dedukt</div>
-                    <div class="verify-sub">Verify income via Dedukt payroll platform</div>
-                  </button>
                 </div>
-                @if (config.incomeDedukt) {
-                  <div class="dedukt-keys">
-                    <div class="field-group">
-                      <label class="field-label">Dedukt API Key</label>
-                      <input class="text-input" type="text" placeholder="Enter your Dedukt API key" [(ngModel)]="config.incomeDeduktApiKey" />
-                    </div>
-                    <div class="field-group">
-                      <label class="field-label">Dedukt Secret Key</label>
-                      <input class="text-input" type="password" placeholder="Enter your Dedukt secret key" [(ngModel)]="config.incomeDeduktSecretKey" />
-                    </div>
-                  </div>
-                }
                 @if (noIncomeSelected) {
                   <div class="info-callout warn" style="margin-top:14px">
                     <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
@@ -647,10 +630,10 @@
                   No deduction channel selected. Repayments will need to be collected manually or via a channel configured later.
                 </div>
               }
-              @if (config.deductIppis || config.deductRemita) {
+              @if (config.deductIppis || config.deductRemita || config.deductWacs || config.deductDedukt) {
                 <div class="info-callout">
                   <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
-                  {{ config.deductIppis && config.deductRemita ? 'IPPIS and Remita require' : config.deductIppis ? 'IPPIS requires' : 'Remita requires' }} integration keys. Configure them in Settings → Integrations before going live.
+                  {{ deductionKeyChannelNames }} {{ deductionKeyChannelCount === 1 ? 'requires' : 'require' }} integration keys. Configure them on the product's Integrations tab before going live.
                 </div>
               }
             </div>
@@ -995,7 +978,7 @@
                   </div>
                   <div class="freq-row" style="margin-top: 8px">
                     <button class="freq-btn" [class.selected]="config.mandateTiming === 'inline'" (click)="config.mandateTiming = 'inline'">Before eligibility result</button>
-                    <button class="freq-btn" [class.selected]="config.mandateTiming === 'post_approval'" (click)="config.mandateTiming = 'post_approval'">After approval</button>
+                    <button class="freq-btn" [class.selected]="config.mandateTiming === 'post_approval'" (click)="config.mandateTiming = 'post_approval'">After loan offer acceptance</button>
                   </div>
                 </div>
               </div>

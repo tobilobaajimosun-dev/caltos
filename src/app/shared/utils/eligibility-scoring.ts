@@ -211,14 +211,26 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /**
- * Flat-rate monthly repayment preview for the v2 /apply eligibility screen's amount/tenor
- * sliders — mirrors the flat-rate math ApplyProfileFlowComponent.monthlyEst already uses
- * (total = principal * (1 + rate), split evenly across tenorMonths), extracted here so both the
- * legacy inline getter and the v2 recompute interaction share one implementation.
+ * Monthly repayment estimate supporting all three interest models:
+ * - Flat Rate: total = principal * (1 + rate), split evenly
+ * - Percentage Based: monthly interest = principal * rate, added to each instalment
+ * - Reducing Balance: standard PMT formula (interest on outstanding balance each period)
  */
-export function estimateMonthlyRepayment(amount: number, tenorMonths: number, annualOrFlatRatePercent: number): number {
-  const rate = annualOrFlatRatePercent / 100;
-  return Math.ceil((amount * (1 + rate)) / Math.max(tenorMonths, 1));
+export function estimateMonthlyRepayment(
+  amount: number,
+  tenorMonths: number,
+  ratePercent: number,
+  model: 'Flat Rate' | 'Reducing Balance' | 'Percentage Based' = 'Flat Rate',
+): number {
+  const n = Math.max(tenorMonths, 1);
+  const r = ratePercent / 100;
+  if (model === 'Reducing Balance') {
+    if (r === 0) return Math.ceil(amount / n);
+    const pmt = (amount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    return Math.ceil(pmt);
+  }
+  // Flat Rate and Percentage Based use the same flat formula
+  return Math.ceil((amount * (1 + r)) / n);
 }
 
 /** Picks the first band (bands must be sorted highest-minScore-first) the score clears. */
