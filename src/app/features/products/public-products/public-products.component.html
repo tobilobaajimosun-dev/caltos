@@ -1,7 +1,7 @@
 <div class="pp-page">
 
   <!-- ══════════════════════════════════════════════════════
-       TOP NAV
+       NAV
   ══════════════════════════════════════════════════════════ -->
   <header class="pp-nav" role="banner">
     <div class="pp-nav-inner">
@@ -9,110 +9,101 @@
         @if (branding().logoDataUrl) {
           <img class="pp-nav-logo" [src]="branding().logoDataUrl" [alt]="branding().appName" />
         } @else {
-          <div class="pp-nav-avatar" aria-hidden="true">
-            {{ branding().appName.charAt(0) }}
-          </div>
+          <div class="pp-nav-avatar" aria-hidden="true">{{ branding().appName.charAt(0) }}</div>
         }
         <span class="pp-nav-name">{{ branding().appName }}</span>
       </div>
-      <a href="mailto:hello@caltos.co" class="pp-nav-contact">Get in touch</a>
-    </div>
-  </header>
 
-  <!-- ══════════════════════════════════════════════════════
-       HERO
-  ══════════════════════════════════════════════════════════ -->
-  <section class="pp-hero">
-    <div class="pp-hero-inner">
-      <div class="pp-trust-badge" aria-label="Licensed lender">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6l-9-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-          <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Licensed Lender · Regulated &amp; Secure
-      </div>
-      <h1 class="pp-hero-title">{{ branding().appName }} Loan Products</h1>
-      <p class="pp-hero-sub">
-        Compare our loan products, check your eligibility, and apply in minutes.
-        All applications are processed digitally — no paperwork, no branch visits.
-      </p>
-
-      <!-- Stats row -->
-      <div class="pp-stats-row" role="list">
-        <div class="pp-stat" role="listitem">
-          <p class="pp-stat-value">{{ liveProducts().length }}</p>
-          <p class="pp-stat-label">Active products</p>
-        </div>
-        <div class="pp-stat-divider" aria-hidden="true"></div>
-        <div class="pp-stat" role="listitem">
-          <p class="pp-stat-value">24 hrs</p>
-          <p class="pp-stat-label">Avg. disbursement</p>
-        </div>
-        <div class="pp-stat-divider" aria-hidden="true"></div>
-        <div class="pp-stat" role="listitem">
-          <p class="pp-stat-value">100%</p>
-          <p class="pp-stat-label">Digital process</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════════════
-       FILTERS + SEARCH
-  ══════════════════════════════════════════════════════════ -->
-  <div class="pp-toolbar-wrap">
-    <div class="pp-toolbar">
-      <div class="pp-filter-tabs" role="tablist" aria-label="Filter by product type">
-        <button
-          class="pp-filter-tab"
-          [class.pp-filter-tab--active]="activeFilter() === 'all'"
-          role="tab"
-          [attr.aria-selected]="activeFilter() === 'all'"
-          (click)="setFilter('all')"
-        >
-          All products
-          <span class="pp-filter-count">{{ liveProducts().length }}</span>
-        </button>
-        @if (hasLoanProducts()) {
-          <button
-            class="pp-filter-tab"
-            [class.pp-filter-tab--active]="activeFilter() === 'loan'"
-            role="tab"
-            [attr.aria-selected]="activeFilter() === 'loan'"
-            (click)="setFilter('loan')"
-          >
-            Loans
-            <span class="pp-filter-count">{{ loanProductCount() }}</span>
-          </button>
-        }
-        @if (hasBnplProducts()) {
-          <button
-            class="pp-filter-tab"
-            [class.pp-filter-tab--active]="activeFilter() === 'bnpl'"
-            role="tab"
-            [attr.aria-selected]="activeFilter() === 'bnpl'"
-            (click)="setFilter('bnpl')"
-          >
-            Buy Now Pay Later
-            <span class="pp-filter-count">{{ bnplProductCount() }}</span>
-          </button>
-        }
-      </div>
-
-      <div class="pp-search-wrap">
-        <svg class="pp-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <div class="pp-nav-search-wrap" role="search">
+        <svg class="pp-nav-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/>
           <path d="M20 20l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <input
-          class="pp-search"
+          class="pp-nav-search"
           type="search"
-          placeholder="Search products…"
+          placeholder="Search loan products…"
           [value]="searchQuery()"
           (input)="setSearch($any($event.target).value)"
           aria-label="Search loan products"
         />
       </div>
+
+      <a href="mailto:hello@caltos.co" class="pp-nav-contact">Contact us</a>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pp-page-header">
+    <div class="pp-page-header-inner">
+      <div class="pp-page-title-group">
+        <div class="pp-trust-pill" aria-label="Licensed lender">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6l-9-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Licensed & Regulated
+        </div>
+        <h1 class="pp-page-title">{{ branding().appName }} Loan Products</h1>
+        <p class="pp-page-sub">Compare our products and apply in minutes — fully digital, no paperwork.</p>
+      </div>
+      <div class="pp-page-stats" role="list">
+        <div class="pp-stat" role="listitem">
+          <span class="pp-stat-value">{{ liveProducts().length }}</span>
+          <span class="pp-stat-label">Active products</span>
+        </div>
+        <div class="pp-stat-sep" aria-hidden="true"></div>
+        <div class="pp-stat" role="listitem">
+          <span class="pp-stat-value">24 hrs</span>
+          <span class="pp-stat-label">Avg. disbursement</span>
+        </div>
+        <div class="pp-stat-sep" aria-hidden="true"></div>
+        <div class="pp-stat" role="listitem">
+          <span class="pp-stat-value">100%</span>
+          <span class="pp-stat-label">Digital process</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       FILTER BAR
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pp-filter-bar-wrap">
+    <div class="pp-filter-bar" role="tablist" aria-label="Filter products">
+      <button
+        class="pp-pill"
+        [class.pp-pill--active]="activeFilter() === 'all'"
+        role="tab"
+        [attr.aria-selected]="activeFilter() === 'all'"
+        (click)="setFilter('all')"
+      >
+        All <span class="pp-pill-count">{{ liveProducts().length }}</span>
+      </button>
+      @if (hasLoanProducts()) {
+        <button
+          class="pp-pill"
+          [class.pp-pill--active]="activeFilter() === 'loan'"
+          role="tab"
+          [attr.aria-selected]="activeFilter() === 'loan'"
+          (click)="setFilter('loan')"
+        >
+          Loans <span class="pp-pill-count">{{ loanProductCount() }}</span>
+        </button>
+      }
+      @if (hasBnplProducts()) {
+        <button
+          class="pp-pill"
+          [class.pp-pill--active]="activeFilter() === 'bnpl'"
+          role="tab"
+          [attr.aria-selected]="activeFilter() === 'bnpl'"
+          (click)="setFilter('bnpl')"
+        >
+          Buy Now Pay Later <span class="pp-pill-count">{{ bnplProductCount() }}</span>
+        </button>
+      }
     </div>
   </div>
 
@@ -122,107 +113,66 @@
   <main class="pp-content" id="main-content">
     @if (filteredProducts().length === 0) {
       <div class="pp-empty">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/>
           <path d="M20 20l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <p class="pp-empty-title">No products found</p>
-        <p class="pp-empty-sub">Try adjusting your search or filter.</p>
+        <p class="pp-empty-sub">Try a different search term or filter.</p>
       </div>
     } @else {
       <div class="pp-grid">
         @for (product of filteredProducts(); track product.id) {
-          <article class="pp-card" [attr.aria-label]="product.name + ' loan product'">
+          <article class="pp-card" [class.pp-card--bnpl]="product.type === 'bnpl'" [attr.aria-label]="product.name">
 
-            <!-- Card header -->
-            <div class="pp-card-header">
-              <div class="pp-card-header-left">
-                <span class="pp-type-badge" [class.pp-type-badge--bnpl]="product.type === 'bnpl'">
-                  {{ productTypeLabel(product.type) }}
-                </span>
-                <h2 class="pp-card-title">{{ product.name }}</h2>
+            <!-- Visual header — rate as hero stat -->
+            <div class="pp-card-visual">
+              <span class="pp-card-type-badge">{{ productTypeLabel(product.type) }}</span>
+              <div class="pp-rate-hero" aria-label="Interest rate {{ product.interestRate }}% per {{ product.interestFrequency }}">
+                <span class="pp-rate-number">{{ product.interestRate }}%</span>
+                <span class="pp-rate-label">/ {{ product.interestFrequency | lowercase }}</span>
               </div>
-              <div class="pp-card-rate-pill" aria-label="Interest rate {{ product.interestRate }}% {{ product.interestFrequency }}">
-                <span class="pp-rate-num">{{ product.interestRate }}%</span>
-                <span class="pp-rate-period">/ {{ product.interestFrequency | lowercase }}</span>
-              </div>
+              <div class="pp-card-visual-name">{{ product.interestType }}</div>
             </div>
 
-            @if (product.description) {
-              <p class="pp-card-desc">{{ product.description }}</p>
-            }
+            <!-- Card body -->
+            <div class="pp-card-body">
+              <h2 class="pp-card-title">{{ product.name }}</h2>
+              @if (product.description) {
+                <p class="pp-card-desc">{{ product.description }}</p>
+              }
 
-            <!-- Amount + Tenor -->
-            <div class="pp-card-amounts">
-              <div class="pp-amount-block">
-                <p class="pp-amount-label">{{ product.type === 'bnpl' ? 'Purchase limit' : 'Loan amount' }}</p>
-                <p class="pp-amount-range">
-                  {{ formatAmount(product.minAmount) }} – {{ formatAmount(product.maxAmount) }}
-                </p>
-              </div>
-              <div class="pp-amount-divider" aria-hidden="true"></div>
-              <div class="pp-amount-block">
-                <p class="pp-amount-label">Repayment period</p>
-                <p class="pp-amount-range">{{ product.minTenor }} – {{ product.maxTenor }} {{ product.tenorUnit | lowercase }}</p>
-              </div>
-            </div>
-
-            <!-- Interest row -->
-            <div class="pp-card-interest">
-              <div class="pp-interest-item">
-                <p class="pp-interest-label">Interest type</p>
-                <p class="pp-interest-val">{{ product.interestType }}</p>
-              </div>
-              <div class="pp-interest-item">
-                <p class="pp-interest-label">Rate</p>
-                <p class="pp-interest-val">{{ product.interestRate }}%</p>
-              </div>
-              <div class="pp-interest-item">
-                <p class="pp-interest-label">Frequency</p>
-                <p class="pp-interest-val">{{ product.interestFrequency }}</p>
-              </div>
-            </div>
-
-            <!-- Who can apply -->
-            @if (audienceLabels(product).length) {
-              <div class="pp-card-section">
-                <p class="pp-card-section-label">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                  Who can apply
-                </p>
-                <div class="pp-pill-row" role="list">
-                  @for (label of audienceLabels(product); track label) {
-                    <span class="pp-pill pp-pill--audience" role="listitem">{{ label }}</span>
-                  }
+              <div class="pp-specs">
+                <div class="pp-spec">
+                  <span class="pp-spec-label">{{ product.type === 'bnpl' ? 'Purchase limit' : 'Loan amount' }}</span>
+                  <span class="pp-spec-value">{{ formatAmount(product.minAmount) }} – {{ formatAmount(product.maxAmount) }}</span>
                 </div>
-              </div>
-            }
-
-            <!-- Income verification -->
-            @if (incomeMethodLabels(product).length) {
-              <div class="pp-card-section">
-                <p class="pp-card-section-label">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.5"/>
-                    <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                  Income verification
-                </p>
-                <div class="pp-pill-row" role="list">
-                  @for (method of incomeMethodLabels(product); track method) {
-                    <span class="pp-pill pp-pill--method" role="listitem">{{ method }}</span>
-                  }
+                <div class="pp-spec">
+                  <span class="pp-spec-label">Repayment period</span>
+                  <span class="pp-spec-value">{{ product.minTenor }}–{{ product.maxTenor }} {{ product.tenorUnit | lowercase }}</span>
                 </div>
+                @if (audienceLabels(product).length) {
+                  <div class="pp-spec pp-spec--full">
+                    <span class="pp-spec-label">Who can apply</span>
+                    <div class="pp-tag-row">
+                      @for (label of audienceLabels(product); track label) {
+                        <span class="pp-tag">{{ label }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (incomeMethodLabels(product).length) {
+                  <div class="pp-spec pp-spec--full">
+                    <span class="pp-spec-label">Income verification</span>
+                    <div class="pp-tag-row">
+                      @for (method of incomeMethodLabels(product); track method) {
+                        <span class="pp-tag pp-tag--method">{{ method }}</span>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
-            }
 
-            <!-- CTA -->
-            <div class="pp-card-footer">
               <a [href]="applyUrl(product)" class="pp-apply-btn" [attr.aria-label]="'Apply for ' + product.name">
                 Apply now
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -242,17 +192,16 @@
   ══════════════════════════════════════════════════════════ -->
   <footer class="pp-footer" role="contentinfo">
     <div class="pp-footer-inner">
-      <div class="pp-footer-brand">
-        <span class="pp-footer-name">{{ branding().appName }}</span>
-        <span class="pp-footer-sep" aria-hidden="true">·</span>
-        <span class="pp-footer-tagline">Powered by Caltos</span>
-      </div>
+      <span class="pp-footer-brand">{{ branding().appName }}</span>
+      <span class="pp-footer-sep" aria-hidden="true">·</span>
+      <span class="pp-footer-powered">Powered by Caltos</span>
+      <span class="pp-footer-spacer" aria-hidden="true"></span>
       <div class="pp-footer-trust">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
           <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        256-bit encryption · Your data is secure
+        256-bit encryption
       </div>
     </div>
   </footer>
