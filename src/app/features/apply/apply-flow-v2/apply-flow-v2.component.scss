@@ -205,6 +205,80 @@
   line-height: 1.3;
 }
 
+// ── Info card color variants (Indeed-style warm cards) ────────────────────────
+.pf-info-card--blue {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #3b82f6; }
+}
+
+.pf-info-card--purple {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #8b5cf6; }
+}
+
+.pf-info-card--green {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #22c55e; }
+}
+
+.pf-info-card--amber {
+  background: #fffbeb;
+  border-color: #fde68a;
+  .pf-info-icon-text, .pf-info-icon-svg { color: #f59e0b; }
+}
+
+// ── Resume draft banner ────────────────────────────────────────────────────────
+.pf-resume-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand) 6%, #eff6ff);
+  border: 1.5px solid color-mix(in srgb, var(--brand) 28%, #bfdbfe);
+  color: var(--text-primary);
+
+  svg { flex-shrink: 0; color: var(--brand); }
+  > div { flex: 1; min-width: 0; }
+}
+
+.pf-resume-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pf-resume-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+.pf-resume-btn {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1.5px solid color-mix(in srgb, var(--brand) 40%, #bfdbfe);
+  background: #fff;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease;
+
+  &:active { background: color-mix(in srgb, var(--brand) 8%, #fff); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pf-resume-btn:hover { background: color-mix(in srgb, var(--brand) 8%, #fff); border-color: var(--brand); }
+}
+
 // ── Audience pills ─────────────────────────────────────────────────────────────
 .pf-audience-section {
   display: flex;
@@ -552,10 +626,13 @@
   .pf-cta-outline:hover:not(:disabled) { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 4%, #fff); }
 }
 
-.pf-button-stack {
+.pf-button-stack,
+.pf-btn-stack {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 10px;
+  width: 100%;
 }
 
 // ── Confetti ───────────────────────────────────────────────────────────────────
@@ -640,51 +717,88 @@
   font-variant-numeric: tabular-nums;
 }
 
-// BNPL eligibility comparison block
+// BNPL eligibility comparison — big stacked cards
 .pf-bnpl-eligibility-compare {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  max-width: 340px;
-}
-
-.pf-bnpl-compare-row {
-  display: flex;
-  align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
-.pf-bnpl-compare-item {
-  flex: 1;
-  text-align: center;
+// Large card (Indeed salary-card style)
+.pf-bnpl-compare-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 14px;
   background: #f9fafb;
   border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 14px 10px;
+  transition: border-color 150ms ease;
+
+  &--invoice {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+
+    .pf-bnpl-compare-card-icon { background: #dbeafe; color: #3b82f6; }
+    .pf-bnpl-compare-card-value { color: #1e40af; }
+  }
+
+  &--eligible {
+    background: #f0fdf4;
+    border-color: #86efac;
+
+    .pf-bnpl-compare-card-icon { background: #dcfce7; color: #16a34a; }
+    .pf-bnpl-compare-card-value { color: #15803d; }
+  }
+
+  &--partial {
+    background: #fffbeb;
+    border-color: #fde68a;
+
+    .pf-bnpl-compare-card-icon { background: #fef3c7; color: #d97706; }
+    .pf-bnpl-compare-card-value { color: #92400e; }
+  }
 }
 
-.pf-bnpl-compare-label {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.pf-bnpl-compare-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-  font-variant-numeric: tabular-nums;
-
-  &--eligible { color: #059669; }
-}
-
-.pf-bnpl-compare-divider {
-  font-size: 12px;
-  color: #9ca3af;
-  font-weight: 600;
+.pf-bnpl-compare-card-icon {
   flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #e5e7eb;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.pf-bnpl-compare-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px;
+}
+
+.pf-bnpl-compare-card-value {
+  font-family: var(--font-heading, inherit);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.pf-bnpl-compare-card-sub {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .pf-bnpl-result {
@@ -713,6 +827,54 @@
   }
 }
 
+// ── Eligibility approved section ───────────────────────────────────────────────
+.pf-eligibility-approved {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.pf-eligibility-limit-card {
+  width: 100%;
+  padding: 24px 20px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brand) 6%, #f0fdf4);
+  border: 1.5px solid color-mix(in srgb, var(--brand) 25%, #86efac);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: pfPopIn 360ms var(--ease-out);
+}
+
+.pf-eligibility-limit-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.pf-eligibility-limit-value {
+  font-family: var(--font-heading, inherit);
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.pf-eligibility-limit-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 // "body-muted" helper used in decline state
 .pf-body-muted {
   color: #9ca3af;
@@ -727,5 +889,8 @@
   .pf-info-card { padding: 12px; }
   .pf-review-amount { font-size: 26px; }
   .pf-review-monthly { font-size: 20px; }
-  .pf-bnpl-compare-value { font-size: 16px; }
+  .pf-bnpl-compare-card-value { font-size: 22px; }
+  .pf-eligibility-limit-value { font-size: 36px; }
+  .pf-resume-banner { flex-wrap: wrap; }
+  .pf-resume-btn { width: 100%; justify-content: center; }
 }

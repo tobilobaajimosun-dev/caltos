@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { BankSelectComponent, VideoCaptureFieldComponent } from '../../../shared/components';
+import { BankSelectComponent, SelectComponent, VideoCaptureFieldComponent } from '../../../shared/components';
+import { SelectOption } from '../../../shared/components/select/select.component';
 import { ApplicantProfile, AUDIENCE_INCOME_METHODS, IncomeVerificationSource, DEDUCTION_CHANNEL_DEFS } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import { CustomersService } from '../../../shared/services/customers.service';
@@ -27,7 +28,7 @@ type V2BucketId =
   | 'bnpl-vendor' | 'bnpl-invoice' | 'bnpl-profile' | 'bnpl-not-served';
 
 interface DraftSnapshotV2 {
-  bucketIndex: number;
+  savedBucketIndex: number;
   selectedProfileId: string;
   entryPhone: string;
   entryEmail: string;
@@ -71,7 +72,7 @@ const INCOME_METHOD_SHORT_LABELS: Record<IncomeVerificationSource, string> = {
 @Component({
   selector: 'app-apply-flow-v2',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, DecimalPipe, BankSelectComponent, VideoCaptureFieldComponent],
+  imports: [FormsModule, DecimalPipe, BankSelectComponent, SelectComponent, VideoCaptureFieldComponent],
   templateUrl: './apply-flow-v2.component.html',
   styleUrls: ['../apply-profile-flow/apply-profile-flow.component.scss', './apply-flow-v2.component.scss'],
 })
@@ -91,16 +92,17 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   // ── Bucket state machine ─────────────────────────────────────────────────────
   bucketIndex = 0;
+  /** Saved step index for "resume" — restored from draft but not applied immediately. */
+  savedBucketIndex = 0;
 
   get isBnpl(): boolean { return this.product().template === 'bnpl'; }
+
+  /** BVN identity check is optional per product config. */
+  get requiresBvn(): boolean { return !!this.product().identityBvn; }
 
   get profiles(): ApplicantProfile[] {
     const configured = this.product().applicantProfiles ?? [];
     return configured.length ? configured : [synthesizeDefaultProfile(this.product())];
-  }
-
-  get skipProfileBucket(): boolean {
-    return this.profiles.length <= 1;
   }
 
   get bucketOrder(): V2BucketId[] {
@@ -111,7 +113,8 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       buckets.push('bnpl-vendor', 'bnpl-invoice');
     }
 
-    if (!this.skipProfileBucket && !isBnpl) buckets.push('profile');
+    // Always show profile selector so borrower confirms who they are.
+    if (!isBnpl) buckets.push('profile');
     if (!this.isReturningCustomer) buckets.push('personal');
 
     if (isBnpl) {
@@ -141,7 +144,6 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return (this.bucketIndex / Math.max(this.bucketOrder.length - 1, 1)) * 100;
   }
 
-  // 'about', 'eligibility', 'disbursement', and 'bnpl-not-served' are not counted in "Step X of Y".
   private readonly hiddenFromStepCount: V2BucketId[] = ['about', 'eligibility', 'disbursement', 'bnpl-not-served'];
 
   get visibleStepIndex(): number {
@@ -171,6 +173,16 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  /** Whether there is a saved draft the user can resume. */
+  get hasDraft(): boolean {
+    return this.savedBucketIndex > 0;
+  }
+
+  resumeApplication() {
+    this.bucketIndex = this.savedBucketIndex;
+    this.cdr.markForCheck();
+  }
+
   next() {
     if (this.currentBucket === 'entry' && !this.returningCustomerChecked) {
       this.checkReturningCustomer();
@@ -179,7 +191,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.bucketIndex++;
       this.saveDraft();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Auto-trigger eligibility when its bucket becomes active.
+      // Auto-trigger eligibility calculation when entering that bucket.
       if (this.currentBucket === 'eligibility' && !this.eligibilityResult && !this.isCalculatingEligibility) {
         this.calculateEligibility();
       }
@@ -255,7 +267,10 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   selectProfile(id: string) {
     this.selectedProfileId = id;
-    this.next();
+    // Single-profile products: auto-advance, no manual confirmation needed.
+    if (this.profiles.length === 1) {
+      this.next();
+    }
   }
 
   // ── Personal + Address + BVN (new customers only) ─────────────────────────────
@@ -308,14 +323,14 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   get personalCanContinue(): boolean {
     const fieldsFilled = [...this.personalFields, ...this.addressFields].every((k) => !!this.values[k]);
-    return fieldsFilled && this.bvnVerified;
+    return fieldsFilled && (!this.requiresBvn || this.bvnVerified);
   }
 
   get typeDetailsCanContinue(): boolean {
     return this.typeDetailFields.every((k) => !!this.values[k]);
   }
 
-  // ── BVN identity verification (in personal bucket, separate from income) ──────
+  // ── BVN identity verification (in personal bucket, only if product requires it) ─
   bvn = '';
   bvnOtpOpen = false;
   bvnOtpCode = '';
@@ -351,10 +366,23 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   get bnplInvoiceCanContinue(): boolean { return !!this.bnplInvoiceAmount; }
   get bnplProfileCanContinue(): boolean { return !!this.bnplAudience; }
   get bnplInvoiceAmountNum(): number { return parseThousands(this.bnplInvoiceAmount) || 0; }
+  get bnplInvoiceAmountDisplay(): string { return this.bnplInvoiceAmount ? formatThousands(this.bnplInvoiceAmount) : ''; }
 
   get bnplIsEligibleForFullInvoice(): boolean {
     if (!this.eligibilityResult || !this.bnplInvoiceAmountNum) return false;
     return this.eligibilityResult.maxEligibleAmount >= this.bnplInvoiceAmountNum;
+  }
+
+  get bnplVendorOptions(): SelectOption[] {
+    return (this.product().bnplCategories ?? []).map(cat => ({ value: cat, label: cat }));
+  }
+
+  onBnplInvoiceAmountInput(event: Event) {
+    const raw = (event.target as HTMLInputElement).value;
+    const parsed = parseThousands(raw);
+    this.bnplInvoiceAmount = parsed > 0 ? String(parsed) : '';
+    (event.target as HTMLInputElement).value = this.bnplInvoiceAmountDisplay;
+    this.cdr.markForCheck();
   }
 
   selectBnplAudience(audience: BnplAudience) {
@@ -439,7 +467,6 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   }
 
   get incomeVerificationCanContinue(): boolean {
-    // BNPL private workers must upload payslip + bank statement + enter income
     if (this.isBnpl && this.bnplAudience === 'private-worker') {
       return !!this.docs['payslip-upload']?.fileName &&
              !!this.docs['bank-statement-upload']?.fileName &&
@@ -487,11 +514,15 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return this.completedDocsCount === (this.selectedProfile?.requiredDocuments ?? []).length;
   }
 
-  // ── Eligibility (silent auto-trigger, auto-advances on approval) ──────────────
+  // ── Eligibility — auto-triggered, result shown with explicit CTA to continue ──
   isCalculatingEligibility = false;
   eligibilityResult: EligibilityResult | null = null;
   loanAmount = '';
   loanTenor = '';
+
+  get eligibilityApproved(): boolean {
+    return this.eligibilityResult?.decision === 'approved';
+  }
 
   private buildEligibilityInput(): EligibilityInput {
     const method = this.effectiveIncomeMethod;
@@ -525,18 +556,13 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.isCalculatingEligibility = false;
       if (result.decision === 'approved') {
         const invoiceAmt = this.isBnpl ? this.bnplInvoiceAmountNum : 0;
-        // For BNPL, offer the invoice amount (capped at eligible max). For regular loans, offer max eligible.
         this.loanAmount = this.isBnpl && invoiceAmt > 0
           ? String(Math.min(result.maxEligibleAmount, invoiceAmt))
           : String(result.maxEligibleAmount);
         this.loanTenor = String(result.tenorMonths);
-        this.saveDraft();
-        this.cdr.markForCheck();
-        setTimeout(() => this.next(), 400);
-      } else {
-        this.saveDraft();
-        this.cdr.markForCheck();
       }
+      this.saveDraft();
+      this.cdr.markForCheck();
     }, 1500);
   }
 
@@ -751,7 +777,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   private saveDraft() {
     const snapshot: DraftSnapshotV2 = {
-      bucketIndex: this.bucketIndex,
+      savedBucketIndex: this.bucketIndex,
       selectedProfileId: this.selectedProfileId,
       entryPhone: this.entryPhone,
       entryEmail: this.entryEmail,
@@ -785,7 +811,9 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       const raw = localStorage.getItem(this.draftKey);
       if (!raw) return;
       const snapshot = JSON.parse(raw) as DraftSnapshotV2;
-      this.bucketIndex = snapshot.bucketIndex ?? 0;
+      // Restore form values but NEVER restore bucketIndex — always start at the about screen.
+      // The saved index is kept in savedBucketIndex so the user can resume via the CTA on about.
+      this.savedBucketIndex = snapshot.savedBucketIndex ?? 0;
       this.selectedProfileId = snapshot.selectedProfileId ?? '';
       this.entryPhone = snapshot.entryPhone ?? '';
       this.entryEmail = snapshot.entryEmail ?? '';
@@ -821,7 +849,9 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.restoreDraft();
-    if (this.profiles.length === 1) this.selectedProfileId = this.profiles[0].profileId;
+    if (this.profiles.length === 1) {
+      this.selectedProfileId = this.profiles[0].profileId;
+    }
   }
 
   ngOnDestroy() {}

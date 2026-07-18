@@ -255,22 +255,42 @@ select.pf-input {
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
-// ── Back button ────────────────────────────────────────────────────────────────
+// ── Back button — outlined secondary, full-width, stacks under primary CTA ────
 .pf-back-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 14px;
+  height: 52px;
+  border-radius: var(--pf-radius);
+  border: 1.5px solid #d1d5db;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
-  min-height: 44px;
-  display: inline-flex;
+  width: 100%;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  transition: color 140ms ease;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
 
-  &:hover { color: var(--text-secondary); }
+  &:active:not(:disabled) { background: #f9fafb; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pf-back-btn:hover:not(:disabled) {
+    border-color: var(--brand);
+    color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 4%, #fff);
+  }
+}
+
+// ── Button stack — columns CTAs, centered ──────────────────────────────────────
+.pf-btn-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
 }
 
 // ── Profile selector cards ─────────────────────────────────────────────────────
