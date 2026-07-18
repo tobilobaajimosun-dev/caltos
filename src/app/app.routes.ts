@@ -7,6 +7,7 @@ import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { ProductListComponent } from './features/products/product-list/product-list.component';
 import { ProductDetailComponent } from './features/products/product-detail/product-detail.component';
 import { CreateLoanComponent } from './features/loans/create-loan/create-loan.component';
+import { PublicProductsComponent } from './features/products/public-products/public-products.component';
 import { ApplyComponent } from './features/apply/apply.component';
 import { TrackLoanComponent } from './features/track-loan/track-loan.component';
 import { RepaymentPortalComponent } from './features/portal/repayment-portal/repayment-portal.component';
@@ -60,6 +61,8 @@ export const routes: Routes = [
   { path: 'showcase', component: ShowcaseComponent },
   // Full-screen wizard — no sidebar/header chrome (Mercury-style)
   { path: 'products/create', component: CreateLoanComponent },
+  // Public product catalogue — no shell chrome
+  { path: 'products/catalogue', component: PublicProductsComponent },
 
   {
     path: '',
