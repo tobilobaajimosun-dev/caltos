@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ProductsService, ProductRecord, AUDIENCE_INCOME_METHODS, AUDIENCE_CATEGORY_LABELS } from '../../../shared/services/products.service';
+import { LowerCasePipe } from '@angular/common';
+import { ProductsService, ProductRecord, ApplicantProfile, AUDIENCE_INCOME_METHODS, AUDIENCE_CATEGORY_LABELS } from '../../../shared/services/products.service';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 
 type FilterType = 'all' | 'loan' | 'bnpl';
@@ -15,7 +16,7 @@ const INCOME_METHOD_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-public-products',
-  imports: [FormsModule],
+  imports: [FormsModule, LowerCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './public-products.component.html',
   styleUrl: './public-products.component.scss',
@@ -54,13 +55,13 @@ export class PublicProductsComponent {
   }
 
   audienceLabels(product: ProductRecord): string[] {
-    if (product.applicantProfiles?.length) {
-      return product.applicantProfiles
+    const profiles: ApplicantProfile[] = product.config.applicantProfiles ?? [];
+    if (profiles.length) {
+      return profiles
         .map((p) => p.audience ? AUDIENCE_CATEGORY_LABELS[p.audience] : p.label)
-        .filter(Boolean);
+        .filter(Boolean) as string[];
     }
     const config = product.config as any;
-    if (!config) return [];
     const audiences: string[] = [];
     if (config.audiences?.includes('public-civil-servant') || config.incomeIppis || config.incomeRemita) {
       audiences.push('Public Servants');
@@ -73,10 +74,11 @@ export class PublicProductsComponent {
 
   incomeMethodLabels(product: ProductRecord): string[] {
     const methods = new Set<string>();
-    if (product.applicantProfiles?.length) {
-      for (const profile of product.applicantProfiles) {
+    const profiles: ApplicantProfile[] = product.config.applicantProfiles ?? [];
+    if (profiles.length) {
+      for (const profile of profiles) {
         if (profile.audience) {
-          AUDIENCE_INCOME_METHODS[profile.audience]?.forEach((m) => methods.add(m));
+          AUDIENCE_INCOME_METHODS[profile.audience]?.forEach((m: string) => methods.add(m));
         }
       }
     } else {
