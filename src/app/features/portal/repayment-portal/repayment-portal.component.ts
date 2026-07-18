@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef,
+  Component, inject, OnInit, PLATFORM_ID,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   KpiCardComponent,
   ColumnTitleComponent,
@@ -7,6 +12,8 @@ import {
   BadgeStatus,
   ButtonComponent,
 } from '../../../shared/components';
+
+type NavItem = 'overview' | 'history' | 'virtual-account' | 'documents';
 
 interface RepaymentRow {
   date: string;
@@ -20,30 +27,61 @@ interface ScheduleRow {
   amount: string;
   principal: string;
   interest: string;
-  status: 'upcoming' | 'overdue';
+}
+
+interface ChatMessage {
+  role: 'user' | 'agent';
+  text: string;
+  time: string;
 }
 
 @Component({
   selector: 'app-repayment-portal',
   standalone: true,
-  imports: [KpiCardComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, ButtonComponent],
+  imports: [FormsModule, KpiCardComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './repayment-portal.component.html',
   styleUrl: './repayment-portal.component.scss',
 })
-export class RepaymentPortalComponent {
+export class RepaymentPortalComponent implements OnInit, AfterViewInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  // ── BVN gate ─────────────────────────────────────────────────────────────────
+  isAuthenticated = false;
+  bvnInput = '';
+  bvnError = '';
+  isVerifying = false;
+
+  get bvnValid(): boolean { return /^\d{11}$/.test(this.bvnInput); }
+
+  verifyBvn() {
+    if (!this.bvnValid) { this.bvnError = 'Enter a valid 11-digit BVN.'; return; }
+    this.bvnError = '';
+    this.isVerifying = true;
+    this.cdr.markForCheck();
+    // Simulate verification — swap for real BVN lookup in production
+    setTimeout(() => {
+      this.isVerifying = false;
+      this.isAuthenticated = true;
+      this.cdr.markForCheck();
+      if (isPlatformBrowser(this.platformId)) this.loadZohoScript();
+    }, 1400);
+  }
+
+  // ── Navigation ───────────────────────────────────────────────────────────────
+  activeNav: NavItem = 'overview';
+  setNav(nav: NavItem) { this.activeNav = nav; this.cdr.markForCheck(); }
+
+  // ── Loan data ────────────────────────────────────────────────────────────────
   readonly borrowerName = 'Chika Okafor';
   readonly product = 'Salary Advance Loan';
   readonly loanRef = 'CAL-2026-004821';
-
-  // ── Loan summary ────────────────────────────────────────────────────────────
   readonly principalAmount = 500_000;
   readonly totalRepayable = 585_000;
   readonly amountRepaid = 175_000;
   readonly outstandingBalance = this.totalRepayable - this.amountRepaid;
   readonly repaymentProgress = Math.round((this.amountRepaid / this.totalRepayable) * 100);
-
-  // ── Next payment ─────────────────────────────────────────────────────────────
   readonly nextPaymentAmount = 25_000;
   readonly nextDueDate = '2026-08-15';
   readonly paymentStreak = 4;
@@ -55,9 +93,10 @@ export class RepaymentPortalComponent {
   virtualAccountCopied = false;
 
   copyAccountNumber() {
-    navigator.clipboard?.writeText(this.virtualAccountNumber);
+    if (isPlatformBrowser(this.platformId)) navigator.clipboard?.writeText(this.virtualAccountNumber);
     this.virtualAccountCopied = true;
-    setTimeout(() => { this.virtualAccountCopied = false; }, 2000);
+    this.cdr.markForCheck();
+    setTimeout(() => { this.virtualAccountCopied = false; this.cdr.markForCheck(); }, 2000);
   }
 
   // ── Mandate ──────────────────────────────────────────────────────────────────
@@ -66,14 +105,15 @@ export class RepaymentPortalComponent {
   readonly mandateAccountNumber = '••••••6789';
   readonly mandateBank = 'First Bank';
 
-  // ── Repayment schedule ───────────────────────────────────────────────────────
+  // ── Schedule ─────────────────────────────────────────────────────────────────
   readonly schedule: ScheduleRow[] = [
-    { dueDate: '2026-08-15', amount: '₦25,000', principal: '₦18,500', interest: '₦6,500', status: 'upcoming' },
-    { dueDate: '2026-09-15', amount: '₦25,000', principal: '₦19,000', interest: '₦6,000', status: 'upcoming' },
-    { dueDate: '2026-10-15', amount: '₦25,000', principal: '₦19,500', interest: '₦5,500', status: 'upcoming' },
+    { dueDate: '2026-08-15', amount: '₦25,000', principal: '₦18,500', interest: '₦6,500' },
+    { dueDate: '2026-09-15', amount: '₦25,000', principal: '₦19,000', interest: '₦6,000' },
+    { dueDate: '2026-10-15', amount: '₦25,000', principal: '₦19,500', interest: '₦5,500' },
+    { dueDate: '2026-11-15', amount: '₦25,000', principal: '₦20,000', interest: '₦5,000' },
   ];
 
-  // ── Repayment history ────────────────────────────────────────────────────────
+  // ── History ──────────────────────────────────────────────────────────────────
   readonly history: RepaymentRow[] = [
     { date: '2026-07-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
     { date: '2026-06-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
@@ -94,26 +134,81 @@ export class RepaymentPortalComponent {
   }
 
   downloadStatement(format: 'csv' | 'pdf') {
-    if (format === 'csv') {
-      const header = 'Date,Amount,Channel,Status\n';
-      const rows = this.history.map((r) => `${r.date},${r.amount},${r.channel},${this.statusLabel(r.status)}`).join('\n');
-      const blob = new Blob([header + rows], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `repayment-statement-${this.borrowerName.toLowerCase().replace(/\s+/g, '-')}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } else {
-      const content = `Repayment Statement\n\nBorrower: ${this.borrowerName}\nProduct: ${this.product}\n\n` +
-        this.history.map((r) => `${r.date}  ${r.amount}  ${r.channel}  ${this.statusLabel(r.status)}`).join('\n');
-      const blob = new Blob([content], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `repayment-statement-${this.borrowerName.toLowerCase().replace(/\s+/g, '-')}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    if (!isPlatformBrowser(this.platformId)) return;
+    const header = 'Date,Amount,Channel,Status\n';
+    const rows = this.history.map(r => `${r.date},${r.amount},${r.channel},${this.statusLabel(r.status)}`).join('\n');
+    const content = format === 'csv' ? header + rows
+      : `Repayment Statement\nBorrower: ${this.borrowerName}\nProduct: ${this.product}\n\n` +
+        this.history.map(r => `${r.date}  ${r.amount}  ${r.channel}  ${this.statusLabel(r.status)}`).join('\n');
+    const blob = new Blob([content], { type: format === 'csv' ? 'text/csv' : 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `repayment-${this.borrowerName.toLowerCase().replace(/\s+/g, '-')}.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
+
+  // ── Chat panel ───────────────────────────────────────────────────────────────
+  chatMessages: ChatMessage[] = [];
+  chatInput = '';
+  chatStarted = false;
+
+  readonly suggestedPrompts = [
+    'What is my outstanding balance?',
+    'How do I make a payment?',
+    'Change my mandate account',
+  ];
+
+  useSuggestion(prompt: string) {
+    this.sendMessage(prompt);
+  }
+
+  sendMessage(text?: string) {
+    const msg = (text ?? this.chatInput).trim();
+    if (!msg) return;
+    this.chatStarted = true;
+    const now = new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' });
+    this.chatMessages.push({ role: 'user', text: msg, time: now });
+    this.chatInput = '';
+    this.cdr.markForCheck();
+    // Auto-reply placeholder — Zoho SalesIQ handles real responses
+    setTimeout(() => {
+      this.chatMessages.push({
+        role: 'agent', time: new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }),
+        text: 'Thanks for reaching out! A support agent will be with you shortly. In the meantime, you can check your loan details in the dashboard.',
+      });
+      this.cdr.markForCheck();
+    }, 1200);
+  }
+
+  newConversation() {
+    this.chatMessages = [];
+    this.chatStarted = false;
+    this.chatInput = '';
+    this.cdr.markForCheck();
+  }
+
+  // ── Zoho SalesIQ ─────────────────────────────────────────────────────────────
+  private loadZohoScript() {
+    // Replace ZOHO_WIDGET_CODE_HERE with your actual Zoho SalesIQ widget code
+    const widgetCode = 'ZOHO_WIDGET_CODE_HERE';
+    if (widgetCode === 'ZOHO_WIDGET_CODE_HERE') return; // Skip in demo mode
+    if (document.getElementById('zsiqscript')) return;
+    (window as any)['$zoho'] = (window as any)['$zoho'] || {};
+    (window as any)['$zoho'].salesiq = {
+      widgetcode: widgetCode,
+      values: { name: this.borrowerName },
+      ready: () => {},
+    };
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.id = 'zsiqscript';
+    s.defer = true;
+    s.src = 'https://salesiq.zohopublic.com/widget';
+    document.head.appendChild(s);
+  }
+
+  ngOnInit() {}
+  ngAfterViewInit() {}
 }
