@@ -50,6 +50,8 @@ const FALLBACK_CONFIG: LoanConfig = {
   brandColor: '#6941C6', brandName: '',
   collectSchoolInfo: false, collectCoopInfo: false,
   collectCivilServiceInfo: false, collectNyscInfo: false,
+  identityCreditBureau: false,
+  incomeDedukt: false, incomeDeduktApiKey: '', incomeDeduktSecretKey: '',
   applicantProfiles: [],
   mandateTiming: 'post_approval',
   customAudienceTypes: [],

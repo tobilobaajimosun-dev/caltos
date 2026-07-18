@@ -1,47 +1,136 @@
-<div class="portal-shell">
-  <div class="portal-header">
-    <div>
-      <p class="portal-eyebrow">Caltos</p>
-      <h1 class="portal-title">Welcome back, {{ borrowerName.split(' ')[0] }}</h1>
-      <p class="portal-subtitle">{{ product }}</p>
+<div class="rp-shell">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────────── -->
+  <div class="rp-header">
+    <div class="rp-header-left">
+      <p class="rp-eyebrow">Loan Subscription</p>
+      <h1 class="rp-title">{{ borrowerName }}</h1>
+      <p class="rp-subtitle">{{ product }} · <span class="rp-ref">{{ loanRef }}</span></p>
     </div>
-  </div>
-
-  <div class="panel">
-    <app-alert-banner
-      type="info"
-      title="Next payment due {{ nextDueDate }}"
-      message="You're on a {{ paymentStreak }}-month on-time payment streak — keep it going!"
-      [dismissible]="false"
-    />
-  </div>
-
-  <div class="kpi-row">
-    <app-kpi-card label="Outstanding principal" [value]="'₦' + outstandingPrincipal.toLocaleString()" />
-    <app-kpi-card label="Interest" [value]="'₦' + outstandingInterest.toLocaleString()" />
-    <app-kpi-card label="Fees" [value]="'₦' + outstandingFees.toLocaleString()" />
-    <app-kpi-card label="Total outstanding" [value]="'₦' + totalOutstanding.toLocaleString()" />
-  </div>
-
-  <div class="panel">
-    <div class="panel-head">
-      <p class="panel-title">Mandate status</p>
-    </div>
-    <div class="mandate-row">
-      <span class="mandate-channel">{{ mandateChannel }}</span>
-      <app-status-badge [status]="mandateStatus" label="Active — deductions on schedule" />
-    </div>
-  </div>
-
-  <div class="panel table-panel">
-    <div class="panel-head">
-      <p class="panel-title">Repayment history</p>
-      <div class="statement-actions">
-        <app-button variant="outline" label="Download CSV" (clicked)="downloadStatement('csv')" />
-        <app-button variant="outline" label="Download PDF" (clicked)="downloadStatement('pdf')" />
+    <div class="rp-header-right">
+      <div class="rp-streak-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {{ paymentStreak }}-month streak
       </div>
     </div>
-    <table class="ref-table">
+  </div>
+
+  <!-- ── KPI row ─────────────────────────────────────────────────────────────── -->
+  <div class="rp-kpi-row">
+    <app-kpi-card label="Outstanding balance" [value]="'₦' + outstandingBalance.toLocaleString()" />
+    <app-kpi-card label="Total repayable" [value]="'₦' + totalRepayable.toLocaleString()" />
+    <app-kpi-card label="Amount repaid" [value]="'₦' + amountRepaid.toLocaleString()" />
+    <app-kpi-card label="Next payment" [value]="'₦' + nextPaymentAmount.toLocaleString()" />
+  </div>
+
+  <!-- ── Repayment progress ───────────────────────────────────────────────────── -->
+  <div class="rp-panel">
+    <div class="rp-panel-head">
+      <p class="rp-panel-title">Repayment progress</p>
+      <span class="rp-progress-pct">{{ repaymentProgress }}% paid</span>
+    </div>
+    <div class="rp-progress-track" role="progressbar" [attr.aria-valuenow]="repaymentProgress" aria-valuemin="0" aria-valuemax="100">
+      <div class="rp-progress-fill" [style.width.%]="repaymentProgress"></div>
+    </div>
+    <div class="rp-progress-legend">
+      <span>₦{{ amountRepaid.toLocaleString() }} paid</span>
+      <span>₦{{ outstandingBalance.toLocaleString() }} remaining</span>
+    </div>
+  </div>
+
+  <div class="rp-two-col">
+
+    <!-- ── Virtual account ─────────────────────────────────────────────────────── -->
+    <div class="rp-panel">
+      <div class="rp-panel-head">
+        <p class="rp-panel-title">Pay via virtual account</p>
+      </div>
+      <p class="rp-va-hint">Transfer to this account to make a manual payment. Reference your loan ID.</p>
+      <div class="rp-va-card">
+        <div class="rp-va-bank">{{ virtualAccountBank }}</div>
+        <div class="rp-va-number-row">
+          <span class="rp-va-number">{{ virtualAccountNumber }}</span>
+          <button class="rp-copy-btn" (click)="copyAccountNumber()" [attr.aria-label]="virtualAccountCopied ? 'Copied' : 'Copy account number'">
+            @if (virtualAccountCopied) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Copied
+            } @else {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+              Copy
+            }
+          </button>
+        </div>
+        <div class="rp-va-name">{{ virtualAccountName }}</div>
+      </div>
+      <p class="rp-va-note">Payments reflect within 30 minutes. Keep your receipt as confirmation.</p>
+    </div>
+
+    <!-- ── Mandate status ──────────────────────────────────────────────────────── -->
+    <div class="rp-panel">
+      <div class="rp-panel-head">
+        <p class="rp-panel-title">Auto-deduction mandate</p>
+      </div>
+      <div class="rp-mandate-card">
+        <div class="rp-mandate-row">
+          <span class="rp-mandate-label">Channel</span>
+          <span class="rp-mandate-val">{{ mandateChannel }}</span>
+        </div>
+        <div class="rp-mandate-row">
+          <span class="rp-mandate-label">Account</span>
+          <span class="rp-mandate-val">{{ mandateAccountNumber }} · {{ mandateBank }}</span>
+        </div>
+        <div class="rp-mandate-row">
+          <span class="rp-mandate-label">Status</span>
+          <app-status-badge [status]="mandateStatus" label="Active" />
+        </div>
+        <div class="rp-mandate-row">
+          <span class="rp-mandate-label">Next deduction</span>
+          <span class="rp-mandate-val">{{ nextDueDate }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Upcoming schedule ───────────────────────────────────────────────────── -->
+  <div class="rp-panel rp-panel--table">
+    <div class="rp-panel-head">
+      <p class="rp-panel-title">Upcoming payments</p>
+    </div>
+    <table class="rp-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Due date" /></th>
+          <th><app-column-title label="Total" /></th>
+          <th><app-column-title label="Principal" /></th>
+          <th><app-column-title label="Interest" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of schedule; track row.dueDate) {
+          <tr>
+            <td><app-table-item type="date" [date]="row.dueDate" /></td>
+            <td><app-table-item type="amount" [amount]="row.amount" /></td>
+            <td><app-table-item type="text" [text]="row.principal" /></td>
+            <td><app-table-item type="text" [text]="row.interest" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Repayment history ───────────────────────────────────────────────────── -->
+  <div class="rp-panel rp-panel--table">
+    <div class="rp-panel-head">
+      <p class="rp-panel-title">Payment history</p>
+      <div class="rp-statement-actions">
+        <app-button variant="outline" label="CSV" (clicked)="downloadStatement('csv')" />
+        <app-button variant="outline" label="PDF" (clicked)="downloadStatement('pdf')" />
+      </div>
+    </div>
+    <table class="rp-table">
       <thead>
         <tr>
           <th><app-column-title label="Date" /></th>
@@ -62,4 +151,5 @@
       </tbody>
     </table>
   </div>
+
 </div>

@@ -875,6 +875,20 @@
   margin: 0;
 }
 
+// Over-limit toast shown when user tries to enter more than approved limit
+.pf-over-limit-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
 // "body-muted" helper used in decline state
 .pf-body-muted {
   color: #9ca3af;

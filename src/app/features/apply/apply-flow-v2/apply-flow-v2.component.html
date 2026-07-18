@@ -246,7 +246,7 @@
     ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'profile') {
       <div class="pf-screen">
-        <h2 class="pf-headline">How do you earn?</h2>
+        <h2 class="pf-headline">What best describes you?</h2>
         <p class="pf-body-sm">Pick your employment type — this determines which documents we'll ask for.</p>
         <div class="pf-profile-cards">
           @for (p of profiles; track p.profileId) {
@@ -423,7 +423,7 @@
     ═══════════════════════════════════════════════════════ -->
     @if (currentBucket === 'income-verification') {
       <div class="pf-screen">
-        <h2 class="pf-headline">Verify your income</h2>
+        <h2 class="pf-headline">{{ singleProfileMultipleMethods ? 'How do you get paid?' : 'Verify your income' }}</h2>
         <p class="pf-body-sm">This helps us calculate how much you can borrow. Your data is 256-bit encrypted and never shared.</p>
 
         @if (isBnpl && bnplAudience === 'private-worker') {
@@ -678,21 +678,42 @@
           </div>
 
         } @else {
-          <!-- Regular loan approved: show limit then let them proceed -->
+          <!-- Regular loan approved: enter desired amount + tenor, then claim offer -->
           <div class="pf-eligibility-approved">
             <div class="pf-success-badge" role="img" aria-label="Eligible">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <h2 class="pf-headline">You're eligible!</h2>
-            <p class="pf-body-sm">Great news — you qualify for this loan. Here's what you're approved for.</p>
+            <p class="pf-body-sm">Great news — you qualify. Enter how much you need and your preferred repayment period.</p>
             <div class="pf-eligibility-limit-card">
               <p class="pf-eligibility-limit-label">Your approved limit</p>
               <p class="pf-eligibility-limit-value">₦{{ eligibilityResult.maxEligibleAmount | number }}</p>
               <p class="pf-eligibility-limit-sub">Up to {{ eligibilityResult.tenorMonths }} month(s) repayment period</p>
             </div>
           </div>
+
+          @if (desiredAmountOverLimit) {
+            <div class="pf-over-limit-toast" role="alert">
+              Amount capped at your approved limit of ₦{{ eligibilityResult.maxEligibleAmount | number }}.
+            </div>
+          }
+
+          <div class="pf-field">
+            <label class="pf-label" for="desired-amount-elig">How much do you need? (₦)</label>
+            <input id="desired-amount-elig" class="pf-input" type="text" inputmode="numeric" #loanAmountEligInput [value]="loanAmountDisplay"
+              (input)="onLoanAmountInput($any($event.target).value, loanAmountEligInput)" />
+            <p class="pf-field-hint">Max: ₦{{ eligibilityResult.maxEligibleAmount | number }}</p>
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="tenor-range-elig">Repayment period — <strong>{{ loanTenor }} month(s)</strong></label>
+            <input id="tenor-range-elig" type="range"
+              [min]="+(product().minTenor || 1)"
+              [max]="eligibilityResult.tenorMonths || +(product().maxTenor || 12)"
+              [(ngModel)]="loanTenor" class="pf-range" />
+          </div>
+
           <div class="pf-btn-stack">
-            <button class="pf-cta" (click)="next()">See my offer →</button>
+            <button class="pf-cta" [disabled]="!loanAmount || !loanTenor" (click)="next()">Claim this offer →</button>
             <button class="pf-back-btn" (click)="back()">Back</button>
           </div>
         }
@@ -799,32 +820,11 @@
         <div class="pf-screen">
           @if (isBnpl) {
             <h2 class="pf-headline">Your BNPL offer</h2>
-            <p class="pf-body-sm">Here's your approved purchase limit. Adjust if needed before accepting.</p>
+            <p class="pf-body-sm">Here's your approved purchase limit. Review the terms and accept to continue.</p>
           } @else {
-            <h2 class="pf-headline">You're approved!</h2>
-            <p class="pf-body-sm">Here's your personalised offer. Adjust the amount or repayment period before you accept.</p>
+            <h2 class="pf-headline">Your loan offer</h2>
+            <p class="pf-body-sm">Review your personalised offer below. Accept to proceed with your application.</p>
           }
-
-          <!-- Adjustable amount + tenor -->
-          <div class="pf-offer-adjuster">
-            <div class="pf-field">
-              <label class="pf-label" for="desired-amount">{{ isBnpl ? 'Purchase amount' : 'Desired amount' }} (₦)</label>
-              <input id="desired-amount" class="pf-input" type="text" inputmode="numeric" #loanAmountInput [value]="loanAmountDisplay"
-                (input)="onLoanAmountInput($any($event.target).value, loanAmountInput)" />
-              @if (isBnpl && bnplInvoiceAmountNum > 0) {
-                <p class="pf-field-hint">Invoice: ₦{{ bnplInvoiceAmountNum | number }} · Your limit: ₦{{ eligibilityResult?.maxEligibleAmount | number }}</p>
-              } @else {
-                <p class="pf-field-hint">Your approved limit: ₦{{ eligibilityResult?.maxEligibleAmount | number }}</p>
-              }
-            </div>
-            <div class="pf-field">
-              <label class="pf-label" for="tenor-range">Repayment period — <strong>{{ loanTenor }} month(s)</strong></label>
-              <input id="tenor-range" type="range"
-                [min]="+(product().minTenor || 1)"
-                [max]="eligibilityResult?.tenorMonths || +(product().maxTenor || 12)"
-                [(ngModel)]="loanTenor" class="pf-range" />
-            </div>
-          </div>
 
           <!-- Formal offer letter -->
           <div class="pf-offer-letter" role="region" aria-label="Loan offer letter">

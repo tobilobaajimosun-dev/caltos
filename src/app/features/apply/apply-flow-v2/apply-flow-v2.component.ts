@@ -113,8 +113,8 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       buckets.push('bnpl-vendor', 'bnpl-invoice');
     }
 
-    // Always show profile selector so borrower confirms who they are.
-    if (!isBnpl) buckets.push('profile');
+    // Only show profile selector when more than one audience type can apply.
+    if (!isBnpl && this.profiles.length > 1) buckets.push('profile');
     if (!this.isReturningCustomer) buckets.push('personal');
 
     if (isBnpl) {
@@ -130,7 +130,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       buckets.push('income-verification');
     }
 
-    buckets.push('eligibility', 'type-details', 'documents', 'offer', 'mandate');
+    buckets.push('eligibility', 'offer', 'type-details', 'documents', 'mandate');
     if (this.product().videoConfirmation) buckets.push('caltos-verify');
     buckets.push('review', 'disbursement');
     return buckets;
@@ -404,6 +404,11 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     this.saveDraft();
   }
 
+  /** True when one profile type can apply but that profile has multiple income methods to choose from. */
+  get singleProfileMultipleMethods(): boolean {
+    return !this.isBnpl && this.profiles.length === 1 && this.allowedIncomeMethods.length > 1;
+  }
+
   // ── Income verification (Remita / WACS / bank-statement / payslip only) ───────
   selectedIncomeMethod: IncomeVerificationSource | null = null;
 
@@ -524,6 +529,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   eligibilityResult: EligibilityResult | null = null;
   loanAmount = '';
   loanTenor = '';
+  desiredAmountOverLimit = false;
 
   get eligibilityApproved(): boolean {
     return this.eligibilityResult?.decision === 'approved';
@@ -573,9 +579,13 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   onLoanAmountInput(raw: string, inputEl: HTMLInputElement) {
     const max = this.eligibilityResult?.maxEligibleAmount ?? 0;
-    const parsed = Math.min(parseThousands(raw), max);
-    this.loanAmount = String(parsed);
+    const parsed = parseThousands(raw);
+    this.desiredAmountOverLimit = parsed > max;
+    this.loanAmount = String(Math.min(parsed, max));
     inputEl.value = this.loanAmountDisplay;
+    if (this.desiredAmountOverLimit) {
+      setTimeout(() => { this.desiredAmountOverLimit = false; this.cdr.markForCheck(); }, 3500);
+    }
     this.cdr.markForCheck();
   }
 

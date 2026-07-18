@@ -5,7 +5,6 @@ import {
   TableItemComponent,
   StatusBadgeComponent,
   BadgeStatus,
-  AlertBannerComponent,
   ButtonComponent,
 } from '../../../shared/components';
 
@@ -16,10 +15,18 @@ interface RepaymentRow {
   status: BadgeStatus;
 }
 
+interface ScheduleRow {
+  dueDate: string;
+  amount: string;
+  principal: string;
+  interest: string;
+  status: 'upcoming' | 'overdue';
+}
+
 @Component({
   selector: 'app-repayment-portal',
   standalone: true,
-  imports: [KpiCardComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, AlertBannerComponent, ButtonComponent],
+  imports: [KpiCardComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './repayment-portal.component.html',
   styleUrl: './repayment-portal.component.scss',
@@ -27,24 +34,53 @@ interface RepaymentRow {
 export class RepaymentPortalComponent {
   readonly borrowerName = 'Chika Okafor';
   readonly product = 'Salary Advance Loan';
+  readonly loanRef = 'CAL-2026-004821';
 
-  readonly outstandingPrincipal = 210_000;
-  readonly outstandingInterest = 18_500;
-  readonly outstandingFees = 4_500;
-  readonly totalOutstanding = this.outstandingPrincipal + this.outstandingInterest + this.outstandingFees;
+  // ── Loan summary ────────────────────────────────────────────────────────────
+  readonly principalAmount = 500_000;
+  readonly totalRepayable = 585_000;
+  readonly amountRepaid = 175_000;
+  readonly outstandingBalance = this.totalRepayable - this.amountRepaid;
+  readonly repaymentProgress = Math.round((this.amountRepaid / this.totalRepayable) * 100);
 
-  readonly mandateChannel = 'Remita';
-  readonly mandateStatus: BadgeStatus = 'active';
-
-  readonly nextDueDate = '2026-07-15';
+  // ── Next payment ─────────────────────────────────────────────────────────────
+  readonly nextPaymentAmount = 25_000;
+  readonly nextDueDate = '2026-08-15';
   readonly paymentStreak = 4;
 
+  // ── Virtual account ──────────────────────────────────────────────────────────
+  readonly virtualAccountNumber = '0123456789';
+  readonly virtualAccountBank = 'Providus Bank';
+  readonly virtualAccountName = 'Caltos / Chika Okafor';
+  virtualAccountCopied = false;
+
+  copyAccountNumber() {
+    navigator.clipboard?.writeText(this.virtualAccountNumber);
+    this.virtualAccountCopied = true;
+    setTimeout(() => { this.virtualAccountCopied = false; }, 2000);
+  }
+
+  // ── Mandate ──────────────────────────────────────────────────────────────────
+  readonly mandateChannel = 'Remita';
+  readonly mandateStatus: BadgeStatus = 'active';
+  readonly mandateAccountNumber = '••••••6789';
+  readonly mandateBank = 'First Bank';
+
+  // ── Repayment schedule ───────────────────────────────────────────────────────
+  readonly schedule: ScheduleRow[] = [
+    { dueDate: '2026-08-15', amount: '₦25,000', principal: '₦18,500', interest: '₦6,500', status: 'upcoming' },
+    { dueDate: '2026-09-15', amount: '₦25,000', principal: '₦19,000', interest: '₦6,000', status: 'upcoming' },
+    { dueDate: '2026-10-15', amount: '₦25,000', principal: '₦19,500', interest: '₦5,500', status: 'upcoming' },
+  ];
+
+  // ── Repayment history ────────────────────────────────────────────────────────
   readonly history: RepaymentRow[] = [
+    { date: '2026-07-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
     { date: '2026-06-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
     { date: '2026-05-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
-    { date: '2026-04-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
-    { date: '2026-03-15', amount: '₦25,000', channel: 'Remita', status: 'failed' },
-    { date: '2026-03-16', amount: '₦25,000', channel: 'Remita', status: 'successful' },
+    { date: '2026-04-15', amount: '₦25,000', channel: 'Remita', status: 'failed' },
+    { date: '2026-04-16', amount: '₦25,000', channel: 'Virtual Account', status: 'successful' },
+    { date: '2026-03-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
     { date: '2026-02-15', amount: '₦25,000', channel: 'Remita', status: 'successful' },
   ];
 

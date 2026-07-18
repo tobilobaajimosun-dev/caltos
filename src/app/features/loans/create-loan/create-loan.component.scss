@@ -2027,6 +2027,18 @@
   font-size: 12px;
 }
 
+// ── Dedukt integration key fields ─────────────────────────────────────────────
+.dedukt-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+}
+
 // ── Info callout ──────────────────────────────────────────────────────────────
 .info-callout {
   display: flex;

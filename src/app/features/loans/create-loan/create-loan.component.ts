@@ -122,9 +122,13 @@ export interface LoanConfig {
   identityNin: boolean;
   identityPhoneOtp: boolean;
   identityEmailOtp: boolean;
+  identityCreditBureau?: boolean;
   incomeRemita: boolean;
   incomeIppis: boolean;
   incomeBankStatement: boolean;
+  incomeDedukt?: boolean;
+  incomeDeduktApiKey?: string;
+  incomeDeduktSecretKey?: string;
   // Repayment deduction channels (separate from income verification)
   deductIppis: boolean;        // At-source payroll deduction via IPPIS (federal only)
   deductRemita: boolean;       // Remita standing order / mandate
@@ -382,9 +386,9 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
 
 /** Auto-selects the correct audience categories for each template type. */
 const TEMPLATE_AUDIENCE_MAP: Partial<Record<string, AudienceCategory[]>> = {
-  salary:  ['private-sector-worker'],
+  salary:  ['private-sector-worker', 'public-civil-servant'],
   public:  ['public-civil-servant'],
-  school:  ['student'],
+  school:  ['private-sector-worker', 'public-civil-servant'],
   corper:  ['corper'],
   sme:     ['sme-owner'],
   coop:    ['public-civil-servant', 'private-sector-worker'],
@@ -778,6 +782,7 @@ export class CreateLoanComponent implements OnInit {
     if (this.config.incomeRemita) labels.push('Remita');
     if (this.config.incomeIppis) labels.push('WACS');
     if (this.config.incomeBankStatement) labels.push('Bank Statement');
+    if (this.config.incomeDedukt) labels.push('Dedukt');
     return labels;
   }
 
@@ -806,6 +811,7 @@ export class CreateLoanComponent implements OnInit {
     if (this.config.incomeRemita) channels.push({ id: 'remita', label: 'Remita', desc: 'Salary verification via Remita', status: 'pending' });
     if (this.config.incomeIppis) channels.push({ id: 'wacs', label: 'WACS', desc: 'State government payroll verification', status: 'pending' });
     if (this.config.incomeBankStatement) channels.push({ id: 'bank', label: 'Bank Statement', desc: 'Automated bank statement analysis', status: 'pending' });
+    if (this.config.incomeDedukt) channels.push({ id: 'dedukt', label: 'Dedukt', desc: 'Third-party payroll deduction verification', status: 'pending' });
     return channels;
   }
 
@@ -1206,7 +1212,7 @@ export class CreateLoanComponent implements OnInit {
 
   get showIncomeVerification(): boolean { return true; }
   get noIncomeSelected(): boolean {
-    return !this.config.incomeRemita && !this.config.incomeIppis && !this.config.incomeBankStatement;
+    return !this.config.incomeRemita && !this.config.incomeIppis && !this.config.incomeBankStatement && !this.config.incomeDedukt;
   }
 
   get noDeductionSelected(): boolean {

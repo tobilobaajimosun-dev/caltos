@@ -494,7 +494,18 @@
                   <div class="verify-title">Email OTP</div>
                   <div class="verify-sub">Verify email via one-time code</div>
                 </button>
+                <button class="verify-card" [class.selected]="config.identityCreditBureau" (click)="config.identityCreditBureau = !config.identityCreditBureau">
+                  <div class="verify-check" [class.active]="config.identityCreditBureau"></div>
+                  <div class="verify-title">Credit Bureau</div>
+                  <div class="verify-sub">Pull applicant credit report from bureau</div>
+                </button>
               </div>
+              @if (config.identityBvn || config.identityNin) {
+                <div class="info-callout" style="margin-top:14px">
+                  <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
+                  BVN &amp; NIN details will override customer-provided details when supplied.
+                </div>
+              }
             </div>
 
             <!-- Income -->
@@ -518,7 +529,24 @@
                     <div class="verify-title">Bank Statement</div>
                     <div class="verify-sub">Analyse bank statements automatically</div>
                   </button>
+                  <button class="verify-card" [class.selected]="config.incomeDedukt" (click)="config.incomeDedukt = !config.incomeDedukt">
+                    <div class="verify-check" [class.active]="config.incomeDedukt"></div>
+                    <div class="verify-title">Dedukt</div>
+                    <div class="verify-sub">Verify income via Dedukt payroll platform</div>
+                  </button>
                 </div>
+                @if (config.incomeDedukt) {
+                  <div class="dedukt-keys">
+                    <div class="field-group">
+                      <label class="field-label">Dedukt API Key</label>
+                      <input class="text-input" type="text" placeholder="Enter your Dedukt API key" [(ngModel)]="config.incomeDeduktApiKey" />
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Dedukt Secret Key</label>
+                      <input class="text-input" type="password" placeholder="Enter your Dedukt secret key" [(ngModel)]="config.incomeDeduktSecretKey" />
+                    </div>
+                  </div>
+                }
                 @if (noIncomeSelected) {
                   <div class="info-callout warn" style="margin-top:14px">
                     <hi-icon [icon]="infoIcon" size="13" color="currentColor" />
@@ -1274,8 +1302,8 @@
                     }
                     @if (i === 2) {
                       <div class="review-grid">
-                        <div class="review-item"><span class="r-label">Identity</span><span class="r-val">{{ compact([config.identityBvn ? 'BVN' : '', config.identityNin ? 'NIN' : '', config.identityPhoneOtp ? 'Phone OTP' : '']) }}</span></div>
-                        <div class="review-item"><span class="r-label">Income verification</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'WACS' : '', config.incomeBankStatement ? 'Bank Statement' : '']) || 'None' }}</span></div>
+                        <div class="review-item"><span class="r-label">Identity</span><span class="r-val">{{ compact([config.identityBvn ? 'BVN' : '', config.identityNin ? 'NIN' : '', config.identityPhoneOtp ? 'Phone OTP' : '', config.identityCreditBureau ? 'Credit Bureau' : '']) }}</span></div>
+                        <div class="review-item"><span class="r-label">Income verification</span><span class="r-val">{{ compact([config.incomeRemita ? 'Remita' : '', config.incomeIppis ? 'WACS' : '', config.incomeBankStatement ? 'Bank Statement' : '', config.incomeDedukt ? 'Dedukt' : '']) || 'None' }}</span></div>
                         <div class="review-item review-item--full"><span class="r-label">Repayment deduction</span><span class="r-val">{{ activeDeductionChannels.join(' · ') || 'None configured' }}</span></div>
                         <div class="review-item"><span class="r-label">Gov ID</span><span class="r-val">{{ config.docGovId | titlecase }}</span></div>
                       </div>
