@@ -467,7 +467,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   get showMonthlyIncomeField(): boolean {
     if (this.isBnpl && this.bnplAudience === 'private-worker') return true;
     const method = this.effectiveIncomeMethod;
-    return this.selectedProfile?.audience === 'salaried-worker' &&
+    return this.selectedProfile?.audience === 'private-sector-worker' &&
       (method === 'payslip' || method === 'bank-statement');
   }
 
@@ -534,7 +534,7 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     const incomeSourceMap: Record<string, IncomeSource> = {
       wacs: 'wacs', remita: 'remita', payslip: 'other', 'bank-statement': 'other',
     };
-    const monthlyAmount = (this.selectedProfile?.audience === 'salaried-worker' || (this.isBnpl && this.bnplAudience === 'private-worker'))
+    const monthlyAmount = (this.selectedProfile?.audience === 'private-sector-worker' || (this.isBnpl && this.bnplAudience === 'private-worker'))
       ? parseThousands(this.values['monthlyIncome'] || '0') || this.fetchedMonthlyIncome
       : this.fetchedMonthlyIncome;
     return {

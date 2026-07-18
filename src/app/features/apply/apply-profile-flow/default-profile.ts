@@ -5,7 +5,7 @@ import { LoanConfig } from '../../loans/create-loan/create-loan.component';
  * (see TEMPLATE_PRESETS in create-loan.component.ts) already sets config.audience directly for
  * products saved from now on, so this only matters for products created before that field existed. */
 const TEMPLATE_AUDIENCE: Partial<Record<string, AudienceCategory>> = {
-  salary: 'salaried-worker',
+  salary: 'private-sector-worker',
   public: 'public-civil-servant',
   corper: 'corper',
   sme: 'sme-owner',
@@ -26,7 +26,7 @@ function inferAudience(product: LoanConfig): AudienceCategory | null {
   if (product.collectNyscInfo) return 'corper';
   if (product.collectCivilServiceInfo || product.incomeIppis) return 'public-civil-servant';
   if (product.collectBusiness && product.incomeBankStatement) return 'sme-owner';
-  if (product.incomeBankStatement && product.collectEmployment) return 'salaried-worker';
+  if (product.incomeBankStatement && product.collectEmployment) return 'private-sector-worker';
   if (product.incomeRemita) return 'public-civil-servant';
   return null;
 }

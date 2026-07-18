@@ -139,73 +139,64 @@
               </div>
             </div>
 
-            <!-- Borrower type — multi-select checkboxes so one product can serve multiple audience types. -->
-            <div class="form-card">
-              <div class="form-card-title">Who is this loan product for?</div>
-              <div class="field-group">
-                <p class="field-sub">Select all borrower types this product is designed for. This determines which income verification methods are offered at application.</p>
-                <div class="audience-category-checks">
-                  @for (opt of audienceCategoryOptions; track opt.value) {
-                    @if (opt.value) {
-                      <label class="audience-cat-row">
-                        <input type="checkbox"
-                          [checked]="(config.audienceCategories ?? []).includes($any(opt.value))"
-                          (change)="toggleAudienceCategory($any(opt.value))" />
-                        <span class="audience-cat-label">{{ opt.label }}</span>
-                      </label>
+            <!-- Who is this loan product for? — pills, no extra card wrapper -->
+            <div class="field-group">
+              <label class="field-label">Who is this loan product for?</label>
+              <p class="field-sub">{{ isScratchTemplate ? 'Choose all borrower types for this product.' : 'Set automatically based on product type.' }}</p>
+              <div class="audience-pills">
+                @for (opt of audienceCategoryOptions; track opt.value) {
+                  @if (opt.value) {
+                    @if (isScratchTemplate) {
+                      <button class="audience-pill" [class.selected]="(config.audienceCategories ?? []).includes($any(opt.value))" (click)="toggleAudienceCategory($any(opt.value))">
+                        @if ((config.audienceCategories ?? []).includes($any(opt.value))) {
+                          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        }
+                        {{ opt.label }}
+                      </button>
+                    } @else if ((config.audienceCategories ?? []).includes($any(opt.value))) {
+                      <span class="audience-pill selected">{{ opt.label }}</span>
                     }
                   }
-                </div>
-                @if ((config.audienceCategories ?? []).length === 0) {
-                  <p class="field-hint">No type selected — all income verification methods will be available (legacy mode).</p>
+                }
+                @for (ct of config.customAudienceTypes ?? []; track ct.id) {
+                  <span class="audience-pill selected custom-pill">
+                    {{ ct.title }}
+                    @if (isScratchTemplate) {
+                      <button class="pill-remove-btn" (click)="removeCustomAudienceType(ct.id)" aria-label="Remove {{ ct.title }}">×</button>
+                    }
+                  </span>
                 }
               </div>
+              @if ((config.audienceCategories ?? []).length === 0 && (config.customAudienceTypes ?? []).length === 0) {
+                <p class="field-sub muted-hint">No borrower type selected yet.</p>
+              }
+              @if (isScratchTemplate) {
+                @if (!addCustomOpen) {
+                  <button class="add-custom-type-btn" (click)="addCustomOpen = true">+ Add custom type</button>
+                } @else {
+                  <div class="custom-type-form">
+                    <div class="field-row">
+                      <div class="field-group">
+                        <label class="field-label">Borrower type name</label>
+                        <input class="text-input" type="text" placeholder="e.g. Married Women" [(ngModel)]="draftCustomTitle" />
+                      </div>
+                      <div class="field-group">
+                        <label class="field-label">Repayment channel <span class="req">*</span></label>
+                        <app-select [options]="mandateRailOptions" [value]="draftCustomRail" (valueChange)="draftCustomRail = $event" />
+                      </div>
+                    </div>
+                    @if (!mandateRailOptions.length) {
+                      <p class="field-sub" style="color: var(--color-grey-header)">No repayment channels configured yet. Set up integrations in Settings first.</p>
+                    }
+                    <div class="custom-type-actions">
+                      <app-button variant="primary" label="Add type" [disabled]="!draftCustomTitle || !draftCustomRail" (clicked)="addCustomAudienceType()" />
+                      <app-button variant="outline" label="Cancel" (clicked)="addCustomOpen = false; draftCustomTitle = ''; draftCustomRail = ''" />
+                    </div>
+                  </div>
+                }
+              }
             </div>
 
-            <!-- Target Audience — only meaningful for a custom, build-from-scratch product;
-                 templated loan types already imply their audience. -->
-            @if (config.template === 'scratch') {
-            <div class="form-card">
-              <div class="form-card-title">Who is this for?</div>
-              <div class="field-group">
-                <label class="field-label">Target audience <span class="req">*</span></label>
-                <div class="audience-mode-choice">
-                  <app-radio-button
-                    label="Everyone"
-                    [selected]="config.audienceMode === 'everyone'"
-                    (selectedChange)="config.audienceMode = 'everyone'" />
-                  <app-radio-button
-                    label="Custom audience"
-                    [selected]="config.audienceMode === 'custom'"
-                    (selectedChange)="config.audienceMode = 'custom'" />
-                </div>
-                @if (config.audienceMode === 'custom') {
-                  <p class="field-sub">Select all groups eligible to apply for this product.</p>
-                  <div class="audience-pills">
-                    @for (aud of audiences; track aud) {
-                      <button
-                        class="audience-pill"
-                        [class.selected]="config.targetAudiences.includes(aud)"
-                        (click)="toggleAudience(aud)">
-                        @if (config.targetAudiences.includes(aud)) {
-                          <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
-                            <path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        }
-                        {{ aud }}
-                      </button>
-                    }
-                  </div>
-                  @if (config.targetAudiences.length) {
-                    <div class="audience-selected-note">
-                      <hi-icon [icon]="infoIcon" size="12" color="currentColor" />
-                      {{ config.targetAudiences.join(' · ') }}
-                    </div>
-                  }
-                }
-              </div>
-            </div>
-            }
 
             <!-- Amount Range -->
             <div class="form-card">
@@ -340,80 +331,6 @@
                 </div>
               </div>
             }
-
-            <!-- Applicant Profiles (new profile-driven /apply engine) -->
-            <div class="form-card">
-              <div class="form-card-title">Applicant Profiles</div>
-              <div class="form-card-sub">Optional — define one or more applicant types (e.g. "Government Employee" vs. "Business Owner"). Adding at least one switches this product's borrower portal to the profile-driven 9-step flow instead of the default flow.</div>
-
-              @for (profile of config.applicantProfiles; track profile.profileId) {
-                <div class="collection-row" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 16px; border: 1px solid var(--color-stroke); border-radius: 8px; margin-top: 12px;">
-                  <div class="field-row">
-                    <div class="field-group">
-                      <label class="field-label">Profile label</label>
-                      <input class="text-input" type="text" [ngModel]="profile.label" (ngModelChange)="updateApplicantProfile(profile.profileId, { label: $event })" />
-                    </div>
-                    <button class="expand-btn" (click)="removeApplicantProfile(profile.profileId)" aria-label="Remove profile">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                    </button>
-                  </div>
-
-                  <div class="field-row">
-                    <div class="field-group">
-                      <label class="field-label">Income verification source</label>
-                      <app-select [options]="incomeMethodOptionsForAudience" [value]="profile.incomeVerificationSource" (valueChange)="updateApplicantProfile(profile.profileId, { incomeVerificationSource: $any($event) })" />
-                      @if (!config.audience) {
-                        <p class="field-sub">Set a borrower type in the About Loan step to narrow these options to what's relevant.</p>
-                      }
-                    </div>
-                    <div class="field-group">
-                      <label class="field-label">Mandate rail</label>
-                      <app-select [options]="mandateRailOptions" [value]="profile.mandateRail" (valueChange)="updateApplicantProfile(profile.profileId, { mandateRail: $event })" />
-                    </div>
-                  </div>
-
-                  <div class="field-group">
-                    <label class="field-label">Mandate timing</label>
-                    <div class="freq-row">
-                      <button class="freq-btn" [class.selected]="profile.mandateTiming === 'inline'" (click)="updateApplicantProfile(profile.profileId, { mandateTiming: 'inline' })">Before eligibility result</button>
-                      <button class="freq-btn" [class.selected]="profile.mandateTiming === 'post_approval'" (click)="updateApplicantProfile(profile.profileId, { mandateTiming: 'post_approval' })">After eligibility result</button>
-                    </div>
-                  </div>
-
-                  <div class="field-group">
-                    <label class="field-label">Fields to collect</label>
-                    <div class="verify-grid">
-                      @for (f of applicantFieldKeyOptions; track f.key) {
-                        <button class="verify-card" [class.selected]="profile.fieldsRequired.includes(f.key)" (click)="toggleProfileField(profile.profileId, f.key)">
-                          <div class="verify-check" [class.active]="profile.fieldsRequired.includes(f.key)"></div>
-                          <div class="verify-title">{{ f.label }}</div>
-                        </button>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="field-group">
-                    <label class="field-label">Required documents</label>
-                    @for (doc of profile.requiredDocuments; track doc.key) {
-                      <div class="field-row" style="margin-top: 8px">
-                        <div class="field-group">
-                          <input class="text-input" type="text" placeholder="Document label" [ngModel]="doc.label" (ngModelChange)="updateProfileDocument(profile.profileId, doc.key, { label: $event })" />
-                        </div>
-                        <div class="field-group">
-                          <app-select [options]="captureMethodOptions" [value]="doc.captureMethod" (valueChange)="updateProfileDocument(profile.profileId, doc.key, { captureMethod: $any($event) })" />
-                        </div>
-                        <button class="expand-btn" (click)="removeProfileDocument(profile.profileId, doc.key)" aria-label="Remove document">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                        </button>
-                      </div>
-                    }
-                    <app-button variant="outline" label="Add document" (clicked)="addProfileDocument(profile.profileId)" style="margin-top: 8px" />
-                  </div>
-                </div>
-              }
-
-              <app-button variant="secondary" label="Add applicant profile" (clicked)="addApplicantProfile()" style="margin-top: 12px" />
-            </div>
 
             <!-- Entry options -->
             <div class="form-card">
@@ -1042,6 +959,16 @@
                       </div>
                     </div>
                   }
+                </div>
+                <div class="disburse-rule">
+                  <div class="toggle-option-text">
+                    <div class="toggle-option-title">Repayment mandate timing</div>
+                    <div class="toggle-option-sub">When should the repayment mandate be set up relative to the eligibility result?</div>
+                  </div>
+                  <div class="freq-row" style="margin-top: 8px">
+                    <button class="freq-btn" [class.selected]="config.mandateTiming === 'inline'" (click)="config.mandateTiming = 'inline'">Before eligibility result</button>
+                    <button class="freq-btn" [class.selected]="config.mandateTiming === 'post_approval'" (click)="config.mandateTiming = 'post_approval'">After approval</button>
+                  </div>
                 </div>
               </div>
             </div>

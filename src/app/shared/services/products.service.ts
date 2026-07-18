@@ -189,23 +189,36 @@ export type IncomeVerificationSource = 'remita' | 'wacs' | 'bank-statement' | 'b
  * choice on. A profile's audience (if set) constrains which IncomeVerificationSource values are
  * offered — see AUDIENCE_INCOME_METHODS. Existing profiles with no audience set are treated as
  * legacy/unconstrained and keep using their single incomeVerificationSource unchanged. */
-export type AudienceCategory = 'public-civil-servant' | 'salaried-worker' | 'sme-owner' | 'corper';
+export type AudienceCategory =
+  | 'public-civil-servant'
+  | 'private-sector-worker'
+  | 'sme-owner'
+  | 'paramilitary'
+  | 'correctional-services'
+  | 'corper'
+  | 'student';
 
 /** Single source of truth for which income-verification methods each audience may choose between,
  * used both by the create-loan wizard (to constrain the picker per profile) and by the v2 /apply
  * flow's income-verification bucket (to render the choice UI). */
 export const AUDIENCE_INCOME_METHODS: Record<AudienceCategory, IncomeVerificationSource[]> = {
   'public-civil-servant': ['remita', 'wacs'],
-  'salaried-worker': ['payslip', 'bank-statement'],
+  'private-sector-worker': ['payslip', 'bank-statement'],
   'sme-owner': ['bank-statement'],
-  corper: ['remita'],
+  'paramilitary': ['remita', 'wacs'],
+  'correctional-services': ['remita', 'wacs'],
+  'corper': ['remita'],
+  'student': ['bank-statement'],
 };
 
 export const AUDIENCE_CATEGORY_LABELS: Record<AudienceCategory, string> = {
-  'public-civil-servant': 'Public / Civil Servant',
-  'salaried-worker': 'Salaried Worker',
-  'sme-owner': 'SME Owner',
-  corper: 'Corper (NYSC)',
+  'public-civil-servant': 'Public Servants',
+  'private-sector-worker': 'Private Sector Workers',
+  'sme-owner': 'SME Owners / Founders',
+  'paramilitary': 'Paramilitary Workers',
+  'correctional-services': 'Correctional Services',
+  'corper': 'Corpers (NYSC)',
+  'student': 'Students',
 };
 
 /** Field keys the profile-driven /apply flow's generic field renderer knows how to draw —

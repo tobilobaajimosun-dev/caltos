@@ -90,6 +90,10 @@ export interface LoanConfig {
   audience: AudienceCategory | null;
   /** Multi-select list of audience categories this product targets. Synced from the UI's checkbox list. */
   audienceCategories: AudienceCategory[];
+  /** Product-level mandate timing — moved from per-profile to product-level. */
+  mandateTiming: 'inline' | 'post_approval';
+  /** Custom borrower types added by the lender for scratch products. */
+  customAudienceTypes: { id: string; title: string; mandateRail: string }[];
   minAmount: string;
   maxAmount: string;
   minTenor: string;
@@ -266,7 +270,7 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     docNyscLetter: 'none', docCacCert: 'none', docMembershipCert: 'none', docMembershipId: 'none',
     disburseTo: 'bank', namedAccountOnly: true, repaymentFrequency: 'Monthly',
     welcomeMessage: 'Welcome! Get quick access to your salary in advance. The process takes about 5 minutes.',
-    audience: 'salaried-worker',
+    audience: 'private-sector-worker',
   },
   public: {
     name: 'Public Sector Loan',
@@ -374,6 +378,17 @@ const TEMPLATE_PRESETS: Record<string, Partial<LoanConfig>> = {
     incomeSourceOptions: ['private', 'government', 'paramilitary', 'business'],
   },
   scratch: {},
+};
+
+/** Auto-selects the correct audience categories for each template type. */
+const TEMPLATE_AUDIENCE_MAP: Partial<Record<string, AudienceCategory[]>> = {
+  salary:  ['private-sector-worker'],
+  public:  ['public-civil-servant'],
+  school:  ['student'],
+  corper:  ['corper'],
+  sme:     ['sme-owner'],
+  coop:    ['public-civil-servant', 'private-sector-worker'],
+  bnpl:    ['public-civil-servant', 'private-sector-worker', 'sme-owner'],
 };
 
 @Component({
@@ -514,10 +529,11 @@ export class CreateLoanComponent implements OnInit {
 
   selectLoanType(id: string) {
     const preset = TEMPLATE_PRESETS[id];
+    const audienceCategories: AudienceCategory[] = TEMPLATE_AUDIENCE_MAP[id] ?? [];
     if (preset) {
-      this.config = { ...this.config, ...preset, template: id };
+      this.config = { ...this.config, ...preset, template: id, audienceCategories };
     } else {
-      this.config = { ...this.config, template: id };
+      this.config = { ...this.config, template: id, audienceCategories };
     }
     this.next();
   }
@@ -593,6 +609,8 @@ export class CreateLoanComponent implements OnInit {
     collectCivilServiceInfo: false, collectNyscInfo: false,
     incomeSourceOptions: [], bnplCustomCategory: '', bnplDefaultVendorLimit: '', bnplPurchaseMode: 'amount',
     applicantProfiles: [],
+    mandateTiming: 'post_approval',
+    customAudienceTypes: [],
   };
 
   private readonly route = inject(ActivatedRoute);
@@ -883,9 +901,28 @@ export class CreateLoanComponent implements OnInit {
       policyText: `By applying for ${this.config.name || 'this product'}, you agree that we may verify your employment, salary, and credit history from third-party sources to assess your eligibility. By checking this box, you confirm that you have read and accept our Privacy Policy and Loan Terms & Conditions.`,
       notificationEvents: DEFAULT_NOTIFICATION_EVENTS,
       accountIdentifier: 'bvn',
-      // audience is a single product-level choice (About Loan step) — every profile carries the
-      // same value so the borrower flow's per-profile audience check keeps working unchanged.
-      applicantProfiles: this.config.applicantProfiles.map((p) => ({ ...p, audience: this.config.audience })),
+      applicantProfiles: [
+        ...(this.config.audienceCategories ?? []).map((cat) => ({
+          profileId: cat,
+          label: AUDIENCE_CATEGORY_LABELS[cat],
+          incomeVerificationSource: (AUDIENCE_INCOME_METHODS[cat] ?? ['bank-statement'])[0],
+          audience: cat,
+          fieldsRequired: [] as ApplicantFieldKey[],
+          requiredDocuments: [],
+          mandateRail: this.config.deductRemita ? 'remita' : this.config.deductIppis ? 'ippis' : this.config.deductWacs ? 'wacs' : 'remita',
+          mandateTiming: this.config.mandateTiming ?? 'post_approval',
+        })),
+        ...(this.config.customAudienceTypes ?? []).map((ct) => ({
+          profileId: ct.id,
+          label: ct.title,
+          incomeVerificationSource: 'bank-statement' as IncomeVerificationSource,
+          audience: null as AudienceCategory | null,
+          fieldsRequired: [] as ApplicantFieldKey[],
+          requiredDocuments: [],
+          mandateRail: ct.mandateRail,
+          mandateTiming: this.config.mandateTiming ?? 'post_approval',
+        })),
+      ],
       // No wizard step for this — defaults are set at creation and reviewed/edited afterward on
       // the product detail page's Liquidation tab. When editing an existing product, carry its
       // current policy forward instead of resetting it, since this method rebuilds the whole
@@ -1418,6 +1455,29 @@ export class CreateLoanComponent implements OnInit {
     this.config.audience = (next[0] ?? null) as AudienceCategory | null;
     // re-run income method constraint when audience changes
     this.setProductAudience(this.config.audience ?? '');
+  }
+
+  get isScratchTemplate(): boolean { return this.config.template === 'scratch'; }
+
+  addCustomOpen = false;
+  draftCustomTitle = '';
+  draftCustomRail = '';
+
+  addCustomAudienceType() {
+    if (!this.draftCustomTitle.trim() || !this.draftCustomRail) return;
+    const newEntry = {
+      id: 'custom-' + Date.now(),
+      title: this.draftCustomTitle.trim(),
+      mandateRail: this.draftCustomRail,
+    };
+    this.config.customAudienceTypes = [...(this.config.customAudienceTypes ?? []), newEntry];
+    this.draftCustomTitle = '';
+    this.draftCustomRail = '';
+    this.addCustomOpen = false;
+  }
+
+  removeCustomAudienceType(id: string) {
+    this.config.customAudienceTypes = (this.config.customAudienceTypes ?? []).filter(c => c.id !== id);
   }
 
   /** When the product's audience changes, every profile's incomeVerificationSource may no longer

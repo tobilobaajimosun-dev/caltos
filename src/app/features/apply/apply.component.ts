@@ -51,6 +51,8 @@ const FALLBACK_CONFIG: LoanConfig = {
   collectSchoolInfo: false, collectCoopInfo: false,
   collectCivilServiceInfo: false, collectNyscInfo: false,
   applicantProfiles: [],
+  mandateTiming: 'post_approval',
+  customAudienceTypes: [],
 };
 
 /**
