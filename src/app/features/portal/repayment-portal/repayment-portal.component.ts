@@ -1,6 +1,6 @@
 import {
-  AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef,
-  Component, inject, OnInit, PLATFORM_ID,
+  ChangeDetectionStrategy, ChangeDetectorRef,
+  Component, inject, PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,12 +29,6 @@ interface ScheduleRow {
   interest: string;
 }
 
-interface ChatMessage {
-  role: 'user' | 'agent';
-  text: string;
-  time: string;
-}
-
 @Component({
   selector: 'app-repayment-portal',
   standalone: true,
@@ -43,7 +37,7 @@ interface ChatMessage {
   templateUrl: './repayment-portal.component.html',
   styleUrl: './repayment-portal.component.scss',
 })
-export class RepaymentPortalComponent implements OnInit, AfterViewInit {
+export class RepaymentPortalComponent {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -65,7 +59,6 @@ export class RepaymentPortalComponent implements OnInit, AfterViewInit {
       this.isVerifying = false;
       this.isAuthenticated = true;
       this.cdr.markForCheck();
-      if (isPlatformBrowser(this.platformId)) this.loadZohoScript();
     }, 1400);
   }
 
@@ -148,67 +141,4 @@ export class RepaymentPortalComponent implements OnInit, AfterViewInit {
     a.click();
     URL.revokeObjectURL(url);
   }
-
-  // ── Chat panel ───────────────────────────────────────────────────────────────
-  chatMessages: ChatMessage[] = [];
-  chatInput = '';
-  chatStarted = false;
-
-  readonly suggestedPrompts = [
-    'What is my outstanding balance?',
-    'How do I make a payment?',
-    'Change my mandate account',
-  ];
-
-  useSuggestion(prompt: string) {
-    this.sendMessage(prompt);
-  }
-
-  sendMessage(text?: string) {
-    const msg = (text ?? this.chatInput).trim();
-    if (!msg) return;
-    this.chatStarted = true;
-    const now = new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' });
-    this.chatMessages.push({ role: 'user', text: msg, time: now });
-    this.chatInput = '';
-    this.cdr.markForCheck();
-    // Auto-reply placeholder — Zoho SalesIQ handles real responses
-    setTimeout(() => {
-      this.chatMessages.push({
-        role: 'agent', time: new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }),
-        text: 'Thanks for reaching out! A support agent will be with you shortly. In the meantime, you can check your loan details in the dashboard.',
-      });
-      this.cdr.markForCheck();
-    }, 1200);
-  }
-
-  newConversation() {
-    this.chatMessages = [];
-    this.chatStarted = false;
-    this.chatInput = '';
-    this.cdr.markForCheck();
-  }
-
-  // ── Zoho SalesIQ ─────────────────────────────────────────────────────────────
-  private loadZohoScript() {
-    // Replace ZOHO_WIDGET_CODE_HERE with your actual Zoho SalesIQ widget code
-    const widgetCode = 'ZOHO_WIDGET_CODE_HERE';
-    if (widgetCode === 'ZOHO_WIDGET_CODE_HERE') return; // Skip in demo mode
-    if (document.getElementById('zsiqscript')) return;
-    (window as any)['$zoho'] = (window as any)['$zoho'] || {};
-    (window as any)['$zoho'].salesiq = {
-      widgetcode: widgetCode,
-      values: { name: this.borrowerName },
-      ready: () => {},
-    };
-    const s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.id = 'zsiqscript';
-    s.defer = true;
-    s.src = 'https://salesiq.zohopublic.com/widget';
-    document.head.appendChild(s);
-  }
-
-  ngOnInit() {}
-  ngAfterViewInit() {}
 }

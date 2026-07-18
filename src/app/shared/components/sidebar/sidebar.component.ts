@@ -144,4 +144,8 @@ export class SidebarComponent {
     this.orgName = org.name;
     this.switchOrgOpen.set(false);
   }
+
+  signOut() {
+    this.router.navigateByUrl('/login');
+  }
 }

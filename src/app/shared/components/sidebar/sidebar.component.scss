@@ -78,6 +78,26 @@
   gap: var(--space-3);
 }
 
+.sidebar-signout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  text-align: left;
+  margin-top: var(--space-2);
+  transition: background 0.12s, color 0.12s;
+
+  &:hover { background: var(--color-error-bg); color: var(--color-error); }
+}
+
 .nav-children {
   display: flex;
   flex-direction: column;

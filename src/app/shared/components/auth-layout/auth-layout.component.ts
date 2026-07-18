@@ -9,4 +9,6 @@ import { RouterLink } from '@angular/router';
   templateUrl: './auth-layout.component.html',
   styleUrl: './auth-layout.component.scss',
 })
-export class AuthLayoutComponent {}
+export class AuthLayoutComponent {
+  readonly year = new Date().getFullYear();
+}

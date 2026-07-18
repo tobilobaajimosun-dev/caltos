@@ -1,15 +1,28 @@
 <div class="auth-shell">
-  <div class="bg-pattern"></div>
+  <header class="auth-nav">
+    <a routerLink="/" class="auth-logo" aria-label="Caltos home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="7" width="20" height="14" rx="2.5" fill="var(--color-blue)"/>
+        <path d="M16 7V5.5a4 4 0 00-8 0V7" stroke="var(--color-blue)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 13l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="auth-logo-text">Caltos</span>
+    </a>
+  </header>
 
-  <a routerLink="/" class="back-home">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Back home
-  </a>
+  <main class="auth-main">
+    <div class="auth-form-wrap">
+      <ng-content />
+    </div>
+  </main>
 
-  <div class="auth-card">
-    <div class="brand-mark">C</div>
-    <ng-content />
-  </div>
-
-  <p class="auth-footer">&copy;2026 Caltos Credit Systems Limited. All rights reserved.</p>
+  <footer class="auth-footer">
+    <a href="#">Privacy</a>
+    <span class="auth-footer-dot">·</span>
+    <a href="#">Terms</a>
+    <span class="auth-footer-dot">·</span>
+    <a href="#">Security</a>
+    <span class="auth-footer-dot">·</span>
+    <span>&copy; {{ year }} Caltos Credit Systems</span>
+  </footer>
 </div>

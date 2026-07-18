@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthLayoutComponent, ButtonComponent } from '../../../shared/components';
+import { AuthLayoutComponent } from '../../../shared/components';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent, ButtonComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
