@@ -4,14 +4,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  KpiCardComponent,
-  ColumnTitleComponent,
-  TableItemComponent,
-  StatusBadgeComponent,
-  BadgeStatus,
-  ButtonComponent,
-} from '../../../shared/components';
+import { BadgeStatus } from '../../../shared/components';
 
 type NavItem = 'home' | 'history' | 'documents';
 
@@ -31,7 +24,7 @@ interface ScheduleRow {
 
 @Component({
   selector: 'app-repayment-portal',
-  imports: [FormsModule, KpiCardComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, ButtonComponent],
+  imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './repayment-portal.component.html',
   styleUrl: './repayment-portal.component.scss',

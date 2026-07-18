@@ -1,785 +1,657 @@
-// ── Design tokens (Indeed-aligned, theme-compatible) ─────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// Repayment Portal — Revolut Business direction (see design.md)
+// Grey canvas · floating white cards · lavender chips · indigo accent
+// ═══════════════════════════════════════════════════════════════════
+
 :host {
-  --rp-white:         #ffffff;
-  --rp-bg:            #f3f2f1;
-  --rp-stroke:        #e4e2e0;
-  --rp-stroke-light:  #f0efed;
-  --rp-text-primary:  #1a1a1a;
-  --rp-text-secondary:#595959;
-  --rp-text-muted:    #767676;
-  --rp-blue:          #2557a7;
-  --rp-blue-hover:    #1e4a8f;
-  --rp-blue-light:    #e8f0fb;
-  --rp-radius-card:   8px;
-  --rp-radius-input:  6px;
-  --rp-radius-btn:    6px;
+  --rp-canvas: #f6f6f8;
+  --rp-surface: #ffffff;
+  --rp-surface-hover: #fafafb;
+  --rp-hairline: #f0f0f2;
+  --rp-accent: #4f55f1;
+  --rp-accent-hover: #3b41d8;
+  --rp-tint: #e9eafc;
+  --rp-tint-hover: #dddffa;
+  --rp-text: #17181c;
+  --rp-text-soft: #8b8f9a;
+  --rp-success: #12813d;
+  --rp-success-bg: #e7f6ec;
+  --rp-error: #d13030;
+  --rp-error-bg: #fdecec;
 
   display: block;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--rp-white);
+  min-height: 100vh;
+  background: var(--rp-canvas);
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  color: var(--rp-text);
 }
 
-// ── BVN Gate ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// BVN GATE
+// ═══════════════════════════════════════════════════════════════════
 .rp-gate {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--rp-bg);
   padding: 24px;
 }
 
 .rp-gate-card {
   width: 100%;
-  max-width: 440px;
-  background: var(--rp-white);
-  border: 1px solid var(--rp-stroke);
-  border-radius: 12px;
-  padding: 48px 40px;
+  max-width: 420px;
+  background: var(--rp-surface);
+  border-radius: 24px;
+  padding: 40px 36px 32px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 20px;
+  gap: 24px;
 }
 
 .rp-gate-logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  background: var(--rp-blue-light);
-  border: 1px solid #c7d9f5;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--rp-tint);
+  color: var(--rp-accent);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.rp-gate-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.rp-gate-heading { display: flex; flex-direction: column; gap: 8px; }
 
 .rp-gate-title {
-  font-family: var(--font-heading);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--rp-text-primary);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 0;
-  line-height: 1.2;
 }
 
 .rp-gate-sub {
-  font-size: 15px;
-  color: var(--rp-text-secondary);
+  font-size: 13px;
+  color: var(--rp-text-soft);
+  line-height: 1.55;
   margin: 0;
-  line-height: 1.6;
 }
 
-.rp-gate-field {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
+.rp-gate-field { display: flex; flex-direction: column; gap: 8px; }
 
 .rp-gate-label {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--rp-text-primary);
+  color: var(--rp-text);
 }
 
 .rp-gate-input {
-  width: 100%;
   height: 48px;
   padding: 0 16px;
-  border-radius: var(--rp-radius-input);
-  border: 1.5px solid var(--rp-text-muted);
-  background: var(--rp-white);
+  background: #f0f0f3;
+  border: 2px solid transparent;
+  border-radius: 12px;
   font-size: 15px;
-  font-family: var(--font-body);
-  color: var(--rp-text-primary);
-  letter-spacing: 0.05em;
+  font-family: inherit;
+  color: var(--rp-text);
+  letter-spacing: 0.04em;
   outline: none;
-  transition: border-color 0.15s;
-  box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s;
 
-  &:focus { border-color: var(--rp-blue); box-shadow: 0 0 0 2px rgba(37, 87, 167, 0.15); }
-  &--error { border-color: var(--color-error, #d93025); }
+  &:focus { background: var(--rp-surface); border-color: var(--rp-accent); }
+  &::placeholder { color: #a0a4ae; letter-spacing: normal; }
+  &--error { border-color: var(--rp-error); background: var(--rp-surface); }
 }
 
 .rp-gate-error {
-  font-size: 13px;
-  color: var(--color-error, #d93025);
+  font-size: 12px;
+  color: var(--rp-error);
   margin: 0;
 }
 
 .rp-gate-btn {
-  width: 100%;
   height: 48px;
-  border-radius: var(--rp-radius-btn);
-  background: var(--rp-blue);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
   border: none;
+  border-radius: 100px;
+  background: var(--rp-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
 
-  &:hover:not(:disabled) { background: var(--rp-blue-hover); }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
-}
-
-.rp-gate-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: rp-spin 0.7s linear infinite;
+  &:hover:not(:disabled) { background: var(--rp-accent-hover); }
+  &:active:not(:disabled) { transform: scale(0.99); }
+  &:disabled { opacity: 0.7; cursor: default; }
+  &:focus-visible { outline: 3px solid var(--rp-tint); outline-offset: 2px; }
 }
 
 .rp-gate-note {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--rp-text-muted);
+  color: var(--rp-text-soft);
   margin: 0;
 }
 
-@keyframes rp-spin { to { transform: rotate(360deg); } }
-
-// ── App shell ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// SHELL
+// ═══════════════════════════════════════════════════════════════════
 .rp-app {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--rp-white);
 }
 
-// ── Top nav bar ───────────────────────────────────────────────────────────────
 .rp-topnav {
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 24px;
-  background: var(--rp-white);
-  border-bottom: 1px solid var(--rp-stroke);
-  flex-shrink: 0;
-  z-index: 10;
+  padding: 0 28px;
 }
 
-.rp-topnav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.rp-topnav-brand { display: flex; align-items: center; gap: 10px; }
 
 .rp-topnav-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 7px;
-  background: var(--rp-blue-light);
-  border: 1px solid #c7d9f5;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--rp-tint);
+  color: var(--rp-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--rp-blue);
 }
 
 .rp-topnav-name {
-  font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--rp-text-primary);
   letter-spacing: -0.01em;
 }
 
-.rp-topnav-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.rp-topnav-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.rp-topnav-user { display: flex; align-items: center; gap: 10px; }
 
 .rp-topnav-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: var(--rp-blue);
+  background: var(--rp-accent);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-transform: uppercase;
 }
 
 .rp-topnav-borrower {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--rp-text-primary);
-}
-
-// ── Body: three-column (nav | content | chat) ─────────────────────────────────
-.rp-body {
-  display: grid;
-  grid-template-columns: 220px 1fr 320px;
-  flex: 1;
-  overflow: hidden;
-}
-
-// ── Left sidebar nav ──────────────────────────────────────────────────────────
-.rp-nav {
-  display: flex;
-  flex-direction: column;
-  background: var(--rp-white);
-  border-right: 1px solid var(--rp-stroke);
-  padding: 20px 12px;
-  overflow-y: auto;
-}
-
-.rp-nav-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.rp-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: var(--rp-radius-card);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-family: var(--font-body);
-  color: var(--rp-text-secondary);
-  text-align: left;
-  transition: background 0.12s, color 0.12s;
-
-  &:hover:not(.rp-nav-item--active) {
-    background: #f5f4f2;
-    color: var(--rp-text-primary);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--rp-blue);
-    outline-offset: 2px;
-  }
-
-  &--active {
-    background: var(--rp-blue-light);
-    color: var(--rp-blue);
-    font-weight: 600;
-  }
-}
-
-.rp-nav-footer {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--rp-stroke);
-}
-
-.rp-nav-loan-badge {
-  background: #fafaf9;
-  border: 1px solid var(--rp-stroke);
-  border-radius: var(--rp-radius-card);
-  padding: 10px 12px;
-}
-
-.rp-nav-loan-ref {
-  font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--rp-text-secondary);
-  margin: 0;
 }
 
-.rp-nav-loan-prod {
-  font-size: 11px;
-  color: var(--rp-text-muted);
-  margin: 3px 0 0;
+.rp-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 320px;
+  gap: 24px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 28px 48px;
+  align-items: start;
 }
 
-// ── Main content ──────────────────────────────────────────────────────────────
-.rp-main {
-  overflow-y: auto;
-  padding: 36px 40px;
-  background: var(--rp-white);
+// ═══════════════════════════════════════════════════════════════════
+// SIDEBAR — transparent on canvas, active item = white floating card
+// ═══════════════════════════════════════════════════════════════════
+.rp-nav {
+  position: sticky;
+  top: 12px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.rp-section-header {
+.rp-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rp-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--rp-text-soft);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+
+  svg { flex-shrink: 0; }
+
+  &:hover:not(&--active) { background: #ececef; color: var(--rp-text); }
+
+  &--active {
+    background: var(--rp-surface);
+    color: var(--rp-text);
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(23, 24, 28, 0.06);
+
+    svg { color: var(--rp-accent); }
+  }
+}
+
+.rp-nav-footer { padding: 0 6px; }
+
+.rp-nav-loan-badge {
+  background: var(--rp-surface);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.rp-nav-loan-ref {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 3px;
+}
+
+.rp-nav-loan-prod {
+  font-size: 11px;
+  color: var(--rp-text-soft);
+  margin: 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════════════════
+.rp-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.rp-page-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 8px 4px 4px;
+  flex-wrap: wrap;
 }
 
-.rp-section-title {
-  font-family: var(--font-heading);
+.rp-page-title {
   font-size: 26px;
-  font-weight: 700;
-  color: var(--rp-text-primary);
-  margin: 0;
-  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 4px;
 }
 
-.rp-section-sub {
-  font-size: 14px;
-  color: var(--rp-text-muted);
-  margin: 6px 0 0;
+.rp-page-sub {
+  font-size: 13px;
+  color: var(--rp-text-soft);
+  margin: 0;
 
-  strong { color: var(--rp-text-secondary); font-weight: 600; }
+  strong { color: var(--rp-text); font-weight: 600; }
 }
 
 .rp-streak-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 100px;
-  background: #fefce8;
-  border: 1px solid #fde68a;
-  color: #b45309;
+  background: var(--rp-success-bg);
+  color: var(--rp-success);
   font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
-.rp-kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-// ── Card ──────────────────────────────────────────────────────────────────────
+// ── Cards ──────────────────────────────────────────────────────────
 .rp-card {
-  background: var(--rp-white);
-  border: 1px solid var(--rp-stroke);
-  border-radius: var(--rp-radius-card);
-  padding: 24px;
-}
-
-.rp-card--table {
-  padding: 0;
-  overflow: hidden;
+  background: var(--rp-surface);
+  border-radius: 20px;
+  padding: 22px 24px;
 }
 
 .rp-card-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-
-  &--padded {
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--rp-stroke);
-    margin-bottom: 0;
-  }
+  margin-bottom: 18px;
 }
 
+.rp-card-head-text { flex: 1; min-width: 0; }
+
 .rp-card-title {
-  font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+
+  &--solo { margin-bottom: 14px; }
+}
+
+.rp-card-sub {
+  font-size: 12px;
+  color: var(--rp-text-soft);
+  margin: 2px 0 0;
+
+  &--spaced { margin: 4px 0 16px; }
+}
+
+// ── Icon circles ───────────────────────────────────────────────────
+.rp-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--rp-tint);
+  color: var(--rp-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &--success { background: var(--rp-success-bg); color: var(--rp-success); }
+  &--error { background: var(--rp-error-bg); color: var(--rp-error); }
+}
+
+// ── Chips (signature Revolut element) ──────────────────────────────
+.rp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 100px;
+  background: var(--rp-tint);
+  color: var(--rp-accent);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--rp-text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s;
+
+  &:hover:not(:disabled) { background: var(--rp-tint-hover); }
+  &:disabled { opacity: 0.7; cursor: default; }
+  &:focus-visible { outline: 2px solid var(--rp-accent); outline-offset: 2px; }
+}
+
+.rp-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// ── Hero balance card ──────────────────────────────────────────────
+.rp-hero { display: flex; flex-direction: column; gap: 16px; padding: 26px 24px; }
+
+.rp-hero-eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rp-text-soft);
   margin: 0;
 }
 
-.rp-card-subtitle {
-  font-size: 14px;
-  color: var(--rp-text-muted);
-  margin: 4px 0 0;
-  line-height: 1.5;
-}
-
-// ── Progress ──────────────────────────────────────────────────────────────────
-.rp-progress-pct {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--rp-text-secondary);
-  white-space: nowrap;
+.rp-hero-amount {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: -8px 0 0;
 }
 
 .rp-progress-track {
   height: 8px;
-  background: #e4e2e0;
   border-radius: 100px;
+  background: #f0f0f3;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-top: 6px;
 }
 
 .rp-progress-fill {
   height: 100%;
-  background: var(--rp-blue);
   border-radius: 100px;
-  transition: width 0.6s ease;
-}
-
-.rp-progress-caption {
-  font-size: 14px;
-  color: var(--rp-text-secondary);
-  margin: 0 0 10px;
-  line-height: 1.5;
+  background: var(--rp-accent);
+  transition: width 0.4s ease;
 }
 
 .rp-progress-legend {
   display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--rp-text-muted);
-}
-
-// ── Mandate grid ──────────────────────────────────────────────────────────────
-.rp-mandate-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--rp-stroke);
-  border: 1px solid var(--rp-stroke);
-  border-radius: var(--rp-radius-card);
-  overflow: hidden;
-}
-
-.rp-mandate-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 16px 18px;
-  background: var(--rp-white);
-}
-
-.rp-mandate-label {
-  font-size: 11px;
-  color: var(--rp-text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.rp-mandate-val {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--rp-text-primary);
-}
-
-// ── Virtual account card ──────────────────────────────────────────────────────
-.rp-va-card {
-  // inherits .rp-card
-}
-
-.rp-va-card-header {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.rp-va-hint {
-  font-size: 14px;
-  color: var(--rp-text-muted);
-  margin: 6px 0 0;
-  line-height: 1.6;
+.rp-progress-caption {
+  font-size: 12px;
+  color: var(--rp-text-soft);
 }
 
-.rp-va-bank-badge {
-  background: var(--rp-blue-light);
-  color: var(--rp-blue);
-  border: 1px solid #c7d9f5;
-  border-radius: 100px;
-  padding: 4px 12px;
+.rp-progress-remaining {
   font-size: 12px;
   font-weight: 600;
-  white-space: nowrap;
+  color: var(--rp-text);
+}
+
+// ── Stat mini-cards ────────────────────────────────────────────────
+.rp-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.rp-stat { padding: 18px 20px; }
+
+.rp-stat-label {
+  font-size: 12px;
+  color: var(--rp-text-soft);
+  margin: 0 0 6px;
+}
+
+.rp-stat-value {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+
+  &--positive { color: var(--rp-success); }
+}
+
+.rp-stat-caption {
+  font-size: 11px;
+  color: var(--rp-text-soft);
+  margin: 4px 0 0;
+}
+
+// ── Virtual account ────────────────────────────────────────────────
+.rp-bank-pill {
+  padding: 5px 12px;
+  border-radius: 100px;
+  background: #f0f0f3;
+  color: var(--rp-text);
+  font-size: 12px;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
 .rp-va-display {
-  background: #f8f8f7;
-  border: 1.5px solid var(--rp-stroke);
-  border-radius: var(--rp-radius-card);
-  padding: 20px 24px;
-  margin-bottom: 16px;
+  background: #f8f8fa;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 4px;
 }
 
 .rp-va-number-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .rp-va-number {
-  font-family: var(--font-heading);
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--rp-text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.rp-copy-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  border-radius: var(--rp-radius-btn);
-  border: 1.5px solid var(--rp-stroke);
-  background: var(--rp-white);
-  color: var(--rp-text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-
-  &:hover { background: #f5f4f2; border-color: #ccc; }
-  &:focus-visible { outline: 2px solid var(--rp-blue); outline-offset: 2px; }
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .rp-va-acct-name {
-  font-size: 13px;
-  color: var(--rp-text-muted);
+  font-size: 12px;
+  color: var(--rp-text-soft);
+  margin: 6px 0 0;
 }
 
-.rp-va-ref-row {
+// ── Key-value rows ─────────────────────────────────────────────────
+.rp-kv-list { display: flex; flex-direction: column; }
+
+.rp-kv-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: var(--rp-radius-card);
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rp-hairline);
+
+  &:last-child { border-bottom: none; padding-bottom: 0; }
 }
 
-.rp-va-ref-label {
+.rp-kv-label {
   font-size: 13px;
-  color: #92400e;
+  color: var(--rp-text-soft);
 }
 
-.rp-va-ref-val {
-  font-family: var(--font-heading);
+.rp-kv-value {
   font-size: 13px;
   font-weight: 600;
-  color: #92400e;
-  letter-spacing: 0.03em;
+  text-align: right;
 }
 
-// ── Table ─────────────────────────────────────────────────────────────────────
-.rp-table {
-  width: 100%;
-  border-collapse: collapse;
+// ── List rows (transactions / schedule / documents) ────────────────
+.rp-row-list { display: flex; flex-direction: column; }
 
-  thead tr {
-    border-bottom: 1px solid var(--rp-stroke);
-    th {
-      padding: 12px 24px;
-      text-align: left;
-    }
-  }
-
-  tbody tr {
-    border-bottom: 1px solid var(--rp-stroke);
-    &:last-child { border-bottom: none; }
-    td { padding: 14px 24px; }
-  }
-}
-
-.rp-statement-actions {
-  display: flex;
-  gap: 8px;
-}
-
-// ── Documents ─────────────────────────────────────────────────────────────────
-.rp-doc-list {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--rp-stroke);
-  border-radius: var(--rp-radius-card);
-  overflow: hidden;
-}
-
-.rp-doc-row {
+.rp-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--rp-stroke);
-  background: var(--rp-white);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rp-hairline);
 
-  &:last-child { border-bottom: none; }
+  &:first-child { padding-top: 4px; }
+  &:last-child { border-bottom: none; padding-bottom: 4px; }
+
+  &--letter { align-items: flex-start; }
+  &--letter .rp-icon-circle { margin-top: 2px; }
 }
 
-.rp-doc-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 7px;
-  background: #f5f4f2;
-  border: 1px solid var(--rp-stroke);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--rp-text-muted);
-  flex-shrink: 0;
-}
+.rp-row-text { flex: 1; min-width: 0; }
 
-.rp-doc-info { flex: 1; }
-
-.rp-doc-name {
+.rp-row-title {
   font-size: 14px;
-  font-weight: 500;
-  color: var(--rp-text-primary);
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.rp-row-caption {
+  font-size: 12px;
+  color: var(--rp-text-soft);
   margin: 0;
+  line-height: 1.5;
 }
 
-.rp-doc-meta {
-  font-size: 13px;
-  color: var(--rp-text-muted);
-  margin: 3px 0 0;
+.rp-row-amount {
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  &--failed {
+    color: var(--rp-text-soft);
+    text-decoration: line-through;
+    font-weight: 500;
+  }
 }
 
-.rp-doc-dl-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  height: 36px;
-  border-radius: var(--rp-radius-btn);
-  border: 1.5px solid var(--rp-stroke);
-  background: var(--rp-white);
-  color: var(--rp-text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-  white-space: nowrap;
-
-  &:hover { background: #f5f4f2; border-color: #ccc; }
-  &:focus-visible { outline: 2px solid var(--rp-blue); outline-offset: 2px; }
-}
-
-// ── Letter requests ───────────────────────────────────────────────────────────
-.rp-letter-list {
+.rp-row-right {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  border: 1px solid var(--rp-stroke);
-  border-radius: var(--rp-radius-card);
-  overflow: hidden;
-}
-
-.rp-letter-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--rp-stroke);
-  background: var(--rp-white);
-
-  &:last-child { border-bottom: none; }
-}
-
-.rp-letter-info { flex: 1; }
-
-.rp-letter-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--rp-text-primary);
-  margin: 0 0 5px;
-}
-
-.rp-letter-desc {
-  font-size: 13px;
-  color: var(--rp-text-muted);
-  margin: 0;
-  line-height: 1.6;
-  max-width: 480px;
-}
-
-.rp-letter-action {
+  align-items: flex-end;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.rp-letter-btn {
+// ── Status pills ───────────────────────────────────────────────────
+.rp-status-pill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 20px;
-  border-radius: var(--rp-radius-btn);
-  background: var(--rp-blue);
-  color: #fff;
-  font-size: 13px;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
   font-weight: 700;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
+  background: #f0f0f3;
+  color: var(--rp-text-soft);
+  flex-shrink: 0;
 
-  &:hover:not(:disabled) { background: var(--rp-blue-hover); }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
-  &:focus-visible { outline: 2px solid var(--rp-blue); outline-offset: 2px; }
+  &--success { background: var(--rp-success-bg); color: var(--rp-success); }
+  &--error { background: var(--rp-error-bg); color: var(--rp-error); }
 }
 
-.rp-letter-sent {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: var(--rp-radius-btn);
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.rp-btn-spinner {
+// ── Spinner ────────────────────────────────────────────────────────
+.rp-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: #fff;
   border-radius: 50%;
   animation: rp-spin 0.7s linear infinite;
+
+  &--chip {
+    width: 12px;
+    height: 12px;
+    border-color: rgba(79, 85, 241, 0.3);
+    border-top-color: var(--rp-accent);
+  }
 }
 
-// ── Chat sidebar ──────────────────────────────────────────────────────────────
+@keyframes rp-spin { to { transform: rotate(360deg); } }
+
+// ═══════════════════════════════════════════════════════════════════
+// CHAT PANEL — floating white card
+// ═══════════════════════════════════════════════════════════════════
 .rp-chat {
-  border-left: 1px solid var(--rp-stroke);
-  background: var(--rp-white);
+  position: sticky;
+  top: 12px;
+  background: var(--rp-surface);
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 96px);
+  max-height: 720px;
   overflow: hidden;
 }
 
@@ -787,24 +659,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--rp-stroke);
-  flex-shrink: 0;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--rp-hairline);
 }
 
-.rp-chat-header-text { flex: 1; }
-
 .rp-chat-title {
-  font-family: var(--font-heading);
   font-size: 14px;
-  font-weight: 600;
-  color: var(--rp-text-primary);
+  font-weight: 700;
   margin: 0;
 }
 
 .rp-chat-subtitle {
   font-size: 11px;
-  color: var(--rp-text-muted);
+  color: var(--rp-text-soft);
   margin: 2px 0 0;
 }
 
@@ -819,28 +687,20 @@
 .rp-chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 16px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-.rp-chat-msg {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-
-  &--user {
-    flex-direction: row-reverse;
-  }
-}
+.rp-chat-msg { display: flex; align-items: flex-end; gap: 8px; }
 
 .rp-chat-avatar {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: var(--rp-blue);
-  color: #fff;
+  background: var(--rp-tint);
+  color: var(--rp-accent);
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -850,138 +710,95 @@
 }
 
 .rp-chat-bubble {
-  max-width: 220px;
+  background: #f4f4f6;
+  border-radius: 16px 16px 16px 4px;
   padding: 10px 14px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  &--agent {
-    background: #f5f4f2;
-    border-radius: 12px 12px 12px 4px;
-  }
-
-  &--user {
-    background: var(--rp-blue);
-    border-radius: 12px 12px 4px 12px;
-
-    .rp-chat-bubble-text { color: #fff; }
-    .rp-chat-time { color: rgba(255,255,255,0.7); }
-  }
+  max-width: 85%;
 }
 
 .rp-chat-bubble-text {
   font-size: 13px;
-  color: var(--rp-text-primary);
-  margin: 0;
   line-height: 1.5;
+  margin: 0;
 }
 
 .rp-chat-time {
-  font-size: 11px;
-  color: var(--rp-text-muted);
-  align-self: flex-end;
+  display: block;
+  font-size: 10px;
+  color: var(--rp-text-soft);
+  margin-top: 4px;
 }
 
 .rp-chat-input-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--rp-stroke);
-  flex-shrink: 0;
+  padding: 12px 16px 16px;
 }
 
 .rp-chat-input {
   flex: 1;
   height: 40px;
-  padding: 0 14px;
+  padding: 0 16px;
+  background: #f0f0f3;
+  border: 2px solid transparent;
   border-radius: 100px;
-  border: 1.5px solid var(--rp-stroke);
-  background: #f5f4f2;
   font-size: 13px;
-  font-family: var(--font-body);
-  color: var(--rp-text-primary);
+  font-family: inherit;
+  color: var(--rp-text);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 
-  &::placeholder { color: var(--rp-text-muted); }
-  &:focus { border-color: var(--rp-blue); background: var(--rp-white); }
+  &:focus { background: var(--rp-surface); border-color: var(--rp-accent); }
+  &::placeholder { color: #a0a4ae; }
 }
 
 .rp-chat-send {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--rp-blue);
+  width: 40px;
+  height: 40px;
   border: none;
-  cursor: pointer;
+  border-radius: 50%;
+  background: var(--rp-accent);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  cursor: pointer;
   flex-shrink: 0;
   transition: background 0.15s;
 
-  &:hover { background: var(--rp-blue-hover); }
-  &:focus-visible { outline: 2px solid var(--rp-blue); outline-offset: 2px; }
+  &:hover { background: var(--rp-accent-hover); }
 }
 
-// ── Responsive ────────────────────────────────────────────────────────────────
-@media (max-width: 1200px) {
-  .rp-body {
-    grid-template-columns: 220px 1fr;
-  }
-
-  .rp-chat {
-    display: none;
-  }
+// ═══════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ═══════════════════════════════════════════════════════════════════
+@media (max-width: 1080px) {
+  .rp-body { grid-template-columns: 200px minmax(0, 1fr); }
+  .rp-chat { display: none; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 720px) {
+  .rp-topnav { padding: 0 16px; }
   .rp-body {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-
-  .rp-nav {
-    flex-direction: row;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--rp-stroke);
-    padding: 10px 16px;
-    overflow-x: auto;
-    height: auto;
-
-    .rp-nav-list {
-      flex-direction: row;
-      gap: 4px;
-    }
-
-    .rp-nav-footer { display: none; }
-  }
-
-  .rp-main {
-    padding: 24px 16px;
-  }
-
-  .rp-kpi-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .rp-mandate-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .rp-letter-row {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 8px 16px 40px;
     gap: 16px;
   }
 
-  .rp-va-card-header {
-    flex-direction: column;
+  .rp-nav { position: static; }
+  .rp-nav-list { flex-direction: row; overflow-x: auto; }
+  .rp-nav-item { white-space: nowrap; }
+  .rp-nav-footer { display: none; }
+
+  .rp-page-title { font-size: 22px; }
+  .rp-hero-amount { font-size: 28px; }
+  .rp-stat-row { grid-template-columns: 1fr; }
+  .rp-va-number { font-size: 20px; }
+  .rp-card { padding: 18px; border-radius: 16px; }
+
+  .rp-row--letter {
+    flex-wrap: wrap;
+    .rp-chip, .rp-status-pill { margin-left: 52px; }
   }
 }
