@@ -1,8 +1,9 @@
+// Faithful Indeed card (reference: reports page .metric-card) —
+// plain white surface, 1px stroke, 12px radius, no shadow, no accents.
 .kpi-card {
   background: var(--surface-base);
-  border: 0.8px solid var(--color-stroke);
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-stroke);
+  border-radius: 12px;
   flex: 1;
   min-width: 0;
   min-height: 120px;
@@ -12,7 +13,7 @@
 }
 
 .kpi-body {
-  padding: 23px 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -27,9 +28,9 @@
 
 .kpi-label {
   font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--color-grey-header);
-  letter-spacing: -0.28px;
+  font-size: 13px;
+  color: var(--color-body);
+  letter-spacing: -0.26px;
   margin: 0;
   white-space: nowrap;
 }
@@ -37,10 +38,11 @@
 .kpi-value {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 24px;
-  color: var(--color-body);
-  letter-spacing: -0.48px;
+  font-size: 22px;
+  color: var(--color-header);
+  letter-spacing: -0.44px;
   margin: 0;
+  line-height: 1.2;
 }
 
 .kpi-trend-row {
@@ -74,7 +76,7 @@
   margin-top: auto;
   background: var(--surface-overlay);
   border-top: 1px solid var(--color-stroke);
-  padding: 10px 24px 12px;
+  padding: 10px 16px 12px;
 }
 
 .kpi-footer-label {

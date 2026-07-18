@@ -183,6 +183,34 @@
 
 .sign-out { color: var(--color-error); }
 
+.dropdown-label {
+  margin: 4px 0 2px;
+  padding: 0 10px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.appearance-item {
+  justify-content: flex-start;
+  gap: 10px;
+  color: var(--text-secondary);
+
+  svg:first-child { flex-shrink: 0; }
+
+  &--active {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}
+
+.appearance-check {
+  margin-left: auto;
+  color: var(--color-blue);
+}
+
 .dropdown-divider {
   height: 1px;
   background: var(--color-stroke);

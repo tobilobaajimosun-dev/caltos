@@ -65,8 +65,14 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  // overflow-y: auto forces overflow-x to compute as auto too (CSS spec),
+  // which clips the right-popout tooltips when collapsed.
   overflow-y: auto;
   overflow-x: visible;
+
+  .sidebar.collapsed & {
+    overflow: visible;
+  }
 }
 
 .sidebar-bottom {

@@ -127,7 +127,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
-  &:hover { background: var(--surface-overlay); border-color: #d1d5db; color: var(--color-header); }
+  &:hover { background: var(--surface-overlay); border-color: var(--color-input-stroke); color: var(--color-header); }
 }
 
 .page-title {
@@ -636,3 +636,29 @@
   margin-bottom: 10px;
 }
 
+
+// ── Mobile ────────────────────────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-5) 0 var(--space-4);
+  }
+
+  .header-actions { flex-wrap: wrap; }
+
+  .stats-row { grid-template-columns: 1fr; }
+
+  .tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .tabs { overflow-x: auto; }
+}
