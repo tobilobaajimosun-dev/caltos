@@ -287,6 +287,77 @@ export const DEFAULT_LIQUIDATION_POLICY: LiquidationPolicy = {
   partialLiquidationAllowed: false,
 };
 
+/** One rule-based trigger a product can switch on/off — formerly a global setting, now per-product. */
+export interface WorkflowAutomationSetting {
+  id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+}
+
+/** One sign-off stage in a product's approval chain. */
+export interface WorkflowApprovalStep {
+  role: string;
+  action: string;
+  required: boolean;
+}
+
+/**
+ * Per-product workflow settings: the Automation triggers and Approval chain that used to
+ * live in the products area's global settings modal. Edited on product-detail's Workflow tab.
+ */
+export interface WorkflowConfig {
+  automations: WorkflowAutomationSetting[];
+  approvalSteps: WorkflowApprovalStep[];
+}
+
+/** Fresh copy every call — these arrays get mutated per-product, so no shared references. */
+export function defaultWorkflowConfig(): WorkflowConfig {
+  return {
+    automations: [
+      { id: 'reminder-3d', title: 'Due date reminder (3 days)', description: 'SMS/email to borrowers 3 days before repayment is due.', enabled: true },
+      { id: 'reminder-1d', title: 'Due date reminder (1 day)', description: 'Final reminder 24 hours before the due date.', enabled: false },
+      { id: 'overdue-flag', title: 'Auto-flag overdue loans', description: 'Mark loans overdue after 7 days of missed repayment.', enabled: true },
+      { id: 'disburse-confirm', title: 'Disbursement confirmation', description: 'Notify borrowers when a loan is disbursed to their account.', enabled: true },
+      { id: 'auto-deactivate', title: 'Idle product auto-deactivation', description: 'Deactivate this product after 90+ days with zero disbursements.', enabled: false },
+      { id: 'repayment-receipt', title: 'Repayment receipt', description: 'Send a receipt when a repayment is recorded against a loan.', enabled: true },
+    ],
+    approvalSteps: [
+      { role: 'Loan Officer', action: 'Initial review & verification', required: true },
+      { role: 'Credit Analyst', action: 'Credit assessment & scoring', required: true },
+      { role: 'Branch Manager', action: 'Final approval (loans > ₦500k)', required: false },
+    ],
+  };
+}
+
+/** Actor recorded on activity-log entries — no identity service exists yet, so this is the signed-in demo user. */
+export const CURRENT_USER = 'Tobi Ajimosun';
+
+/** One row in a product's audit trail, rendered on product-detail's Activity tab. */
+export interface ProductActivityEntry {
+  id: string;
+  actor: string;
+  action: string;
+  detail?: string;
+  /** ISO timestamp. */
+  timestamp: string;
+}
+
+/** An onboarded vendor persisted on a BNPL product. */
+export interface ProductVendor {
+  id: string;
+  businessName: string;
+  category: string;
+  slug: string;
+  status?: 'active' | 'pending' | 'suspended';
+  /** Per-vendor purchase amount limits (₦, formatted with thousands separators). */
+  minAmount?: string;
+  maxAmount?: string;
+  settlementBank?: string;
+  settlementAccount?: string;
+  dateAdded?: string;
+}
+
 export interface ProductConfig {
   minInterest: string;
   maxInterest: string;
@@ -313,6 +384,7 @@ export interface ProductConfig {
   accountIdentifier: AccountIdentifierType;
   applicantProfiles: ApplicantProfile[];
   liquidationPolicy: LiquidationPolicy;
+  workflow: WorkflowConfig;
 }
 
 export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
@@ -341,6 +413,7 @@ export const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
   accountIdentifier: 'bvn',
   applicantProfiles: [],
   liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
+  workflow: defaultWorkflowConfig(),
 };
 
 export interface ProductRecord {
@@ -375,7 +448,9 @@ export interface ProductRecord {
    */
   wizardConfig?: Record<string, unknown>;
   /** Onboarded vendors for BNPL products. Populated from product-detail's vendor management tab. */
-  vendors?: { id: string; businessName: string; category: string; slug: string }[];
+  vendors?: ProductVendor[];
+  /** Audit trail of who did what to this product — appended by ProductsService, newest last. */
+  activityLog?: ProductActivityEntry[];
 }
 
 /** Days a 'live' channel is trusted after its last successful testConnection() before it needs re-verification. */
@@ -462,6 +537,7 @@ export function demoProducts(): ProductRecord[] {
     accountIdentifier: 'bvn',
     applicantProfiles: [],
     liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
+    workflow: defaultWorkflowConfig(),
   };
 
   const bnplConfig: ProductConfig = {
@@ -492,6 +568,7 @@ export function demoProducts(): ProductRecord[] {
     accountIdentifier: 'bvn',
     applicantProfiles: [],
     liquidationPolicy: DEFAULT_LIQUIDATION_POLICY,
+    workflow: defaultWorkflowConfig(),
   };
 
   return [
@@ -504,6 +581,12 @@ export function demoProducts(): ProductRecord[] {
       websiteLink: 'apply.caltos.co/princeps/corper-wallet',
       stats: { totalApplications: 412, approvalRate: 77, avgLoanSize: '₦64,200', activeLoans: 128, totalDisbursed: '₦18,400,000', collectionRate: 94.2, nplRate: 3.1 },
       config: corperWalletConfig,
+      activityLog: [
+        { id: 'act-cw-1', actor: CURRENT_USER, action: 'created this product', timestamp: '2024-08-29T15:52:12.000Z' },
+        { id: 'act-cw-2', actor: CURRENT_USER, action: 'updated product details', detail: 'Adjusted tenor range to 3–9 months', timestamp: '2024-09-03T10:14:00.000Z' },
+        { id: 'act-cw-3', actor: CURRENT_USER, action: 'changed status to Live', timestamp: '2024-09-04T09:00:00.000Z' },
+        { id: 'act-cw-4', actor: CURRENT_USER, action: 'updated workflow settings', detail: 'Enabled due-date reminders', timestamp: '2026-07-01T08:30:00.000Z' },
+      ],
     },
     {
       id: 'CRI02', name: 'Credit Wallet', type: 'loan', status: 'live',
@@ -549,6 +632,16 @@ export function demoProducts(): ProductRecord[] {
       websiteLink: 'apply.caltos.co/princeps/bnpl/quick-buy',
       stats: { totalApplications: 203, approvalRate: 82, avgLoanSize: '₦96,400', activeLoans: 71, totalDisbursed: '₦9,300,000', collectionRate: 96.0, nplRate: 2.2 },
       config: bnplConfig,
+      vendors: [
+        { id: 'v1', businessName: 'TechHub Electronics', category: 'Electronics & Gadgets', slug: 'techhub-electronics', status: 'active', minAmount: '25,000', maxAmount: '500,000', settlementBank: 'Access Bank', settlementAccount: '0123456789', dateAdded: 'Jun 12, 2025' },
+        { id: 'v2', businessName: 'FashionKloth Ltd', category: 'Fashion & Clothing', slug: 'fashionkloth-ltd', status: 'active', minAmount: '20,000', maxAmount: '250,000', settlementBank: 'GTBank', settlementAccount: '0987654321', dateAdded: 'Jun 18, 2025' },
+      ],
+      activityLog: [
+        { id: 'act-qb-1', actor: CURRENT_USER, action: 'created this product', timestamp: '2025-06-12T10:14:22.000Z' },
+        { id: 'act-qb-2', actor: CURRENT_USER, action: 'updated vendors', detail: 'Onboarded TechHub Electronics', timestamp: '2025-06-12T11:02:00.000Z' },
+        { id: 'act-qb-3', actor: CURRENT_USER, action: 'updated vendors', detail: 'Onboarded FashionKloth Ltd', timestamp: '2025-06-18T14:45:00.000Z' },
+        { id: 'act-qb-4', actor: CURRENT_USER, action: 'changed status to Live', timestamp: '2025-06-19T09:00:00.000Z' },
+      ],
     },
     {
       id: 'SFL04', name: 'School Fees Advance', type: 'loan', status: 'draft',
@@ -612,6 +705,7 @@ export class ProductsService {
             accountIdentifier: config.accountIdentifier ?? 'bvn',
             applicantProfiles: config.applicantProfiles ?? [],
             liquidationPolicy: config.liquidationPolicy ?? DEFAULT_LIQUIDATION_POLICY,
+            workflow: config.workflow ?? defaultWorkflowConfig(),
           },
         };
       }));
@@ -702,14 +796,67 @@ export class ProductsService {
       stats: partial.stats ?? DEFAULT_STATS,
       config: partial.config ?? DEFAULT_PRODUCT_CONFIG,
       wizardConfig: partial.wizardConfig,
+      vendors: partial.vendors,
+      activityLog: [this.makeActivityEntry('created this product')],
     };
     this._products.update((list) => [...list, record]);
     this.persist();
     return record;
   }
 
-  update(id: string, patch: Partial<ProductRecord>) {
+  private makeActivityEntry(action: string, detail?: string): ProductActivityEntry {
+    return {
+      id: 'act-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      actor: CURRENT_USER,
+      action,
+      detail,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /** Appends an audit-trail entry to a product. Caller is responsible for persist(). */
+  private appendActivity(id: string, action: string, detail?: string) {
+    const entry = this.makeActivityEntry(action, detail);
+    this._products.update((list) => list.map((p) => (p.id === id ? { ...p, activityLog: [...(p.activityLog ?? []), entry] } : p)));
+  }
+
+  private statusLabel(status: ProductStatus): string {
+    return status === 'live' ? 'Live' : status === 'draft' ? 'Draft' : 'Deactivated';
+  }
+
+  /**
+   * Human-readable audit-trail line for a generic update() patch, or null for changes not
+   * worth logging on their own (e.g. the wizard's websiteLink sync right after a save).
+   */
+  private describePatch(existing: ProductRecord, patch: Partial<ProductRecord>): { action: string; detail?: string } | null {
+    const keys = Object.keys(patch);
+    if (keys.length === 1 && keys[0] === 'websiteLink') return null;
+    if (patch.status !== undefined && patch.status !== existing.status) {
+      return { action: `changed status to ${this.statusLabel(patch.status)}` };
+    }
+    if (patch.vendors !== undefined) {
+      const before = existing.vendors?.length ?? 0;
+      const after = patch.vendors.length;
+      if (after > before) {
+        const added = patch.vendors.filter((v) => !existing.vendors?.some((e) => e.id === v.id));
+        return { action: 'updated vendors', detail: added.length ? `Onboarded ${added.map((v) => v.businessName).join(', ')}` : undefined };
+      }
+      if (after < before) {
+        const removed = (existing.vendors ?? []).filter((v) => !patch.vendors!.some((e) => e.id === v.id));
+        return { action: 'updated vendors', detail: removed.length ? `Removed ${removed.map((v) => v.businessName).join(', ')}` : undefined };
+      }
+      return { action: 'updated vendors', detail: 'Edited vendor details' };
+    }
+    return { action: 'updated product details' };
+  }
+
+  update(id: string, patch: Partial<ProductRecord>, activityAction?: string) {
+    const existing = this.getById(id);
     this._products.update((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    if (existing) {
+      const described = activityAction ? { action: activityAction } : this.describePatch(existing, patch);
+      if (described) this.appendActivity(id, described.action, described.detail);
+    }
     this.persist();
   }
 
@@ -720,9 +867,10 @@ export class ProductsService {
   duplicate(id: string): ProductRecord | undefined {
     const source = this.getById(id);
     if (!source) return undefined;
-    return this.create({
+    const copy = this.create({
       ...source,
       id: undefined,
+      activityLog: undefined,
       name: `${source.name} (Copy)`,
       status: 'draft',
       stats: DEFAULT_STATS,
@@ -742,6 +890,9 @@ export class ProductsService {
         })),
       },
     });
+    this.appendActivity(copy.id, `duplicated "${source.name}" as a draft`);
+    this.persist();
+    return copy;
   }
 
   remove(id: string) {

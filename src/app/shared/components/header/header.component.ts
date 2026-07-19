@@ -34,7 +34,6 @@ export class HeaderComponent {
   private readonly productsService = inject(ProductsService);
   private readonly quickActionsService = inject(QuickActionsService);
 
-  readonly helpMenuOpen = signal(false);
   readonly userMenuOpen = signal(false);
   readonly commandPaletteOpen = signal(false);
   readonly notificationPanelOpen = signal(false);
@@ -116,14 +115,8 @@ export class HeaderComponent {
     }
   }
 
-  toggleHelpMenu() {
-    this.helpMenuOpen.update((v) => !v);
-    this.userMenuOpen.set(false);
-  }
-
   toggleUserMenu() {
     this.userMenuOpen.update((v) => !v);
-    this.helpMenuOpen.set(false);
   }
 
   toggleNotificationPanel() {
@@ -131,7 +124,6 @@ export class HeaderComponent {
   }
 
   closeMenus() {
-    this.helpMenuOpen.set(false);
     this.userMenuOpen.set(false);
   }
 

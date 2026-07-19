@@ -1,0 +1,24 @@
+<div class="whats-new-page">
+  <header class="page-header">
+    <h1 class="page-title">What's new</h1>
+    <p class="page-subtitle">Product updates, improvements, and fixes from the Caltos team.</p>
+  </header>
+
+  <div class="feed">
+    @for (entry of entries; track entry.title) {
+      <article class="entry-card">
+        <div class="entry-meta">
+          <span class="entry-date">{{ entry.date }}</span>
+          <span
+            class="entry-tag"
+            [class.entry-tag--new]="entry.tag === 'New'"
+            [class.entry-tag--improved]="entry.tag === 'Improved'"
+            [class.entry-tag--fixed]="entry.tag === 'Fixed'"
+          >{{ entry.tag }}</span>
+        </div>
+        <h2 class="entry-title">{{ entry.title }}</h2>
+        <p class="entry-description">{{ entry.description }}</p>
+      </article>
+    }
+  </div>
+</div>

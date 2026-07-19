@@ -9,7 +9,7 @@
   <header class="wiz-header">
     <div class="wiz-brand">
       <app-avatar [name]="orgAvatarName" [color]="orgAvatarColor" size="sm" />
-      <span class="wiz-brand-label">Create loan product</span>
+      <span class="wiz-brand-label">{{ isEditMode ? 'Edit ' + editingName : 'Create loan product' }}</span>
     </div>
     <div class="wiz-header-right">
       <a routerLink="/apply" [queryParams]="editingProductId ? { product: editingProductId } : {}" target="_blank" class="wiz-preview-btn">
@@ -1371,9 +1371,14 @@
   @if (stepId !== 'type') {
     <footer class="wiz-footer">
       @if (isReview) {
-        <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
-        <span class="wiz-footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
-        <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
+        @if (isEditMode) {
+          <span class="wiz-footer-hint">Saving updates this product in place — no duplicate is created.</span>
+          <app-button variant="primary" label="Save changes" (clicked)="publish()" />
+        } @else {
+          <app-button variant="outline" label="Save as Draft" (clicked)="saveDraft()" />
+          <span class="wiz-footer-hint">Ready to go live? Publishing makes this product available to applicants.</span>
+          <app-button variant="primary" label="Publish Loan Product" (clicked)="publish()" />
+        }
       } @else {
         @if (!isFirst) {
           <app-button variant="outline" label="Back" (clicked)="back()" />
@@ -1398,9 +1403,15 @@
           <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <h2 class="publish-title">{{ isProductLive ? 'Loan Product Published!' : 'Loan Product Saved!' }}</h2>
+      <h2 class="publish-title">
+        @if (isEditMode) { Changes Saved! }
+        @else if (isProductLive) { Loan Product Published! }
+        @else { Loan Product Saved! }
+      </h2>
       <p class="publish-sub">
-        @if (isProductLive) {
+        @if (isEditMode) {
+          <strong>{{ config.name }}</strong> has been updated{{ isProductLive ? ' and is still live for applicants' : '' }}.
+        } @else if (isProductLive) {
           <strong>{{ config.name }}</strong> is now live and available to applicants.
         } @else {
           <strong>{{ config.name }}</strong> has been created, but isn't live yet — applicants can't apply until it is.

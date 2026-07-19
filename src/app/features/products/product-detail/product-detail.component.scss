@@ -1114,35 +1114,9 @@ table.ref-table {
   font-family: var(--font-body); font-size: 12px; color: var(--color-grey-header);
 }
 
-/* Empty */
-.empty-tab {
-  padding: 56px; text-align: center;
-  font-family: var(--font-body); font-size: 13px; color: var(--color-grey-header);
-  background: var(--surface-base); border: 1px solid var(--color-stroke); border-radius: 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  svg { opacity: 0.3; }
-}
-
 /* ══════════════════════════════════════
    BNPL VENDORS TAB
 ══════════════════════════════════════ */
-
-.bnpl-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.vendor-count-badge {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--color-error);
-  background: var(--color-error-bg);
-  border-radius: 100px;
-  padding: 1px 7px;
-  min-width: 18px;
-  text-align: center;
-}
 
 .vendors-header {
   display: flex;
@@ -1166,66 +1140,13 @@ table.ref-table {
   margin: 0;
 }
 
-.onboard-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 18px;
-  border-radius: 8px;
-  border: none;
-  background: var(--color-blue);
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
+/* Vendor table (shared data-table pattern) */
+.data-table tr.clickable-row {
   cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  &:hover { background: color-mix(in srgb, var(--color-blue) 82%, black); }
+  &:hover td { background: var(--surface-overlay); }
 }
 
-/* Vendor table */
-.vendor-table {
-  background: var(--surface-base);
-  border: 1px solid var(--color-stroke);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.vendor-table-head {
-  display: grid;
-  grid-template-columns: 2.2fr 1.4fr 100px 1.4fr 120px 100px;
-  gap: 12px;
-  padding: 10px 16px;
-  background: var(--surface-overlay);
-  border-bottom: 1px solid var(--color-stroke);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-grey-header);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.vendor-row {
-  display: grid;
-  grid-template-columns: 2.2fr 1.4fr 100px 1.4fr 120px 100px;
-  gap: 12px;
-  padding: 14px 16px;
-  align-items: center;
-  border-bottom: 1px solid var(--color-stroke);
-  transition: background 0.1s;
-  &:last-child { border-bottom: none; }
-  &:hover { background: var(--surface-overlay); }
-  &.suspended { opacity: 0.6; }
-}
-
-.vendor-biz {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
+.data-table .col-vendor-actions { width: 116px; }
 
 .vendor-avatar {
   width: 32px;
@@ -1239,63 +1160,13 @@ table.ref-table {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
 
-.vendor-biz-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-header);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vendor-biz-link {
-  font-size: 11px;
-  color: var(--color-grey-header);
-  font-family: monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-
-.vendor-cat {
-  font-size: 12px;
-  color: var(--color-body);
-}
-
-.vstatus {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 100px;
-
-  &.active { color: var(--color-success); background: var(--color-success-bg); }
-  &.suspended { color: var(--color-warning); background: var(--color-warning-bg); }
-  &.pending { color: var(--color-blue); background: var(--color-info-bg); }
-}
-
-.vstatus-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
-
-.vendor-bank {
-  font-size: 12px;
-  color: var(--color-body);
-  font-family: monospace;
-}
-
-.vendor-date {
-  font-size: 12px;
-  color: var(--color-grey-header);
+  &.lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    font-size: 20px;
+  }
 }
 
 .vendor-actions {
@@ -1320,114 +1191,173 @@ table.ref-table {
   &.danger:hover { background: var(--color-error-bg); border-color: color-mix(in srgb, var(--color-error) 40%, transparent); color: var(--color-error); }
 }
 
-/* Vendors empty */
-.vendors-empty {
-  display: flex;
-  flex-direction: column;
+/* ── Vendor detail (inline swap) ── */
+.vendor-back-link {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 64px 32px;
-  background: var(--surface-base);
-  border: 1px solid var(--color-stroke);
-  border-radius: 12px;
-  text-align: center;
-}
-
-.vendors-empty-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: var(--color-error-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-error);
-  margin-bottom: 4px;
-}
-
-.vendors-empty-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-header);
-}
-
-.vendors-empty-sub {
+  gap: var(--space-1);
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: var(--space-4);
+  font-family: var(--font-body);
   font-size: 13px;
+  font-weight: 500;
   color: var(--color-grey-header);
-  margin: 0 0 8px;
-  max-width: 320px;
+  cursor: pointer;
+  &:hover { color: var(--color-blue); }
 }
 
-/* ══════════════════════════════════════
-   ONBOARD VENDOR MODAL
-══════════════════════════════════════ */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(16,24,40,.5);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.onboard-modal {
-  background: var(--surface-base);
-  border-radius: 16px;
-  width: 520px;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  overflow: hidden;
-}
-
-.onboard-modal-header {
+.vendor-detail-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 20px 20px 14px;
-  border-bottom: 1px solid var(--color-stroke);
-  flex-shrink: 0;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
-.onboard-modal-title {
+.vendor-detail-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.vendor-detail-name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.vendor-detail-name {
   font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-header);
+  margin: 0;
+}
+
+.vendor-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.vendor-cat-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-blue);
+  background: var(--color-info-bg);
+  border-radius: 100px;
+  padding: 2px 10px;
+}
+
+.vendor-detail-added,
+.vendor-detail-limits {
+  font-size: 12px;
+  color: var(--color-grey-header);
+}
+
+.vendor-kpi-row { margin-bottom: var(--space-6); }
+
+.vendor-detail-section {
+  margin-bottom: var(--space-7);
+}
+
+.vendor-detail-section-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-header);
+  margin: 0 0 var(--space-3);
+}
+
+/* Invoices list */
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.invoice-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.2fr auto auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-stroke);
+  &:first-child { border-top: 1px solid var(--color-stroke); }
+}
+
+.invoice-number {
+  font-size: 12px;
+  color: var(--color-header);
+  font-weight: 500;
+}
+
+.invoice-amount {
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-header);
 }
 
-.onboard-modal-sub {
+.invoice-date {
   font-size: 12px;
   color: var(--color-grey-header);
-  margin-top: 2px;
 }
 
-.modal-close-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.invoice-view-chip {
+  border: 1px solid var(--color-stroke);
+  background: var(--surface-base);
+  border-radius: 100px;
+  padding: 3px 14px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-blue);
   cursor: pointer;
+  justify-self: end;
+  &:hover { background: var(--color-info-bg); border-color: var(--color-blue); }
+}
+
+.invoice-summary {
+  padding: 0 var(--space-6);
+}
+
+/* ══════════════════════════════════════
+   ONBOARD VENDOR MODAL (app-modal content)
+══════════════════════════════════════ */
+
+.onboard-body {
+  padding: 0 var(--space-6);
+  display: flex;
+  flex-direction: column;
+}
+
+.onboard-step-caption {
+  font-size: 12px;
   color: var(--color-grey-header);
-  border-radius: 6px;
-  flex-shrink: 0;
-  &:hover { background: var(--surface-overlay); }
+  margin-bottom: var(--space-3);
+}
+
+.onboard-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: var(--space-4);
+}
+
+.ob-hint-note {
+  font-size: 11px;
+  color: var(--color-grey-header);
+  margin: -6px 0 0;
 }
 
 /* Step indicators */
 .onboard-steps-bar {
   display: flex;
   align-items: center;
-  padding: 14px 20px;
+  padding: 0 0 var(--space-3);
   border-bottom: 1px solid var(--color-stroke);
   gap: 0;
   flex-shrink: 0;
@@ -1455,16 +1385,6 @@ table.ref-table {
   height: 1.5px;
   background: var(--color-stroke);
   &.done { background: var(--color-blue); }
-}
-
-/* Modal body */
-.onboard-modal-body {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
 }
 
 .ob-two-col {
@@ -1749,32 +1669,123 @@ table.ref-table {
   padding: 1px 7px;
 }
 
-/* Modal footer */
-.onboard-modal-footer {
+/* ── Workflow tab ── */
+.workflow-section-sub {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin: 0 0 var(--space-2);
+}
+
+.workflow-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.approval-step-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--color-stroke);
+  gap: var(--space-3);
+
+  .approval-step-body { flex: 1; min-width: 0; }
+}
+
+.approval-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-stroke);
+  background: var(--surface-overlay);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-grey-header);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.ob-back-btn {
-  display: inline-flex;
+.approval-step-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-radius: 100px;
+  padding: 2px 9px;
+  flex-shrink: 0;
+
+  &.optional {
+    color: var(--color-grey-header);
+    background: var(--surface-overlay);
+  }
+}
+
+/* ── Activity timeline (Stripe-style) ── */
+.activity-timeline {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) 0;
+}
+
+.activity-item {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.activity-rail {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.activity-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-overlay);
   border: 1px solid var(--color-stroke);
-  background: var(--surface-base);
-  font-family: var(--font-body);
+  color: var(--color-grey-header);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-line {
+  width: 1px;
+  flex: 1;
+  background: var(--color-stroke);
+  min-height: 16px;
+}
+
+.activity-body {
+  padding-bottom: var(--space-5);
+  min-width: 0;
+}
+
+.activity-text {
   font-size: 13px;
-  font-weight: 500;
   color: var(--color-body);
-  cursor: pointer;
-  &:hover { background: var(--surface-overlay); }
+  margin: 3px 0 0;
+
+  strong {
+    font-weight: 600;
+    color: var(--color-header);
+  }
+}
+
+.activity-detail {
+  font-size: 12px;
+  color: var(--color-grey-header);
+  margin: 2px 0 0;
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--color-grey-header);
+  margin: 3px 0 0;
 }
 
 .ob-next-btn {

@@ -7,34 +7,36 @@
   ::ng-deep .tooltip-host { display: block; width: 100%; }
 }
 
+// Mercury-style nav item: compact 30px row, 13px muted label, subtle grey
+// active pill (no blue accent backgrounds).
 .nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 10px;
   border-radius: 8px;
   border: none;
   background: transparent;
   cursor: pointer;
   text-align: left;
-  color: var(--color-body);
+  color: var(--text-secondary);
   font-family: var(--font-body);
-  font-size: 14px;
-  letter-spacing: -0.28px;
-  transition: background 0.15s, color 0.15s;
+  font-size: 13px;
+  letter-spacing: -0.13px;
+  transition: background 0.12s, color 0.12s;
 
-  &:hover:not(.active) { background: var(--surface-overlay); }
+  &:hover:not(.active) {
+    background: var(--surface-overlay);
+    color: var(--text-primary);
+  }
 
   &.active {
-    background: rgba(0, 83, 166, 0.08);
-    color: var(--color-header);
-    font-weight: 500;
-
-    .icon-slot svg path,
-    .icon-slot svg rect,
-    .icon-slot svg circle { stroke: var(--color-blue); }
+    background: var(--surface-overlay);
+    color: var(--text-primary);
+    font-weight: 600;
   }
 
   &.primary-text {
@@ -47,12 +49,35 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  color: var(--color-grey-header);
+  color: var(--text-muted);
 
-  .nav-item.active & { color: var(--color-blue); }
+  .nav-item:hover &,
+  .nav-item.active & { color: var(--text-primary); }
 }
 
-.label-text { flex: 1; }
+.label-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// "What's New" unread indicator — violet like Mercury's Reimbursements dot.
+// Intentionally fixed hex: accent color that reads the same in both themes.
+.nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  flex-shrink: 0;
+
+  &--corner {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+}
 
 .icon-only {
   justify-content: center;
@@ -62,7 +87,7 @@
 .chevron {
   flex-shrink: 0;
   transition: transform 0.2s;
-  color: var(--color-grey-header);
+  color: var(--text-muted);
 
   &.open { transform: rotate(90deg); }
 }

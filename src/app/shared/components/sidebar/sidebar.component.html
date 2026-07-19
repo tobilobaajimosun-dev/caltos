@@ -46,22 +46,37 @@
   </div>
 
   <div class="nav-list">
-    @for (item of navItems; track item.id) {
-      <app-nav-item
-        [label]="item.label"
-        [icon]="item.icon"
-        [active]="isActive(item)"
-        [hasDropdown]="item.hasDropdown ?? false"
-        [expanded]="isExpanded(item.id)"
-        [iconOnly]="collapsed()"
-        (clicked)="navigate(item)"
-      />
-      @if (item.hasDropdown && item.children && isExpanded(item.id) && !collapsed()) {
-        <div class="nav-children">
-          @for (child of item.children; track child.label) {
-            <button class="nav-child" type="button" (click)="navigateChild(child)">{{ child.label }}</button>
-          }
-        </div>
+    @for (group of navGroups; track $index) {
+      @if (group.label) {
+        @if (collapsed()) {
+          <div class="nav-section-divider" aria-hidden="true"></div>
+        } @else {
+          <p class="nav-section-label">{{ group.label }}</p>
+        }
+      }
+      @for (item of group.items; track item.id) {
+        <app-nav-item
+          [label]="item.label"
+          [icon]="item.icon"
+          [active]="isActive(item)"
+          [hasDropdown]="item.hasDropdown ?? false"
+          [expanded]="isExpanded(item.id)"
+          [iconOnly]="collapsed()"
+          [hasDot]="item.dot ?? false"
+          (clicked)="navigate(item)"
+        />
+        @if (item.hasDropdown && item.children && isExpanded(item.id) && !collapsed()) {
+          <div class="nav-children">
+            @for (child of item.children; track child.label) {
+              <button
+                class="nav-child"
+                type="button"
+                [class.active]="isChildActive(child)"
+                (click)="navigateChild(child)"
+              >{{ child.label }}</button>
+            }
+          </div>
+        }
       }
     }
   </div>

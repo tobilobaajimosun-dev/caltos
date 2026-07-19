@@ -104,25 +104,84 @@
   &:hover { background: var(--color-error-bg); color: var(--color-error); }
 }
 
+// ── Mercury-style section labels between nav groups ─────────────────────────
+.nav-section-label {
+  margin: var(--space-3) 0 var(--space-1);
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.nav-section-divider {
+  height: 1px;
+  flex-shrink: 0;
+  margin: var(--space-2) var(--space-1);
+  background: var(--color-stroke);
+}
+
+// ── Mercury signature: expanded dropdown children with vertical guide line ──
+// The container draws the continuous 2px stroke-colored line under the parent
+// icon; each child overlays its own ::before segment on top of it, which
+// darkens on hover and stays dark while active.
 .nav-children {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1px;
-  padding: var(--space-1) 0 var(--space-1) 40px;
+  padding: var(--space-1) 0 var(--space-1) 32px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: var(--space-1);
+    bottom: var(--space-1);
+    width: 2px;
+    border-radius: 1px;
+    background: var(--color-stroke);
+  }
 }
 
 .nav-child {
+  position: relative;
   text-align: left;
   border: none;
   background: none;
   cursor: pointer;
-  padding: var(--space-2) var(--space-2);
+  min-height: 28px;
+  padding: 5px 10px;
   border-radius: 6px;
   font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--color-grey-header);
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color 0.12s;
 
-  &:hover { background: var(--surface-overlay); color: var(--color-body); }
+  &::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    border-radius: 1px;
+    background: transparent;
+    transition: background 0.12s;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+    &::before { background: var(--text-primary); }
+  }
+
+  &.active {
+    color: var(--text-primary);
+    font-weight: 600;
+    &::before { background: var(--text-primary); }
+  }
 }
 
 .sidebar-backdrop {

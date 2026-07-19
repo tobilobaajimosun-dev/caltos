@@ -26,6 +26,12 @@ export interface SideNavItem {
   route?: string;
   hasDropdown?: boolean;
   children?: SideNavChild[];
+  dot?: boolean;
+}
+
+export interface SideNavGroup {
+  label?: string;
+  items: SideNavItem[];
 }
 
 @Component({
@@ -52,56 +58,75 @@ export class SidebarComponent {
     { id: 'northwind', name: 'Northwind SACCO', color: '#0053A6' },
   ];
 
-  navItems: SideNavItem[] = [
-    { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/quick-actions' },
-    { id: 'home',          label: 'Home',                icon: 'home',      route: '/home' },
-    { id: 'customers',     label: 'Customers',           icon: 'customers', route: '/customers' },
-    { id: 'wallet',        label: 'Wallet',              icon: 'wallet',    route: '/wallet' },
-    { id: 'products',      label: 'Products',            icon: 'products',  route: '/products' },
+  navGroups: SideNavGroup[] = [
     {
-      id: 'loans', label: 'Loans', icon: 'loans', route: '/loans', hasDropdown: true,
-      children: [
-        { label: 'All loans', route: '/loans', queryParams: { status: 'all' } },
-        { label: 'Loan requests', route: '/loans', queryParams: { status: 'requests' } },
-        { label: 'Loans in review', route: '/loans', queryParams: { status: 'in-review' } },
-        { label: 'On-hold', route: '/loans', queryParams: { status: 'on-hold' } },
-        { label: 'Cancelled', route: '/loans', queryParams: { status: 'cancelled' } },
-        { label: 'Disbursed', route: '/loans', queryParams: { status: 'disbursed' } },
-        { label: 'Manual review queue', route: '/loans/manual-review' },
-        { label: 'Loan calculator', route: '/loans/calculator' },
-        { label: 'Eligibility calculator', route: '/loans/eligibility-calculator' },
+      items: [
+        { id: 'quick-actions', label: 'Quick Actions', icon: 'dashboard', route: '/quick-actions' },
+        { id: 'home',          label: 'Home',          icon: 'home',      route: '/home' },
+        { id: 'customers',     label: 'Customers',     icon: 'customers', route: '/customers' },
+        { id: 'wallet',        label: 'Wallet',        icon: 'wallet',    route: '/wallet' },
+        { id: 'products',      label: 'Products',      icon: 'products',  route: '/products' },
       ],
     },
     {
-      id: 'repayments', label: 'Repayments', icon: 'repayments', route: '/repayments', hasDropdown: true,
-      children: [
-        { label: 'Schedules', route: '/repayments/schedules' },
-        { label: 'Bulk uploads', route: '/repayments/bulk-uploads' },
-        { label: 'All repayments', route: '/repayments' },
-        { label: 'Collection methods', route: '/repayments/collection-methods' },
-        { label: 'Mandates', route: '/repayments/mandates' },
+      label: 'Operations',
+      items: [
+        {
+          id: 'loans', label: 'Loans', icon: 'loans', route: '/loans', hasDropdown: true,
+          children: [
+            { label: 'All loans', route: '/loans', queryParams: { status: 'all' } },
+            { label: 'Loan requests', route: '/loans', queryParams: { status: 'requests' } },
+            { label: 'Loans in review', route: '/loans', queryParams: { status: 'in-review' } },
+            { label: 'On-hold', route: '/loans', queryParams: { status: 'on-hold' } },
+            { label: 'Cancelled', route: '/loans', queryParams: { status: 'cancelled' } },
+            { label: 'Disbursed', route: '/loans', queryParams: { status: 'disbursed' } },
+            { label: 'Manual review queue', route: '/loans/manual-review' },
+            { label: 'Loan calculator', route: '/loans/calculator' },
+            { label: 'Eligibility calculator', route: '/loans/eligibility-calculator' },
+          ],
+        },
+        {
+          id: 'repayments', label: 'Repayments', icon: 'repayments', route: '/repayments', hasDropdown: true,
+          children: [
+            { label: 'Schedules', route: '/repayments/schedules' },
+            { label: 'Bulk uploads', route: '/repayments/bulk-uploads' },
+            { label: 'All repayments', route: '/repayments' },
+            { label: 'Collection methods', route: '/repayments/collection-methods' },
+            { label: 'Mandates', route: '/repayments/mandates' },
+          ],
+        },
+        { id: 'reports', label: 'Reports & Performance', icon: 'reports', route: '/reports' },
+        { id: 'risk',    label: 'Risk Monitor',          icon: 'risk',    route: '/risk-monitor' },
       ],
     },
-    { id: 'reports',       label: 'Reports & Performance', icon: 'reports', route: '/reports' },
-    { id: 'risk',          label: 'Risk Monitor',        icon: 'risk',      route: '/risk-monitor' },
     {
-      id: 'utilities', label: 'Utilities', icon: 'utilities', route: '/utilities', hasDropdown: true,
-      children: [
-        { label: 'Organizations', route: '/utilities/organizations' },
-        { label: 'Vendor management', route: '/utilities/vendors' },
+      label: 'Workspace',
+      items: [
+        {
+          id: 'utilities', label: 'Utilities', icon: 'utilities', route: '/utilities', hasDropdown: true,
+          children: [
+            { label: 'Organizations', route: '/utilities/organizations' },
+            { label: 'Vendor management', route: '/utilities/vendors' },
+          ],
+        },
+        { id: 'teams',     label: 'Teams',      icon: 'teams',     route: '/teams' },
+        { id: 'whats-new', label: "What's New", icon: 'whats-new', route: '/whats-new', dot: true },
+        { id: 'settings',  label: 'Settings',   icon: 'settings',  route: '/settings/alerts' },
       ],
     },
-    { id: 'teams',         label: 'Teams',               icon: 'teams',     route: '/teams' },
-    { id: 'settings',      label: 'Settings',            icon: 'settings',  route: '/settings/alerts' },
   ];
 
-  private readonly currentUrl = toSignal(
+  private readonly navItems: SideNavItem[] = this.navGroups.flatMap((g) => g.items);
+
+  private readonly currentFullUrl = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map((e) => e.urlAfterRedirects.split('?')[0]),
+      map((e) => e.urlAfterRedirects),
     ),
-    { initialValue: this.router.url.split('?')[0] },
+    { initialValue: this.router.url },
   );
+
+  private readonly currentUrl = computed(() => this.currentFullUrl().split('?')[0]);
 
   readonly routeActiveId = computed(() => {
     const url = this.currentUrl();
@@ -138,6 +163,14 @@ export class SidebarComponent {
   navigateChild(child: SideNavChild) {
     this.router.navigate([child.route], { queryParams: child.queryParams ?? {} });
     this.sidebarState.close();
+  }
+
+  isChildActive(child: SideNavChild): boolean {
+    const [path, query] = this.currentFullUrl().split('?');
+    if (path !== child.route && !path.startsWith(child.route + '/')) return false;
+    if (!child.queryParams) return true;
+    const params = new URLSearchParams(query ?? '');
+    return Object.entries(child.queryParams).every(([k, v]) => params.get(k) === v);
   }
 
   selectOrg(org: OrgOption) {

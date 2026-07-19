@@ -148,6 +148,43 @@ export class RepaymentManagementComponent {
     this.recording.set(null);
   }
 
+  // ── Liquidation (early settlement) ──
+  readonly liquidating = signal<DueRow | null>(null);
+  readonly liquidationDone = signal(false);
+
+  openLiquidation(row: DueRow) {
+    this.liquidationDone.set(false);
+    this.liquidating.set(row);
+  }
+
+  closeLiquidation() {
+    this.liquidating.set(null);
+    this.liquidationDone.set(false);
+  }
+
+  // Demo payoff math — real values come from the loan's productConfigSnapshot
+  // liquidationPolicy (see loan-detail's Liquidation tab).
+  liquidationOutstanding(row: DueRow): number {
+    return row.amountDue * 6 - row.amountPaid;
+  }
+
+  liquidationInterestWaived(row: DueRow): number {
+    return Math.round(row.amountDue * 6 * 0.12);
+  }
+
+  liquidationFee(row: DueRow): number {
+    return Math.round(this.liquidationOutstanding(row) * 0.02);
+  }
+
+  liquidationTotal(row: DueRow): number {
+    return this.liquidationOutstanding(row) - this.liquidationInterestWaived(row) + this.liquidationFee(row);
+  }
+
+  confirmLiquidation(row: DueRow) {
+    this.liquidationDone.set(true);
+    this.dueToday.update((rows) => rows.filter((r) => r.loanId !== row.loanId));
+  }
+
   get paymentDelta(): number {
     const row = this.recording();
     if (!row) return 0;

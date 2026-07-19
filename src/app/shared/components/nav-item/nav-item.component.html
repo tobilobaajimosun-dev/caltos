@@ -11,6 +11,9 @@
           <hugeicons-icon [icon]="iconMap[icon]" size="16" [strokeWidth]="1.5" color="currentColor" />
         </span>
       }
+      @if (hasDot) {
+        <span class="nav-dot nav-dot--corner" aria-hidden="true"></span>
+      }
     </button>
   </app-tooltip>
 } @else {
@@ -27,6 +30,10 @@
     }
 
     <span class="label-text">{{ label }}</span>
+
+    @if (hasDot) {
+      <span class="nav-dot" aria-hidden="true"></span>
+    }
 
     @if (hasDropdown) {
       <hugeicons-icon

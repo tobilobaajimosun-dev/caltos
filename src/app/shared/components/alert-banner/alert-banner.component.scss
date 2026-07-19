@@ -1,12 +1,13 @@
 :host { display: block; }
 
+// Mercury-style banner: soft gradient tint wash, no border, neutral text —
+// only the background tint and icon carry the semantic colour.
 .alert-banner {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: var(--space-3) var(--space-4);
-  border-radius: 10px;
-  border: 1px solid transparent;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
   font-family: var(--font-body);
 }
 
@@ -16,27 +17,51 @@
 .alert-title {
   font-weight: 600;
   font-size: var(--text-sm);
+  color: var(--text-primary);
   margin: 0;
 }
 
 .alert-message {
   font-size: var(--text-sm);
+  color: var(--text-secondary);
   margin: 2px 0 0;
-  opacity: 0.9;
+  line-height: 1.5;
 }
 
 .alert-close {
   flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
-  color: inherit;
-  opacity: 0.6;
-  padding: 2px;
-  &:hover { opacity: 1; }
+  color: var(--text-muted);
+  transition: background 0.12s, color 0.12s;
+
+  &:hover { background: rgba(0, 0, 0, 0.06); color: var(--text-primary); }
 }
 
-.type-success { background: var(--color-success-bg); color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
-.type-warning { background: var(--color-warning-bg); color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 30%, transparent); }
-.type-error   { background: var(--color-error-bg);   color: var(--color-error);   border-color: color-mix(in srgb, var(--color-error) 30%, transparent); }
-.type-info    { background: var(--color-info-bg);    color: var(--color-info);    border-color: color-mix(in srgb, var(--color-info) 30%, transparent); }
+// Soft gradient washes (color-mix against surface keeps dark mode working)
+.type-success {
+  background: linear-gradient(90deg, var(--color-success-bg), color-mix(in srgb, var(--color-success-bg) 30%, var(--surface-base)));
+  .alert-icon { color: var(--color-success); }
+}
+
+.type-warning {
+  background: linear-gradient(90deg, var(--color-warning-bg), color-mix(in srgb, var(--color-warning-bg) 30%, var(--surface-base)));
+  .alert-icon { color: var(--color-warning); }
+}
+
+.type-error {
+  background: linear-gradient(90deg, var(--color-error-bg), color-mix(in srgb, var(--color-error-bg) 30%, var(--surface-base)));
+  .alert-icon { color: var(--color-error); }
+}
+
+.type-info {
+  background: linear-gradient(90deg, var(--color-info-bg), color-mix(in srgb, var(--color-info-bg) 30%, var(--surface-base)));
+  .alert-icon { color: var(--color-info); }
+}

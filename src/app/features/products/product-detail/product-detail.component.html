@@ -27,22 +27,13 @@
                   </span>
                 </div>
                 <div class="hero-actions">
+                  <app-button variant="secondary" label="Edit product" (clicked)="editProduct()" />
                   <app-button
                     variant="secondary"
                     [label]="effectiveStatus === 'live' ? 'Deactivate product' : 'Activate product'"
                     [icon]="effectiveStatus === 'live' ? pauseIcon : checkIcon"
                     [disabled]="pendingSetupCount > 0 || (product.status !== 'live' && !canActivate)"
                     (clicked)="togglePublish()" />
-                  <app-row-menu #moreMenu [open]="moreMenuOpen" (openChange)="moreMenuOpen = $event">
-                    <button trigger #trigger class="more-btn" (click)="moreMenu.toggle($event)" aria-label="More options">
-                      <hi-icon [icon]="moreIcon" size="18" />
-                    </button>
-                    <ng-template>
-                      <div class="row-dropdown">
-                        <button class="dropdown-item" (click)="editProduct(); moreMenuOpen = false">Edit product</button>
-                      </div>
-                    </ng-template>
-                  </app-row-menu>
                 </div>
               </div>
               @if (publishBlockedMessage) {
@@ -791,6 +782,56 @@
         </div>
       }
 
+      <!-- ═══ WORKFLOW (Automation + Approvals) ═══ -->
+      @if (activeTab === 'workflow') {
+        <div class="tab-body">
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Workflow</h3>
+            <p class="tab-page-sub">Rule-based automations and the approval chain that applications under this product go through.</p>
+          </div>
+
+          <div class="detail-card">
+            <div class="card-header">
+              <p class="card-title">Automation</p>
+            </div>
+            <p class="workflow-section-sub">Triggers that run automatically for loans under this product.</p>
+            <div class="workflow-rows">
+              @for (a of workflow.automations; track a.id) {
+                <app-settings-row
+                  type="toggle"
+                  [label]="a.title"
+                  [subtitle]="a.description"
+                  [toggled]="a.enabled"
+                  (toggleChange)="toggleWorkflowAutomation(a.id, $event)" />
+              }
+            </div>
+          </div>
+
+          <div class="detail-card mt">
+            <div class="card-header">
+              <p class="card-title">Approvals</p>
+            </div>
+            <p class="workflow-section-sub">Who must sign off on applications before disbursement. Toggle a step off to make it optional.</p>
+            <div class="workflow-rows">
+              @for (step of workflow.approvalSteps; track step.role; let i = $index) {
+                <div class="approval-step-row">
+                  <div class="approval-step-num">{{ i + 1 }}</div>
+                  <div class="approval-step-body">
+                    <app-settings-row
+                      type="toggle"
+                      [label]="step.role"
+                      [subtitle]="step.action"
+                      [toggled]="step.required"
+                      (toggleChange)="toggleApprovalStepRequired(step.role, $event)" />
+                  </div>
+                  <span class="approval-step-tag" [class.optional]="!step.required">{{ step.required ? 'Required' : 'Optional' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- ═══ LIQUIDATION ═══ -->
       @if (activeTab === 'liquidation') {
         <div class="tab-body">
@@ -1133,10 +1174,32 @@
       <!-- ═══ ACTIVITY ═══ -->
       @if (activeTab === 'activity') {
         <div class="tab-body">
-          <div class="empty-tab">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <p>Activity feed coming soon.</p>
+          <div class="tab-page-head">
+            <h3 class="tab-page-title">Activity</h3>
+            <p class="tab-page-sub">Everything that has happened to this product, newest first.</p>
           </div>
+
+          @if (activityEntries.length) {
+            <div class="activity-timeline">
+              @for (entry of activityEntries; track entry.id; let last = $last) {
+                <div class="activity-item">
+                  <div class="activity-rail">
+                    <span class="activity-icon" aria-hidden="true">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    @if (!last) { <span class="activity-line"></span> }
+                  </div>
+                  <div class="activity-body">
+                    <p class="activity-text"><strong>{{ activityActorFirstName(entry.actor) }}</strong> {{ entry.action }}</p>
+                    @if (entry.detail) { <p class="activity-detail">{{ entry.detail }}</p> }
+                    <p class="activity-time">{{ formatActivityTime(entry.timestamp) }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <app-empty-state title="No activity yet" description="Changes to this product — edits, status changes, vendor updates — will show up here." />
+          }
         </div>
       }
 
@@ -1144,101 +1207,175 @@
       @if (activeTab === 'vendors') {
         <div class="tab-body">
 
-          <div class="vendors-header">
-            <div>
-              <h2 class="vendors-title">Vendors</h2>
-              <p class="vendors-sub">Each vendor gets a unique purchase link. Approved funds go directly to their settlement account.</p>
-            </div>
-            <app-button variant="primary" label="Onboard a Vendor" (clicked)="openOnboardModal()" />
-          </div>
-
-          @if (vendors.length > 0) {
-            <div class="vendor-table">
-              <div class="vendor-table-head">
-                <span>Business</span>
-                <span>Category</span>
-                <span>Status</span>
-                <span>Settlement Account</span>
-                <span>Date Added</span>
-                <span></span>
+          @if (!selectedVendor) {
+            <div class="vendors-header">
+              <div>
+                <h2 class="vendors-title">Vendors</h2>
+                <p class="vendors-sub">Each vendor gets a unique purchase link. Approved funds go directly to their settlement account.</p>
               </div>
-              @for (vendor of vendors; track vendor.id) {
-                <div class="vendor-row" [class.suspended]="vendor.status === 'suspended'">
-                  <div class="vendor-biz">
-                    <div class="vendor-avatar">{{ vendor.businessName[0] }}</div>
-                    <div>
-                      <div class="vendor-biz-name">{{ vendor.businessName }}</div>
-                      <div class="vendor-biz-link">{{ vendorLink(vendor) }}</div>
-                    </div>
-                  </div>
-                  <span class="vendor-cat">{{ vendor.category }}</span>
-                  <span>
-                    @if (vendor.status === 'active') {
-                      <span class="vstatus active"><span class="vstatus-dot"></span>Active</span>
-                    }
-                    @if (vendor.status === 'suspended') {
-                      <span class="vstatus suspended"><span class="vstatus-dot"></span>Suspended</span>
-                    }
-                    @if (vendor.status === 'pending') {
-                      <span class="vstatus pending"><span class="vstatus-dot"></span>Pending</span>
-                    }
-                  </span>
-                  <span class="vendor-bank">{{ vendor.settlementBank }} · ••••{{ vendor.settlementAccount.slice(-4) }}</span>
-                  <span class="vendor-date">{{ vendor.dateAdded }}</span>
-                  <div class="vendor-actions">
-                    <button class="va-btn" title="Copy vendor link" (click)="copyVendorLink(vendor)">
-                      @if (copiedVendorId === vendor.id) {
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" [style.stroke]="'var(--color-success)'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      } @else {
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
-                      }
-                    </button>
-                    <button class="va-btn" [title]="vendor.status === 'suspended' ? 'Re-activate' : 'Suspend'" (click)="suspendVendor(vendor)">
-                      @if (vendor.status === 'suspended') {
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" [style.stroke]="'var(--color-success)'" stroke-width="1.5"/><path d="M9 12l2 2 4-4" [style.stroke]="'var(--color-success)'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      } @else {
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v6M14 9v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                      }
-                    </button>
-                    <button class="va-btn danger" title="Remove vendor" (click)="removeVendor(vendor.id)">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="vendors-empty">
-              <div class="vendors-empty-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
-              </div>
-              <div class="vendors-empty-title">No vendors yet</div>
-              <p class="vendors-empty-sub">Onboard your first vendor to generate a unique purchase link.</p>
               <app-button variant="primary" label="Onboard a Vendor" (clicked)="openOnboardModal()" />
             </div>
+
+            @if (vendors.length > 0) {
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th><app-column-title label="Business name" /></th>
+                    <th><app-column-title label="Category" /></th>
+                    <th><app-column-title label="Amount limits" /></th>
+                    <th><app-column-title label="Loans" /></th>
+                    <th><app-column-title label="Status" /></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (vendor of vendors; track vendor.id) {
+                    <tr class="clickable-row" (click)="openVendorDetail(vendor)">
+                      <td class="bold"><app-table-item type="text" [text]="vendor.businessName" /></td>
+                      <td><app-table-item type="text" [text]="vendor.category" /></td>
+                      <td><app-table-item type="amount" [amount]="vendorAmountLimits(vendor)" /></td>
+                      <td><app-table-item type="text" [text]="'' + vendorLoanCount(vendor)" /></td>
+                      <td><app-table-item type="status" [status]="vendor.status" /></td>
+                      <td class="col-vendor-actions" (click)="$event.stopPropagation()">
+                        <div class="vendor-actions">
+                          <button class="va-btn" title="Copy vendor link" (click)="copyVendorLink(vendor)">
+                            @if (copiedVendorId === vendor.id) {
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" [style.stroke]="'var(--color-success)'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            } @else {
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+                            }
+                          </button>
+                          <button class="va-btn" [title]="vendor.status === 'suspended' ? 'Re-activate' : 'Suspend'" (click)="suspendVendor(vendor)">
+                            @if (vendor.status === 'suspended') {
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" [style.stroke]="'var(--color-success)'" stroke-width="1.5"/><path d="M9 12l2 2 4-4" [style.stroke]="'var(--color-success)'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            } @else {
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v6M14 9v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            }
+                          </button>
+                          <button class="va-btn danger" title="Remove vendor" (click)="removeVendor(vendor.id)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <app-empty-state title="No vendors yet" description="Onboard your first vendor to generate a unique purchase link.">
+                <svg icon width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+                <div cta>
+                  <app-button variant="primary" label="Onboard a Vendor" (clicked)="openOnboardModal()" />
+                </div>
+              </app-empty-state>
+            }
+          } @else {
+
+            <!-- ── VENDOR DETAIL (inline swap) ── -->
+            <button type="button" class="vendor-back-link" (click)="closeVendorDetail()">← Back to vendors</button>
+
+            <div class="vendor-detail-head">
+              <div class="vendor-detail-identity">
+                <div class="vendor-avatar lg">{{ selectedVendor.businessName[0] }}</div>
+                <div>
+                  <div class="vendor-detail-name-row">
+                    <h2 class="vendor-detail-name">{{ selectedVendor.businessName }}</h2>
+                    <app-status-badge [status]="selectedVendor.status" [label]="vendorStatusLabel(selectedVendor.status)" />
+                  </div>
+                  <div class="vendor-detail-meta">
+                    <span class="vendor-cat-chip">{{ selectedVendor.category }}</span>
+                    @if (selectedVendor.dateAdded) { <span class="vendor-detail-added">Added {{ selectedVendor.dateAdded }}</span> }
+                    <span class="vendor-detail-limits">Limits: {{ vendorAmountLimits(selectedVendor) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="perf-kpi-row vendor-kpi-row">
+              <app-kpi-card label="Total loans" [value]="vendorKpis(selectedVendor).totalLoans" />
+              <app-kpi-card label="Total disbursed" [value]="vendorKpis(selectedVendor).totalDisbursed" />
+              <app-kpi-card label="Repayment rate" [value]="vendorKpis(selectedVendor).repaymentRate" />
+              <app-kpi-card label="Outstanding" [value]="vendorKpis(selectedVendor).outstanding" />
+            </div>
+
+            <div class="vendor-detail-section">
+              <h3 class="vendor-detail-section-title">Loans</h3>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th><app-column-title label="Borrower" /></th>
+                    <th><app-column-title label="Loan ID" /></th>
+                    <th><app-column-title label="Amount" /></th>
+                    <th><app-column-title label="Disbursed" /></th>
+                    <th><app-column-title label="Repayment status" /></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (loan of vendorLoans(selectedVendor); track loan.id) {
+                    <tr>
+                      <td><app-table-item type="user" [user]="loan.borrower" /></td>
+                      <td class="mono">{{ loan.id }}</td>
+                      <td><app-table-item type="amount" [amount]="loan.amount" /></td>
+                      <td><app-table-item type="date" [date]="loan.disbursed" /></td>
+                      <td><app-status-badge [status]="vendorLoanBadge(loan.status).status" [label]="vendorLoanBadge(loan.status).label" /></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="vendor-detail-section">
+              <h3 class="vendor-detail-section-title">Invoices</h3>
+              <div class="invoice-list">
+                @for (invoice of vendorInvoices(selectedVendor); track invoice.number) {
+                  <div class="invoice-row">
+                    <span class="invoice-number mono">{{ invoice.number }}</span>
+                    <span class="invoice-amount">{{ invoice.amount }}</span>
+                    <span class="invoice-date">{{ invoice.date }}</span>
+                    <app-status-badge [status]="invoice.status" [label]="invoice.status === 'successful' ? 'Settled' : 'Pending'" />
+                    <button type="button" class="invoice-view-chip" (click)="openInvoice(invoice)">View</button>
+                  </div>
+                }
+              </div>
+            </div>
+
           }
 
         </div>
       }
+
+      <!-- Vendor invoice summary modal -->
+      <app-modal [isOpen]="!!viewingInvoice" [title]="'Invoice ' + (viewingInvoice?.number || '')" size="sm" (closed)="closeInvoice()">
+        @if (viewingInvoice; as inv) {
+          <div class="invoice-summary">
+            <div class="config-grid">
+              <div class="config-row"><span class="config-label">Invoice number</span><span class="config-value mono">{{ inv.number }}</span></div>
+              <div class="config-row"><span class="config-label">Vendor</span><span class="config-value">{{ selectedVendor?.businessName }}</span></div>
+              <div class="config-row"><span class="config-label">Borrower</span><span class="config-value">{{ inv.borrower }}</span></div>
+              <div class="config-row"><span class="config-label">Linked loan</span><span class="config-value mono">{{ inv.loanId }}</span></div>
+              <div class="config-row"><span class="config-label">Amount</span><span class="config-value">{{ inv.amount }}</span></div>
+              <div class="config-row"><span class="config-label">Date</span><span class="config-value">{{ inv.date }}</span></div>
+              <div class="config-row">
+                <span class="config-label">Settlement status</span>
+                <span class="config-value"><app-status-badge [status]="inv.status" [label]="inv.status === 'successful' ? 'Settled' : 'Pending'" /></span>
+              </div>
+            </div>
+          </div>
+        }
+        <div modalFooter class="modal-footer-actions">
+          <app-button variant="outline" label="Close" (clicked)="closeInvoice()" />
+        </div>
+      </app-modal>
 
     </div>
   </div>
 </div>
 
 <!-- ═══ ONBOARD VENDOR MODAL ═══ -->
-@if (showOnboardModal) {
-  <div class="modal-overlay" (click)="showOnboardModal = false">
-    <div class="onboard-modal" (click)="$event.stopPropagation()">
+<app-modal [isOpen]="showOnboardModal" title="Onboard a Vendor" size="md" (closed)="showOnboardModal = false">
+  <div class="onboard-body">
 
-      <div class="onboard-modal-header">
-        <div>
-          <div class="onboard-modal-title">Onboard a Vendor</div>
-          <div class="onboard-modal-sub">Step {{ onboardStep + 1 }} of 4 — {{ ['Business Details', 'Director / Owner KYC', 'Settlement Account', 'Review & Confirm'][onboardStep] }}</div>
-        </div>
-        <button class="modal-close-btn" (click)="showOnboardModal = false">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-      </div>
+      <div class="onboard-step-caption">Step {{ onboardStep + 1 }} of 4 — {{ ['Business Details', 'Director / Owner KYC', 'Settlement Account', 'Review & Confirm'][onboardStep] }}</div>
 
       <div class="onboard-steps-bar">
         @for (label of ['Business', 'Director', 'Settlement', 'Review']; track label; let i = $index) {
@@ -1251,7 +1388,7 @@
         }
       </div>
 
-      <div class="onboard-modal-body">
+      <div class="onboard-fields">
 
         @if (onboardStep === 0) {
           <div class="ob-field-group">
@@ -1289,6 +1426,17 @@
             <label class="ob-label">Business website <span class="ob-optional">(optional)</span></label>
             <input class="ob-input" type="url" placeholder="https://yourbusiness.com" [(ngModel)]="newVendor.website" />
           </div>
+          <div class="ob-two-col">
+            <div class="ob-field-group">
+              <label class="ob-label">Minimum purchase amount (₦)</label>
+              <input class="ob-input" type="text" inputmode="numeric" [placeholder]="'e.g. ' + product.minAmount" [(ngModel)]="newVendor.minAmount" />
+            </div>
+            <div class="ob-field-group">
+              <label class="ob-label">Maximum purchase amount (₦)</label>
+              <input class="ob-input" type="text" inputmode="numeric" [placeholder]="'e.g. ' + product.maxAmount" [(ngModel)]="newVendor.maxAmount" />
+            </div>
+          </div>
+          <p class="ob-hint-note">Left blank, this vendor inherits the product's amount limits (₦{{ product.minAmount }} – ₦{{ product.maxAmount }}).</p>
         }
 
         @if (onboardStep === 1) {
@@ -1379,6 +1527,7 @@
               <div class="ob-rv"><span class="ob-rv-l">Business Name</span><span class="ob-rv-v">{{ newVendor.businessName || '—' }}</span></div>
               <div class="ob-rv"><span class="ob-rv-l">CAC Number</span><span class="ob-rv-v">{{ newVendor.cac || '—' }}</span></div>
               <div class="ob-rv"><span class="ob-rv-l">Category</span><span class="ob-rv-v">{{ newVendor.category || '—' }}</span></div>
+              <div class="ob-rv"><span class="ob-rv-l">Amount Limits</span><span class="ob-rv-v">₦{{ newVendor.minAmount || product.minAmount }} – ₦{{ newVendor.maxAmount || product.maxAmount }}</span></div>
               <div class="ob-rv"><span class="ob-rv-l">Address</span><span class="ob-rv-v">{{ newVendor.address || '—' }}</span></div>
               <div class="ob-rv"><span class="ob-rv-l">Phone</span><span class="ob-rv-v">{{ newVendor.phone || '—' }}</span></div>
               <div class="ob-rv"><span class="ob-rv-l">Email</span><span class="ob-rv-v">{{ newVendor.email || '—' }}</span></div>
@@ -1411,22 +1560,20 @@
 
       </div>
 
-      <div class="onboard-modal-footer">
-        @if (onboardStep > 0) {
-          <app-button variant="back" label="Back" (clicked)="onboardBack()" />
-        } @else {
-          <app-button variant="outline" label="Cancel" (clicked)="showOnboardModal = false" />
-        }
-        @if (onboardStep < 3) {
-          <app-button variant="primary" label="Continue" (clicked)="onboardNext()" />
-        } @else {
-          <app-button variant="primary" label="Onboard Vendor" (clicked)="confirmOnboard()" />
-        }
-      </div>
-
-    </div>
   </div>
-}
+  <div modalFooter class="modal-footer-actions">
+    @if (onboardStep > 0) {
+      <app-button variant="back" label="Back" (clicked)="onboardBack()" />
+    } @else {
+      <app-button variant="outline" label="Cancel" (clicked)="showOnboardModal = false" />
+    }
+    @if (onboardStep < 3) {
+      <app-button variant="primary" label="Continue" (clicked)="onboardNext()" />
+    } @else {
+      <app-button variant="primary" label="Onboard Vendor" (clicked)="confirmOnboard()" />
+    }
+  </div>
+</app-modal>
 
 <!-- ═══ SET TARGET MODAL ═══ -->
 <app-modal [isOpen]="showTargetModal" [title]="targetsSet ? 'Edit target' : 'Set target'" size="sm" (closed)="showTargetModal = false">

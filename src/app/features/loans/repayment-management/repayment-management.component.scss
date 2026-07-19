@@ -159,3 +159,42 @@
   gap: var(--space-2);
   margin-top: var(--space-3);
 }
+
+/* ── Liquidation drawer ── */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.liq-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.liq-waived { color: var(--color-success); }
+
+.liq-total-row {
+  border-top: 1px solid var(--color-stroke);
+  padding-top: var(--space-3);
+
+  .detail-value {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: var(--text-md);
+  }
+}
+
+.liq-note {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.55;
+  background: var(--color-warning-bg);
+  border-radius: 8px;
+  padding: var(--space-3);
+  margin: var(--space-3) 0;
+}

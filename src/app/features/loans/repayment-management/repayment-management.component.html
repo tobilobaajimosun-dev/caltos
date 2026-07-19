@@ -40,7 +40,12 @@
             <td><app-table-item type="text" [text]="row.loanId" /></td>
             <td><app-table-item type="amount" [amount]="'₦' + row.amountDue.toLocaleString()" /></td>
             <td><app-table-item type="amount" [amount]="'₦' + row.amountPaid.toLocaleString()" /></td>
-            <td class="actions-cell"><app-button variant="primary" label="Record payment" (clicked)="openRecordPayment(row)" /></td>
+            <td class="actions-cell">
+              <div class="row-actions">
+                <app-button variant="secondary" label="Liquidate" (clicked)="openLiquidation(row)" />
+                <app-button variant="primary" label="Record payment" (clicked)="openRecordPayment(row)" />
+              </div>
+            </td>
           </tr>
         }
         @empty {
@@ -266,6 +271,59 @@
         <app-textarea label="Notes (optional)" [value]="paymentNotes()" (valueChange)="paymentNotes.set($event)" />
 
         <app-button variant="primary" label="Confirm payment" (clicked)="confirmPayment(row)" [fullWidth]="true" />
+      </div>
+    }
+  }
+</app-drawer>
+
+<app-drawer [isOpen]="!!liquidating()" title="Liquidate loan" (closed)="closeLiquidation()">
+  @if (liquidating(); as row) {
+    @if (liquidationDone()) {
+      <div class="confirmation">
+        <p class="confirmation-title">Loan liquidated</p>
+        <div class="detail-row"><span class="detail-label">Loan</span><span class="detail-value">{{ row.loanId }}</span></div>
+        <div class="detail-row"><span class="detail-label">Settled amount</span><span class="detail-value">₦{{ liquidationTotal(row).toLocaleString() }}</span></div>
+        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">Closed — early settlement</span></div>
+        <div class="confirmation-actions">
+          <app-button variant="primary" label="Done" (clicked)="closeLiquidation()" />
+        </div>
+      </div>
+    } @else {
+      <div class="record-payment-form">
+        <div class="detail-row">
+          <span class="detail-label">Customer</span>
+          <span class="detail-value">{{ row.customer.name }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Loan ID</span>
+          <span class="detail-value">{{ row.loanId }}</span>
+        </div>
+
+        <p class="liq-section-title">Payoff breakdown</p>
+        <div class="detail-row">
+          <span class="detail-label">Outstanding balance</span>
+          <span class="detail-value">₦{{ liquidationOutstanding(row).toLocaleString() }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Unearned interest waived</span>
+          <span class="detail-value liq-waived">−₦{{ liquidationInterestWaived(row).toLocaleString() }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Early settlement fee (2%)</span>
+          <span class="detail-value">₦{{ liquidationFee(row).toLocaleString() }}</span>
+        </div>
+        <div class="detail-row liq-total-row">
+          <span class="detail-label">Total payoff</span>
+          <span class="detail-value">₦{{ liquidationTotal(row).toLocaleString() }}</span>
+        </div>
+
+        <p class="liq-note">
+          Liquidating closes this loan immediately, cancels the auto-deduction mandate,
+          and issues a clearance letter to the borrower. This follows the product's
+          liquidation policy captured at disbursement.
+        </p>
+
+        <app-button variant="primary" label="Confirm liquidation" (clicked)="confirmLiquidation(row)" [fullWidth]="true" />
       </div>
     }
   }

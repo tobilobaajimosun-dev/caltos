@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import {
   SettingsRowComponent, ToastComponent, ButtonComponent, ToggleComponent, SelectComponent, SelectOption,
   InputComponent, ModalComponent, StatusBadgeComponent, BadgeStatus,
-  CheckboxComponent, RadioButtonComponent,
+  CheckboxComponent, RadioButtonComponent, ColumnTitleComponent, TableItemComponent,
 } from '../../../shared/components';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 
@@ -65,6 +65,7 @@ interface InvoiceEntry {
   imports: [
     RouterLink, SettingsRowComponent, ToastComponent, ButtonComponent, ToggleComponent, SelectComponent,
     InputComponent, ModalComponent, StatusBadgeComponent, CheckboxComponent, RadioButtonComponent,
+    ColumnTitleComponent, TableItemComponent,
   ],
   templateUrl: './organization-settings.component.html',
   styleUrl: './organization-settings.component.scss',

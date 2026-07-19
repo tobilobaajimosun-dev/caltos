@@ -1,13 +1,23 @@
 <div class="page-header">
   <div>
-    <h1 class="page-title">Teams</h1>
-    <p class="page-subtitle">Manage staff access — loan officers, managers, admins, and auditors.</p>
+    <h1 class="page-title">Team</h1>
+    <p class="page-subtitle">{{ memberCountLabel() }}</p>
   </div>
-  <app-button variant="primary" label="+ Invite Member" (clicked)="openInvite()" />
+  <app-button variant="primary" label="Invite member" (clicked)="openInvite()" />
 </div>
 
-<div class="tab-bar">
-  <app-round-tabs [tabs]="filterTabs" [activeTab]="activeFilter()" (activeTabChange)="setFilter($event)" />
+<div class="filter-row">
+  <div class="role-pills" role="group" aria-label="Filter members by role">
+    @for (tab of filterTabs; track tab.value) {
+      <button
+        type="button"
+        class="role-pill"
+        [class.active]="activeFilter() === tab.value"
+        [attr.aria-pressed]="activeFilter() === tab.value"
+        (click)="setFilter(tab.value)">{{ tab.label }}</button>
+    }
+  </div>
+  <app-search placeholder="Search members" [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
 </div>
 
 <div class="panel table-panel">
@@ -25,25 +35,29 @@
     <tbody>
       @for (member of filteredMembers(); track member.id) {
         <tr class="clickable-row" (click)="open(member)">
-          <td>
-            <div class="member-cell">
-              <app-avatar [name]="member.firstName + ' ' + member.lastName" size="sm" />
-              <div class="member-info">
-                <span class="member-name">{{ member.firstName }} {{ member.lastName }}</span>
-                <span class="member-email">{{ member.email }}</span>
-              </div>
-            </div>
-          </td>
-          <td><span class="role-badge">{{ member.role }}</span></td>
+          <td><app-table-item type="user-avatar" [user]="memberUser(member)" /></td>
+          <td><span class="role-chip" [class.admin]="member.role === 'Admin'">{{ member.role }}</span></td>
           <td><app-status-badge [status]="statusBadge(member.status).status" [label]="statusBadge(member.status).label" /></td>
-          <td>{{ relativeTime(member.lastActive) }}</td>
-          <td>{{ member.loansAssigned }}</td>
+          <td><app-table-item type="text" [text]="relativeTime(member.lastActive)" /></td>
+          <td><app-table-item type="text" [text]="'' + member.loansAssigned" /></td>
           <td class="actions-cell" (click)="$event.stopPropagation()">
-            @if (member.status === 'pending') {
-              <button type="button" class="row-action" (click)="resendInvite(member)">Resend invite</button>
-            }
-            <button type="button" class="row-action" (click)="requestSuspend(member)">{{ member.status === 'suspended' ? 'Reactivate' : 'Suspend' }}</button>
-            <button type="button" class="row-action danger" (click)="requestRemove(member)">Remove</button>
+            <app-row-menu #rowMenu [open]="openMenuId() === member.id" (openChange)="setMenuOpen(member.id, $event)">
+              <span trigger #trigger class="more-trigger" (click)="rowMenu.toggle($event)">
+                <app-icon-button icon="more" />
+              </span>
+              <ng-template>
+                <div class="row-dropdown">
+                  <button type="button" class="dropdown-item" (click)="closeMenu(); open(member)">View profile</button>
+                  <button type="button" class="dropdown-item" (click)="openChangeRole(member)">Change role</button>
+                  @if (member.status === 'pending') {
+                    <button type="button" class="dropdown-item" (click)="resendInvite(member)">Resend invite</button>
+                  }
+                  <button type="button" class="dropdown-item" (click)="requestSuspend(member)">{{ member.status === 'suspended' ? 'Reactivate' : 'Suspend' }}</button>
+                  <div class="dropdown-divider"></div>
+                  <button type="button" class="dropdown-item danger" (click)="requestRemove(member)">Remove</button>
+                </div>
+              </ng-template>
+            </app-row-menu>
           </td>
         </tr>
       }
@@ -61,7 +75,7 @@
       <app-avatar [name]="member.firstName + ' ' + member.lastName" size="lg" />
       <div>
         <p class="profile-name">{{ member.firstName }} {{ member.lastName }}</p>
-        <span class="role-badge">{{ member.role }}</span>
+        <span class="role-chip" [class.admin]="member.role === 'Admin'">{{ member.role }}</span>
       </div>
     </div>
 
@@ -142,8 +156,8 @@
 <app-modal [isOpen]="showInviteModal()" title="Invite team member" (closed)="closeInvite()">
   <div class="invite-steps">
     <span [class.active]="inviteStep() >= 0">1. Basic Info</span>
-    <span [class.active]="inviteStep() >= 1">2. Role & Permissions</span>
-    <span [class.active]="inviteStep() >= 2">3. Review & Send</span>
+    <span [class.active]="inviteStep() >= 1">2. Role &amp; Permissions</span>
+    <span [class.active]="inviteStep() >= 2">3. Review &amp; Send</span>
   </div>
 
   @if (inviteStep() === 0) {
@@ -194,6 +208,21 @@
     } @else {
       <app-button variant="primary" label="Send Invite" (clicked)="sendInvite()" />
     }
+  </div>
+</app-modal>
+
+<!-- Change role modal -->
+<app-modal [isOpen]="!!roleChangeTarget()" title="Change role" size="sm" (closed)="closeChangeRole()">
+  <div class="role-change-body">
+    @if (roleChangeTarget(); as target) {
+      <p class="role-change-name">{{ target.firstName }} {{ target.lastName }} · currently {{ target.role }}</p>
+    }
+    <app-select [options]="changeRoleOptions" [value]="roleChangeValue()" (valueChange)="setRoleChangeValue($event)" />
+    <p class="role-desc">{{ roleDescriptions[roleChangeValue()] }}</p>
+  </div>
+  <div modalFooter class="invite-footer">
+    <app-button variant="outline" label="Cancel" (clicked)="closeChangeRole()" />
+    <app-button variant="primary" label="Save" (clicked)="saveRoleChange()" />
   </div>
 </app-modal>
 

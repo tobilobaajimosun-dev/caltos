@@ -1,62 +1,124 @@
 <!-- ═══════════════════════════════════════════════════════════════
-     BVN GATE — shown until borrower authenticates
+     GATE — BVN step, then OTP step, until borrower authenticates
 ═══════════════════════════════════════════════════════════════ -->
 @if (!isAuthenticated) {
   <div class="rp-gate">
     <div class="rp-gate-card">
-      <div class="rp-gate-logo" aria-hidden="true">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M16 7V5a4 4 0 00-8 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="rp-gate-heading">
-        <h1 class="rp-gate-title">Your loan portal</h1>
-        <p class="rp-gate-sub">Enter your 11-digit BVN to securely access your loan information.</p>
-      </div>
 
-      <div class="rp-gate-field">
-        <label class="rp-gate-label" for="bvn-input">Bank Verification Number (BVN)</label>
-        <input
-          id="bvn-input"
-          class="rp-gate-input"
-          [class.rp-gate-input--error]="bvnError"
-          type="text"
-          inputmode="numeric"
-          maxlength="11"
-          placeholder="Enter your 11-digit BVN"
-          [(ngModel)]="bvnInput"
-          (keyup.enter)="verifyBvn()"
-          autocomplete="off"
-          aria-describedby="bvn-error bvn-note"
-        />
-        @if (bvnError) {
-          <p class="rp-gate-error" id="bvn-error" role="alert">{{ bvnError }}</p>
-        }
-      </div>
+      @if (gateStep === 'bvn') {
+        <div class="rp-gate-logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M16 7V5a4 4 0 00-8 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="rp-gate-heading">
+          <h1 class="rp-gate-title">Your loan portal</h1>
+          <p class="rp-gate-sub">Enter your 11-digit BVN to securely access your loan information.</p>
+        </div>
 
-      <button class="rp-gate-btn" [disabled]="isVerifying" (click)="verifyBvn()" aria-live="polite">
-        @if (isVerifying) {
-          <span class="rp-spinner" aria-hidden="true"></span>
-          Verifying…
-        } @else {
-          Access my portal
-        }
-      </button>
+        <div class="rp-gate-field">
+          <label class="rp-gate-label" for="bvn-input">Bank Verification Number (BVN)</label>
+          <input
+            id="bvn-input"
+            class="rp-gate-input"
+            [class.rp-gate-input--error]="bvnError"
+            type="text"
+            inputmode="numeric"
+            maxlength="11"
+            placeholder="Enter your 11-digit BVN"
+            [(ngModel)]="bvnInput"
+            (keyup.enter)="verifyBvn()"
+            autocomplete="off"
+            aria-describedby="bvn-error bvn-note"
+          />
+          @if (bvnError) {
+            <p class="rp-gate-error" id="bvn-error" role="alert">{{ bvnError }}</p>
+          }
+        </div>
 
-      <p class="rp-gate-note" id="bvn-note">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        Your BVN is used only for identity verification and is never stored.
-      </p>
+        <button class="rp-gate-btn" [disabled]="isVerifying" (click)="verifyBvn()" aria-live="polite">
+          @if (isVerifying) {
+            <span class="rp-spinner" aria-hidden="true"></span>
+            Verifying…
+          } @else {
+            Access my portal
+          }
+        </button>
+
+        <p class="rp-gate-note" id="bvn-note">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Your BVN is used only for identity verification and is never stored.
+        </p>
+      }
+
+      @if (gateStep === 'otp') {
+        <div class="rp-gate-logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 18h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="rp-gate-heading">
+          <h1 class="rp-gate-title">Enter the 6-digit code</h1>
+          <p class="rp-gate-sub">We sent a code to the phone number linked to your BVN ({{ maskedPhone }}).</p>
+        </div>
+
+        <div class="rp-gate-field">
+          <label class="rp-gate-label" for="otp-input">One-time code</label>
+          <input
+            id="otp-input"
+            class="rp-gate-input rp-otp-input"
+            [class.rp-gate-input--error]="otpError"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••••"
+            [(ngModel)]="otpInput"
+            (keyup.enter)="verifyOtp()"
+            autocomplete="one-time-code"
+            aria-describedby="otp-error otp-note"
+          />
+          @if (otpError) {
+            <p class="rp-gate-error" id="otp-error" role="alert">{{ otpError }}</p>
+          }
+        </div>
+
+        <button class="rp-gate-btn" [disabled]="isVerifyingOtp" (click)="verifyOtp()" aria-live="polite">
+          @if (isVerifyingOtp) {
+            <span class="rp-spinner" aria-hidden="true"></span>
+            Verifying…
+          } @else {
+            Verify code
+          }
+        </button>
+
+        <div class="rp-gate-links">
+          @if (resendCountdown > 0) {
+            <span class="rp-gate-countdown" aria-live="polite">Resend code in {{ resendCountdown }}s</span>
+          } @else {
+            <button class="rp-gate-link" (click)="resendCode()">Resend code</button>
+          }
+          <button class="rp-gate-link rp-gate-link--muted" (click)="backToBvn()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Re-enter BVN
+          </button>
+        </div>
+
+        <p class="rp-gate-note" id="otp-note">Demo code: 123456</p>
+      }
+
     </div>
   </div>
 }
 
 <!-- ═══════════════════════════════════════════════════════════════
-     APP SHELL — top bar | sidebar · content · chat panel
+     APP SHELL — top bar | sidebar · main · floating chat widget
 ═══════════════════════════════════════════════════════════════ -->
 @if (isAuthenticated) {
   <div class="rp-app">
@@ -72,9 +134,102 @@
         </div>
         <span class="rp-topnav-name">Caltos</span>
       </div>
+
       <div class="rp-topnav-user">
-        <div class="rp-topnav-avatar" aria-hidden="true">{{ borrowerName.charAt(0) }}</div>
-        <span class="rp-topnav-borrower">{{ borrowerName }}</span>
+        <button
+          class="rp-avatar-trigger"
+          (click)="toggleAvatarMenu()"
+          [attr.aria-expanded]="avatarMenuOpen"
+          aria-haspopup="menu"
+          aria-label="Account menu"
+        >
+          <span class="rp-topnav-avatar" aria-hidden="true">{{ borrowerName.charAt(0) }}</span>
+          <span class="rp-topnav-borrower">{{ borrowerName }}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        @if (avatarMenuOpen) {
+          <div class="rp-menu-backdrop" (click)="closeAvatarMenu()" aria-hidden="true"></div>
+          <div class="rp-avatar-menu" role="menu" aria-label="Account menu">
+            <div class="rp-menu-head">
+              <p class="rp-menu-name">{{ borrowerName }}</p>
+              <p class="rp-menu-bvn">BVN {{ maskedBvn }}</p>
+            </div>
+
+            <button class="rp-menu-item" role="menuitem" (click)="openProfile()">
+              <span class="rp-menu-item-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                My Profile
+              </span>
+            </button>
+
+            <p class="rp-menu-label" id="rp-appearance-label">Appearance</p>
+            <button
+              class="rp-menu-item"
+              role="menuitemradio"
+              [attr.aria-checked]="!darkMode"
+              (click)="setTheme(false)"
+            >
+              <span class="rp-menu-item-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Light
+              </span>
+              @if (!darkMode) {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              }
+            </button>
+            <button
+              class="rp-menu-item"
+              role="menuitemradio"
+              [attr.aria-checked]="darkMode"
+              (click)="setTheme(true)"
+            >
+              <span class="rp-menu-item-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                </svg>
+                Dark
+              </span>
+              @if (darkMode) {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              }
+            </button>
+
+            <div class="rp-menu-divider" role="separator"></div>
+
+            @if (!logoutConfirmOpen) {
+              <button class="rp-menu-item rp-menu-item--danger" role="menuitem" (click)="requestLogout()">
+                <span class="rp-menu-item-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Log out
+                </span>
+              </button>
+            } @else {
+              <div class="rp-logout-confirm">
+                <p class="rp-logout-confirm-text">Log out of your portal?</p>
+                <div class="rp-logout-actions">
+                  <button class="rp-chip" (click)="cancelLogout()">Cancel</button>
+                  <button class="rp-logout-btn" (click)="confirmLogout()">Log out</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </header>
 
@@ -95,6 +250,21 @@
                 <path d="M9 21V12h6v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
               Home
+            </button>
+          </li>
+          <li>
+            <button
+              class="rp-nav-item"
+              [class.rp-nav-item--active]="activeNav === 'loans'"
+              (click)="setNav('loans')"
+              [attr.aria-current]="activeNav === 'loans' ? 'page' : null"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              My Loans
             </button>
           </li>
           <li>
@@ -126,12 +296,26 @@
               Loan Documents
             </button>
           </li>
+          <li>
+            <button
+              class="rp-nav-item"
+              [class.rp-nav-item--active]="activeNav === 'profile'"
+              (click)="setNav('profile')"
+              [attr.aria-current]="activeNav === 'profile' ? 'page' : null"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              My Profile
+            </button>
+          </li>
         </ul>
 
         <div class="rp-nav-footer">
           <div class="rp-nav-loan-badge">
-            <p class="rp-nav-loan-ref">{{ loanRef }}</p>
-            <p class="rp-nav-loan-prod">{{ product }}</p>
+            <p class="rp-nav-loan-ref">{{ selectedLoan.ref }}</p>
+            <p class="rp-nav-loan-prod">{{ selectedLoan.product }}</p>
           </div>
         </div>
       </nav>
@@ -145,20 +329,49 @@
           <div class="rp-page-head">
             <div>
               <h1 class="rp-page-title">Welcome back, {{ borrowerName.split(' ')[0] }}</h1>
-              <p class="rp-page-sub">Next payment due <strong>{{ nextDueDate }}</strong></p>
+              @if (selectedLoan.status === 'active') {
+                <p class="rp-page-sub">Next payment due <strong>{{ selectedLoan.nextDueDate }}</strong></p>
+              } @else {
+                <p class="rp-page-sub">Loan fully repaid <strong>{{ selectedLoan.completedDate }}</strong></p>
+              }
             </div>
-            <div class="rp-streak-pill" role="status" aria-label="{{ paymentStreak }}-month payment streak">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              {{ paymentStreak }}-month streak
-            </div>
+            @if (selectedLoan.status === 'active') {
+              <div class="rp-streak-pill" role="status" aria-label="{{ selectedLoan.paymentStreak }}-month payment streak">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {{ selectedLoan.paymentStreak }}-month streak
+              </div>
+            }
+          </div>
+
+          <!-- Loan switcher pills -->
+          <div class="rp-loan-pills" role="group" aria-label="Switch between your loans">
+            @for (loan of loans; track loan.id) {
+              <button
+                class="rp-loan-pill"
+                [class.rp-loan-pill--active]="loan.id === selectedLoanId"
+                (click)="selectLoan(loan.id)"
+                [attr.aria-pressed]="loan.id === selectedLoanId"
+              >
+                <span class="rp-loan-pill-top">
+                  <span class="rp-loan-pill-name">{{ loan.product }}</span>
+                  <span
+                    class="rp-status-pill"
+                    [class.rp-status-pill--accent]="loan.status === 'active'"
+                    [class.rp-status-pill--success]="loan.status === 'completed'"
+                  >{{ loan.status === 'active' ? 'Active' : 'Completed' }}</span>
+                </span>
+                <span class="rp-loan-pill-amount">₦{{ loanOutstanding(loan).toLocaleString() }}</span>
+                <span class="rp-loan-pill-caption">outstanding</span>
+              </button>
+            }
           </div>
 
           <!-- Hero balance card -->
           <section class="rp-card rp-hero" aria-label="Loan balance">
             <p class="rp-hero-eyebrow">Outstanding balance</p>
-            <p class="rp-hero-amount">₦{{ outstandingBalance.toLocaleString() }}</p>
+            <p class="rp-hero-amount">₦{{ loanOutstanding(selectedLoan).toLocaleString() }}</p>
 
             <div class="rp-chip-row">
               <button class="rp-chip" (click)="copyAccountNumber()">
@@ -190,21 +403,31 @@
                 </svg>
                 Documents
               </button>
+              <a href="/products/catalogue" class="rp-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Take a new loan
+              </a>
             </div>
 
             <div
               class="rp-progress-track"
               role="progressbar"
-              [attr.aria-valuenow]="repaymentProgress"
+              [attr.aria-valuenow]="loanProgress(selectedLoan)"
               aria-valuemin="0"
               aria-valuemax="100"
-              [attr.aria-label]="repaymentProgress + '% of loan repaid'"
+              [attr.aria-label]="loanProgress(selectedLoan) + '% of loan repaid'"
             >
-              <div class="rp-progress-fill" [style.width.%]="repaymentProgress"></div>
+              <div class="rp-progress-fill" [style.width.%]="loanProgress(selectedLoan)"></div>
             </div>
             <div class="rp-progress-legend">
-              <span class="rp-progress-caption">You're {{ repaymentProgress }}% through your loan — keep it up!</span>
-              <span class="rp-progress-remaining">₦{{ amountRepaid.toLocaleString() }} of ₦{{ totalRepayable.toLocaleString() }}</span>
+              @if (selectedLoan.status === 'completed') {
+                <span class="rp-progress-caption">Fully repaid — congratulations!</span>
+              } @else {
+                <span class="rp-progress-caption">You're {{ loanProgress(selectedLoan) }}% through your loan — keep it up!</span>
+              }
+              <span class="rp-progress-remaining">₦{{ selectedLoan.amountRepaid.toLocaleString() }} of ₦{{ selectedLoan.totalRepayable.toLocaleString() }}</span>
             </div>
           </section>
 
@@ -212,118 +435,216 @@
           <div class="rp-stat-row">
             <div class="rp-card rp-stat">
               <p class="rp-stat-label">Total repayable</p>
-              <p class="rp-stat-value">₦{{ totalRepayable.toLocaleString() }}</p>
+              <p class="rp-stat-value">₦{{ selectedLoan.totalRepayable.toLocaleString() }}</p>
             </div>
             <div class="rp-card rp-stat">
               <p class="rp-stat-label">Amount repaid</p>
-              <p class="rp-stat-value rp-stat-value--positive">₦{{ amountRepaid.toLocaleString() }}</p>
+              <p class="rp-stat-value rp-stat-value--positive">₦{{ selectedLoan.amountRepaid.toLocaleString() }}</p>
             </div>
-            <div class="rp-card rp-stat">
-              <p class="rp-stat-label">Next payment</p>
-              <p class="rp-stat-value">₦{{ nextPaymentAmount.toLocaleString() }}</p>
-              <p class="rp-stat-caption">Due {{ nextDueDate }}</p>
-            </div>
+            @if (selectedLoan.status === 'active') {
+              <div class="rp-card rp-stat">
+                <p class="rp-stat-label">Next payment</p>
+                <p class="rp-stat-value">₦{{ selectedLoan.nextPaymentAmount.toLocaleString() }}</p>
+                <p class="rp-stat-caption">Due {{ selectedLoan.nextDueDate }}</p>
+              </div>
+            } @else {
+              <div class="rp-card rp-stat">
+                <p class="rp-stat-label">Completed</p>
+                <p class="rp-stat-value">{{ selectedLoan.completedDate }}</p>
+                <p class="rp-stat-caption">Nothing left to pay</p>
+              </div>
+            }
           </div>
 
           <!-- Virtual account -->
-          <section class="rp-card" aria-label="Virtual account for repayment">
-            <div class="rp-card-head">
-              <div class="rp-icon-circle" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 10h18M3 10l9-6 9 6M5 10v9m4-9v9m6-9v9m4-9v9M3 21h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+          @if (selectedLoan.status === 'active') {
+            <section class="rp-card" aria-label="Virtual account for repayment">
+              <div class="rp-card-head">
+                <div class="rp-icon-circle" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 10h18M3 10l9-6 9 6M5 10v9m4-9v9m6-9v9m4-9v9M3 21h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="rp-card-head-text">
+                  <p class="rp-card-title">Pay via bank transfer</p>
+                  <p class="rp-card-sub">Payments reflect within 30 minutes</p>
+                </div>
+                <span class="rp-bank-pill">{{ virtualAccountBank }}</span>
               </div>
-              <div class="rp-card-head-text">
-                <p class="rp-card-title">Pay via bank transfer</p>
-                <p class="rp-card-sub">Payments reflect within 30 minutes</p>
-              </div>
-              <span class="rp-bank-pill">{{ virtualAccountBank }}</span>
-            </div>
 
-            <div class="rp-va-display">
-              <div class="rp-va-number-row">
-                <span class="rp-va-number" aria-label="Account number {{ virtualAccountNumber }}">{{ virtualAccountNumber }}</span>
-                <button
-                  class="rp-chip"
-                  (click)="copyAccountNumber()"
-                  [attr.aria-label]="virtualAccountCopied ? 'Account number copied' : 'Copy account number'"
-                >
-                  @if (virtualAccountCopied) {
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Copied!
-                  } @else {
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    Copy
-                  }
-                </button>
+              <div class="rp-va-display">
+                <div class="rp-va-number-row">
+                  <span class="rp-va-number" aria-label="Account number {{ virtualAccountNumber }}">{{ virtualAccountNumber }}</span>
+                  <button
+                    class="rp-chip"
+                    (click)="copyAccountNumber()"
+                    [attr.aria-label]="virtualAccountCopied ? 'Account number copied' : 'Copy account number'"
+                  >
+                    @if (virtualAccountCopied) {
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      Copied!
+                    } @else {
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/>
+                      </svg>
+                      Copy
+                    }
+                  </button>
+                </div>
+                <p class="rp-va-acct-name">{{ virtualAccountName }}</p>
               </div>
-              <p class="rp-va-acct-name">{{ virtualAccountName }}</p>
-            </div>
 
-            <div class="rp-kv-row">
-              <span class="rp-kv-label">Loan reference — include with every transfer</span>
-              <span class="rp-kv-value">{{ loanRef }}</span>
-            </div>
-          </section>
+              <div class="rp-kv-row">
+                <span class="rp-kv-label">Loan reference — include with every transfer</span>
+                <span class="rp-kv-value">{{ selectedLoan.ref }}</span>
+              </div>
+            </section>
 
-          <!-- Mandate -->
-          <section class="rp-card" aria-label="Auto-deduction mandate">
-            <div class="rp-card-head">
-              <div class="rp-icon-circle" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 12a9 9 0 11-2.64-6.36" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <path d="M21 3v5h-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+            <!-- Mandate -->
+            <section class="rp-card" aria-label="Auto-deduction mandate">
+              <div class="rp-card-head">
+                <div class="rp-icon-circle" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 12a9 9 0 11-2.64-6.36" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M21 3v5h-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div class="rp-card-head-text">
+                  <p class="rp-card-title">Auto-deduction mandate</p>
+                  <p class="rp-card-sub">Your repayments are on autopilot</p>
+                </div>
+                <span class="rp-status-pill rp-status-pill--success">Active</span>
               </div>
-              <div class="rp-card-head-text">
-                <p class="rp-card-title">Auto-deduction mandate</p>
-                <p class="rp-card-sub">Your repayments are on autopilot</p>
-              </div>
-              <span class="rp-status-pill rp-status-pill--success">Active</span>
-            </div>
 
-            <div class="rp-kv-list">
-              <div class="rp-kv-row">
-                <span class="rp-kv-label">Channel</span>
-                <span class="rp-kv-value">{{ mandateChannel }}</span>
+              <div class="rp-kv-list">
+                <div class="rp-kv-row">
+                  <span class="rp-kv-label">Channel</span>
+                  <span class="rp-kv-value">{{ selectedLoan.mandateChannel }}</span>
+                </div>
+                <div class="rp-kv-row">
+                  <span class="rp-kv-label">Linked account</span>
+                  <span class="rp-kv-value">{{ selectedLoan.mandateAccountNumber }} · {{ selectedLoan.mandateBank }}</span>
+                </div>
+                <div class="rp-kv-row">
+                  <span class="rp-kv-label">Next deduction</span>
+                  <span class="rp-kv-value">{{ selectedLoan.nextDueDate }}</span>
+                </div>
+                <div class="rp-kv-row">
+                  <span class="rp-kv-label">Amount</span>
+                  <span class="rp-kv-value">₦{{ selectedLoan.nextPaymentAmount.toLocaleString() }}</span>
+                </div>
               </div>
-              <div class="rp-kv-row">
-                <span class="rp-kv-label">Linked account</span>
-                <span class="rp-kv-value">{{ mandateAccountNumber }} · {{ mandateBank }}</span>
-              </div>
-              <div class="rp-kv-row">
-                <span class="rp-kv-label">Next deduction</span>
-                <span class="rp-kv-value">{{ nextDueDate }}</span>
-              </div>
-              <div class="rp-kv-row">
-                <span class="rp-kv-label">Amount</span>
-                <span class="rp-kv-value">₦{{ nextPaymentAmount.toLocaleString() }}</span>
-              </div>
-            </div>
-          </section>
+            </section>
+          }
 
           <!-- Upcoming payments -->
-          <section class="rp-card" aria-label="Upcoming payment schedule">
-            <p class="rp-card-title rp-card-title--solo">Upcoming payments</p>
+          @if (selectedLoan.schedule.length > 0) {
+            <section class="rp-card" aria-label="Upcoming payment schedule">
+              <p class="rp-card-title rp-card-title--solo">Upcoming payments</p>
+              <div class="rp-row-list">
+                @for (row of selectedLoan.schedule; track row.dueDate) {
+                  <div class="rp-row">
+                    <div class="rp-icon-circle" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                    <div class="rp-row-text">
+                      <p class="rp-row-title">{{ row.dueDate }}</p>
+                      <p class="rp-row-caption">Principal {{ row.principal }} · Interest {{ row.interest }}</p>
+                    </div>
+                    <span class="rp-row-amount">{{ row.amount }}</span>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        }
+
+        <!-- MY LOANS ──────────────────────────────────────────────────────── -->
+        @if (activeNav === 'loans') {
+          <div class="rp-page-head">
+            <div>
+              <h1 class="rp-page-title">My Loans</h1>
+              <p class="rp-page-sub">{{ loans.length }} loans with Caltos</p>
+            </div>
+            <a href="/products/catalogue" class="rp-new-loan-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Take a new loan
+            </a>
+          </div>
+
+          <section class="rp-card" aria-label="All your loans">
             <div class="rp-row-list">
-              @for (row of schedule; track row.dueDate) {
-                <div class="rp-row">
-                  <div class="rp-icon-circle" aria-hidden="true">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                      <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
+              @for (loan of loans; track loan.id) {
+                <div class="rp-row rp-row--loan">
+                  <div
+                    class="rp-icon-circle"
+                    [class.rp-icon-circle--success]="loan.status === 'completed'"
+                    aria-hidden="true"
+                  >
+                    @if (loan.status === 'completed') {
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    } @else {
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>
+                      </svg>
+                    }
                   </div>
                   <div class="rp-row-text">
-                    <p class="rp-row-title">{{ row.dueDate }}</p>
-                    <p class="rp-row-caption">Principal {{ row.principal }} · Interest {{ row.interest }}</p>
+                    <p class="rp-row-title">{{ loan.product }}</p>
+                    @if (loan.status === 'completed') {
+                      <p class="rp-row-caption">{{ loan.ref }} · Fully repaid {{ loan.completedDate }}</p>
+                    } @else {
+                      <p class="rp-row-caption">{{ loan.ref }} · {{ loanProgress(loan) }}% repaid</p>
+                    }
                   </div>
-                  <span class="rp-row-amount">{{ row.amount }}</span>
+                  <div class="rp-row-right">
+                    <span class="rp-row-amount">₦{{ loanOutstanding(loan).toLocaleString() }}</span>
+                    <span
+                      class="rp-status-pill"
+                      [class.rp-status-pill--accent]="loan.status === 'active'"
+                      [class.rp-status-pill--success]="loan.status === 'completed'"
+                    >{{ loan.status === 'active' ? 'Active' : 'Completed' }}</span>
+                  </div>
+                  <div class="rp-loan-row-actions">
+                    @if (loan.status === 'completed') {
+                      @if (letterClearanceRequested) {
+                        <span class="rp-status-pill rp-status-pill--success" role="status">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          Request sent
+                        </span>
+                      } @else {
+                        <button
+                          class="rp-chip"
+                          [disabled]="letterClearanceLoading"
+                          (click)="requestLetter('clearance')"
+                        >
+                          @if (letterClearanceLoading) {
+                            <span class="rp-spinner rp-spinner--chip" aria-hidden="true"></span>
+                            Sending…
+                          } @else {
+                            Request clearance letter
+                          }
+                        </button>
+                      }
+                    } @else {
+                      <button class="rp-chip" (click)="viewLoan(loan.id)" [attr.aria-label]="'View ' + loan.product">
+                        View loan
+                      </button>
+                    }
+                  </div>
                 </div>
               }
             </div>
@@ -335,7 +656,7 @@
           <div class="rp-page-head">
             <div>
               <h1 class="rp-page-title">Repayment History</h1>
-              <p class="rp-page-sub">{{ history.length }} transactions on this loan</p>
+              <p class="rp-page-sub">{{ selectedLoan.history.length }} transactions on {{ selectedLoan.product }}</p>
             </div>
             <div class="rp-chip-row">
               <button class="rp-chip" (click)="downloadStatement('csv')">
@@ -359,7 +680,7 @@
 
           <section class="rp-card" aria-label="Repayment history">
             <div class="rp-row-list">
-              @for (row of history; track row.date + row.channel) {
+              @for (row of selectedLoan.history; track row.date + row.channel) {
                 <div class="rp-row">
                   <div
                     class="rp-icon-circle"
@@ -516,16 +837,68 @@
           </section>
         }
 
+        <!-- MY PROFILE ─────────────────────────────────────────────────────── -->
+        @if (activeNav === 'profile') {
+          <div class="rp-page-head">
+            <div>
+              <h1 class="rp-page-title">My Profile</h1>
+              <p class="rp-page-sub">Keep your contact details up to date</p>
+            </div>
+          </div>
+
+          <section class="rp-card rp-profile-card" aria-label="Profile details">
+            <div class="rp-profile-field">
+              <label class="rp-gate-label" for="profile-name">Full name</label>
+              <input id="profile-name" class="rp-input" type="text" [(ngModel)]="profileName" autocomplete="name" />
+            </div>
+            <div class="rp-profile-field">
+              <label class="rp-gate-label" for="profile-email">Email address</label>
+              <input id="profile-email" class="rp-input" type="email" [(ngModel)]="profileEmail" autocomplete="email" />
+            </div>
+            <div class="rp-profile-field">
+              <label class="rp-gate-label" for="profile-phone">Phone number</label>
+              <input id="profile-phone" class="rp-input" type="tel" [(ngModel)]="profilePhone" autocomplete="tel" />
+            </div>
+            <div class="rp-profile-field">
+              <label class="rp-gate-label" for="profile-address">Home address</label>
+              <input id="profile-address" class="rp-input" type="text" [(ngModel)]="profileAddress" autocomplete="street-address" />
+            </div>
+
+            <div class="rp-profile-actions">
+              <button class="rp-save-btn" [disabled]="profileSaving" (click)="saveProfile()" aria-live="polite">
+                @if (profileSaving) {
+                  <span class="rp-spinner" aria-hidden="true"></span>
+                  Saving…
+                } @else if (profileSaved) {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Saved
+                } @else {
+                  Save changes
+                }
+              </button>
+            </div>
+          </section>
+        }
+
       </main>
 
-      <!-- ── Chat panel (floating card) ────────────────────────────────────── -->
-      <aside class="rp-chat" aria-label="Support chat">
+    </div><!-- /.rp-body -->
+
+    <!-- ── Floating chat widget (Zoho SalesIQ placeholder) ─────────────────── -->
+    @if (chatOpen) {
+      <div class="rp-chat-panel" role="dialog" aria-label="Support chat">
         <div class="rp-chat-header">
           <div>
             <p class="rp-chat-title">Support</p>
             <p class="rp-chat-subtitle">Powered by Zoho SalesIQ</p>
           </div>
-          <div class="rp-chat-status-dot" aria-label="Support online" title="Support online"></div>
+          <button class="rp-chat-close" (click)="closeChat()" aria-label="Close support chat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
         </div>
 
         <div class="rp-chat-messages" aria-live="polite" aria-label="Chat messages">
@@ -562,8 +935,26 @@
             </svg>
           </button>
         </div>
-      </aside>
+      </div>
+    }
 
-    </div><!-- /.rp-body -->
+    <button
+      class="rp-chat-launcher"
+      (click)="toggleChat()"
+      [attr.aria-expanded]="chatOpen"
+      aria-label="Support chat"
+    >
+      @if (chatOpen) {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      } @else {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      }
+      <span class="rp-chat-online-dot" aria-hidden="true"></span>
+    </button>
+
   </div><!-- /.rp-app -->
 }

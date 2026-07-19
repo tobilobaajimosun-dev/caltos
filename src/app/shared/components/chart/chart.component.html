@@ -2,8 +2,13 @@
   <svg #svgRef class="chart" [attr.viewBox]="viewBox" preserveAspectRatio="none" role="img" [attr.aria-label]="type() + ' chart'"
     (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
 
-    @for (gy of gridlines(); track gy) {
-      <line class="gridline" [attr.x1]="24" [attr.x2]="chartWidth - 24" [attr.y1]="gy" [attr.y2]="gy" />
+    <!-- Mercury line charts have no gridlines — just a hairline baseline -->
+    @if (type() !== 'line') {
+      @for (gy of gridlines(); track gy) {
+        <line class="gridline" [attr.x1]="24" [attr.x2]="chartWidth - 24" [attr.y1]="gy" [attr.y2]="gy" />
+      }
+    } @else {
+      <line class="baseline" [attr.x1]="24" [attr.x2]="chartWidth - 24" [attr.y1]="baselineY" [attr.y2]="baselineY" />
     }
 
     @if (hoveredIndex() !== null) {
@@ -12,9 +17,21 @@
 
     @switch (type()) {
       @case ('line') {
+        <!-- Mercury style: gradient area fill under a smooth curve, point only on hover -->
+        <defs>
+          <linearGradient [attr.id]="gradientId" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" [style.stop-color]="color()" stop-opacity="0.18" />
+            <stop offset="100%" [style.stop-color]="color()" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        @if (lineAreaPath()) {
+          <path [attr.d]="lineAreaPath()" [attr.fill]="'url(#' + gradientId + ')'" stroke="none" />
+        }
         <path [attr.d]="linePath()" fill="none" [attr.stroke]="color()" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         @for (p of points(); track p.label; let i = $index) {
-          <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="hoveredIndex() === i ? 5 : 3" [attr.fill]="color()" class="point" [class.hovered]="hoveredIndex() === i" />
+          @if (hoveredIndex() === i) {
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" [attr.fill]="color()" class="point hovered" stroke="var(--surface-base)" stroke-width="2" />
+          }
         }
       }
       @case ('grouped-bar') {

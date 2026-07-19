@@ -373,13 +373,10 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
     return this.eligibilityResult.maxEligibleAmount >= this.bnplInvoiceAmountNum;
   }
 
+  // Onboarded vendors only — vendor categories are not selectable options.
   get bnplVendorOptions(): SelectOption[] {
-    const vendors = this.product().vendors;
-    if (vendors && vendors.length > 0) {
-      return vendors
-        .map(v => ({ value: v.businessName, label: `${v.businessName} · ${v.category}` }));
-    }
-    return (this.product().bnplCategories ?? []).map(cat => ({ value: cat, label: cat }));
+    return (this.product().vendors ?? [])
+      .map(v => ({ value: v.businessName, label: `${v.businessName} · ${v.category}` }));
   }
 
   onBnplInvoiceAmountInput(event: Event) {

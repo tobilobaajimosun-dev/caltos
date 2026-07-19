@@ -8,12 +8,27 @@
   gap: 20px;
   padding: 24px 20px;
   overflow-y: auto;
+  position: relative;
+
+  // Stripe-style vertical gradient track behind the step circles
+  &::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 16px;
+    bottom: 16px;
+    width: 40px;
+    border-radius: 100px;
+    background: linear-gradient(180deg, #ececf1 0%, #f4f4f8 60%, #f8f8fb 100%);
+    pointer-events: none;
+  }
 }
 
 // Contextual highlight capsule — a soft rounded background that appears only
 // around the active step (and its substeps, if any), rather than a
 // permanent rail running the full height of the stepper.
 .wiz-stepper-group {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -39,35 +54,46 @@
   &:disabled { cursor: default; }
 }
 
+// Stripe reference: green check = done, indigo number = active,
+// slate-grey number = upcoming — all filled circles on the gradient track.
 .wiz-stepper-circle {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: var(--surface-overlay);
-  border: 1.5px solid var(--color-stroke);
-  transition: background 0.15s, border-color 0.15s;
+  background: #667085;
+  border: none;
+  transition: background 0.15s;
 
-  .wiz-stepper-item.done & {
-    background: #12B76A;
-    border-color: #12B76A;
-  }
+  .wiz-stepper-item.done & { background: #12b76a; }
   .wiz-stepper-item.active & {
-    background: var(--color-blue);
-    border-color: var(--color-blue);
+    background: #5b5bd6;
+
+    // Small indigo trail dot under the active step (Stripe detail)
+    &::after {
+      content: '';
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #5b5bd6;
+    }
   }
 }
 
-.wiz-stepper-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-grey);
-
-  .wiz-stepper-item.active & { background: #fff; }
+.wiz-stepper-num {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
 }
 
 .wiz-stepper-label {

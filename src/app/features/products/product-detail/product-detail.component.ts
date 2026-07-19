@@ -3,8 +3,8 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi-icon.component';
-import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent } from '../../../shared/components';
-import { ProductsService, ProductStats, ProductStatus, ProductRecord, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, NotificationEventConfig, NotificationEventKey, DEFAULT_NOTIFICATION_EVENTS, LiquidationPolicy, DEFAULT_LIQUIDATION_POLICY, EarlySettlementFeeType, EarlySettlementInterestTreatment, WriteOffApproval } from '../../../shared/services/products.service';
+import { InfoPopoverComponent, ButtonComponent, ChartComponent, ChartDataPoint, ChartSeries, ColumnTitleComponent, TableItemComponent, TableItemUser, StatusBadgeComponent, BadgeStatus, RoundTabsComponent, Tab, ModalComponent, SelectComponent, SelectOption, TabsComponent, TabItem, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent, SettingsRowComponent } from '../../../shared/components';
+import { ProductsService, ProductStats, ProductStatus, ProductRecord, ProductVendor, ProductActivityEntry, WorkflowConfig, defaultWorkflowConfig, DeductionChannelConfig, DeductionChannelStatus, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, NotificationEventConfig, NotificationEventKey, DEFAULT_NOTIFICATION_EVENTS, LiquidationPolicy, DEFAULT_LIQUIDATION_POLICY, EarlySettlementFeeType, EarlySettlementInterestTreatment, WriteOffApproval } from '../../../shared/services/products.service';
 import { DeliveryChannel } from '../../../shared/services/notification-delivery.service';
 import { TeamsService, Role } from '../../../shared/services/teams.service';
 import { formatThousands } from '../../../shared/utils/number-format';
@@ -31,7 +31,7 @@ import {
   ViewOffIcon,
 } from '@hugeicons/core-free-icons';
 
-type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations' | 'notifications' | 'liquidation';
+type DetailTab = 'overview' | 'performance' | 'active-loans' | 'eligibility' | 'fees' | 'disbursement' | 'collections' | 'legal' | 'activity' | 'vendors' | 'integrations' | 'notifications' | 'workflow' | 'liquidation';
 
 type IntegrationTag = 'deduction' | 'direct debit' | 'disbursements' | 'marketplace' | 'verification' | 'signature';
 
@@ -236,12 +236,37 @@ interface Vendor {
   settlementAccount: string;
   dateAdded: string;
   slug: string;
+  /** Per-vendor purchase amount limits (₦, formatted with thousands separators). */
+  minAmount: string;
+  maxAmount: string;
+}
+
+/** One demo loan financed through a specific vendor — generated locally (no vendor↔loan linkage exists in LoansService yet). */
+interface VendorLoanRow {
+  id: string;
+  borrower: TableItemUser;
+  amount: string;
+  amountNum: number;
+  disbursed: string;
+  status: 'active' | 'overdue' | 'successful';
+}
+
+/** One demo settlement invoice raised by a vendor. */
+interface VendorInvoice {
+  number: string;
+  borrower: string;
+  amount: string;
+  date: string;
+  status: 'pending' | 'successful';
+  loanId: string;
 }
 
 interface NewVendorDraft {
   businessName: string;
   cac: string;
   category: string;
+  minAmount: string;
+  maxAmount: string;
   address: string;
   phone: string;
   email: string;
@@ -405,14 +430,14 @@ function mapRecordToProductData(record: ProductRecord): ProductData {
 }
 
 const BNPL_SAMPLE_VENDORS: Vendor[] = [
-  { id: 'v1', businessName: 'TechHub Electronics', category: 'Electronics & Gadgets', status: 'active', settlementBank: 'Access Bank', settlementAccount: '0123456789', dateAdded: 'Jun 12, 2025', slug: 'techhub-electronics' },
-  { id: 'v2', businessName: 'FashionKloth Ltd', category: 'Fashion & Clothing', status: 'active', settlementBank: 'GTBank', settlementAccount: '0987654321', dateAdded: 'Jun 18, 2025', slug: 'fashionkloth-ltd' },
+  { id: 'v1', businessName: 'TechHub Electronics', category: 'Electronics & Gadgets', status: 'active', settlementBank: 'Access Bank', settlementAccount: '0123456789', dateAdded: 'Jun 12, 2025', slug: 'techhub-electronics', minAmount: '25,000', maxAmount: '500,000' },
+  { id: 'v2', businessName: 'FashionKloth Ltd', category: 'Fashion & Clothing', status: 'active', settlementBank: 'GTBank', settlementAccount: '0987654321', dateAdded: 'Jun 18, 2025', slug: 'fashionkloth-ltd', minAmount: '20,000', maxAmount: '250,000' },
 ];
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe, HiIconComponent, InfoPopoverComponent, ButtonComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, RoundTabsComponent, ModalComponent, SelectComponent, TabsComponent, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent],
+  imports: [RouterLink, FormsModule, DecimalPipe, HiIconComponent, InfoPopoverComponent, ButtonComponent, ChartComponent, ColumnTitleComponent, TableItemComponent, StatusBadgeComponent, RoundTabsComponent, ModalComponent, SelectComponent, TabsComponent, ToastComponent, KpiCardComponent, EmptyStateComponent, CheckboxComponent, RowMenuComponent, SettingsRowComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.scss'],
 })
@@ -458,9 +483,64 @@ export class ProductDetailComponent implements OnInit {
       { id: 'collections', label: 'Collections/Repayments' },
       { id: 'integrations', label: 'Integrations' },
       { id: 'notifications', label: 'Notifications' },
+      { id: 'workflow', label: 'Workflow' },
       { id: 'liquidation', label: 'Liquidation' },
+      { id: 'activity', label: 'Activity' },
     );
     return tabs;
+  }
+
+  // ── Workflow tab (Automation + Approvals, formerly in the products global settings modal) ──
+  workflow: WorkflowConfig = defaultWorkflowConfig();
+
+  private cloneWorkflow(w: WorkflowConfig): WorkflowConfig {
+    return {
+      automations: w.automations.map((a) => ({ ...a })),
+      approvalSteps: w.approvalSteps.map((s) => ({ ...s })),
+    };
+  }
+
+  toggleWorkflowAutomation(id: string, enabled: boolean) {
+    this.workflow = {
+      ...this.workflow,
+      automations: this.workflow.automations.map((a) => (a.id === id ? { ...a, enabled } : a)),
+    };
+    this.persistWorkflow();
+  }
+
+  toggleApprovalStepRequired(role: string, required: boolean) {
+    this.workflow = {
+      ...this.workflow,
+      approvalSteps: this.workflow.approvalSteps.map((s) => (s.role === role ? { ...s, required } : s)),
+    };
+    this.persistWorkflow();
+  }
+
+  private persistWorkflow() {
+    const record = this.productsService.getById(this.productId);
+    if (!record) return;
+    this.productsService.update(
+      this.productId,
+      { config: { ...record.config, workflow: this.cloneWorkflow(this.workflow) } },
+      'updated workflow settings',
+    );
+  }
+
+  // ── Activity tab ──
+  get activityEntries(): ProductActivityEntry[] {
+    const log = this.productsService.getById(this.productId)?.activityLog ?? [];
+    // Newest first.
+    return [...log].reverse();
+  }
+
+  activityActorFirstName(actor: string): string {
+    return actor.split(' ')[0] || actor;
+  }
+
+  formatActivityTime(iso: string): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
   }
 
   // ── Notifications tab ───────────────────────────────────────────────────────
@@ -660,8 +740,6 @@ export class ProductDetailComponent implements OnInit {
     if (evt.recipientTeamMemberIds.length) parts.push(evt.recipientTeamMemberIds.map((id) => this.teamMemberName(id)).join(', '));
     return parts.length ? parts.join(' · ') : '—';
   }
-
-  moreMenuOpen = false;
 
   targetPeriod: 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly';
   targetsSet = false;
@@ -1025,6 +1103,8 @@ export class ProductDetailComponent implements OnInit {
     businessName: '',
     cac: '',
     category: '',
+    minAmount: '',
+    maxAmount: '',
     address: '',
     phone: '',
     email: '',
@@ -1103,9 +1183,23 @@ export class ProductDetailComponent implements OnInit {
 
       this.product = mapRecordToProductData(record);
       this.productStats = record.stats;
+      this.workflow = this.cloneWorkflow(record.config.workflow ?? defaultWorkflowConfig());
       this.vendors = record.vendors !== undefined
-        ? record.vendors.map(v => ({ ...v, status: 'active' as const, settlementBank: '', settlementAccount: '', dateAdded: '' }))
-        : (this.product.type === 'bnpl' ? [...BNPL_SAMPLE_VENDORS] : []);
+        ? record.vendors.map((v) => ({
+            id: v.id,
+            businessName: v.businessName,
+            category: v.category,
+            slug: v.slug,
+            status: v.status ?? 'active',
+            settlementBank: v.settlementBank ?? '',
+            settlementAccount: v.settlementAccount ?? '',
+            dateAdded: v.dateAdded ?? '',
+            minAmount: v.minAmount ?? record.minAmount,
+            maxAmount: v.maxAmount ?? record.maxAmount,
+          }))
+        : (this.product.type === 'bnpl' ? BNPL_SAMPLE_VENDORS.map((v) => ({ ...v })) : []);
+      this.selectedVendor = null;
+      this.viewingInvoice = null;
       this.activeTab = 'overview';
       this.connectedIntegrationIds = new Set(
         record.config.deductionChannels.filter((c) => c.status === 'live').map((c) => c.id),
@@ -1235,8 +1329,6 @@ export class ProductDetailComponent implements OnInit {
     setTimeout(() => { this.activationToastVisible = false; }, 4000);
   }
 
-  toggleMoreMenu() { this.moreMenuOpen = !this.moreMenuOpen; }
-
   goBack() { this.router.navigate(['/products']); }
 
   statusLabel(status: ProductStatus): string {
@@ -1267,7 +1359,8 @@ export class ProductDetailComponent implements OnInit {
   openOnboardModal() {
     this.onboardStep = 0;
     this.newVendor = {
-      businessName: '', cac: '', category: '', address: '', phone: '', email: '', website: '',
+      businessName: '', cac: '', category: '', minAmount: '', maxAmount: '',
+      address: '', phone: '', email: '', website: '',
       directorName: '', directorPhone: '', directorIdType: 'Passport', directorBvn: '',
       bankName: '', accountNumber: '',
     };
@@ -1317,10 +1410,28 @@ export class ProductDetailComponent implements OnInit {
       settlementAccount: this.newVendor.accountNumber,
       dateAdded: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       slug,
+      minAmount: this.newVendor.minAmount || this.product.minAmount,
+      maxAmount: this.newVendor.maxAmount || this.product.maxAmount,
     });
-    this.productsService.update(this.productId, { vendors: this.vendors.map(v => ({ id: v.id, businessName: v.businessName, category: v.category, slug: v.slug })) });
+    this.persistVendors();
     this.showOnboardModal = false;
     this.activeTab = 'vendors';
+  }
+
+  private persistVendors() {
+    const vendors: ProductVendor[] = this.vendors.map((v) => ({
+      id: v.id,
+      businessName: v.businessName,
+      category: v.category,
+      slug: v.slug,
+      status: v.status,
+      minAmount: v.minAmount,
+      maxAmount: v.maxAmount,
+      settlementBank: v.settlementBank,
+      settlementAccount: v.settlementAccount,
+      dateAdded: v.dateAdded,
+    }));
+    this.productsService.update(this.productId, { vendors });
   }
 
   vendorLink(vendor: Vendor): string {
@@ -1336,10 +1447,118 @@ export class ProductDetailComponent implements OnInit {
 
   suspendVendor(vendor: Vendor) {
     vendor.status = vendor.status === 'suspended' ? 'active' : 'suspended';
+    this.persistVendors();
   }
 
   removeVendor(id: string) {
     this.vendors = this.vendors.filter(v => v.id !== id);
-    this.productsService.update(this.productId, { vendors: this.vendors.map(v => ({ id: v.id, businessName: v.businessName, category: v.category, slug: v.slug })) });
+    if (this.selectedVendor?.id === id) this.selectedVendor = null;
+    this.persistVendors();
+  }
+
+  vendorStatusLabel(status: Vendor['status']): string {
+    return status === 'active' ? 'Active' : status === 'pending' ? 'Pending' : 'Suspended';
+  }
+
+  vendorAmountLimits(vendor: Vendor): string {
+    return `₦${vendor.minAmount} – ₦${vendor.maxAmount}`;
+  }
+
+  // ── Vendor detail view (inline swap, Stripe-customer-page style) ──
+  selectedVendor: Vendor | null = null;
+  viewingInvoice: VendorInvoice | null = null;
+
+  openVendorDetail(vendor: Vendor) {
+    this.selectedVendor = vendor;
+    this.viewingInvoice = null;
+  }
+
+  closeVendorDetail() {
+    this.selectedVendor = null;
+    this.viewingInvoice = null;
+  }
+
+  openInvoice(invoice: VendorInvoice) { this.viewingInvoice = invoice; }
+  closeInvoice() { this.viewingInvoice = null; }
+
+  /**
+   * No vendor↔loan linkage exists in LoansService, so each vendor gets a plausible,
+   * deterministic demo portfolio (seeded from its id) — stable across renders and revisits.
+   */
+  private readonly vendorLoanCache = new Map<string, VendorLoanRow[]>();
+  private readonly vendorInvoiceCache = new Map<string, VendorInvoice[]>();
+
+  private static readonly VENDOR_BORROWERS = [
+    'Akpan Akporigomayen', 'Bola Adebayo', 'Chika Okafor', 'Damilola Ojo',
+    'Efe Igbinovia', 'Funke Salako', 'Gbenga Adeyemi', 'Halima Yusuf',
+  ];
+
+  private vendorSeed(vendor: Vendor): number {
+    let seed = 0;
+    for (const ch of vendor.id + vendor.businessName) seed = (seed * 31 + ch.charCodeAt(0)) % 100000;
+    return seed;
+  }
+
+  vendorLoans(vendor: Vendor): VendorLoanRow[] {
+    const cached = this.vendorLoanCache.get(vendor.id);
+    if (cached) return cached;
+    const seed = this.vendorSeed(vendor);
+    const count = 3 + (seed % 3);
+    const statuses: VendorLoanRow['status'][] = ['active', 'successful', 'active', 'overdue', 'active', 'successful'];
+    const loans: VendorLoanRow[] = Array.from({ length: count }, (_, i) => {
+      const name = ProductDetailComponent.VENDOR_BORROWERS[(seed + i) % ProductDetailComponent.VENDOR_BORROWERS.length];
+      const amountNum = 40000 + ((seed * (i + 3)) % 26) * 10000;
+      return {
+        id: `${vendor.id.toUpperCase()}-L${(i + 1).toString().padStart(3, '0')}`,
+        borrower: { name, email: name.toLowerCase().replace(/\s+/g, '.') + '@princepsfinance.com' },
+        amount: `₦${amountNum.toLocaleString()}`,
+        amountNum,
+        disbursed: `${['Mar', 'Apr', 'May', 'Jun', 'Jul'][(seed + i) % 5]} ${((seed + i * 7) % 27) + 1}, 2026`,
+        status: statuses[(seed + i) % statuses.length],
+      };
+    });
+    this.vendorLoanCache.set(vendor.id, loans);
+    return loans;
+  }
+
+  vendorInvoices(vendor: Vendor): VendorInvoice[] {
+    const cached = this.vendorInvoiceCache.get(vendor.id);
+    if (cached) return cached;
+    const seed = this.vendorSeed(vendor);
+    const invoices: VendorInvoice[] = this.vendorLoans(vendor).map((loan, i) => ({
+      number: `INV-${(seed % 900) + 100}${(i + 1).toString().padStart(2, '0')}`,
+      borrower: loan.borrower.name,
+      amount: loan.amount,
+      date: loan.disbursed,
+      status: loan.status === 'active' || loan.status === 'successful' ? 'successful' : 'pending',
+      loanId: loan.id,
+    }));
+    this.vendorInvoiceCache.set(vendor.id, invoices);
+    return invoices;
+  }
+
+  vendorLoanCount(vendor: Vendor): number {
+    return this.vendorLoans(vendor).length;
+  }
+
+  vendorKpis(vendor: Vendor): { totalLoans: number; totalDisbursed: string; repaymentRate: string; outstanding: string } {
+    const loans = this.vendorLoans(vendor);
+    const total = loans.reduce((sum, l) => sum + l.amountNum, 0);
+    const repaid = loans.filter((l) => l.status === 'successful').reduce((sum, l) => sum + l.amountNum, 0);
+    const outstanding = loans.filter((l) => l.status !== 'successful').reduce((sum, l) => sum + Math.round(l.amountNum * 0.6), 0);
+    const overdue = loans.filter((l) => l.status === 'overdue').length;
+    const rate = loans.length ? Math.round(((loans.length - overdue) / loans.length) * 100) : 0;
+    return {
+      totalLoans: loans.length,
+      totalDisbursed: `₦${total.toLocaleString()}`,
+      repaymentRate: `${rate}%`,
+      outstanding: `₦${(repaid ? outstanding : total).toLocaleString()}`,
+    };
+  }
+
+  vendorLoanBadge(status: VendorLoanRow['status']): { status: BadgeStatus; label: string } {
+    if (status === 'successful') return { status: 'successful', label: 'Repaid' };
+    if (status === 'overdue') return { status: 'overdue', label: 'Overdue' };
+    return { status: 'active', label: 'Repaying' };
   }
 }

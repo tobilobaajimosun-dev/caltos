@@ -14,7 +14,7 @@ import { HiIconComponent, IconData } from '../../../shared/components/hi-icon/hi
 import { HugeiconsIconComponent } from '@hugeicons/angular';
 import type { IconSvgObject } from '@hugeicons/angular';
 import { LivePreviewComponent } from './live-preview/live-preview.component';
-import { ProductsService, ProductConfig, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec, DEFAULT_LIQUIDATION_POLICY, AudienceCategory, AUDIENCE_INCOME_METHODS, AUDIENCE_CATEGORY_LABELS, IncomeVerificationSource } from '../../../shared/services/products.service';
+import { ProductsService, ProductConfig, ProductStatus, DeductionChannelConfig, IncomeChannelConfig, DEDUCTION_CHANNEL_DEFS, effectiveChannelStatus, DEFAULT_NOTIFICATION_EVENTS, ApplicantProfile, ApplicantFieldKey, RequiredDocumentSpec, DEFAULT_LIQUIDATION_POLICY, defaultWorkflowConfig, AudienceCategory, AUDIENCE_INCOME_METHODS, AUDIENCE_CATEGORY_LABELS, IncomeVerificationSource } from '../../../shared/services/products.service';
 import { LoansService } from '../../../shared/services/loans.service';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 import {
@@ -624,6 +624,14 @@ export class CreateLoanComponent implements OnInit {
   private readonly loansService = inject(LoansService);
 
   editingProductId: string | null = null;
+  /**
+   * True only when the wizard was opened with ?id=X for an existing record (product-list /
+   * product-detail "Edit product"). editingProductId alone can't distinguish this — it's also
+   * set the first time a brand-new product is saved as a draft mid-wizard.
+   */
+  isEditMode = false;
+  /** Name of the record being edited, frozen at load time for the header ("Edit {name}"). */
+  editingName = '';
 
   ngOnInit() {
     this.route.queryParams.subscribe(async params => {
@@ -641,6 +649,8 @@ export class CreateLoanComponent implements OnInit {
         const record = this.productsService.getById(id);
         if (record) {
           this.editingProductId = id;
+          this.isEditMode = true;
+          this.editingName = record.name;
           // Deduction channel checkboxes must reflect what's actually enabled on the record —
           // buildDeductionChannels() preserves a channel's live status/credentials when it stays
           // checked, but only if it starts out checked correctly. Without this, opening any
@@ -935,6 +945,10 @@ export class CreateLoanComponent implements OnInit {
       // config object on every save.
       liquidationPolicy: (this.editingProductId && this.productsService.getById(this.editingProductId)?.config.liquidationPolicy)
         || DEFAULT_LIQUIDATION_POLICY,
+      // Same carry-forward logic as liquidationPolicy — workflow settings are edited on
+      // product-detail's Workflow tab, not in this wizard, so a save must not reset them.
+      workflow: (this.editingProductId && this.productsService.getById(this.editingProductId)?.config.workflow)
+        || defaultWorkflowConfig(),
     };
   }
 
@@ -1099,11 +1113,14 @@ export class CreateLoanComponent implements OnInit {
       return;
     }
     const patch = this.buildProductPatch();
-    // Publishing from the wizard only ever produces a draft — deduction/income channel
-    // credentials aren't set up here at all, only selected. Setup and going live both happen
-    // afterward on the product's own page (product-detail), once channels are actually
-    // connected and tested.
-    const status = 'draft';
+    // Publishing a NEW product from the wizard only ever produces a draft — deduction/income
+    // channel credentials aren't set up here at all, only selected. Setup and going live both
+    // happen afterward on the product's own page (product-detail), once channels are actually
+    // connected and tested. Editing an existing product ("Save changes") must NOT demote it:
+    // a live product stays live, a deactivated one stays deactivated.
+    const status: ProductStatus = this.isEditMode && this.editingProductId
+      ? (this.productsService.getById(this.editingProductId)?.status ?? 'draft')
+      : 'draft';
     if (this.editingProductId) {
       this.productsService.update(this.editingProductId, { ...patch, status });
     } else {
@@ -1136,6 +1153,7 @@ export class CreateLoanComponent implements OnInit {
     this.pendingSetupChannelNames = deductionChannels
       .filter((c) => effectiveChannelStatus(c) !== 'live')
       .map((c) => c.name);
+    this.isProductLive = status === 'live';
     this.isPublished = true;
     this.isDraft = false;
     this.persistErrorMessage = this.productsService.persistError();

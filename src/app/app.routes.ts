@@ -3,6 +3,7 @@ import { AppShellComponent } from './shared/components';
 import { ShowcaseComponent } from './pages/showcase/showcase.component';
 import { QuickActionsComponent } from './pages/quick-actions/quick-actions.component';
 import { HomeComponent } from './pages/home/home.component';
+import { WhatsNewComponent } from './pages/whats-new/whats-new.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { ProductListComponent } from './features/products/product-list/product-list.component';
 import { ProductDetailComponent } from './features/products/product-detail/product-detail.component';
@@ -100,6 +101,7 @@ export const routes: Routes = [
       { path: 'utilities', redirectTo: 'utilities/organizations', pathMatch: 'full' },
       { path: 'utilities/organizations', component: EmployerPortalComponent },
       { path: 'utilities/vendors', component: VendorManagementComponent },
+      { path: 'whats-new', component: WhatsNewComponent },
       { path: 'settings', component: OrganizationSettingsComponent },
       { path: 'settings/alerts', component: AlertSettingsComponent },
     ],

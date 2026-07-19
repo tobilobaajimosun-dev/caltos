@@ -81,9 +81,30 @@ export class ChartComponent {
     }));
   });
 
-  readonly linePath = computed(() =>
-    this.points().map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
-  );
+  // Mercury-style smooth curve: cubic beziers with horizontal control points
+  readonly linePath = computed(() => {
+    const pts = this.points();
+    if (!pts.length) return '';
+    if (pts.length === 1) return `M${pts[0].x},${pts[0].y}`;
+    let d = `M${pts[0].x},${pts[0].y}`;
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i - 1];
+      const cur = pts[i];
+      const cx = (prev.x + cur.x) / 2;
+      d += ` C${cx},${prev.y} ${cx},${cur.y} ${cur.x},${cur.y}`;
+    }
+    return d;
+  });
+
+  /** Closed path under the line for Mercury's gradient area fill. */
+  readonly lineAreaPath = computed(() => {
+    const pts = this.points();
+    if (pts.length < 2) return '';
+    return `${this.linePath()} L${pts[pts.length - 1].x},${this.plotBottom} L${pts[0].x},${this.plotBottom} Z`;
+  });
+
+  readonly gradientId = `chart-grad-${Math.random().toString(36).slice(2, 9)}`;
+  readonly baselineY = this.plotBottom;
 
   readonly bars = computed(() => {
     const d = this.data();

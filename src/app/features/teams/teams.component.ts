@@ -18,10 +18,15 @@ import {
   TableItemUser,
   ConfirmModalComponent,
   ToastComponent,
+  SearchComponent,
+  IconButtonComponent,
+  RowMenuComponent,
 } from '../../shared/components';
 import {
   TeamsService, TeamMember, Role, MemberStatus, PermissionGroupDef, AssignedLoan, buildPermissionGroups,
 } from '../../shared/services/teams.service';
+
+const AVATAR_PALETTE = ['#0053a6', '#7c5cff', '#0e9f6e', '#d97706', '#dc2677', '#0891b2'];
 
 @Component({
   selector: 'app-teams',
@@ -29,7 +34,8 @@ import {
   imports: [
     AvatarComponent, StatusBadgeComponent, RoundTabsComponent, DrawerComponent, ModalComponent,
     SelectComponent, InputComponent, ButtonComponent, PermissionGroupComponent, ColumnTitleComponent,
-    TableItemComponent, ConfirmModalComponent, ToastComponent,
+    TableItemComponent, ConfirmModalComponent, ToastComponent, SearchComponent, IconButtonComponent,
+    RowMenuComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './teams.component.html',
@@ -51,14 +57,39 @@ export class TeamsComponent {
     this.activeFilter.set(v);
   }
 
+  readonly searchQuery = signal('');
+
   readonly members = this.teamsService.members;
+
+  readonly memberCountLabel = computed(() => {
+    const count = this.members().length;
+    return `${count} member${count === 1 ? '' : 's'}`;
+  });
 
   readonly filteredMembers = computed(() => {
     const filter = this.activeFilter();
-    if (filter === 'all') return this.members();
-    if (filter === 'suspended') return this.members().filter((m) => m.status === 'suspended');
-    return this.members().filter((m) => m.role === filter);
+    const query = this.searchQuery().trim().toLowerCase();
+    let list = this.members();
+    if (filter === 'suspended') list = list.filter((m) => m.status === 'suspended');
+    else if (filter !== 'all') list = list.filter((m) => m.role === filter);
+    if (query) {
+      list = list.filter((m) =>
+        `${m.firstName} ${m.lastName}`.toLowerCase().includes(query) || m.email.toLowerCase().includes(query));
+    }
+    return list;
   });
+
+  memberUser(member: TeamMember): TableItemUser {
+    const name = `${member.firstName} ${member.lastName}`;
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+    return {
+      name,
+      email: member.email,
+      initials: `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`.toUpperCase(),
+      avatarColor: AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length],
+    };
+  }
 
   statusBadge(status: MemberStatus): { status: BadgeStatus; label: string } {
     switch (status) {
@@ -77,6 +108,17 @@ export class TeamsComponent {
     if (hrs < 24) return `${hrs}h ago`;
     const days = Math.floor(hrs / 24);
     return `${days}d ago`;
+  }
+
+  // ── Row actions dropdown ──
+  readonly openMenuId = signal<string | null>(null);
+
+  setMenuOpen(memberId: string, open: boolean) {
+    this.openMenuId.set(open ? memberId : null);
+  }
+
+  closeMenu() {
+    this.openMenuId.set(null);
   }
 
   // ── Member profile drawer ──
@@ -103,16 +145,54 @@ export class TeamsComponent {
     this.profileTab.set(v);
   }
 
+  // ── Change role ──
+  readonly roleChangeTarget = signal<TeamMember | null>(null);
+  readonly roleChangeValue = signal<Role>('Loan Officer');
+
+  readonly changeRoleOptions: SelectOption[] = [
+    { value: 'Admin', label: 'Admin' },
+    { value: 'Loan Officer', label: 'Loan Officer' },
+    { value: 'Manager', label: 'Manager' },
+    { value: 'Auditor', label: 'Auditor' },
+  ];
+
+  openChangeRole(member: TeamMember) {
+    this.closeMenu();
+    this.roleChangeValue.set(member.role === 'Custom' ? 'Loan Officer' : member.role);
+    this.roleChangeTarget.set(member);
+  }
+
+  closeChangeRole() {
+    this.roleChangeTarget.set(null);
+  }
+
+  setRoleChangeValue(value: string) {
+    this.roleChangeValue.set(value as Role);
+  }
+
+  saveRoleChange() {
+    const member = this.roleChangeTarget();
+    if (!member) return;
+    const role = this.roleChangeValue();
+    this.members.update((all) => all.map((m) => (m.id === member.id
+      ? { ...m, role, permissionGroups: buildPermissionGroups(role) }
+      : m)));
+    this.roleChangeTarget.set(null);
+    this.showToast(`${member.firstName} ${member.lastName} is now ${role === 'Admin' || role === 'Auditor' ? 'an' : 'a'} ${role}.`);
+  }
+
   // ── Suspend / remove ──
   confirmTarget = signal<TeamMember | null>(null);
   confirmAction = signal<'suspend' | 'reactivate' | 'remove' | null>(null);
 
   requestSuspend(member: TeamMember) {
+    this.closeMenu();
     this.confirmTarget.set(member);
     this.confirmAction.set(member.status === 'suspended' ? 'reactivate' : 'suspend');
   }
 
   requestRemove(member: TeamMember) {
+    this.closeMenu();
     this.confirmTarget.set(member);
     this.confirmAction.set('remove');
   }
@@ -152,6 +232,7 @@ export class TeamsComponent {
   }
 
   resendInvite(member: TeamMember) {
+    this.closeMenu();
     this.showToast(`Invite resent to ${member.email}.`);
   }
 

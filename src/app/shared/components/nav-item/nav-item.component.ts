@@ -16,12 +16,13 @@ import {
   FlashIcon,
   CalendarCheckIn01Icon,
   Wrench01Icon,
+  SparklesIcon,
   ChevronDownIcon,
 } from '@hugeicons/core-free-icons';
 
 export type NavItemIcon =
   | 'dashboard' | 'home' | 'customers' | 'wallet' | 'products'
-  | 'loans' | 'reports' | 'risk' | 'teams' | 'settings' | 'repayments' | 'utilities' | 'quick-action' | 'none';
+  | 'loans' | 'reports' | 'risk' | 'teams' | 'settings' | 'repayments' | 'utilities' | 'quick-action' | 'whats-new' | 'none';
 
 @Component({
   selector: 'app-nav-item',
@@ -38,6 +39,7 @@ export class NavItemComponent {
   @Input() expanded = false;
   @Input() variant: 'default' | 'primary-text' = 'default';
   @Input() iconOnly = false;
+  @Input() hasDot = false;
   @Output() clicked = new EventEmitter<void>();
   @Output() expandedChange = new EventEmitter<boolean>();
 
@@ -55,6 +57,7 @@ export class NavItemComponent {
     repayments: CalendarCheckIn01Icon as IconSvgObject,
     utilities: Wrench01Icon as IconSvgObject,
     'quick-action': FlashIcon as IconSvgObject,
+    'whats-new': SparklesIcon as IconSvgObject,
   };
 
   readonly chevronIcon: IconSvgObject = ChevronDownIcon as IconSvgObject;

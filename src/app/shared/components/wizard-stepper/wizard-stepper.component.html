@@ -16,7 +16,7 @@
               <path d="M5 12.5l4.5 4.5L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           } @else {
-            <span class="wiz-stepper-dot" aria-hidden="true"></span>
+            <span class="wiz-stepper-num" aria-hidden="true">{{ i + 1 }}</span>
           }
         </span>
         <span class="wiz-stepper-label">{{ step.shortLabel ?? step.label }}</span>

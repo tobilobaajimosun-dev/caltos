@@ -18,12 +18,32 @@
   --rp-success-bg: #e7f6ec;
   --rp-error: #d13030;
   --rp-error-bg: #fdecec;
+  --rp-field: #f0f0f3;   // input / inset pill backgrounds
+  --rp-inset: #f8f8fa;   // inset panels (VA display, chat bubbles)
 
   display: block;
   min-height: 100vh;
   background: var(--rp-canvas);
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   color: var(--rp-text);
+}
+
+// ── Dark theme (portal-scoped, toggled via host class) ─────────────
+:host(.rp-dark) {
+  --rp-canvas: #101014;
+  --rp-surface: #1a1b20;
+  --rp-surface-hover: #202126;
+  --rp-hairline: #26272e;
+  --rp-text: #f2f2f5;
+  --rp-text-soft: #9a9eab;
+  --rp-tint: rgba(79, 85, 241, 0.16);
+  --rp-tint-hover: rgba(79, 85, 241, 0.24);
+  --rp-success-bg: rgba(18, 129, 61, 0.18);
+  --rp-error-bg: rgba(209, 48, 48, 0.16);
+  --rp-field: #24252b;
+  --rp-inset: #1f2026;
+  --rp-success: #4ade80;
+  --rp-error: #f87171;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -86,7 +106,7 @@
 .rp-gate-input {
   height: 48px;
   padding: 0 16px;
-  background: #f0f0f3;
+  background: var(--rp-field);
   border: 2px solid transparent;
   border-radius: 12px;
   font-size: 15px;
@@ -199,7 +219,7 @@
 .rp-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 320px;
+  grid-template-columns: 220px minmax(0, 1fr);
   gap: 24px;
   max-width: 1280px;
   width: 100%;
@@ -247,7 +267,7 @@
 
   svg { flex-shrink: 0; }
 
-  &:hover:not(&--active) { background: #ececef; color: var(--rp-text); }
+  &:hover:not(&--active) { background: var(--rp-field); color: var(--rp-text); }
 
   &--active {
     background: var(--rp-surface);
@@ -428,7 +448,7 @@
 .rp-progress-track {
   height: 8px;
   border-radius: 100px;
-  background: #f0f0f3;
+  background: var(--rp-field);
   overflow: hidden;
   margin-top: 6px;
 }
@@ -493,7 +513,7 @@
 .rp-bank-pill {
   padding: 5px 12px;
   border-radius: 100px;
-  background: #f0f0f3;
+  background: var(--rp-field);
   color: var(--rp-text);
   font-size: 12px;
   font-weight: 600;
@@ -501,7 +521,7 @@
 }
 
 .rp-va-display {
-  background: #f8f8fa;
+  background: var(--rp-inset);
   border-radius: 14px;
   padding: 16px 18px;
   margin-bottom: 4px;
@@ -613,7 +633,7 @@
   border-radius: 100px;
   font-size: 11px;
   font-weight: 700;
-  background: #f0f0f3;
+  background: var(--rp-field);
   color: var(--rp-text-soft);
   flex-shrink: 0;
 
@@ -641,18 +661,71 @@
 @keyframes rp-spin { to { transform: rotate(360deg); } }
 
 // ═══════════════════════════════════════════════════════════════════
-// CHAT PANEL — floating white card
+// FLOATING CHAT WIDGET — launcher button + popover panel
 // ═══════════════════════════════════════════════════════════════════
-.rp-chat {
-  position: sticky;
-  top: 12px;
+.rp-chat-launcher {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 300;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: var(--rp-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(79, 85, 241, 0.35);
+  transition: background 0.15s, transform 0.12s;
+
+  &:hover { background: var(--rp-accent-hover); }
+  &:active { transform: scale(0.96); }
+}
+
+.rp-chat-online-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid var(--rp-canvas);
+}
+
+.rp-chat-panel {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  z-index: 300;
+  width: 360px;
+  height: 480px;
+  max-height: calc(100vh - 120px);
   background: var(--rp-surface);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 96px);
-  max-height: 720px;
   overflow: hidden;
+  box-shadow: 0 12px 40px rgba(23, 24, 28, 0.16);
+}
+
+.rp-chat-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--rp-text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover { background: var(--rp-field); color: var(--rp-text); }
 }
 
 .rp-chat-header {
@@ -710,7 +783,7 @@
 }
 
 .rp-chat-bubble {
-  background: #f4f4f6;
+  background: var(--rp-inset);
   border-radius: 16px 16px 16px 4px;
   padding: 10px 14px;
   max-width: 85%;
@@ -740,7 +813,7 @@
   flex: 1;
   height: 40px;
   padding: 0 16px;
-  background: #f0f0f3;
+  background: var(--rp-field);
   border: 2px solid transparent;
   border-radius: 100px;
   font-size: 13px;
@@ -775,7 +848,6 @@
 // ═══════════════════════════════════════════════════════════════════
 @media (max-width: 1080px) {
   .rp-body { grid-template-columns: 200px minmax(0, 1fr); }
-  .rp-chat { display: none; }
 }
 
 @media (max-width: 720px) {
@@ -802,3 +874,350 @@
     .rp-chip, .rp-status-pill { margin-left: 52px; }
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// GATE — OTP step extras
+// ═══════════════════════════════════════════════════════════════════
+.rp-otp-input {
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.rp-gate-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rp-gate-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rp-accent);
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+
+  &--muted {
+    color: var(--rp-text-soft);
+    font-weight: 500;
+  }
+}
+
+.rp-gate-countdown {
+  font-size: 13px;
+  color: var(--rp-text-soft);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AVATAR MENU + LOGOUT CONFIRM
+// ═══════════════════════════════════════════════════════════════════
+.rp-topnav-user { position: relative; }
+
+.rp-avatar-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: none;
+  padding: 6px 8px;
+  border-radius: 100px;
+  font-family: inherit;
+  color: var(--rp-text);
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: var(--rp-field); }
+
+  svg { color: var(--rp-text-soft); }
+}
+
+.rp-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+}
+
+.rp-avatar-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 401;
+  width: 260px;
+  background: var(--rp-surface);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(23, 24, 28, 0.16);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rp-menu-head { padding: 10px 12px 12px; }
+
+.rp-menu-name {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.rp-menu-bvn {
+  font-size: 12px;
+  color: var(--rp-text-soft);
+  margin: 2px 0 0;
+}
+
+.rp-menu-label {
+  margin: 8px 0 2px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rp-text-soft);
+}
+
+.rp-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rp-text);
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: var(--rp-field); }
+
+  &--danger {
+    color: var(--rp-error);
+    &:hover { background: var(--rp-error-bg); }
+  }
+}
+
+.rp-menu-item-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  svg { color: var(--rp-text-soft); flex-shrink: 0; }
+}
+
+.rp-menu-item--danger .rp-menu-item-label svg { color: var(--rp-error); }
+
+.rp-menu-divider {
+  height: 1px;
+  background: var(--rp-hairline);
+  margin: 6px 4px;
+}
+
+.rp-logout-confirm {
+  padding: 12px;
+  background: var(--rp-inset);
+  border-radius: 10px;
+  margin: 4px;
+}
+
+.rp-logout-confirm-text {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.rp-logout-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.rp-logout-btn {
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 100px;
+  background: var(--rp-error);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover { opacity: 0.9; }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LOAN SWITCHER PILLS (Home) + MY LOANS VIEW
+// ═══════════════════════════════════════════════════════════════════
+.rp-loan-pills {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.rp-loan-pill {
+  flex-shrink: 0;
+  min-width: 180px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: var(--rp-surface);
+  padding: 12px 16px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s;
+
+  &:hover { transform: translateY(-1px); }
+  &.rp-loan-pill--active { border-color: var(--rp-accent); }
+}
+
+.rp-loan-pill-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rp-loan-pill-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--rp-text);
+}
+
+.rp-loan-pill-caption {
+  font-size: 11px;
+  color: var(--rp-text-soft);
+}
+
+.rp-loan-pill-amount {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--rp-text);
+  margin-top: 2px;
+}
+
+.rp-row--loan { cursor: pointer; }
+
+.rp-loan-row-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PROFILE VIEW
+// ═══════════════════════════════════════════════════════════════════
+.rp-profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.rp-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rp-text);
+  }
+}
+
+.rp-input {
+  height: 44px;
+  padding: 0 14px;
+  background: var(--rp-field);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--rp-text);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:focus { background: var(--rp-surface); border-color: var(--rp-accent); }
+  &::placeholder { color: #a0a4ae; }
+}
+
+.rp-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.rp-save-btn {
+  height: 44px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 100px;
+  background: var(--rp-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: var(--rp-accent-hover); }
+  &:disabled { opacity: 0.7; cursor: default; }
+}
+
+// Widget/panel on small screens
+@media (max-width: 480px) {
+  .rp-chat-panel {
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+// ── Self-service: take a new loan ──────────────────────────────────
+.rp-new-loan-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 100px;
+  background: var(--rp-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover { background: var(--rp-accent-hover); }
+}
+
+a.rp-chip { text-decoration: none; }
