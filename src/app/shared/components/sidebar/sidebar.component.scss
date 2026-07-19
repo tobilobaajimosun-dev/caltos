@@ -178,9 +178,9 @@
   }
 
   &.active {
-    color: var(--text-primary);
+    color: var(--color-blue);
     font-weight: 600;
-    &::before { background: var(--text-primary); }
+    &::before { background: var(--color-blue); }
   }
 }
 

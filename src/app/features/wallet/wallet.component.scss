@@ -1,10 +1,45 @@
 @use '../stub-pages';
 
+// Match the rest of the admin app (product-list, settings): 22px/600 page title.
+.page-title {
+  font-size: var(--text-xl);
+}
+
+// Low-balance banner sits directly on the page at full content width —
+// never nested inside a .panel card.
+.page-banner {
+  display: block;
+  margin: var(--space-6) var(--space-8) 0;
+}
+
 .wallet-summary-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: 12px;
+  align-items: stretch;
+  gap: var(--space-4);
   margin: var(--space-6) var(--space-8) 0;
+
+  // The stub-pages .panel carries page-level margins — inside the grid the
+  // row owns spacing, so strip them or the two cards misalign/unequal-height.
+  > .panel {
+    margin: 0;
+  }
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-head {
+  margin: var(--space-6) var(--space-8) 0;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .panel-label-row {
@@ -47,8 +82,8 @@
 
 .balance-amount {
   font-family: var(--font-heading);
-  font-size: var(--text-3xl);
-  font-weight: 700;
+  font-size: var(--text-2xl); // 28px hero balance, Mercury-style
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -84,12 +119,13 @@
   flex-direction: column;
   gap: var(--space-1);
   margin-bottom: var(--space-4);
+  flex: 1; // fills the stretched card so the button + meta pin to the bottom
 }
 
 .account-number {
   font-family: var(--font-heading);
-  font-size: var(--text-2xl);
-  font-weight: 700;
+  font-size: var(--text-xl);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -107,6 +143,10 @@
   border-top: 1px solid var(--color-stroke);
 }
 
+.account-panel > app-button {
+  margin-top: auto;
+}
+
 .meta-label {
   font-size: var(--text-xs);
   color: var(--text-muted);
@@ -122,8 +162,17 @@
 .funds-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 12px var(--space-8) 0;
+  align-items: stretch;
+  gap: var(--space-4);
+  margin: var(--space-4) var(--space-8) 0;
+
+  > .panel {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .funds-panel {
@@ -144,7 +193,7 @@
 .funds-amount {
   font-family: var(--font-heading);
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -278,16 +327,37 @@
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--surface-overlay);
+  border: 1px solid transparent;
   border-radius: 10px;
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+
+  &:hover {
+    background: var(--surface-raised);
+    border-color: var(--color-stroke);
+
+    .spend-chevron { color: var(--text-secondary); transform: translateX(2px); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 .spend-icon {
   font-size: 20px;
+  color: var(--text-secondary);
+  display: inline-flex;
 }
 
 .spend-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .spend-label {
@@ -298,8 +368,57 @@
 .spend-amount {
   font-family: var(--font-heading);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
+}
+
+.spend-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+
+// ── Spend drill-down drawer ──
+.spend-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.spend-detail-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: var(--space-4);
+}
+
+.spend-detail-period {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.spend-detail-total {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.spend-detail-table {
+  th { padding: 0; }
+  // app-table-item supplies its own 18px/24px padding; drop the page-level td
+  // padding so rows stay compact inside the drawer.
+  td { padding: 0; }
+}
+
+.spend-detail-footrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6) 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+
+  .spend-detail-total { font-size: var(--text-md); }
 }
 
 .amount-cell {
@@ -395,4 +514,19 @@
   font-size: var(--text-xs);
   color: var(--color-error);
   margin: -8px 0 0;
+}
+
+// Step the fixed side gutters down on narrow phones, matching stub-pages.
+@media (max-width: 640px) {
+  .page-banner,
+  .wallet-summary-row,
+  .section-head,
+  .funds-row {
+    margin-left: var(--space-4);
+    margin-right: var(--space-4);
+  }
+
+  .balance-actions {
+    flex-wrap: wrap;
+  }
 }

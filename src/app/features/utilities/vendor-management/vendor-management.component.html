@@ -1,39 +1,153 @@
-<div class="page-header">
-  <h1 class="page-title">Vendor management</h1>
-  <p class="page-subtitle">Manage third-party vendors and service providers powering your operations.</p>
-</div>
-
-<div class="kpi-row">
-  <app-kpi-card label="Active vendors" [value]="activeVendors()" />
-  <app-kpi-card label="Contracts expiring soon" [value]="expiringSoon()" />
-  <app-kpi-card label="Total vendors" [value]="totalVendors()" />
-</div>
-
-<div class="panel table-panel">
-  <div class="panel-head">
-    <p class="panel-title">Vendors</p>
+<div class="page-header vendor-header">
+  <div>
+    <h1 class="page-title">Vendor Management</h1>
+    <p class="page-subtitle">Onboard and manage the vendors borrowers can shop with on your BNPL products.</p>
   </div>
-  <table class="ref-table">
-    <thead>
-      <tr>
-        <th><app-column-title label="Vendor" /></th>
-        <th><app-column-title label="Service type" /></th>
-        <th><app-column-title label="Contract status" /></th>
-        <th><app-column-title label="Contact person" /></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (vendor of vendors(); track vendor.name) {
-        <tr>
-          <td><app-table-item type="text" [text]="vendor.name" /></td>
-          <td><app-table-item type="text" [text]="vendor.serviceType" /></td>
-          <td><app-status-badge [status]="vendor.status" [label]="vendor.statusLabel" /></td>
-          <td><app-table-item type="user" [user]="{ name: vendor.contactName, email: vendor.contactEmail }" /></td>
-        </tr>
-      }
-      @empty {
-        <tr><td colspan="4" class="empty-cell">No vendors yet.</td></tr>
-      }
-    </tbody>
-  </table>
+  <app-button variant="primary" label="Onboard vendor" (clicked)="openOnboard()" />
 </div>
+
+@if (!selectedRow()) {
+  <div class="kpi-row">
+    <app-kpi-card label="BNPL vendors" [value]="totalVendors()" />
+    <app-kpi-card label="Active vendors" [value]="activeVendors()" />
+    <app-kpi-card label="Products with vendors" [value]="productsWithVendors()" />
+  </div>
+
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <p class="panel-title">Vendors</p>
+      <app-select [options]="productOptions()" [value]="selectedProductId()" (valueChange)="setProduct($event)" />
+    </div>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Business name" /></th>
+          <th><app-column-title label="Category" /></th>
+          <th><app-column-title label="Amount limits" /></th>
+          <th><app-column-title label="Product" /></th>
+          <th><app-column-title label="Loans" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of vendorRows(); track row.vendor.id) {
+          <tr class="clickable-row" (click)="viewVendor(row)">
+            <td><app-table-item type="user-avatar" [user]="{ name: row.vendor.businessName, email: row.vendor.category }" /></td>
+            <td><app-table-item type="text" [text]="row.vendor.category" /></td>
+            <td><app-table-item type="text" [text]="limitsLabel(row.vendor)" /></td>
+            <td><app-table-item type="text" [text]="row.productName" /></td>
+            <td><app-table-item type="text" [text]="perf(row).loans + ' loans'" /></td>
+            <td><app-status-badge [status]="row.vendor.status === 'suspended' ? 'suspended' : row.vendor.status === 'pending' ? 'pending' : 'active'" [label]="row.vendor.status === 'suspended' ? 'Suspended' : row.vendor.status === 'pending' ? 'Pending' : 'Active'" /></td>
+            <td class="row-action-cell" (click)="$event.stopPropagation()">
+              <app-button variant="text" label="Edit" (clicked)="openEdit(row)" />
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="7" class="empty-cell">No vendors onboarded yet — click "Onboard vendor" to add your first.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <!-- ── Vendor performance detail (Stripe-style) ─────────────────────────── -->
+  @if (selectedRow(); as row) {
+    <button class="back-link" (click)="backToList()">← Back to vendors</button>
+
+    <div class="vendor-detail-head">
+      <div>
+        <h2 class="vendor-detail-name">{{ row.vendor.businessName }}</h2>
+        <p class="vendor-detail-meta">
+          <span class="vendor-cat-chip">{{ row.vendor.category }}</span>
+          {{ row.productName }} · Limits {{ limitsLabel(row.vendor) }}
+        </p>
+      </div>
+      <div class="vendor-detail-actions">
+        <app-button variant="secondary" label="Edit vendor" (clicked)="openEdit(row)" />
+        <app-button variant="outline" label="Remove" (clicked)="removeVendor(row)" />
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <app-kpi-card label="Total loans" [value]="perf(row).loans" />
+      <app-kpi-card label="Total disbursed" [value]="perf(row).disbursed" />
+      <app-kpi-card label="Repayment rate" [value]="perf(row).rate" />
+      <app-kpi-card label="Outstanding" [value]="perf(row).outstanding" />
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Loans through this vendor</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th><app-column-title label="Borrower" /></th>
+            <th><app-column-title label="Amount" /></th>
+            <th><app-column-title label="Disbursed" /></th>
+            <th><app-column-title label="Repayment status" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (loan of vendorLoans(row); track loan.borrower + loan.disbursed) {
+            <tr>
+              <td><app-table-item type="user-avatar" [user]="{ name: loan.borrower, email: '' }" /></td>
+              <td><app-table-item type="amount" [amount]="loan.amount" /></td>
+              <td><app-table-item type="date" [date]="loan.disbursed" /></td>
+              <td><app-status-badge [status]="loan.status === 'overdue' ? 'overdue' : loan.status === 'pending' ? 'pending' : 'successful'" [label]="loan.statusLabel" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <p class="panel-title">Invoices submitted</p>
+      </div>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th><app-column-title label="Invoice number" /></th>
+            <th><app-column-title label="Amount" /></th>
+            <th><app-column-title label="Submitted" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (inv of vendorInvoices(row); track inv.number) {
+            <tr>
+              <td><app-table-item type="text" [text]="inv.number" /></td>
+              <td><app-table-item type="amount" [amount]="inv.amount" /></td>
+              <td><app-table-item type="date" [date]="inv.date" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<!-- ── Onboard / edit vendor modal ─────────────────────────────────────────── -->
+<app-modal [isOpen]="modalOpen()" [title]="editingVendorId() ? 'Edit vendor' : 'Onboard vendor'" size="md" (closed)="modalOpen.set(false)">
+  <div class="vendor-modal-body">
+    <div class="vendor-form-field">
+      <label class="vendor-form-label">BNPL product</label>
+      <app-select [options]="productOptions().slice(1)" [value]="formProductId" (valueChange)="formProductId = $event" />
+    </div>
+    <app-input label="Business name" [value]="formBusinessName" (valueChange)="formBusinessName = $event" placeholder="e.g. TechMart Lagos" />
+    <app-input label="Category" [value]="formCategory" (valueChange)="formCategory = $event" placeholder="e.g. Electronics" />
+    <div class="vendor-form-grid">
+      <app-input label="Minimum amount (₦)" [value]="formMinAmount" (valueChange)="formMinAmount = $event" placeholder="50,000" />
+      <app-input label="Maximum amount (₦)" [value]="formMaxAmount" (valueChange)="formMaxAmount = $event" placeholder="2,000,000" />
+    </div>
+  </div>
+  <div modalFooter>
+    <app-button variant="outline" label="Cancel" (clicked)="modalOpen.set(false)" />
+    <app-button variant="primary" [label]="editingVendorId() ? 'Save changes' : 'Onboard vendor'" [disabled]="!formValid" (clicked)="saveVendor()" />
+  </div>
+</app-modal>
+
+@if (toastVisible()) {
+  <app-toast type="success" title="Done" [message]="toastMessage()" (dismissed)="toastVisible.set(false)" />
+}

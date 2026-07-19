@@ -5,6 +5,7 @@ import {
   ButtonComponent, ColumnTitleComponent, TableItemComponent, PaginationComponent,
   ModalComponent, SelectComponent, SelectOption, CheckboxComponent, ToggleComponent, BadgeStatus, IconData,
   SearchComponent, InputComponent, FileUploadComponent, AlertBannerComponent, StatusBadgeComponent,
+  DrawerComponent,
 } from '../../shared/components';
 import { HiIconComponent } from '../../shared/components/hi-icon/hi-icon.component';
 import { AccountService } from '../../shared/services/account.service';
@@ -29,13 +30,27 @@ interface TopUpRecord {
   status: BadgeStatus;
 }
 
+interface SpendLineItem {
+  date: string;
+  description: string;
+  reference: string;
+  amount: string;
+}
+
+interface SpendCategory {
+  icon: IconData;
+  label: string;
+  amount: string;
+  items: SpendLineItem[];
+}
+
 @Component({
   selector: 'app-wallet',
   standalone: true,
   imports: [
     FormsModule, ButtonComponent, ColumnTitleComponent, TableItemComponent, PaginationComponent,
     ModalComponent, SelectComponent, CheckboxComponent, ToggleComponent, SearchComponent, InputComponent,
-    FileUploadComponent, AlertBannerComponent, StatusBadgeComponent, HiIconComponent,
+    FileUploadComponent, AlertBannerComponent, StatusBadgeComponent, HiIconComponent, DrawerComponent,
   ],
   templateUrl: './wallet.component.html',
   styleUrl: './wallet.component.scss',
@@ -78,12 +93,63 @@ export class WalletComponent {
   readonly lowBalanceActive = computed(() => this.parseAmount(this.account.balance()) < (Number(this.lowBalanceThreshold) || 0));
 
   // ── Spend summary ──
-  readonly spendCategories: { icon: IconData; label: string; amount: string }[] = [
-    { icon: MoneySend01Icon as IconData, label: 'Disbursements', amount: '₦4,200,000' },
-    { icon: Search01Icon as IconData, label: 'Eligibility Checks', amount: '₦12,400' },
-    { icon: SignatureIcon as IconData, label: 'Digisign Fees', amount: '₦3,800' },
-    { icon: SmartPhone01Icon as IconData, label: 'SMS/Notifications', amount: '₦950' },
+  readonly spendCategories: SpendCategory[] = [
+    {
+      icon: MoneySend01Icon as IconData,
+      label: 'Disbursements',
+      amount: '₦4,200,000',
+      items: [
+        { date: 'Jul 15, 2026', description: 'Salary Advance — Akpan A.', reference: 'DSB-20941', amount: '₦850,000' },
+        { date: 'Jul 12, 2026', description: 'Payday Loan — Chioma N.', reference: 'DSB-20918', amount: '₦1,200,000' },
+        { date: 'Jul 09, 2026', description: 'Salary Advance — Bello M.', reference: 'DSB-20897', amount: '₦640,000' },
+        { date: 'Jul 05, 2026', description: 'Device Finance — Eze K.', reference: 'DSB-20860', amount: '₦910,000' },
+        { date: 'Jul 02, 2026', description: 'Salary Advance — Okoro T.', reference: 'DSB-20833', amount: '₦600,000' },
+      ],
+    },
+    {
+      icon: Search01Icon as IconData,
+      label: 'Eligibility Checks',
+      amount: '₦12,400',
+      items: [
+        { date: 'Jul 16, 2026', description: 'Remita eligibility check — batch of 7', reference: 'CHK-5521', amount: '₦5,950' },
+        { date: 'Jul 10, 2026', description: 'Remita eligibility check — batch of 5', reference: 'CHK-5488', amount: '₦4,250' },
+        { date: 'Jul 03, 2026', description: 'Priority eligibility check — Bello M.', reference: 'CHK-5450', amount: '₦1,350' },
+        { date: 'Jul 01, 2026', description: 'Single eligibility check — Eze K.', reference: 'CHK-5441', amount: '₦850' },
+      ],
+    },
+    {
+      icon: SignatureIcon as IconData,
+      label: 'Digisign Fees',
+      amount: '₦3,800',
+      items: [
+        { date: 'Jul 14, 2026', description: 'Offer letter e-signature — Chioma N.', reference: 'DSG-1188', amount: '₦1,200' },
+        { date: 'Jul 08, 2026', description: 'Loan agreement e-signature — Akpan A.', reference: 'DSG-1174', amount: '₦1,200' },
+        { date: 'Jul 02, 2026', description: 'Guarantor consent e-signature', reference: 'DSG-1161', amount: '₦1,400' },
+      ],
+    },
+    {
+      icon: SmartPhone01Icon as IconData,
+      label: 'SMS/Notifications',
+      amount: '₦950',
+      items: [
+        { date: 'Jul 15, 2026', description: 'Repayment reminder SMS — batch of 120', reference: 'SMS-90312', amount: '₦480' },
+        { date: 'Jul 08, 2026', description: 'Disbursement alert SMS — batch of 65', reference: 'SMS-90267', amount: '₦260' },
+        { date: 'Jul 01, 2026', description: 'OTP delivery — 52 messages', reference: 'SMS-90201', amount: '₦210' },
+      ],
+    },
   ];
+
+  readonly spendDetailOpen = signal(false);
+  readonly activeSpendCategory = signal<SpendCategory | null>(null);
+
+  openSpendDetail(cat: SpendCategory) {
+    this.activeSpendCategory.set(cat);
+    this.spendDetailOpen.set(true);
+  }
+
+  closeSpendDetail() {
+    this.spendDetailOpen.set(false);
+  }
 
   // Notification settings form state
   emailNotify = false;

@@ -176,7 +176,7 @@
       <div class="kpi-row" role="list" aria-label="Key performance indicators">
         @for (kpi of kpiCards; track kpi.label) {
           <div role="listitem">
-            <app-kpi-card [label]="kpi.label" [value]="kpi.value" />
+            <app-kpi-card [label]="kpi.label" [value]="kpi.value" [trend]="kpi.trend" trendLabel="vs yesterday" />
           </div>
         }
       </div>
@@ -189,7 +189,7 @@
             [value]="m.amount"
             [trend]="m.trend"
             [trendColor]="m.trendColor"
-            [sparkPoints]="m.sparkPoints"
+            [sparkData]="m.sparkData"
             countLabel="In Count"
             [countValue]="m.count" />
         }

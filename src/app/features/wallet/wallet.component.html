@@ -4,9 +4,7 @@
 </div>
 
 @if (lowBalanceActive()) {
-  <div class="panel">
-    <app-alert-banner type="warning" title="Your balance is running low" message="Top up now to avoid disbursement failures." [dismissible]="false" />
-  </div>
+  <app-alert-banner class="page-banner" type="warning" title="Your balance is running low" message="Top up now to avoid disbursement failures." [dismissible]="false" />
 }
 
 <div class="wallet-summary-row">
@@ -53,21 +51,8 @@
   </div>
 </div>
 
-<div class="panel">
-  <div class="panel-head">
-    <p class="panel-title">Spend summary (this month)</p>
-  </div>
-  <div class="spend-grid">
-    @for (cat of spendCategories; track cat.label) {
-      <div class="spend-cell">
-        <span class="spend-icon"><hi-icon [icon]="cat.icon" size="20" aria-hidden="true" /></span>
-        <div class="spend-info">
-          <span class="spend-label">{{ cat.label }}</span>
-          <span class="spend-amount">{{ cat.amount }}</span>
-        </div>
-      </div>
-    }
-  </div>
+<div class="section-head">
+  <h2 class="section-title">Money movement</h2>
 </div>
 
 <div class="funds-row">
@@ -85,6 +70,24 @@
       <app-select [options]="periodOptions" [value]="fundsOutPeriod" (valueChange)="fundsOutPeriod = $event" />
     </div>
     <span class="funds-amount">{{ fundsOut }}</span>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <p class="panel-title">Spend summary (this month)</p>
+  </div>
+  <div class="spend-grid">
+    @for (cat of spendCategories; track cat.label) {
+      <button type="button" class="spend-cell" (click)="openSpendDetail(cat)" [attr.aria-label]="'View ' + cat.label + ' details'">
+        <span class="spend-icon"><hi-icon [icon]="cat.icon" size="20" aria-hidden="true" /></span>
+        <span class="spend-info">
+          <span class="spend-label">{{ cat.label }}</span>
+          <span class="spend-amount">{{ cat.amount }}</span>
+        </span>
+        <svg class="spend-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    }
   </div>
 </div>
 
@@ -281,3 +284,39 @@
     <app-button variant="primary" label="Save settings" (clicked)="saveAutoTopUp()" />
   </div>
 </app-modal>
+
+<!-- Spend category drill-down -->
+<app-drawer [isOpen]="spendDetailOpen()" [title]="activeSpendCategory()?.label ?? ''" width="560px" (closed)="closeSpendDetail()">
+  @if (activeSpendCategory(); as cat) {
+    <div class="spend-detail">
+      <div class="spend-detail-summary">
+        <span class="spend-detail-period">This month</span>
+        <span class="spend-detail-total">{{ cat.amount }}</span>
+      </div>
+      <table class="ref-table spend-detail-table">
+        <thead>
+          <tr>
+            <th><app-column-title label="Date" /></th>
+            <th><app-column-title label="Description" /></th>
+            <th><app-column-title label="Reference" /></th>
+            <th><app-column-title label="Amount" /></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of cat.items; track item.reference) {
+            <tr>
+              <td><app-table-item type="text" [text]="item.date" /></td>
+              <td><app-table-item type="text" [text]="item.description" /></td>
+              <td><app-table-item type="text" [text]="item.reference" /></td>
+              <td><app-table-item type="amount" [amount]="item.amount" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="spend-detail-footrow">
+        <span>Period total</span>
+        <span class="spend-detail-total">{{ cat.amount }}</span>
+      </div>
+    </div>
+  }
+</app-drawer>

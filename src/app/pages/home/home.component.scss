@@ -357,6 +357,8 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
+
+  app-kpi-card { display: flex; min-width: 0; }
 }
 
 /* ── Shared panel ── */
@@ -903,6 +905,10 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-4);
+
+  // Equal-height cards regardless of value length
+  > [role='listitem'] { display: flex; }
+  app-kpi-card { display: flex; flex: 1; min-width: 0; }
 }
 
 /* ── Loan Activity Chart ── */

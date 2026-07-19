@@ -140,7 +140,7 @@ export class HomeComponent {
       amount: '₦182,756,352.10',
       trend: { dir: 'up' as const, value: 40 },
       trendColor: '#059669',
-      sparkPoints: '0,32 12,24 24,20 36,16 48,10 60,6 72,2',
+      sparkData: [42, 48, 45, 54, 51, 62, 59, 68, 74],
       count: 100,
     },
     {
@@ -148,7 +148,7 @@ export class HomeComponent {
       amount: '₦82,756,352.10',
       trend: { dir: 'down' as const, value: 40 },
       trendColor: '#e03e3e',
-      sparkPoints: '0,2 12,6 24,12 36,16 48,22 60,28 72,32',
+      sparkData: [76, 71, 74, 64, 66, 55, 50, 44, 38],
       count: 46,
     },
     {
@@ -156,7 +156,7 @@ export class HomeComponent {
       amount: '₦2,756,352.10',
       trend: null,
       trendColor: '',
-      sparkPoints: '',
+      sparkData: [] as number[],
       count: 4,
     },
     {
@@ -164,7 +164,7 @@ export class HomeComponent {
       amount: '₦2,756,352.10',
       trend: null,
       trendColor: '',
-      sparkPoints: '',
+      sparkData: [] as number[],
       count: 26,
     },
   ];
@@ -181,12 +181,13 @@ export class HomeComponent {
 
   readonly hasOverdueLoans = computed(() => this.overdueLoanCount > 0);
 
+  // Values kept single-line so the row stays height-aligned; deltas go in trend chips.
   readonly kpiCards = [
-    { label: 'Total Portfolio Value', value: '₦412,680,000' },
-    { label: 'Disbursed Today', value: '₦18,240,000 (+12% vs yesterday)' },
-    { label: 'Repayments Due (7 days)', value: '₦64,500,000 · 231 loans' },
-    { label: 'Overdue Loans', value: '14 loans · 2.3% of book' },
-    { label: 'Collections Rate (30d)', value: '94.6%' },
+    { label: 'Total Portfolio Value', value: '₦412,680,000', trend: null as { dir: 'up' | 'down'; value: number } | null },
+    { label: 'Disbursed Today', value: '₦18,240,000', trend: { dir: 'up' as const, value: 12 } },
+    { label: 'Repayments Due (7 days)', value: '₦64.5M · 231 loans', trend: null },
+    { label: 'Overdue Loans', value: '14 · 2.3% of book', trend: null },
+    { label: 'Collections Rate (30d)', value: '94.6%', trend: null },
   ];
 
   // ── Loan Activity Chart ──

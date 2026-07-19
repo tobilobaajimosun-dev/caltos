@@ -15,7 +15,11 @@
           }
           {{ trend.value }}% {{ trendLabel }}
         </span>
-        @if (sparkPoints) {
+        @if (sparkData.length > 1) {
+          <svg class="kpi-spark" width="72" height="36" viewBox="0 0 72 36" fill="none">
+            <path [attr.d]="sparkPath" [attr.stroke]="trendColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        } @else if (sparkPoints) {
           <svg class="kpi-spark" width="72" height="36" viewBox="0 0 72 36" fill="none">
             <polyline [attr.points]="sparkPoints" [attr.stroke]="trendColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           </svg>

@@ -4,10 +4,11 @@
     <p class="page-subtitle">Product updates, improvements, and fixes from the Caltos team.</p>
   </header>
 
+  <!-- Clerk-changelog layout: date rail left · announcement content right -->
   <div class="feed">
     @for (entry of entries; track entry.title) {
-      <article class="entry-card">
-        <div class="entry-meta">
+      <article class="entry">
+        <div class="entry-rail">
           <span class="entry-date">{{ entry.date }}</span>
           <span
             class="entry-tag"
@@ -16,8 +17,22 @@
             [class.entry-tag--fixed]="entry.tag === 'Fixed'"
           >{{ entry.tag }}</span>
         </div>
-        <h2 class="entry-title">{{ entry.title }}</h2>
-        <p class="entry-description">{{ entry.description }}</p>
+
+        <div class="entry-content">
+          <div class="entry-art" [style.background]="entry.art" aria-hidden="true">
+            <span class="entry-art-brand">Caltos</span>
+            <span class="entry-art-title">{{ entry.artTitle }}</span>
+          </div>
+          <h2 class="entry-title">{{ entry.title }}</h2>
+          <p class="entry-description">{{ entry.description }}</p>
+          @if (entry.bullets?.length) {
+            <ul class="entry-bullets">
+              @for (b of entry.bullets; track b) {
+                <li>{{ b }}</li>
+              }
+            </ul>
+          }
+        </div>
       </article>
     }
   </div>

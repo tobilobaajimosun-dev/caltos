@@ -32,23 +32,25 @@
   </div>
 </div>
 
-<div class="tabs-row">
+<div class="product-pills-row">
   <app-round-tabs [tabs]="productTabs()" [activeTab]="activeProduct()" (activeTabChange)="setProduct($event)" />
-  <div class="tabs-row-actions">
-    <app-search placeholder="Search loan ID, customer, product..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
-    <div class="filter-dropdown-wrap" (click)="$event.stopPropagation()">
-      <app-button variant="filter" label="Filter" (clicked)="toggleFilterPanel()" />
-      @if (filterPanelOpen()) {
-        <div class="filter-panel">
-          <p class="filter-panel-label">Channel</p>
-          @for (opt of channelOptions; track opt.value) {
-            <button type="button" class="filter-option" [class.active]="channelFilter() === opt.value" (click)="setChannelFilter(opt.value)">{{ opt.label }}</button>
-          }
-        </div>
-      }
-    </div>
-    <app-button variant="primary" label="Download report" [icon]="downloadIcon" (clicked)="exportAll()" />
+</div>
+
+<!-- Search, filter, and export sit right-aligned directly above the table -->
+<div class="table-toolbar">
+  <app-search placeholder="Search loan ID, customer, product..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
+  <div class="filter-dropdown-wrap" (click)="$event.stopPropagation()">
+    <app-button variant="filter" label="Filter" (clicked)="toggleFilterPanel()" />
+    @if (filterPanelOpen()) {
+      <div class="filter-panel">
+        <p class="filter-panel-label">Channel</p>
+        @for (opt of channelOptions; track opt.value) {
+          <button type="button" class="filter-option" [class.active]="channelFilter() === opt.value" (click)="setChannelFilter(opt.value)">{{ opt.label }}</button>
+        }
+      </div>
+    }
   </div>
+  <app-button variant="primary" label="Download report" [icon]="downloadIcon" (clicked)="exportAll()" />
 </div>
 
 @if (anySelected()) {

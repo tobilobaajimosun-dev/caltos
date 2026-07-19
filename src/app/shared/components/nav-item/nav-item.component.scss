@@ -34,8 +34,8 @@
   }
 
   &.active {
-    background: var(--surface-overlay);
-    color: var(--text-primary);
+    background: var(--color-info-bg);
+    color: var(--color-blue);
     font-weight: 600;
   }
 
@@ -51,8 +51,8 @@
   flex-shrink: 0;
   color: var(--text-muted);
 
-  .nav-item:hover &,
-  .nav-item.active & { color: var(--text-primary); }
+  .nav-item:hover & { color: var(--text-primary); }
+  .nav-item.active & { color: var(--color-blue); }
 }
 
 .label-text {

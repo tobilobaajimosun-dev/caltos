@@ -38,6 +38,30 @@ export class KpiCardComponent {
   @Input() trendColor = '';
   /** SVG polyline points (viewBox 0 0 72 36) for the trend sparkline. */
   @Input() sparkPoints = '';
+  /** Numeric series — when set, renders a smooth scaled mini-chart instead of raw sparkPoints. */
+  @Input() sparkData: number[] = [];
+
+  private get sparkCoords(): { x: number; y: number }[] {
+    const d = this.sparkData;
+    if (d.length < 2) return [];
+    const min = Math.min(...d);
+    const max = Math.max(...d);
+    const range = max - min || 1;
+    const step = 72 / (d.length - 1);
+    // 4px vertical padding so the curve never clips the 36px-tall viewBox
+    return d.map((v, i) => ({ x: i * step, y: 32 - ((v - min) / range) * 28 }));
+  }
+
+  get sparkPath(): string {
+    const pts = this.sparkCoords;
+    if (!pts.length) return '';
+    let path = `M${pts[0].x},${pts[0].y}`;
+    for (let i = 1; i < pts.length; i++) {
+      const cx = (pts[i - 1].x + pts[i].x) / 2;
+      path += ` C${cx},${pts[i - 1].y} ${cx},${pts[i].y} ${pts[i].x},${pts[i].y}`;
+    }
+    return path;
+  }
 
   /** Optional full-bleed footer strip (e.g. "In Count" / 100). */
   @Input() countLabel = '';
