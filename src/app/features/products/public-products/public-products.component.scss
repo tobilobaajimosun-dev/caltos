@@ -520,3 +520,26 @@
   .pp-footer-spacer { display: none; }
   .pp-footer-inner { justify-content: center; }
 }
+
+// ── Product image ──────────────────────────────────────────────────
+.pp-card-image {
+  width: calc(100% + 48px);
+  margin: -24px -24px 4px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 20px 20px 0 0;
+  display: block;
+
+  &--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--pp-tint) 0%, #f4f4f8 100%);
+    color: var(--pp-accent);
+
+    .pp-card--bnpl & {
+      background: linear-gradient(135deg, var(--pp-warning-bg) 0%, #f8f4ec 100%);
+      color: var(--pp-warning);
+    }
+  }
+}

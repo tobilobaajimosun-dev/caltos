@@ -222,6 +222,8 @@ export class RepaymentPortalComponent implements OnDestroy {
     this.chatOpen = false;
     this.activeNav = 'home';
     this.selectedLoanId = this.loans[0].id;
+    this.loanChosen = false;
+    this.liquidationOpen = false;
     this.virtualAccountCopied = false;
     this.letterIndebtednessRequested = false;
     this.letterClearanceRequested = false;
@@ -317,6 +319,16 @@ export class RepaymentPortalComponent implements OnDestroy {
 
   selectedLoanId = this.loans[0].id;
 
+  /** After OTP, the borrower picks which loan to view before landing on the dashboard. */
+  loanChosen = false;
+
+  chooseLoan(id: string) {
+    this.selectedLoanId = id;
+    this.loanChosen = true;
+    this.activeNav = 'home';
+    this.cdr.markForCheck();
+  }
+
   get selectedLoan(): Loan {
     return this.loans.find(l => l.id === this.selectedLoanId) ?? this.loans[0];
   }
@@ -324,6 +336,28 @@ export class RepaymentPortalComponent implements OnDestroy {
   selectLoan(id: string) {
     this.selectedLoanId = id;
     this.cdr.markForCheck();
+  }
+
+  // ── Liquidation (early payoff) ───────────────────────────────────────────────
+  liquidationOpen = false;
+
+  toggleLiquidation() {
+    this.liquidationOpen = !this.liquidationOpen;
+    this.cdr.markForCheck();
+  }
+
+  /** Unearned future interest waived on early settlement (demo: 12% of outstanding). */
+  liquidationWaived(loan: Loan): number {
+    return Math.round(this.loanOutstanding(loan) * 0.12);
+  }
+
+  /** Early settlement fee per the product's liquidation policy (demo: 2%). */
+  liquidationFee(loan: Loan): number {
+    return Math.round(this.loanOutstanding(loan) * 0.02);
+  }
+
+  liquidationTotal(loan: Loan): number {
+    return this.loanOutstanding(loan) - this.liquidationWaived(loan) + this.liquidationFee(loan);
   }
 
   viewLoan(id: string) {

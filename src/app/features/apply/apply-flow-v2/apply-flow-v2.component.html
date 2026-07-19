@@ -190,19 +190,42 @@
         <h2 class="pf-headline">Where are you shopping?</h2>
         <p class="pf-body-sm">Select or describe the vendor you're purchasing from — this helps us verify your invoice faster.</p>
 
-        @if (bnplVendorOptions.length) {
+        <div class="pf-field pf-typeahead-wrap">
+          <label class="pf-label" for="bnpl-vendor-search">Vendor name</label>
+          <input
+            id="bnpl-vendor-search"
+            class="pf-input"
+            type="text"
+            placeholder="Start typing the vendor's name…"
+            autocomplete="off"
+            [value]="bnplVendorQuery"
+            (input)="onVendorQueryInput($event)"
+            (focus)="showVendorSuggestions = true"
+            role="combobox"
+            [attr.aria-expanded]="showVendorSuggestions && vendorSuggestions.length > 0"
+            aria-controls="bnpl-vendor-listbox"
+          />
+          @if (showVendorSuggestions && vendorSuggestions.length) {
+            <ul class="pf-typeahead-list" id="bnpl-vendor-listbox" role="listbox">
+              @for (v of vendorSuggestions; track v.businessName) {
+                <li>
+                  <button type="button" class="pf-typeahead-option" role="option" (click)="selectBnplVendor(v)">
+                    <span class="pf-typeahead-name">{{ v.businessName }}</span>
+                    <span class="pf-typeahead-cat">{{ v.category }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (showVendorSuggestions && !vendorSuggestions.length && bnplVendorQuery) {
+            <p class="pf-typeahead-empty">No onboarded vendor matches "{{ bnplVendorQuery }}".</p>
+          }
+        </div>
+
+        @if (bnplVendorCategory) {
           <div class="pf-field">
-            <label class="pf-label">Vendor category</label>
-            <app-select [options]="bnplVendorOptions" [value]="bnplVendor" (valueChange)="bnplVendor = $event" />
-          </div>
-          <div class="pf-field">
-            <label class="pf-label" for="bnpl-vendor-name">Store or vendor name <span class="pf-opt">optional</span></label>
-            <input id="bnpl-vendor-name" class="pf-input" type="text" placeholder="e.g. TechMart Lagos" [(ngModel)]="values['bnplVendorName']" />
-          </div>
-        } @else {
-          <div class="pf-field">
-            <label class="pf-label" for="bnpl-vendor-free">Vendor or store name</label>
-            <input id="bnpl-vendor-free" class="pf-input" type="text" placeholder="e.g. TechMart Lagos" [(ngModel)]="bnplVendor" />
+            <label class="pf-label">Category</label>
+            <input class="pf-input pf-input--readonly" type="text" [value]="bnplVendorCategory" readonly aria-label="Vendor category (auto-filled)" />
           </div>
         }
 

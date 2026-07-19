@@ -12,7 +12,7 @@
 
   <div class="settings-content">
 
-    @if (activeSection() === 'organization') {
+    @if (activeSection() === 'company') {
       <section class="section">
         <div class="section-head">
           <h2 class="section-title">Business details</h2>
@@ -76,7 +76,7 @@
       </section>
     }
 
-    @if (activeSection() === 'branding') {
+    @if (activeSection() === 'profile') {
       <section class="section">
         <div class="section-head">
           <h2 class="section-title">Brand identity</h2>
@@ -120,7 +120,7 @@
       </section>
     }
 
-    @if (activeSection() === 'approval') {
+    @if (activeSection() === 'security') {
       <section class="section">
         <div class="section-head">
           <h2 class="section-title">Approval requirement</h2>
@@ -200,7 +200,7 @@
       }
     }
 
-    @if (activeSection() === 'integrations') {
+    @if (activeSection() === 'api') {
       <section class="section">
         <div class="section-head">
           <h2 class="section-title">Connected services</h2>
@@ -229,7 +229,7 @@
       </section>
     }
 
-    @if (activeSection() === 'api-webhooks') {
+    @if (activeSection() === 'api') {
       <section class="section">
         <div class="section-head section-head-row">
           <div>
@@ -323,7 +323,7 @@
       </section>
     }
 
-    @if (activeSection() === 'notifications') {
+    @if (activeSection() === 'personal') {
       <section class="section">
         <div class="section-head section-head-row">
           <div>
@@ -483,7 +483,7 @@
       </section>
     }
 
-    @if (activeSection() === 'billing') {
+    @if (activeSection() === 'company') {
       <section class="section">
         <div class="section-head">
           <h2 class="section-title">Current plan</h2>
@@ -568,6 +568,73 @@
           <p class="section-desc">Manage members, roles, and permissions from the dedicated Teams page.</p>
         </div>
         <a class="header-link" [routerLink]="['/teams']">Go to Teams</a>
+      </section>
+    }
+
+    <!-- ── Branches (Mercury's "Advisors" slot) ─────────────────────────────── -->
+    @if (activeSection() === 'branches') {
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Branches</h2>
+          <p class="section-desc">Physical locations your team operates from. Loans and staff can be assigned to a branch.</p>
+        </div>
+
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th><app-column-title label="Branch" /></th>
+              <th><app-column-title label="Manager" /></th>
+              <th><app-column-title label="Staff" /></th>
+              <th><app-column-title label="Status" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of branches; track b.name) {
+              <tr>
+                <td><app-table-item type="user" [user]="{ name: b.name, email: b.address }" /></td>
+                <td><app-table-item type="text" [text]="b.manager" /></td>
+                <td><app-table-item type="text" [text]="b.staff + ' members'" /></td>
+                <td><app-status-badge [status]="b.status" [label]="b.status === 'active' ? 'Active' : 'Pending'" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    <!-- ── Referrals ────────────────────────────────────────────────────────── -->
+    @if (activeSection() === 'referrals') {
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Referrals</h2>
+          <p class="section-desc">Refer another lender to Caltos and earn platform credit when they go live.</p>
+        </div>
+
+        <div class="referral-link-row">
+          <span class="referral-link">{{ referralLink }}</span>
+          <app-button variant="secondary" [label]="referralCopied ? 'Copied!' : 'Copy link'" (clicked)="copyReferralLink()" />
+        </div>
+
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th><app-column-title label="Organization" /></th>
+              <th><app-column-title label="Referred" /></th>
+              <th><app-column-title label="Status" /></th>
+              <th><app-column-title label="Reward" /></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of referrals; track r.org) {
+              <tr>
+                <td><app-table-item type="text" [text]="r.org" /></td>
+                <td><app-table-item type="date" [date]="r.date" /></td>
+                <td><app-status-badge [status]="r.status" [label]="r.status === 'successful' ? 'Signed up' : 'Invited'" /></td>
+                <td><app-table-item type="text" [text]="r.reward" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </section>
     }
 

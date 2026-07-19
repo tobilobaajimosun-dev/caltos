@@ -118,25 +118,27 @@
         @for (product of filteredProducts(); track product.id) {
           <article class="pp-card" [class.pp-card--bnpl]="product.type === 'bnpl'" [attr.aria-label]="product.name">
 
-            <!-- Icon + type -->
-            <div class="pp-card-top">
-              <div class="pp-icon-circle" aria-hidden="true">
-                @if (product.type === 'bnpl') {
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <!-- Product image -->
+            @if (product.bannerImageDataUrl) {
+              <img class="pp-card-image" [src]="product.bannerImageDataUrl" [alt]="product.name" />
+            } @else {
+              <div class="pp-card-image pp-card-image--placeholder" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  @if (product.type === 'bnpl') {
                     <circle cx="9" cy="21" r="1.5" stroke="currentColor" stroke-width="1.5"/>
                     <circle cx="19" cy="21" r="1.5" stroke="currentColor" stroke-width="1.5"/>
                     <path d="M1 2h4l2.6 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                } @else {
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                  } @else {
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                }
+                  }
+                </svg>
               </div>
+            }
+
+            <!-- Rate hero + type -->
+            <div class="pp-card-top">
               <span class="pp-type-chip">{{ productTypeLabel(product.type) }}</span>
             </div>
-
-            <!-- Rate hero -->
             <div class="pp-rate-hero" aria-label="Interest rate {{ product.interestRate }}% {{ product.interestFrequency }}">
               <span class="pp-rate-number">{{ product.interestRate }}%</span>
               <span class="pp-rate-suffix">/ {{ product.interestFrequency | lowercase }} · {{ product.interestType | lowercase }}</span>

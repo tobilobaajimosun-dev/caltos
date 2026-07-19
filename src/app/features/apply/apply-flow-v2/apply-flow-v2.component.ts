@@ -358,11 +358,39 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
 
   // ── BNPL-specific state ───────────────────────────────────────────────────────
   bnplVendor = '';
+  bnplVendorQuery = '';
+  bnplVendorCategory = '';
+  showVendorSuggestions = false;
   bnplInvoiceAmount = '';
   bnplInvoiceFileName = '';
   bnplAudience: BnplAudience | null = null;
 
   get bnplVendorCanContinue(): boolean { return !!this.bnplVendor; }
+
+  // ── Vendor typeahead: type a name → suggestions → selection pre-fills category ──
+  get vendorSuggestions(): { businessName: string; category: string }[] {
+    const vendors = this.product().vendors ?? [];
+    const q = this.bnplVendorQuery.toLowerCase().trim();
+    if (!q) return vendors.slice(0, 6);
+    return vendors.filter(v => v.businessName.toLowerCase().includes(q)).slice(0, 6);
+  }
+
+  onVendorQueryInput(event: Event) {
+    const q = (event.target as HTMLInputElement).value;
+    this.bnplVendorQuery = q;
+    this.showVendorSuggestions = true;
+    if (this.bnplVendor && q !== this.bnplVendor) {
+      this.bnplVendor = '';
+      this.bnplVendorCategory = '';
+    }
+  }
+
+  selectBnplVendor(v: { businessName: string; category: string }) {
+    this.bnplVendor = v.businessName;
+    this.bnplVendorQuery = v.businessName;
+    this.bnplVendorCategory = v.category;
+    this.showVendorSuggestions = false;
+  }
   get bnplInvoiceCanContinue(): boolean { return !!this.bnplInvoiceAmount; }
   get bnplProfileCanContinue(): boolean { return !!this.bnplAudience; }
   get bnplInvoiceAmountNum(): number { return parseThousands(this.bnplInvoiceAmount) || 0; }
@@ -898,6 +926,8 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.mandateAccountNumber = snapshot.mandateAccountNumber ?? '';
       this.mandateConsent = snapshot.mandateConsent ?? false;
       this.bnplVendor = snapshot.bnplVendor ?? '';
+      this.bnplVendorQuery = this.bnplVendor;
+      this.bnplVendorCategory = (this.product().vendors ?? []).find(v => v.businessName === this.bnplVendor)?.category ?? '';
       this.bnplInvoiceAmount = snapshot.bnplInvoiceAmount ?? '';
       this.bnplInvoiceFileName = snapshot.bnplInvoiceFileName ?? '';
       this.bnplAudience = snapshot.bnplAudience ?? null;

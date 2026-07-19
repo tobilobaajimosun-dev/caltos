@@ -7,7 +7,7 @@ import {
 } from '../../../shared/components';
 import { OrgBrandingService } from '../../../shared/services/org-branding.service';
 
-type Section = 'organization' | 'branding' | 'approval' | 'integrations' | 'api-webhooks' | 'notifications' | 'security' | 'billing' | 'team';
+type Section = 'company' | 'profile' | 'team' | 'branches' | 'security' | 'api' | 'personal' | 'referrals';
 
 interface Integration {
   id: string;
@@ -71,19 +71,43 @@ interface InvoiceEntry {
   styleUrl: './organization-settings.component.scss',
 })
 export class OrganizationSettingsComponent {
+  // Mercury-aligned section list: Company, Profile, Team, Branches (in place of
+  // Mercury's Advisors), Security & control, API, Personal, Referrals.
   readonly sections: { id: Section; label: string }[] = [
-    { id: 'organization', label: 'Organization Profile' },
-    { id: 'branding', label: 'Branding' },
-    { id: 'approval', label: 'Loan Approval Workflow' },
-    { id: 'integrations', label: 'Integrations' },
-    { id: 'api-webhooks', label: 'API & Webhooks' },
-    { id: 'notifications', label: 'Notification Preferences' },
-    { id: 'security', label: 'Security' },
-    { id: 'billing', label: 'Billing & Subscription' },
-    { id: 'team', label: 'Team & Access' },
+    { id: 'company', label: 'Company' },
+    { id: 'profile', label: 'Profile' },
+    { id: 'team', label: 'Team' },
+    { id: 'branches', label: 'Branches' },
+    { id: 'security', label: 'Security & control' },
+    { id: 'api', label: 'API' },
+    { id: 'personal', label: 'Personal' },
+    { id: 'referrals', label: 'Referrals' },
   ];
 
-  readonly activeSection = signal<Section>('organization');
+  readonly activeSection = signal<Section>('company');
+
+  // ── Branches ─────────────────────────────────────────────────────────────────
+  readonly branches = [
+    { name: 'Head Office — Victoria Island', address: '14 Adeola Odeku St, Lagos', manager: 'Tobi Ajimosun', staff: 18, status: 'active' as const },
+    { name: 'Ikeja Branch', address: '42 Allen Avenue, Ikeja, Lagos', manager: 'Chiamaka Obi', staff: 9, status: 'active' as const },
+    { name: 'Abuja Branch', address: '3 Gana St, Maitama, Abuja', manager: 'Musa Ibrahim', staff: 7, status: 'active' as const },
+    { name: 'Port Harcourt Branch', address: '11 Aba Rd, Port Harcourt', manager: '—', staff: 0, status: 'pending' as const },
+  ];
+
+  // ── Referrals ────────────────────────────────────────────────────────────────
+  readonly referralLink = 'https://caltos.co/r/princeps-4821';
+  referralCopied = false;
+
+  copyReferralLink() {
+    navigator.clipboard?.writeText(this.referralLink);
+    this.referralCopied = true;
+    setTimeout(() => { this.referralCopied = false; }, 2000);
+  }
+
+  readonly referrals = [
+    { org: 'BlueRock Credit', date: '2026-06-02', status: 'successful' as const, reward: '₦50,000 credit' },
+    { org: 'Amber Finance', date: '2026-06-28', status: 'pending' as const, reward: 'Pending signup' },
+  ];
   setSection(id: Section) {
     this.activeSection.set(id);
   }
