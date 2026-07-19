@@ -173,8 +173,8 @@
   }
 
   &:hover {
-    color: var(--text-primary);
-    &::before { background: var(--text-primary); }
+    color: var(--color-blue);
+    &::before { background: var(--color-blue); }
   }
 
   &.active {

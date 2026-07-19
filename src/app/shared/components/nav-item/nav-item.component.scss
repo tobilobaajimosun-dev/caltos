@@ -30,7 +30,7 @@
 
   &:hover:not(.active) {
     background: var(--surface-overlay);
-    color: var(--text-primary);
+    color: var(--color-blue);
   }
 
   &.active {
@@ -51,7 +51,7 @@
   flex-shrink: 0;
   color: var(--text-muted);
 
-  .nav-item:hover & { color: var(--text-primary); }
+  .nav-item:hover & { color: var(--color-blue); }
   .nav-item.active & { color: var(--color-blue); }
 }
 

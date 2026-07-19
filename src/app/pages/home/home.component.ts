@@ -181,13 +181,14 @@ export class HomeComponent {
 
   readonly hasOverdueLoans = computed(() => this.overdueLoanCount > 0);
 
-  // Values kept single-line so the row stays height-aligned; deltas go in trend chips.
+  // Same footer-strip card component as the metrics row below — values stay
+  // single-line, secondary figures live in the footer, deltas in trend chips.
   readonly kpiCards = [
-    { label: 'Total Portfolio Value', value: '₦412,680,000', trend: null as { dir: 'up' | 'down'; value: number } | null },
-    { label: 'Disbursed Today', value: '₦18,240,000', trend: { dir: 'up' as const, value: 12 } },
-    { label: 'Repayments Due (7 days)', value: '₦64.5M · 231 loans', trend: null },
-    { label: 'Overdue Loans', value: '14 · 2.3% of book', trend: null },
-    { label: 'Collections Rate (30d)', value: '94.6%', trend: null },
+    { label: 'Total Portfolio Value', value: '₦412,680,000', trend: null as { dir: 'up' | 'down'; value: number } | null, countLabel: 'Active loans', countValue: '612' },
+    { label: 'Disbursed Today', value: '₦18,240,000', trend: { dir: 'up' as const, value: 12 }, countLabel: 'Loans today', countValue: '42' },
+    { label: 'Repayments Due (7 days)', value: '₦64,500,000', trend: null, countLabel: 'Loans due', countValue: '231' },
+    { label: 'Overdue Loans', value: '14 loans', trend: null, countLabel: '% of book', countValue: '2.3%' },
+    { label: 'Collections Rate (30d)', value: '94.6%', trend: null, countLabel: 'Collected (30d)', countValue: '₦198.4M' },
   ];
 
   // ── Loan Activity Chart ──
