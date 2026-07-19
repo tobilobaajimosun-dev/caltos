@@ -20,30 +20,6 @@
   gap: var(--space-3);
 }
 
-.ghost-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
-
-  &:hover { background: var(--surface-overlay); color: var(--text-primary); }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-focus-ring);
-    outline-offset: 1px;
-  }
-}
-
 .invite-wrap {
   position: relative;
 }
@@ -553,7 +529,7 @@
 }
 
 .overlay-copy {
-  font-size: var(--text-base); // 14px paragraphs
+  font-size: var(--text-sm); // 13px paragraphs (product standard)
   color: var(--text-muted);
   margin: calc(-1 * var(--space-2)) 0 0;
 }
@@ -778,9 +754,22 @@ button.option-card {
 }
 
 .option-card-text {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+// Amber "Coming soon" pill — sits right, before the chevron.
+.soon-badge {
+  flex-shrink: 0;
+  font-size: var(--text-xs); // 11px
+  font-weight: 700;
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-radius: 100px;
+  padding: 3px 9px;
+  white-space: nowrap;
 }
 
 .option-card-title {
@@ -838,6 +827,375 @@ button.option-card {
 
 .multi-count {
   font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+// ── Create department wizard ─────────────────────────────────────────────────
+.lead-helper {
+  font-size: var(--text-sm); // 13px
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 2px 0 0;
+}
+
+.sub-copy {
+  font-size: var(--text-sm); // 13px
+}
+
+// Inline members multiselect (chips in the field + checkbox dropdown)
+.ms-wrap {
+  position: relative;
+}
+
+.ms-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  min-height: 42px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-input-stroke);
+  border-radius: 8px;
+  background: var(--surface-base);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+
+  &:hover { border-color: var(--color-grey); }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+.ms-placeholder {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text-disabled);
+}
+
+.ms-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.ms-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-sm); // 13px
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface-overlay);
+  border: 1px solid var(--color-stroke);
+  border-radius: 100px;
+  padding: 2px 6px 2px 10px;
+  white-space: nowrap;
+}
+
+.ms-chip-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover { background: var(--color-stroke); color: var(--text-primary); }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+.ms-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 41;
+  max-height: 264px;
+  overflow-y: auto;
+  background: var(--surface-base);
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  animation: dropdown-in 0.12s ease;
+}
+
+.ms-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: -2px;
+  }
+
+  // The row button owns the click — the checkbox is display-only here.
+  app-checkbox { pointer-events: none; flex-shrink: 0; }
+  app-avatar { flex-shrink: 0; }
+}
+
+.ms-opt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ms-opt-name {
+  font-size: var(--text-sm); // 13px
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ms-opt-email {
+  font-size: var(--text-sm); // 13px
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Step 2: numbered sub-department cards
+.sub-card {
+  border: 1px solid var(--color-stroke);
+  border-radius: 10px;
+  background: var(--surface-base);
+}
+
+.sub-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.sub-num {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  // Indigo accent (Mercury reference) — intentionally fixed, does not flip with theme.
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.sub-card-title {
+  flex: 1;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sub-remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover { background: var(--surface-overlay); color: var(--text-primary); }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+.sub-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-stroke);
+
+  > app-input:first-child { margin-top: var(--space-4); }
+}
+
+.sub-save-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sub-card-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+.sub-summary-text {
+  font-size: var(--text-sm); // 13px
+  color: var(--text-muted);
+}
+
+.sub-edit {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-blue);
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+    border-radius: 4px;
+  }
+}
+
+.add-sub-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px dashed var(--color-input-stroke);
+  border-radius: 10px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--text-sm); // 13px
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+
+  &:hover {
+    background: var(--surface-overlay);
+    color: var(--text-primary);
+    border-color: var(--color-grey);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+// Step 3: review summary card
+.dept-review-card {
+  border: 1px solid var(--color-stroke);
+  border-radius: 12px;
+  background: var(--surface-base);
+  padding: var(--space-5) var(--space-6);
+}
+
+.dept-review-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.dept-review-name {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dept-review-divider {
+  height: 1px;
+  background: var(--color-stroke);
+  margin: var(--space-4) 0;
+}
+
+.dept-review-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-stroke);
+
+  &:last-child { border-bottom: none; padding-bottom: 0; }
+}
+
+.dept-review-label {
+  flex-shrink: 0;
+  font-size: var(--text-sm); // 13px
+  color: var(--text-muted);
+}
+
+.dept-review-value {
+  font-size: var(--text-sm); // 13px
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.dept-review-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.dept-review-chip {
+  display: inline-block;
+  font-size: var(--text-sm); // 13px
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: 1px solid var(--color-stroke);
+  border-radius: 100px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.dept-review-subs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.dept-review-sub {
+  font-size: var(--text-sm); // 13px
+}
+
+.dept-review-sub-meta {
+  font-weight: 400;
   color: var(--text-muted);
 }
 

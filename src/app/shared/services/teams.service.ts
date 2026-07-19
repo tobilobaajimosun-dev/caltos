@@ -21,6 +21,20 @@ export interface AssignedLoan {
   status: string;
 }
 
+export interface SubDepartment {
+  name: string;
+  memberIds: string[];
+  leadId: string | null;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  memberIds: string[];
+  leadId: string | null;
+  subDepartments: SubDepartment[];
+}
+
 export interface TeamMember {
   id: string;
   firstName: string;
@@ -135,6 +149,18 @@ export class TeamsService {
       permissionGroups: buildPermissionGroups('Loan Officer'),
       activity: [{ at: '2026-06-01 09:00', action: 'Account suspended by Admin' }],
       assignedLoans: [{ loanId: 'LN-88077', customer: 'Emeka Nwosu', amount: '₦45,000', status: 'Active' }],
+    },
+  ]);
+
+  /** Org departments — demo-seeded, appended to by the create-department wizard. */
+  readonly departments = signal<Department[]>([
+    {
+      id: 'd1', name: 'Operations', memberIds: ['m1', 'm3', 'm4'], leadId: 'm3',
+      subDepartments: [],
+    },
+    {
+      id: 'd2', name: 'Recovery', memberIds: ['m2', 'm5'], leadId: 'm2',
+      subDepartments: [{ name: 'Field Collections', memberIds: ['m5'], leadId: null }],
     },
   ]);
 }

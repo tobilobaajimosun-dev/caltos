@@ -22,10 +22,12 @@ import {
   RowMenuComponent,
   ToggleComponent,
   WizardStepperComponent,
+  CheckboxComponent,
 } from '../../shared/components';
 import { WizardStep } from '../../shared/components/wizard-stepper/wizard-stepper.component';
 import {
   TeamsService, TeamMember, Role, MemberStatus, AssignedLoan, buildPermissionGroups,
+  Department, SubDepartment,
 } from '../../shared/services/teams.service';
 
 const AVATAR_PALETTE = ['#0053a6', '#7c5cff', '#0e9f6e', '#d97706', '#dc2677', '#0891b2'];
@@ -48,6 +50,13 @@ interface RoleRow {
   status: 'Active' | 'Needs review';
 }
 
+interface SubDeptDraft {
+  name: string;
+  memberIds: string[];
+  leadId: string;
+  saved: boolean;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DEFAULT_EXTRAS: MemberExtras = { jobTitle: '', department: '', autoAssign: false };
@@ -59,7 +68,7 @@ const DEFAULT_EXTRAS: MemberExtras = { jobTitle: '', department: '', autoAssign:
     AvatarComponent, StatusBadgeComponent, RoundTabsComponent, DrawerComponent, ModalComponent,
     SelectComponent, InputComponent, ButtonComponent, PermissionGroupComponent, ColumnTitleComponent,
     TableItemComponent, ConfirmModalComponent, ToastComponent, SearchComponent, IconButtonComponent,
-    RowMenuComponent, ToggleComponent, WizardStepperComponent,
+    RowMenuComponent, ToggleComponent, WizardStepperComponent, CheckboxComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown.escape)': 'onEscape()' },
@@ -72,7 +81,7 @@ export class TeamsComponent {
   readonly members = this.teamsService.members;
 
   // ── Views ──
-  readonly view = signal<'list' | 'roles'>('list');
+  readonly view = signal<'list' | 'roles' | 'departments'>('list');
   readonly inviteMode = signal<'single' | 'multi' | null>(null);
 
   // ── Lending role catalogue ──
@@ -472,7 +481,9 @@ export class TeamsComponent {
   }
 
   onEscape() {
-    if (this.inviteMode()) this.closeInviteOverlay();
+    if (this.msOpen()) this.msOpen.set(null);
+    else if (this.deptWizardOpen()) this.closeDeptWizard();
+    else if (this.inviteMode()) this.closeInviteOverlay();
     else if (this.inviteMenuOpen()) this.inviteMenuOpen.set(false);
     else if (this.roleFilterOpen()) this.roleFilterOpen.set(false);
   }
@@ -588,6 +599,153 @@ export class TeamsComponent {
 
   comingSoon(feature: string) {
     this.showToast(`${feature} is coming soon in this demo.`, 'Coming soon');
+  }
+
+  // ── Departments ──
+  readonly departments = this.teamsService.departments;
+
+  readonly deptWizardOpen = signal(false);
+  readonly deptStep = signal(0);
+
+  readonly deptWizardSteps: WizardStep[] = [
+    { id: 'details', label: 'Department details' },
+    { id: 'subs', label: 'Sub-departments' },
+    { id: 'review', label: 'Review' },
+  ];
+
+  // Step 1 state
+  readonly deptName = signal('');
+  readonly deptMemberIds = signal<string[]>([]);
+  readonly deptLeadId = signal('');
+
+  // Step 2 state
+  readonly subDrafts = signal<SubDeptDraft[]>([]);
+
+  /** Which inline multiselect dropdown is open: 'dept' | 'sub-<index>' | null. */
+  readonly msOpen = signal<string | null>(null);
+
+  readonly deptLeadOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'No lead' },
+    ...this.members().map((m) => ({ value: m.id, label: `${m.firstName} ${m.lastName}` })),
+  ]);
+
+  readonly deptStepValid = computed(() => this.deptStep() !== 0 || !!this.deptName().trim());
+
+  memberNameById(id: string | null): string {
+    if (!id) return '';
+    const m = this.members().find((x) => x.id === id);
+    return m ? `${m.firstName} ${m.lastName}` : '';
+  }
+
+  deptLeadName(dept: Department): string {
+    return this.memberNameById(dept.leadId) || '—';
+  }
+
+  deptStack(dept: Department): { shown: string[]; extra: number } {
+    const names = dept.memberIds.map((id) => this.memberNameById(id)).filter(Boolean);
+    return { shown: names.slice(0, 3), extra: Math.max(0, names.length - 3) };
+  }
+
+  openCreateDepartment() {
+    this.deptStep.set(0);
+    this.deptName.set('');
+    this.deptMemberIds.set([]);
+    this.deptLeadId.set('');
+    this.subDrafts.set([]);
+    this.msOpen.set(null);
+    this.deptWizardOpen.set(true);
+  }
+
+  closeDeptWizard() {
+    this.deptWizardOpen.set(false);
+    this.msOpen.set(null);
+  }
+
+  onDeptStepClick(i: number) {
+    if (i < this.deptStep()) this.deptStep.set(i);
+  }
+
+  deptNext() {
+    if (this.deptStep() < 2 && this.deptStepValid()) this.deptStep.update((s) => s + 1);
+  }
+
+  deptBack() {
+    if (this.deptStep() > 0) this.deptStep.update((s) => s - 1);
+  }
+
+  toggleMs(key: string) {
+    this.msOpen.update((k) => (k === key ? null : key));
+  }
+
+  closeMs() {
+    this.msOpen.set(null);
+  }
+
+  toggleDeptMember(id: string) {
+    this.deptMemberIds.update((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
+  }
+
+  // ── Sub-department drafts ──
+  addSubDraft() {
+    this.subDrafts.update((list) => [...list, { name: '', memberIds: [], leadId: '', saved: false }]);
+  }
+
+  removeSubDraft(index: number) {
+    this.closeMs();
+    this.subDrafts.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  setSubName(index: number, name: string) {
+    this.subDrafts.update((list) => list.map((s, i) => (i === index ? { ...s, name } : s)));
+  }
+
+  setSubLead(index: number, leadId: string) {
+    this.subDrafts.update((list) => list.map((s, i) => (i === index ? { ...s, leadId } : s)));
+  }
+
+  toggleSubMember(index: number, id: string) {
+    this.subDrafts.update((list) => list.map((s, i) => (i === index
+      ? { ...s, memberIds: s.memberIds.includes(id) ? s.memberIds.filter((x) => x !== id) : [...s.memberIds, id] }
+      : s)));
+  }
+
+  saveSubDraft(index: number) {
+    if (!this.subDrafts()[index]?.name.trim()) return;
+    this.closeMs();
+    this.subDrafts.update((list) => list.map((s, i) => (i === index ? { ...s, saved: true } : s)));
+  }
+
+  editSubDraft(index: number) {
+    this.subDrafts.update((list) => list.map((s, i) => (i === index ? { ...s, saved: false } : s)));
+  }
+
+  subSummary(sub: SubDeptDraft): string {
+    const count = sub.memberIds.length;
+    const membersPart = `${count} member${count === 1 ? '' : 's'}`;
+    const lead = this.memberNameById(sub.leadId);
+    return lead ? `${membersPart} · Lead: ${lead}` : membersPart;
+  }
+
+  readonly reviewSubs = computed(() => this.subDrafts().filter((s) => s.name.trim()));
+
+  createDepartment() {
+    const name = this.deptName().trim();
+    if (!name) return;
+    const subDepartments: SubDepartment[] = this.reviewSubs().map((s) => ({
+      name: s.name.trim(),
+      memberIds: s.memberIds,
+      leadId: s.leadId || null,
+    }));
+    this.departments.update((list) => [...list, {
+      id: 'd' + Date.now(),
+      name,
+      memberIds: this.deptMemberIds(),
+      leadId: this.deptLeadId() || null,
+      subDepartments,
+    }]);
+    this.closeDeptWizard();
+    this.view.set('departments');
+    this.showToast(`Department "${name}" created.`);
   }
 
   // ── Toast ──

@@ -1,0 +1,112 @@
+@if (!dismissed()) {
+  @if (open()) {
+    <div class="ow-backdrop" (click)="close()" aria-hidden="true"></div>
+
+    <section class="ow-panel" role="dialog" aria-label="Onboarding checklist">
+      <header class="ow-header">
+        <div class="ow-header-copy">
+          <h2 class="ow-title">{{ allDone() ? "You're all set" : 'Get started with Caltos' }}</h2>
+          <p class="ow-subtitle">
+            {{ allDone() ? 'You have completed every setup step.' : 'Five quick wins to set up your loan business.' }}
+          </p>
+        </div>
+        <button type="button" class="ow-collapse" (click)="close()" aria-label="Collapse checklist">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3.5 6.25 8 10.75l4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </header>
+
+      <div
+        class="ow-progress"
+        role="progressbar"
+        aria-label="Onboarding progress"
+        aria-valuemin="0"
+        [attr.aria-valuemax]="steps.length"
+        [attr.aria-valuenow]="done().length"
+      >
+        <div class="ow-progress-fill" [style.width.%]="progressPct()"></div>
+      </div>
+
+      <ul class="ow-list">
+        @for (step of steps; track step.id) {
+          <li class="ow-list-item">
+            <button type="button" class="ow-row" (click)="selectStep(step)">
+              <span class="ow-row-icon" aria-hidden="true">
+                @switch (step.icon) {
+                  @case ('product') {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2.5 5.2 8 2.5l5.5 2.7v5.6L8 13.5l-5.5-2.7V5.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                      <path d="M2.5 5.2 8 7.9l5.5-2.7M8 7.9v5.6" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                    </svg>
+                  }
+                  @case ('team') {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <circle cx="5.75" cy="5.5" r="2.25" stroke="currentColor" stroke-width="1.4" />
+                      <path d="M1.75 13.25c.5-2.2 2.1-3.25 4-3.25s3.5 1.05 4 3.25" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                      <path d="M10.5 3.6a2.25 2.25 0 0 1 0 3.8M12 10.3c1.1.45 1.95 1.35 2.25 2.95" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    </svg>
+                  }
+                  @case ('vendor') {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2.75 6.5 3.6 3h8.8l.85 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M3.25 6.5v6.25h9.5V6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M6.5 12.75V9.5h3v3.25" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                    </svg>
+                  }
+                  @case ('catalogue') {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M6.75 9.25 9.25 6.75" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                      <path d="M7.5 4.75 8.9 3.35a2.4 2.4 0 0 1 3.4 3.4L10.9 8.15M8.5 11.25l-1.4 1.4a2.4 2.4 0 0 1-3.4-3.4l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    </svg>
+                  }
+                  @case ('reminder') {
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M12.25 6.75a4.25 4.25 0 1 0-8.5 0c0 2.6-.9 3.6-1.5 4.25h11.5c-.6-.65-1.5-1.65-1.5-4.25Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M6.6 13.25a1.5 1.5 0 0 0 2.8 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    </svg>
+                  }
+                }
+              </span>
+              <span class="ow-row-label" [class.is-done]="isDone(step.id)">{{ step.label }}</span>
+              @if (isDone(step.id)) {
+                <span class="ow-row-check" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="m2.5 6.2 2.4 2.3 4.6-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <span class="visually-hidden">Completed</span>
+              } @else {
+                <span class="ow-row-chevron" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="m4.5 2.5 3.5 3.5-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+
+      <footer class="ow-footer">
+        <button type="button" class="ow-dismiss" [class.is-primary]="allDone()" (click)="dismiss()">Dismiss checklist</button>
+      </footer>
+    </section>
+  }
+
+  <button
+    type="button"
+    class="ow-launcher"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    aria-label="Onboarding checklist"
+  >
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5" />
+      <path d="m12.9 7.1-1.6 4.2-4.2 1.6 1.6-4.2 4.2-1.6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+    </svg>
+    @if (!allDone()) {
+      <span class="ow-launcher-badge">{{ remaining() }}</span>
+    }
+  </button>
+}

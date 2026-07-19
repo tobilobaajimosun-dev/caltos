@@ -6,13 +6,8 @@
       <p class="page-subtitle">{{ memberCountLabel() }}</p>
     </div>
     <div class="header-actions">
-      <button type="button" class="ghost-btn" (click)="view.set('roles')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-        Roles
-      </button>
+      <app-button variant="outline" label="Roles" (clicked)="view.set('roles')" />
+      <app-button variant="outline" label="Departments" (clicked)="view.set('departments')" />
       <div class="invite-wrap">
         <button type="button" class="invite-btn" (click)="toggleInviteMenu()" [attr.aria-expanded]="inviteMenuOpen()">
           Invite
@@ -178,6 +173,303 @@
   </div>
 }
 
+<!-- ═══════════════ VIEW — DEPARTMENTS ═══════════════ -->
+@if (view() === 'departments') {
+  <div class="page-header team-header">
+    <div>
+      <button type="button" class="back-link" (click)="view.set('list')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to team
+      </button>
+      <nav class="crumb" aria-label="Breadcrumb">
+        <button type="button" class="crumb-link" (click)="view.set('list')">Team</button>
+        <span class="crumb-sep" aria-hidden="true">/</span>
+        <span class="crumb-current" aria-current="page">Departments</span>
+      </nav>
+      <h1 class="page-title">Departments</h1>
+    </div>
+    <app-button variant="primary" label="Create department" (clicked)="openCreateDepartment()" />
+  </div>
+
+  <div class="panel table-panel">
+    <table class="ref-table team-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Name" /></th>
+          <th><app-column-title label="Members" /></th>
+          <th><app-column-title label="Lead" /></th>
+          <th><app-column-title label="Sub-departments" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (dept of departments(); track dept.id) {
+          <tr>
+            <td class="role-name-cell">{{ dept.name }}</td>
+            <td>
+              @if (deptStack(dept); as stack) {
+                @if (stack.shown.length) {
+                  <span class="avatar-stack">
+                    @for (name of stack.shown; track name) {
+                      <app-avatar [name]="name" size="sm" />
+                    }
+                    @if (stack.extra > 0) {
+                      <span class="stack-more">+{{ stack.extra }} more</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="stack-empty">No members</span>
+                }
+              }
+            </td>
+            <td><app-table-item type="text" [text]="deptLeadName(dept)" /></td>
+            <td><app-table-item type="text" [text]="'' + dept.subDepartments.length" /></td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="4" class="empty-cell">No departments yet. Create one to organize your team.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- ═══════════════ CREATE DEPARTMENT OVERLAY ═══════════════ -->
+@if (deptWizardOpen()) {
+  <div class="invite-overlay" role="dialog" aria-modal="true" aria-label="Create department">
+    <div class="overlay-top">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">C</div>
+        <span class="brand-name">Caltos</span>
+      </div>
+      <button type="button" class="overlay-close" (click)="closeDeptWizard()" aria-label="Close create department flow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="overlay-body">
+      <app-wizard-stepper
+        class="invite-stepper"
+        [steps]="deptWizardSteps"
+        [currentIndex]="deptStep()"
+        (stepClick)="onDeptStepClick($event)" />
+
+      <div class="overlay-main">
+        <!-- Step 1: Department details -->
+        @if (deptStep() === 0) {
+          <h2 class="overlay-title">Department details</h2>
+          <app-input label="Department name" [value]="deptName()" (valueChange)="deptName.set($event)" />
+
+          <div class="field">
+            <span class="field-label" id="dept-members-label">Team members</span>
+            <div class="ms-wrap">
+              <button
+                type="button"
+                class="ms-control"
+                aria-haspopup="listbox"
+                aria-labelledby="dept-members-label"
+                [attr.aria-expanded]="msOpen() === 'dept'"
+                (click)="toggleMs('dept')">
+                @for (id of deptMemberIds(); track id) {
+                  <span class="ms-chip">
+                    {{ memberNameById(id) }}
+                    <span
+                      class="ms-chip-x"
+                      role="button"
+                      tabindex="0"
+                      [attr.aria-label]="'Remove ' + memberNameById(id)"
+                      (click)="$event.stopPropagation(); toggleDeptMember(id)"
+                      (keydown.enter)="$event.stopPropagation(); toggleDeptMember(id)">
+                      <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </span>
+                  </span>
+                }
+                @if (!deptMemberIds().length) {
+                  <span class="ms-placeholder">Select team members</span>
+                }
+                <svg class="ms-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              @if (msOpen() === 'dept') {
+                <div class="menu-backdrop" (click)="closeMs()"></div>
+                <div class="ms-menu" role="listbox" aria-labelledby="dept-members-label">
+                  @for (m of members(); track m.id) {
+                    <button
+                      type="button"
+                      class="ms-option"
+                      role="option"
+                      [attr.aria-selected]="deptMemberIds().includes(m.id)"
+                      (click)="toggleDeptMember(m.id)">
+                      <app-checkbox [checked]="deptMemberIds().includes(m.id)" />
+                      <app-avatar [name]="m.firstName + ' ' + m.lastName" size="sm" />
+                      <span class="ms-opt-text">
+                        <span class="ms-opt-name">{{ m.firstName }} {{ m.lastName }}</span>
+                        <span class="ms-opt-email">{{ m.email }}</span>
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="field-label">Department lead <span class="optional">(optional)</span></span>
+            <app-select [options]="deptLeadOptions()" [value]="deptLeadId()" (valueChange)="deptLeadId.set($event)" />
+            <p class="lead-helper">Department leads may participate in loan approvals. Leads can see all requests and non-sensitive account info for the loans they are asked to approve.</p>
+          </div>
+        }
+
+        <!-- Step 2: Sub-departments -->
+        @if (deptStep() === 1) {
+          <h2 class="overlay-title">Sub-departments</h2>
+          <p class="overlay-copy sub-copy">Optionally split {{ deptName() || 'this department' }} into smaller groups. You can skip this step.</p>
+
+          @for (sub of subDrafts(); track $index) {
+            <div class="sub-card">
+              <div class="sub-card-head">
+                <span class="sub-num" aria-hidden="true">{{ $index + 1 }}</span>
+                <span class="sub-card-title">{{ sub.name.trim() || 'New sub-department' }}</span>
+                <button type="button" class="sub-remove" [attr.aria-label]="'Remove sub-department ' + ($index + 1)" (click)="removeSubDraft($index)">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+
+              @if (!sub.saved) {
+                <div class="sub-card-body">
+                  <app-input label="Sub-department name" [value]="sub.name" (valueChange)="setSubName($index, $event)" />
+
+                  <div class="field">
+                    <span class="field-label" [id]="'sub-members-label-' + $index">Team members</span>
+                    <div class="ms-wrap">
+                      <button
+                        type="button"
+                        class="ms-control"
+                        aria-haspopup="listbox"
+                        [attr.aria-labelledby]="'sub-members-label-' + $index"
+                        [attr.aria-expanded]="msOpen() === 'sub-' + $index"
+                        (click)="toggleMs('sub-' + $index)">
+                        @for (id of sub.memberIds; track id) {
+                          <span class="ms-chip">
+                            {{ memberNameById(id) }}
+                            <span
+                              class="ms-chip-x"
+                              role="button"
+                              tabindex="0"
+                              [attr.aria-label]="'Remove ' + memberNameById(id)"
+                              (click)="$event.stopPropagation(); toggleSubMember($index, id)"
+                              (keydown.enter)="$event.stopPropagation(); toggleSubMember($index, id)">
+                              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                            </span>
+                          </span>
+                        }
+                        @if (!sub.memberIds.length) {
+                          <span class="ms-placeholder">Select team members</span>
+                        }
+                        <svg class="ms-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </button>
+                      @if (msOpen() === 'sub-' + $index) {
+                        <div class="menu-backdrop" (click)="closeMs()"></div>
+                        <div class="ms-menu" role="listbox" [attr.aria-labelledby]="'sub-members-label-' + $index">
+                          @for (m of members(); track m.id) {
+                            <button
+                              type="button"
+                              class="ms-option"
+                              role="option"
+                              [attr.aria-selected]="sub.memberIds.includes(m.id)"
+                              (click)="toggleSubMember($index, m.id)">
+                              <app-checkbox [checked]="sub.memberIds.includes(m.id)" />
+                              <app-avatar [name]="m.firstName + ' ' + m.lastName" size="sm" />
+                              <span class="ms-opt-text">
+                                <span class="ms-opt-name">{{ m.firstName }} {{ m.lastName }}</span>
+                                <span class="ms-opt-email">{{ m.email }}</span>
+                              </span>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <span class="field-label">Sub-department lead <span class="optional">(optional)</span></span>
+                    <app-select [options]="deptLeadOptions()" [value]="sub.leadId" (valueChange)="setSubLead($index, $event)" />
+                  </div>
+
+                  <div class="sub-save-row">
+                    <app-button variant="secondary" label="Save" [disabled]="!sub.name.trim()" (clicked)="saveSubDraft($index)" />
+                  </div>
+                </div>
+              } @else {
+                <div class="sub-card-summary">
+                  <span class="sub-summary-text">{{ subSummary(sub) }}</span>
+                  <button type="button" class="sub-edit" (click)="editSubDraft($index)">Edit</button>
+                </div>
+              }
+            </div>
+          }
+
+          <button type="button" class="add-sub-btn" (click)="addSubDraft()">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Add another sub-department
+          </button>
+        }
+
+        <!-- Step 3: Review -->
+        @if (deptStep() === 2) {
+          <h2 class="overlay-title">Review</h2>
+          <div class="dept-review-card">
+            <p class="dept-review-eyebrow">Department</p>
+            <p class="dept-review-name">{{ deptName() }}</p>
+            <div class="dept-review-divider" aria-hidden="true"></div>
+            <div class="dept-review-row">
+              <span class="dept-review-label">Department lead</span>
+              <span class="dept-review-value">{{ memberNameById(deptLeadId()) || '—' }}</span>
+            </div>
+            <div class="dept-review-row">
+              <span class="dept-review-label">Team members</span>
+              <span class="dept-review-value">
+                @if (deptMemberIds().length) {
+                  <span class="dept-review-chips">
+                    @for (id of deptMemberIds(); track id) {
+                      <span class="dept-review-chip">{{ memberNameById(id) }}</span>
+                    }
+                  </span>
+                } @else {
+                  —
+                }
+              </span>
+            </div>
+            <div class="dept-review-row">
+              <span class="dept-review-label">Sub-departments</span>
+              <span class="dept-review-value">
+                @if (reviewSubs().length) {
+                  <span class="dept-review-subs">
+                    @for (sub of reviewSubs(); track $index) {
+                      <span class="dept-review-sub">{{ sub.name }} <span class="dept-review-sub-meta">· {{ subSummary(sub) }}</span></span>
+                    }
+                  </span>
+                } @else {
+                  —
+                }
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="overlay-footer">
+      @if (deptStep() > 0) {
+        <app-button variant="outline" label="Back" (clicked)="deptBack()" />
+      }
+      @if (deptStep() < 2) {
+        <app-button variant="primary" label="Next" [disabled]="!deptStepValid()" (clicked)="deptNext()" />
+      } @else {
+        <app-button variant="primary" label="Create Department" (clicked)="createDepartment()" />
+      }
+    </div>
+  </div>
+}
+
 <!-- ═══════════════ VIEWS 3 & 4 — INVITE OVERLAY ═══════════════ -->
 @if (inviteMode(); as mode) {
   <div class="invite-overlay" role="dialog" aria-modal="true" [attr.aria-label]="mode === 'single' ? 'Invite a user' : 'Invite multiple users'">
@@ -329,6 +621,7 @@
                 <span class="option-card-title">Invite advisor team</span>
                 <span class="option-card-desc">Give your accountant or advisory firm access.</span>
               </span>
+              <span class="soon-badge">Coming soon</span>
               <svg class="option-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
 
@@ -337,6 +630,7 @@
                 <span class="option-card-title">Connect HR system</span>
                 <span class="option-card-desc">Sync teammates automatically from your HR provider.</span>
               </span>
+              <span class="soon-badge">Coming soon</span>
               <svg class="option-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
 

@@ -6,11 +6,12 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 import { SessionExpiredModalComponent } from '../session-expired-modal/session-expired-modal.component';
+import { OnboardingWidgetComponent } from '../onboarding-widget/onboarding-widget.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent, SkeletonComponent, SessionExpiredModalComponent],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, SkeletonComponent, SessionExpiredModalComponent, OnboardingWidgetComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',

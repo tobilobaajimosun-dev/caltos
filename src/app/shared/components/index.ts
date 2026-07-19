@@ -48,6 +48,8 @@ export { ColumnTitleComponent } from './column-title/column-title.component';
 export { TableItemComponent } from './table-item/table-item.component';
 export { ComingSoonComponent } from './coming-soon/coming-soon.component';
 export { NotificationPanelComponent } from './notification-panel/notification-panel.component';
+export { OnboardingWidgetComponent } from './onboarding-widget/onboarding-widget.component';
+export type { OnboardingStep, OnboardingStepIcon } from './onboarding-widget/onboarding-widget.component';
 
 // Design system components (#16)
 export { ChartComponent } from './chart/chart.component';

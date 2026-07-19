@@ -96,71 +96,6 @@
           [dismissible]="false" />
       }
 
-      <!-- Quick actions -->
-      <div class="quick-actions-row">
-        @for (qa of quickActions; track qa.title) {
-          <a class="quick-action-card" [routerLink]="qa.route">
-            <span class="qa-icon"><hi-icon [icon]="qa.icon" size="20" aria-hidden="true" /></span>
-            <div class="qa-text">
-              <p class="qa-title">{{ qa.title }}</p>
-              <p class="qa-desc">{{ qa.desc }}</p>
-            </div>
-          </a>
-        }
-      </div>
-
-      <!-- Wallet Balance Card -->
-      <div class="wallet-card">
-        <div class="wallet-left">
-          <div class="wallet-label-row">
-            <span class="section-label">Wallet Balance</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div class="wallet-amount-row">
-            <span class="wallet-amount">{{ account.balance() }}</span>
-            <button class="icon-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
-          </div>
-          <div class="wallet-actions">
-            <app-button variant="primary" label="Top up wallet" />
-            <app-button variant="text" label="View all transactions" />
-          </div>
-        </div>
-
-        <div class="wallet-divider"></div>
-
-        <div class="wallet-right">
-          <div class="wallet-label-row">
-            <span class="section-label">Virtual Account Details</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div class="va-number-row">
-            <div>
-              <p class="va-number">{{ account.accountNumber() }}</p>
-              <div class="va-bank">
-                <span class="gtb-dot"></span>
-                <span class="va-bank-name">{{ account.bankName() }}</span>
-              </div>
-            </div>
-            <button class="icon-circle">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
-          </div>
-          <div class="va-meta">
-            <div class="va-meta-item">
-              <span class="va-meta-label">Last funded Amount</span>
-              <span class="va-meta-value">₦182,756,352.10</span>
-            </div>
-            <div class="va-meta-divider"></div>
-            <div class="va-meta-item">
-              <span class="va-meta-label">Date last funded</span>
-              <span class="va-meta-value">03-Mar-2025</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Section header + period tabs -->
       <div class="section-header">
         <div>
@@ -178,20 +113,6 @@
           <div role="listitem">
             <app-kpi-card [label]="kpi.label" [value]="kpi.value" [trend]="kpi.trend" trendLabel="vs yesterday" [countLabel]="kpi.countLabel" [countValue]="kpi.countValue" />
           </div>
-        }
-      </div>
-
-      <!-- Loan application metrics -->
-      <div class="metrics-row">
-        @for (m of metrics; track m.label) {
-          <app-kpi-card
-            [label]="m.label"
-            [value]="m.amount"
-            [trend]="m.trend"
-            [trendColor]="m.trendColor"
-            [sparkData]="m.sparkData"
-            countLabel="In Count"
-            [countValue]="m.count" />
         }
       </div>
 
@@ -359,35 +280,6 @@
           </div>
         </div>
 
-        <!-- Application Site Visits -->
-        <div class="panel tri-panel">
-          <div class="panel-head">
-            <p class="panel-title">Application Site Visits</p>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div class="visit-list">
-            @for (v of siteVisits; track $index) {
-              <div class="visit-row">
-                <div class="visit-info">
-                  <span class="visit-product">{{ v.product }}</span>
-                  <span class="visit-updated">{{ v.updated }}</span>
-                </div>
-                <svg width="80" height="28" viewBox="0 0 80 28" fill="none">
-                  <polyline [attr.points]="v.sparkPoints" [attr.stroke]="v.trend === 'up' ? '#059669' : '#e03e3e'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div class="visit-count-row">
-                  <span class="visit-count">{{ v.count }}</span>
-                  @if (v.trend === 'up') {
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  } @else {
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="#e03e3e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-
         <!-- Amount Disbursed by Product -->
         <div class="panel tri-panel">
           <div class="panel-head">
@@ -412,69 +304,6 @@
               </div>
             }
             <p class="last-updated">Last Updated: 2:38PM</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Bottom row -->
-      <div class="tri-row">
-
-        <!-- Repayments Due Today -->
-        <div class="panel tri-panel">
-          <div class="panel-head">
-            <p class="panel-title">Repayments Due Today</p>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div class="repay-body">
-            <p class="repay-count">100</p>
-            <div class="repay-amount-block">
-              <span class="repay-label">In Amount</span>
-              <span class="repay-val">₦182,756,352.10</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Logged Repayments by Product -->
-        <div class="panel tri-panel">
-          <div class="panel-head">
-            <p class="panel-title">Logged repayments by Product</p>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div class="logged-list">
-            @for (item of loggedRepayments; track item.product) {
-              <div class="logged-row">
-                <span class="logged-dot" [style.background]="item.color"></span>
-                <div class="logged-info">
-                  <span class="logged-product">{{ item.product }}</span>
-                  <span class="logged-updated">{{ item.updated }}</span>
-                </div>
-                <span class="logged-count">{{ item.count }}</span>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Repayment History -->
-        <div class="panel tri-panel">
-          <div class="panel-head space-between">
-            <p class="panel-title">Repayment History</p>
-            <app-button variant="outline" label="See all" />
-          </div>
-          <div class="person-list">
-            @for (row of repaymentHistory; track row.id) {
-              <div class="person-row">
-                <app-avatar [name]="row.name" size="sm" />
-                <div class="p-info">
-                  <span class="p-name">{{ row.name }}</span>
-                  <span class="p-id">{{ row.id }}</span>
-                </div>
-                <div class="p-right">
-                  <span class="p-amount">{{ row.amount }}</span>
-                  <span class="p-time">{{ row.time }}</span>
-                </div>
-              </div>
-            }
           </div>
         </div>
 
