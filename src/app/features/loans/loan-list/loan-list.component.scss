@@ -266,17 +266,28 @@
   .stat-card { flex: 1 1 auto; }
 }
 
-/* ── Product pills row + right-aligned table toolbar ── */
-.product-pills-row {
-  margin: var(--space-5) 0 var(--space-3);
-  min-width: 0;
-}
-
-.table-toolbar {
+/* ── Product pills + toolbar on one line ── */
+.pills-toolbar-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: var(--space-6); // clear breathing room between the fading pills and search
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+.pills-scroll-zone {
+  flex: 1;
+  min-width: 0; // lets the pill strip shrink so ~3-4 pills show, rest fade + scroll
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
-  flex-wrap: wrap;
-  margin: 0 0 var(--space-3);
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .pills-toolbar-row { flex-wrap: wrap; }
+  .pills-scroll-zone { flex-basis: 100%; }
+  .toolbar-actions { margin-left: auto; flex-wrap: wrap; }
 }

@@ -32,25 +32,27 @@
   </div>
 </div>
 
-<div class="product-pills-row">
-  <app-round-tabs [tabs]="productTabs()" [activeTab]="activeProduct()" (activeTabChange)="setProduct($event)" />
-</div>
-
-<!-- Search, filter, and export sit right-aligned directly above the table -->
-<div class="table-toolbar">
-  <app-search placeholder="Search loan ID, customer, product..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
-  <div class="filter-dropdown-wrap" (click)="$event.stopPropagation()">
-    <app-button variant="filter" label="Filter" (clicked)="toggleFilterPanel()" />
-    @if (filterPanelOpen()) {
-      <div class="filter-panel">
-        <p class="filter-panel-label">Channel</p>
-        @for (opt of channelOptions; track opt.value) {
-          <button type="button" class="filter-option" [class.active]="channelFilter() === opt.value" (click)="setChannelFilter(opt.value)">{{ opt.label }}</button>
-        }
-      </div>
-    }
+<!-- Product pills + search/filter/export on one line — pills fade & scroll,
+     actions stay pinned right -->
+<div class="pills-toolbar-row">
+  <div class="pills-scroll-zone">
+    <app-round-tabs [tabs]="productTabs()" [activeTab]="activeProduct()" (activeTabChange)="setProduct($event)" />
   </div>
-  <app-button variant="primary" label="Download report" [icon]="downloadIcon" (clicked)="exportAll()" />
+  <div class="toolbar-actions">
+    <app-search placeholder="Search loan ID, customer, product..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
+    <div class="filter-dropdown-wrap" (click)="$event.stopPropagation()">
+      <app-button variant="filter" label="Filter" (clicked)="toggleFilterPanel()" />
+      @if (filterPanelOpen()) {
+        <div class="filter-panel">
+          <p class="filter-panel-label">Channel</p>
+          @for (opt of channelOptions; track opt.value) {
+            <button type="button" class="filter-option" [class.active]="channelFilter() === opt.value" (click)="setChannelFilter(opt.value)">{{ opt.label }}</button>
+          }
+        </div>
+      }
+    </div>
+    <app-button variant="primary" label="Download report" [icon]="downloadIcon" (clicked)="exportAll()" />
+  </div>
 </div>
 
 @if (anySelected()) {

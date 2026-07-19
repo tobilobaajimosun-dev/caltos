@@ -78,6 +78,8 @@ table.loans-table,
 table.ref-table {
   width: 100%;
   border-collapse: collapse;
+  // Product-wide standard: table contents render at 13px (paragraph copy is 14px)
+  font-size: var(--text-sm);
 
   th {
     text-align: left;

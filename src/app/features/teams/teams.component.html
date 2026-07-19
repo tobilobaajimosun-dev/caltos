@@ -1,72 +1,360 @@
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Team</h1>
-    <p class="page-subtitle">{{ memberCountLabel() }}</p>
+<!-- ═══════════════ VIEW 1 — TEAM LIST ═══════════════ -->
+@if (view() === 'list') {
+  <div class="page-header team-header">
+    <div>
+      <h1 class="page-title">Team</h1>
+      <p class="page-subtitle">{{ memberCountLabel() }}</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="ghost-btn" (click)="view.set('roles')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Roles
+      </button>
+      <div class="invite-wrap">
+        <button type="button" class="invite-btn" (click)="toggleInviteMenu()" [attr.aria-expanded]="inviteMenuOpen()">
+          Invite
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        @if (inviteMenuOpen()) {
+          <div class="menu-backdrop" (click)="inviteMenuOpen.set(false)"></div>
+          <div class="invite-menu" role="menu">
+            <button type="button" class="dropdown-item" role="menuitem" (click)="openInviteSingle()">Invite a user</button>
+            <button type="button" class="dropdown-item" role="menuitem" (click)="openInviteMulti()">Invite multiple users</button>
+          </div>
+        }
+      </div>
+    </div>
   </div>
-  <app-button variant="primary" label="Invite member" (clicked)="openInvite()" />
-</div>
 
-<div class="filter-row">
-  <div class="role-pills" role="group" aria-label="Filter members by role">
-    @for (tab of filterTabs; track tab.value) {
-      <button
-        type="button"
-        class="role-pill"
-        [class.active]="activeFilter() === tab.value"
-        [attr.aria-pressed]="activeFilter() === tab.value"
-        (click)="setFilter(tab.value)">{{ tab.label }}</button>
+  <div class="filter-row">
+    <div class="filter-left" role="group" aria-label="Filter members">
+      <button type="button" class="role-pill" [class.active]="statusFilter() === 'all'" [attr.aria-pressed]="statusFilter() === 'all'" (click)="setStatusFilter('all')">All</button>
+      <button type="button" class="role-pill" [class.active]="statusFilter() === 'review'" [attr.aria-pressed]="statusFilter() === 'review'" (click)="setStatusFilter('review')">Needs review</button>
+      <div class="add-filter-wrap">
+        @if (roleFilter(); as rf) {
+          <button type="button" class="role-pill filter-active" (click)="setRoleFilter(null)">
+            Role: {{ rf }}
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        } @else {
+          <button type="button" class="role-pill add-filter" (click)="roleFilterOpen.set(!roleFilterOpen())" [attr.aria-expanded]="roleFilterOpen()">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Add filter
+          </button>
+        }
+        @if (roleFilterOpen()) {
+          <div class="menu-backdrop" (click)="roleFilterOpen.set(false)"></div>
+          <div class="role-filter-menu" role="menu">
+            <p class="filter-menu-label">Filter by role</p>
+            @for (role of lendingRoles; track role.name) {
+              <button type="button" class="dropdown-item" role="menuitem" (click)="setRoleFilter(role.name)">{{ role.name }}</button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    <app-search placeholder="Search members" [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
+  </div>
+
+  <div class="panel table-panel">
+    <table class="ref-table team-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Name" /></th>
+          <th><app-column-title label="Role" /></th>
+          <th><app-column-title label="Job title" /></th>
+          <th><app-column-title label="Department" /></th>
+          <th><app-column-title label="Status" /></th>
+          <th><app-column-title label="Loans assigned" /></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (member of filteredMembers(); track member.id) {
+          <tr class="clickable-row" (click)="open(member)">
+            <td><app-table-item type="user-avatar" [user]="memberUser(member)" /></td>
+            <td>
+              <span class="role-cell">
+                <span class="role-chip" [class.admin]="displayRoleOf(member) === 'Admin'">{{ displayRoleOf(member) }}</span>
+                @if (isOfficerRole(displayRoleOf(member)) && extrasOf(member).autoAssign) {
+                  <span class="auto-chip">Auto-assign</span>
+                }
+              </span>
+            </td>
+            <td><app-table-item type="text" [text]="extrasOf(member).jobTitle || '—'" /></td>
+            <td><app-table-item type="text" [text]="extrasOf(member).department || '—'" /></td>
+            <td><app-status-badge [status]="statusBadge(member.status).status" [label]="statusBadge(member.status).label" /></td>
+            <td><app-table-item type="text" [text]="'' + member.loansAssigned" /></td>
+            <td class="actions-cell" (click)="$event.stopPropagation()">
+              <app-row-menu #rowMenu [open]="openMenuId() === member.id" (openChange)="setMenuOpen(member.id, $event)">
+                <span trigger #trigger class="more-trigger" (click)="rowMenu.toggle($event)">
+                  <app-icon-button icon="more" />
+                </span>
+                <ng-template>
+                  <div class="row-dropdown">
+                    <button type="button" class="dropdown-item" (click)="closeMenu(); open(member)">View profile</button>
+                    <button type="button" class="dropdown-item" (click)="openChangeRole(member)">Change role</button>
+                    @if (member.status === 'pending') {
+                      <button type="button" class="dropdown-item" (click)="resendInvite(member)">Resend invite</button>
+                    }
+                    <button type="button" class="dropdown-item" (click)="requestSuspend(member)">{{ member.status === 'suspended' ? 'Reactivate' : 'Suspend' }}</button>
+                    <div class="dropdown-divider"></div>
+                    <button type="button" class="dropdown-item danger" (click)="requestRemove(member)">Remove</button>
+                  </div>
+                </ng-template>
+              </app-row-menu>
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="7" class="empty-cell">No team members match this filter.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- ═══════════════ VIEW 2 — ROLES ═══════════════ -->
+@if (view() === 'roles') {
+  <div class="page-header team-header">
+    <div>
+      <nav class="crumb" aria-label="Breadcrumb">
+        <button type="button" class="crumb-link" (click)="view.set('list')">Team</button>
+        <span class="crumb-sep" aria-hidden="true">/</span>
+        <span class="crumb-current" aria-current="page">Roles</span>
+      </nav>
+      <h1 class="page-title">Roles</h1>
+      <button type="button" class="back-link" (click)="view.set('list')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to team
+      </button>
+    </div>
+    <app-button variant="secondary" label="Create role" (clicked)="openCreateRole()" />
+  </div>
+
+  <div class="panel table-panel">
+    <table class="ref-table team-table roles-table">
+      <thead>
+        <tr>
+          <th><app-column-title label="Role" /></th>
+          <th><app-column-title label="Description" /></th>
+          <th><app-column-title label="Type" /></th>
+          <th><app-column-title label="Members" /></th>
+          <th><app-column-title label="Status" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of roleRows(); track row.name) {
+          <tr>
+            <td class="role-name-cell">{{ row.name }}</td>
+            <td><p class="role-desc-cell">{{ row.description }}</p></td>
+            <td class="role-type-cell">{{ row.type }}</td>
+            <td>
+              @if (roleStack(row.name); as stack) {
+                @if (stack.shown.length) {
+                  <span class="avatar-stack">
+                    @for (name of stack.shown; track name) {
+                      <app-avatar [name]="name" size="sm" />
+                    }
+                    @if (stack.extra > 0) {
+                      <span class="stack-more">+{{ stack.extra }} more</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="stack-empty">No members</span>
+                }
+              }
+            </td>
+            <td>
+              <span class="role-status" [class.review]="row.status === 'Needs review'">{{ row.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- ═══════════════ VIEWS 3 & 4 — INVITE OVERLAY ═══════════════ -->
+@if (inviteMode(); as mode) {
+  <div class="invite-overlay" role="dialog" aria-modal="true" [attr.aria-label]="mode === 'single' ? 'Invite a user' : 'Invite multiple users'">
+    <div class="overlay-top">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">C</div>
+        <span class="brand-name">Caltos</span>
+      </div>
+      <button type="button" class="overlay-close" (click)="closeInviteOverlay()" aria-label="Close invite flow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    @if (mode === 'single') {
+      <div class="overlay-body">
+        <aside class="step-rail" aria-label="Invite steps">
+          @for (step of inviteSteps; track step; let i = $index) {
+            <div class="rail-step" [class.active]="inviteStep() === i" [class.done]="inviteStep() > i" [attr.aria-current]="inviteStep() === i ? 'step' : null">
+              {{ step }}
+            </div>
+          }
+        </aside>
+
+        <div class="overlay-main">
+          @if (inviteStep() === 0) {
+            <button type="button" class="switch-link" (click)="openInviteMulti()">Inviting multiple users?</button>
+            <h2 class="overlay-title">Invite a user</h2>
+            <div class="field-grid">
+              <app-input label="Legal first name" [value]="inviteFirstName()" (valueChange)="inviteFirstName.set($event)" />
+              <app-input label="Legal last name" [value]="inviteLastName()" (valueChange)="inviteLastName.set($event)" />
+            </div>
+            <app-input label="Email" type="email" [value]="inviteEmail()" (valueChange)="inviteEmail.set($event)" />
+            <div class="field">
+              <span class="field-label">Job title <span class="optional">(optional)</span></span>
+              <app-select [options]="jobTitleOptions" [value]="inviteJobTitle()" (valueChange)="inviteJobTitle.set($event)" />
+            </div>
+            <div class="field">
+              <span class="field-label">Department <span class="optional">(optional)</span></span>
+              <app-select [options]="departmentOptions" [value]="inviteDepartment()" (valueChange)="inviteDepartment.set($event)" />
+            </div>
+          }
+
+          @if (inviteStep() === 1) {
+            <h2 class="overlay-title">Assign role</h2>
+            <p class="overlay-copy">Choose what {{ inviteFirstName() || 'this teammate' }} can see and do across your loan book.</p>
+            <div class="role-list" role="radiogroup" aria-label="Role">
+              @for (role of lendingRoles; track role.name) {
+                <button
+                  type="button"
+                  class="role-card"
+                  role="radio"
+                  [class.selected]="inviteRole() === role.name"
+                  [attr.aria-checked]="inviteRole() === role.name"
+                  (click)="selectInviteRole(role.name)">
+                  <span class="radio-dot" aria-hidden="true"></span>
+                  <span class="role-card-body">
+                    <span class="role-card-name">{{ role.name }}</span>
+                    <span class="role-card-desc">{{ role.description }}</span>
+                  </span>
+                  <span class="role-card-type">{{ role.type }}</span>
+                </button>
+              }
+            </div>
+
+            @if (isOfficerRole(inviteRole())) {
+              <div class="auto-assign-panel">
+                <div class="auto-assign-text">
+                  <p class="auto-assign-title">Auto-assign customers</p>
+                  <p class="auto-assign-copy">New and unassigned customers are distributed to this officer automatically, round-robin with the rest of your team. You can rebalance anytime from the customer list.</p>
+                </div>
+                <app-toggle [checked]="inviteAutoAssign()" (checkedChange)="inviteAutoAssign.set($event)" />
+              </div>
+            }
+          }
+
+          @if (inviteStep() === 2) {
+            <h2 class="overlay-title">Review &amp; send</h2>
+            <p class="overlay-copy">{{ inviteFirstName() }} will get an email invite and appear as "Pending Invite" until they accept.</p>
+            <div class="review-rows">
+              <div class="review-row"><span class="review-label">Name</span><span class="review-value">{{ inviteFirstName() }} {{ inviteLastName() }}</span></div>
+              <div class="review-row"><span class="review-label">Email</span><span class="review-value">{{ inviteEmail() }}</span></div>
+              <div class="review-row"><span class="review-label">Job title</span><span class="review-value">{{ inviteJobTitle() || '—' }}</span></div>
+              <div class="review-row"><span class="review-label">Department</span><span class="review-value">{{ inviteDepartment() || '—' }}</span></div>
+              <div class="review-row"><span class="review-label">Role</span><span class="review-value">{{ inviteRole() }}</span></div>
+              @if (isOfficerRole(inviteRole())) {
+                <div class="review-row"><span class="review-label">Auto-assign customers</span><span class="review-value">{{ inviteAutoAssign() ? 'On' : 'Off' }}</span></div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="overlay-footer">
+        @if (inviteStep() > 0) {
+          <app-button variant="outline" label="Back" (clicked)="inviteBack()" />
+        }
+        @if (inviteStep() < 2) {
+          <app-button variant="primary" label="Next" [disabled]="!inviteStepValid()" (clicked)="inviteNext()" />
+        } @else {
+          <app-button variant="primary" label="Send invite" (clicked)="sendInvite()" />
+        }
+      </div>
+    } @else {
+      <div class="overlay-body multi-body">
+        <div class="overlay-main">
+          <button type="button" class="switch-link" (click)="openInviteSingle()">Inviting just one user?</button>
+          <h2 class="overlay-title">Invite multiple users</h2>
+
+          <div class="option-cards">
+            <div class="option-card" [class.open]="multiFormOpen()">
+              <button type="button" class="option-card-head" (click)="toggleMultiForm()" [attr.aria-expanded]="multiFormOpen()">
+                <span class="option-card-text">
+                  <span class="option-card-title">Invite users by email</span>
+                  <span class="option-card-desc">Send invites to several teammates at once.</span>
+                </span>
+                <svg class="option-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              @if (multiFormOpen()) {
+                <div class="multi-form">
+                  <label class="field-label" for="multi-emails">Email addresses <span class="optional">(comma-separated)</span></label>
+                  <textarea
+                    id="multi-emails"
+                    class="multi-textarea"
+                    rows="3"
+                    placeholder="ada@lender.com, chidi@lender.com, zara@lender.com"
+                    [value]="multiEmails()"
+                    (input)="multiEmails.set($any($event.target).value)"></textarea>
+                  <div class="field">
+                    <span class="field-label">Role for everyone invited</span>
+                    <app-select [options]="multiRoleOptions" [value]="multiRole()" (valueChange)="setMultiRole($event)" />
+                  </div>
+                  @if (isOfficerRole(multiRole())) {
+                    <div class="auto-assign-panel">
+                      <div class="auto-assign-text">
+                        <p class="auto-assign-title">Auto-assign customers</p>
+                        <p class="auto-assign-copy">New and unassigned customers are distributed to these officers automatically, round-robin with the rest of your team. You can rebalance anytime from the customer list.</p>
+                      </div>
+                      <app-toggle [checked]="multiAutoAssign()" (checkedChange)="multiAutoAssign.set($event)" />
+                    </div>
+                  }
+                  <div class="multi-send-row">
+                    <span class="multi-count">{{ parsedMultiEmails().length }} valid email{{ parsedMultiEmails().length === 1 ? '' : 's' }}</span>
+                    <app-button variant="primary" label="Send invites" [disabled]="parsedMultiEmails().length === 0" (clicked)="sendMultiInvites()" />
+                  </div>
+                </div>
+              }
+            </div>
+
+            <button type="button" class="option-card option-card-head" (click)="comingSoon('Advisor team access')">
+              <span class="option-card-text">
+                <span class="option-card-title">Invite advisor team</span>
+                <span class="option-card-desc">Give your accountant or advisory firm access.</span>
+              </span>
+              <svg class="option-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+
+            <button type="button" class="option-card option-card-head" (click)="comingSoon('HR system sync')">
+              <span class="option-card-text">
+                <span class="option-card-title">Connect HR system</span>
+                <span class="option-card-desc">Sync teammates automatically from your HR provider.</span>
+              </span>
+              <svg class="option-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+
+            <button type="button" class="option-card option-card-head" (click)="comingSoon('CSV upload')">
+              <span class="option-card-text">
+                <span class="option-card-title">Upload a CSV</span>
+                <span class="option-card-desc">Bulk import teammates from a spreadsheet.</span>
+              </span>
+              <svg class="option-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
     }
   </div>
-  <app-search placeholder="Search members" [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
-</div>
-
-<div class="panel table-panel">
-  <table class="ref-table">
-    <thead>
-      <tr>
-        <th><app-column-title label="Member" /></th>
-        <th><app-column-title label="Role" /></th>
-        <th><app-column-title label="Status" /></th>
-        <th><app-column-title label="Last active" /></th>
-        <th><app-column-title label="Loans assigned" /></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (member of filteredMembers(); track member.id) {
-        <tr class="clickable-row" (click)="open(member)">
-          <td><app-table-item type="user-avatar" [user]="memberUser(member)" /></td>
-          <td><span class="role-chip" [class.admin]="member.role === 'Admin'">{{ member.role }}</span></td>
-          <td><app-status-badge [status]="statusBadge(member.status).status" [label]="statusBadge(member.status).label" /></td>
-          <td><app-table-item type="text" [text]="relativeTime(member.lastActive)" /></td>
-          <td><app-table-item type="text" [text]="'' + member.loansAssigned" /></td>
-          <td class="actions-cell" (click)="$event.stopPropagation()">
-            <app-row-menu #rowMenu [open]="openMenuId() === member.id" (openChange)="setMenuOpen(member.id, $event)">
-              <span trigger #trigger class="more-trigger" (click)="rowMenu.toggle($event)">
-                <app-icon-button icon="more" />
-              </span>
-              <ng-template>
-                <div class="row-dropdown">
-                  <button type="button" class="dropdown-item" (click)="closeMenu(); open(member)">View profile</button>
-                  <button type="button" class="dropdown-item" (click)="openChangeRole(member)">Change role</button>
-                  @if (member.status === 'pending') {
-                    <button type="button" class="dropdown-item" (click)="resendInvite(member)">Resend invite</button>
-                  }
-                  <button type="button" class="dropdown-item" (click)="requestSuspend(member)">{{ member.status === 'suspended' ? 'Reactivate' : 'Suspend' }}</button>
-                  <div class="dropdown-divider"></div>
-                  <button type="button" class="dropdown-item danger" (click)="requestRemove(member)">Remove</button>
-                </div>
-              </ng-template>
-            </app-row-menu>
-          </td>
-        </tr>
-      }
-      @empty {
-        <tr><td colspan="6" class="empty-cell">No team members match this filter.</td></tr>
-      }
-    </tbody>
-  </table>
-</div>
+}
 
 <!-- Member profile drawer -->
 <app-drawer [isOpen]="!!selected()" [title]="selected() ? (selected()!.firstName + ' ' + selected()!.lastName) : ''" width="460px" (closed)="close()">
@@ -75,7 +363,12 @@
       <app-avatar [name]="member.firstName + ' ' + member.lastName" size="lg" />
       <div>
         <p class="profile-name">{{ member.firstName }} {{ member.lastName }}</p>
-        <span class="role-chip" [class.admin]="member.role === 'Admin'">{{ member.role }}</span>
+        <span class="role-cell">
+          <span class="role-chip" [class.admin]="displayRoleOf(member) === 'Admin'">{{ displayRoleOf(member) }}</span>
+          @if (isOfficerRole(displayRoleOf(member)) && extrasOf(member).autoAssign) {
+            <span class="auto-chip">Auto-assign</span>
+          }
+        </span>
       </div>
     </div>
 
@@ -88,6 +381,8 @@
         <p class="detail-section-title">Contact info</p>
         <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ member.email }}</span></div>
         <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">{{ member.phone || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">Job title</span><span class="detail-value">{{ extrasOf(member).jobTitle || '—' }}</span></div>
+        <div class="detail-row"><span class="detail-label">Department</span><span class="detail-value">{{ extrasOf(member).department || '—' }}</span></div>
         <div class="detail-row"><span class="detail-label">Joined</span><span class="detail-value">{{ member.joinedDate }}</span></div>
         <div class="detail-row"><span class="detail-label">Last login</span><span class="detail-value">{{ relativeTime(member.lastActive) }}</span></div>
       </div>
@@ -102,7 +397,7 @@
     }
 
     @if (profileTab() === 'permissions') {
-      <p class="permission-note">Based on: {{ member.role }} role</p>
+      <p class="permission-note">Based on: {{ displayRoleOf(member) }} role</p>
       @for (group of member.permissionGroups; track group.groupName) {
         <app-permission-group [groupName]="group.groupName" [permissions]="group.permissions" />
       }
@@ -152,77 +447,31 @@
   }
 </app-drawer>
 
-<!-- Invite modal (3 steps) -->
-<app-modal [isOpen]="showInviteModal()" title="Invite team member" (closed)="closeInvite()">
-  <div class="invite-steps">
-    <span [class.active]="inviteStep() >= 0">1. Basic Info</span>
-    <span [class.active]="inviteStep() >= 1">2. Role &amp; Permissions</span>
-    <span [class.active]="inviteStep() >= 2">3. Review &amp; Send</span>
-  </div>
-
-  @if (inviteStep() === 0) {
-    <div class="invite-body">
-      <app-input label="First name" [value]="inviteFirstName()" (valueChange)="inviteFirstName.set($event)" />
-      <app-input label="Last name" [value]="inviteLastName()" (valueChange)="inviteLastName.set($event)" />
-      <app-input label="Email" type="email" [value]="inviteEmail()" (valueChange)="inviteEmail.set($event)" />
-      <app-input label="Phone (optional)" [value]="invitePhone()" (valueChange)="invitePhone.set($event)" />
-    </div>
-  }
-
-  @if (inviteStep() === 1) {
-    <div class="invite-body">
-      <app-select [options]="roleOptions" [value]="inviteRole()" (valueChange)="setInviteRole($event)" />
-      <p class="role-desc">{{ roleDescriptions[inviteRole()] }}</p>
-
-      @if (isPredefinedRole()) {
-        <p class="predefined-note">Predefined role — permissions are locked. Switch to Custom to edit individually.</p>
-      }
-
-      @for (group of invitePermissionGroups(); track group.groupName) {
-        <app-permission-group
-          [groupName]="group.groupName"
-          [permissions]="group.permissions"
-          (permissionsChange)="isPredefinedRole() ? null : updateGroupPermissions(group.groupName, $event)" />
-      }
-    </div>
-  }
-
-  @if (inviteStep() === 2) {
-    <div class="invite-body">
-      <div class="review-summary">
-        <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">{{ inviteFirstName() }} {{ inviteLastName() }}</span></div>
-        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">{{ inviteEmail() || '—' }}</span></div>
-        <div class="detail-row"><span class="detail-label">Role</span><span class="detail-value">{{ inviteRole() }}</span></div>
-        <div class="detail-row"><span class="detail-label">Permissions</span><span class="detail-value">{{ invitePermissionSummary }}</span></div>
-      </div>
-      <p class="review-note">An email invite will be sent. The member appears as "Pending Invite" until they accept.</p>
-    </div>
-  }
-
-  <div modalFooter class="invite-footer">
-    @if (inviteStep() > 0) {
-      <app-button variant="outline" label="Back" (clicked)="inviteBack()" />
-    }
-    @if (inviteStep() < 2) {
-      <app-button variant="primary" label="Next" [disabled]="inviteStep() === 0 && !inviteEmail().trim()" (clicked)="inviteNext()" />
-    } @else {
-      <app-button variant="primary" label="Send Invite" (clicked)="sendInvite()" />
-    }
-  </div>
-</app-modal>
-
 <!-- Change role modal -->
 <app-modal [isOpen]="!!roleChangeTarget()" title="Change role" size="sm" (closed)="closeChangeRole()">
   <div class="role-change-body">
     @if (roleChangeTarget(); as target) {
-      <p class="role-change-name">{{ target.firstName }} {{ target.lastName }} · currently {{ target.role }}</p>
+      <p class="role-change-name">{{ target.firstName }} {{ target.lastName }} · currently {{ displayRoleOf(target) }}</p>
     }
     <app-select [options]="changeRoleOptions" [value]="roleChangeValue()" (valueChange)="setRoleChangeValue($event)" />
-    <p class="role-desc">{{ roleDescriptions[roleChangeValue()] }}</p>
+    <p class="role-desc">{{ roleDescription(roleChangeValue()) }}</p>
   </div>
-  <div modalFooter class="invite-footer">
+  <div modalFooter class="modal-footer-actions">
     <app-button variant="outline" label="Cancel" (clicked)="closeChangeRole()" />
     <app-button variant="primary" label="Save" (clicked)="saveRoleChange()" />
+  </div>
+</app-modal>
+
+<!-- Create role modal (demo) -->
+<app-modal [isOpen]="createRoleOpen()" title="Create role" size="sm" (closed)="createRoleOpen.set(false)">
+  <div class="role-change-body">
+    <app-input label="Role name" [value]="newRoleName()" (valueChange)="newRoleName.set($event)" />
+    <app-input label="Description" [value]="newRoleDesc()" (valueChange)="newRoleDesc.set($event)" />
+    <p class="role-desc">New roles start as "Needs review" until permissions are configured.</p>
+  </div>
+  <div modalFooter class="modal-footer-actions">
+    <app-button variant="outline" label="Cancel" (clicked)="createRoleOpen.set(false)" />
+    <app-button variant="primary" label="Create role" [disabled]="!newRoleName().trim()" (clicked)="saveNewRole()" />
   </div>
 </app-modal>
 
@@ -236,5 +485,5 @@
   (cancelled)="cancelConfirm()" />
 
 @if (toastVisible()) {
-  <app-toast type="success" title="Done" [message]="toastMessage()" (dismissed)="toastVisible.set(false)" />
+  <app-toast type="success" [title]="toastTitle()" [message]="toastMessage()" (dismissed)="toastVisible.set(false)" />
 }
