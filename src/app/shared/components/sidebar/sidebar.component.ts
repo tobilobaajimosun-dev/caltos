@@ -111,7 +111,7 @@ export class SidebarComponent {
         },
         { id: 'teams',     label: 'Teams',      icon: 'teams',     route: '/teams' },
         { id: 'whats-new', label: "What's New", icon: 'whats-new', route: '/whats-new', dot: true },
-        { id: 'settings',  label: 'Settings',   icon: 'settings',  route: '/settings/alerts' },
+        { id: 'settings',  label: 'Settings',   icon: 'settings',  route: '/settings' },
       ],
     },
   ];
