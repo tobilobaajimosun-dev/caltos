@@ -6,7 +6,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BadgeStatus } from '../../../shared/components';
 
-type NavItem = 'home' | 'loans' | 'history' | 'documents' | 'profile';
+type NavItem = 'home' | 'loans' | 'documents' | 'profile';
 type GateStep = 'bvn' | 'otp';
 
 interface RepaymentRow {

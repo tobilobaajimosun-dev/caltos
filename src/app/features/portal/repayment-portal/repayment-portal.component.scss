@@ -851,23 +851,66 @@
 }
 
 @media (max-width: 720px) {
-  .rp-topnav { padding: 0 16px; }
+  .rp-topnav { padding: 0 16px; height: 56px; }
+  .rp-topnav-borrower { display: none; } // avatar-only trigger keeps the header aligned
+
   .rp-body {
     grid-template-columns: 1fr;
-    padding: 8px 16px 40px;
+    // 96px bottom clearance so content never hides behind the fixed bottom nav
+    padding: 8px 16px 96px;
     gap: 16px;
   }
 
-  .rp-nav { position: static; }
-  .rp-nav-list { flex-direction: row; overflow-x: auto; }
-  .rp-nav-item { white-space: nowrap; }
+  // ── Bottom navigation (standard mobile pattern) ──
+  .rp-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 250;
+    background: var(--rp-surface);
+    border-top: 1px solid var(--rp-hairline);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+
+  .rp-nav-list {
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 0;
+  }
+
+  .rp-nav-item {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    border-radius: 10px;
+    text-align: center;
+
+    &--active {
+      box-shadow: none;
+      background: var(--rp-tint);
+      color: var(--rp-accent);
+    }
+  }
+
   .rp-nav-footer { display: none; }
 
+  // Chat launcher clears the bottom nav
+  .rp-chat-launcher { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .rp-chat-panel { bottom: calc(144px + env(safe-area-inset-bottom)); }
+
+  .rp-page-head { padding: 4px 0; }
   .rp-page-title { font-size: 22px; }
   .rp-hero-amount { font-size: 28px; }
   .rp-stat-row { grid-template-columns: 1fr; }
   .rp-va-number { font-size: 20px; }
-  .rp-card { padding: 18px; border-radius: 16px; }
+  .rp-card { padding: 16px; border-radius: 16px; }
+  .rp-loan-pills { margin: 0 -16px; padding: 0 16px 2px; }
 
   .rp-row--letter {
     flex-wrap: wrap;

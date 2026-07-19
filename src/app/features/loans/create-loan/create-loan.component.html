@@ -14,7 +14,7 @@
     <div class="wiz-header-right">
       <a routerLink="/apply" [queryParams]="editingProductId ? { product: editingProductId } : {}" target="_blank" class="wiz-preview-btn">
         <hugeicons-icon [icon]="viewIcon" size="14" [strokeWidth]="1.5" />
-        Preview
+        <span>Preview</span>
       </a>
       <button class="wiz-save-btn" (click)="saveDraft()">
         <hugeicons-icon [icon]="licenseDraftIcon" size="14" [strokeWidth]="1.5" />
@@ -42,6 +42,13 @@
     <!-- Scrollable main content -->
     <main class="wiz-main" #wizMain>
       <div class="wiz-content">
+
+        <!-- Mobile-only orientation strip (rail is hidden on phones) -->
+        <div class="wiz-mobile-step" aria-live="polite">
+          <span>Step {{ currentStep + 1 }} of {{ steps.length }}</span>
+          <span aria-hidden="true">·</span>
+          <span class="wiz-mobile-step-label">{{ steps[currentStep].shortLabel ?? steps[currentStep].label }}</span>
+        </div>
 
         <!-- ── STEP: type ── -->
         @if (stepId === 'type') {
