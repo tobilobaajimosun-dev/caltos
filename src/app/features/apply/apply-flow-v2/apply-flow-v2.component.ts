@@ -368,11 +368,26 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
   get bnplVendorCanContinue(): boolean { return !!this.bnplVendor; }
 
   // ── Vendor typeahead: type a name → suggestions → selection pre-fills category ──
+  // Demo fallback for products created before vendor onboarding existed — a live
+  // product's onboarded vendors (product-detail → Vendors tab) always win.
+  private readonly FALLBACK_VENDORS = [
+    { businessName: 'TechMart Lagos', category: 'Electronics' },
+    { businessName: 'SlotNG', category: 'Phones & Gadgets' },
+    { businessName: 'Kara Online Stores', category: 'Home Appliances' },
+    { businessName: 'Fouani Stores', category: 'Home Appliances' },
+    { businessName: 'Bedmate Furniture', category: 'Furniture' },
+    { businessName: 'PC Place Nigeria', category: 'Computers' },
+  ];
+
+  get availableVendors(): { businessName: string; category: string }[] {
+    const onboarded = this.product().vendors ?? [];
+    return onboarded.length ? onboarded : this.FALLBACK_VENDORS;
+  }
+
   get vendorSuggestions(): { businessName: string; category: string }[] {
-    const vendors = this.product().vendors ?? [];
     const q = this.bnplVendorQuery.toLowerCase().trim();
-    if (!q) return vendors.slice(0, 6);
-    return vendors.filter(v => v.businessName.toLowerCase().includes(q)).slice(0, 6);
+    if (!q) return this.availableVendors.slice(0, 6);
+    return this.availableVendors.filter(v => v.businessName.toLowerCase().includes(q)).slice(0, 6);
   }
 
   onVendorQueryInput(event: Event) {
@@ -925,9 +940,13 @@ export class ApplyFlowV2Component implements OnInit, OnDestroy {
       this.mandateBankName = snapshot.mandateBankName ?? '';
       this.mandateAccountNumber = snapshot.mandateAccountNumber ?? '';
       this.mandateConsent = snapshot.mandateConsent ?? false;
-      this.bnplVendor = snapshot.bnplVendor ?? '';
+      // Only restore a vendor that still matches an available vendor — old drafts
+      // may hold a stale category string (e.g. "Home Appliances") from the
+      // pre-typeahead flow, which would otherwise sit in the input unmatched.
+      const restoredVendor = this.availableVendors.find(v => v.businessName === (snapshot.bnplVendor ?? ''));
+      this.bnplVendor = restoredVendor?.businessName ?? '';
       this.bnplVendorQuery = this.bnplVendor;
-      this.bnplVendorCategory = (this.product().vendors ?? []).find(v => v.businessName === this.bnplVendor)?.category ?? '';
+      this.bnplVendorCategory = restoredVendor?.category ?? '';
       this.bnplInvoiceAmount = snapshot.bnplInvoiceAmount ?? '';
       this.bnplInvoiceFileName = snapshot.bnplInvoiceFileName ?? '';
       this.bnplAudience = snapshot.bnplAudience ?? null;
