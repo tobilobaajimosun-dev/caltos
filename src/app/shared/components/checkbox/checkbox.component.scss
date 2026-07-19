@@ -8,16 +8,17 @@
 }
 
 .box {
-  width: 26px;
-  height: 26px;
-  border-radius: 5.2px;
+  // Product standard: checkboxes cap at 20px in tables and forms
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
   background: var(--surface-base);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 1px #ededed;
+  box-shadow: 0 0 0 1px var(--color-input-stroke);
   flex-shrink: 0;
   transition: background 0.15s, box-shadow 0.15s;
 

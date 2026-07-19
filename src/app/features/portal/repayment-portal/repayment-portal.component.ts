@@ -329,6 +329,11 @@ export class RepaymentPortalComponent implements OnDestroy {
     this.cdr.markForCheck();
   }
 
+  backToLoanPicker() {
+    this.loanChosen = false;
+    this.cdr.markForCheck();
+  }
+
   get selectedLoan(): Loan {
     return this.loans.find(l => l.id === this.selectedLoanId) ?? this.loans[0];
   }

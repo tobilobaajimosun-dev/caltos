@@ -387,37 +387,24 @@
                 <p class="rp-page-sub">Loan fully repaid <strong>{{ selectedLoan.completedDate }}</strong></p>
               }
             </div>
-            @if (selectedLoan.status === 'active') {
-              <div class="rp-streak-pill" role="status" aria-label="{{ selectedLoan.paymentStreak }}-month payment streak">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                {{ selectedLoan.paymentStreak }}-month streak
-              </div>
-            }
-          </div>
-
-          <!-- Loan switcher pills -->
-          <div class="rp-loan-pills" role="group" aria-label="Switch between your loans">
-            @for (loan of loans; track loan.id) {
-              <button
-                class="rp-loan-pill"
-                [class.rp-loan-pill--active]="loan.id === selectedLoanId"
-                (click)="selectLoan(loan.id)"
-                [attr.aria-pressed]="loan.id === selectedLoanId"
-              >
-                <span class="rp-loan-pill-top">
-                  <span class="rp-loan-pill-name">{{ loan.product }}</span>
-                  <span
-                    class="rp-status-pill"
-                    [class.rp-status-pill--accent]="loan.status === 'active'"
-                    [class.rp-status-pill--success]="loan.status === 'completed'"
-                  >{{ loan.status === 'active' ? 'Active' : 'Completed' }}</span>
-                </span>
-                <span class="rp-loan-pill-amount">₦{{ loanOutstanding(loan).toLocaleString() }}</span>
-                <span class="rp-loan-pill-caption">outstanding</span>
-              </button>
-            }
+            <div class="rp-chip-row">
+              @if (selectedLoan.status === 'active') {
+                <div class="rp-streak-pill" role="status" aria-label="{{ selectedLoan.paymentStreak }}-month payment streak">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  {{ selectedLoan.paymentStreak }}-month streak
+                </div>
+              }
+              @if (loans.length > 1) {
+                <button class="rp-chip" (click)="backToLoanPicker()" aria-label="Back to all loans">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  All loans
+                </button>
+              }
+            </div>
           </div>
 
           <!-- Hero balance card -->

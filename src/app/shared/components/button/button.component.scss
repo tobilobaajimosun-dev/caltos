@@ -10,7 +10,11 @@
   font-family: var(--font-body);
   font-size: 14px;
   letter-spacing: -0.28px;
-  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s,
+    transform 0.1s cubic-bezier(0.32, 0.72, 0, 1);
+
+  // Tactile press feedback — transform-only, so it stays cheap
+  &:active:not(:disabled) { transform: scale(0.98); }
 
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 

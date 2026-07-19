@@ -121,16 +121,16 @@
 @if (view() === 'roles') {
   <div class="page-header team-header">
     <div>
+      <button type="button" class="back-link" (click)="view.set('list')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to team
+      </button>
       <nav class="crumb" aria-label="Breadcrumb">
         <button type="button" class="crumb-link" (click)="view.set('list')">Team</button>
         <span class="crumb-sep" aria-hidden="true">/</span>
         <span class="crumb-current" aria-current="page">Roles</span>
       </nav>
       <h1 class="page-title">Roles</h1>
-      <button type="button" class="back-link" (click)="view.set('list')">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to team
-      </button>
     </div>
     <app-button variant="secondary" label="Create role" (clicked)="openCreateRole()" />
   </div>
@@ -193,13 +193,11 @@
 
     @if (mode === 'single') {
       <div class="overlay-body">
-        <aside class="step-rail" aria-label="Invite steps">
-          @for (step of inviteSteps; track step; let i = $index) {
-            <div class="rail-step" [class.active]="inviteStep() === i" [class.done]="inviteStep() > i" [attr.aria-current]="inviteStep() === i ? 'step' : null">
-              {{ step }}
-            </div>
-          }
-        </aside>
+        <app-wizard-stepper
+          class="invite-stepper"
+          [steps]="inviteWizardSteps"
+          [currentIndex]="inviteStep()"
+          (stepClick)="onInviteStepClick($event)" />
 
         <div class="overlay-main">
           @if (inviteStep() === 0) {
@@ -211,7 +209,7 @@
             </div>
             <app-input label="Email" type="email" [value]="inviteEmail()" (valueChange)="inviteEmail.set($event)" />
             <div class="field">
-              <span class="field-label">Job title <span class="optional">(optional)</span></span>
+              <span class="field-label">Role <span class="optional">(optional)</span></span>
               <app-select [options]="jobTitleOptions" [value]="inviteJobTitle()" (valueChange)="inviteJobTitle.set($event)" />
             </div>
             <div class="field">
@@ -259,7 +257,7 @@
             <div class="review-rows">
               <div class="review-row"><span class="review-label">Name</span><span class="review-value">{{ inviteFirstName() }} {{ inviteLastName() }}</span></div>
               <div class="review-row"><span class="review-label">Email</span><span class="review-value">{{ inviteEmail() }}</span></div>
-              <div class="review-row"><span class="review-label">Job title</span><span class="review-value">{{ inviteJobTitle() || '—' }}</span></div>
+              <div class="review-row"><span class="review-label">Role</span><span class="review-value">{{ inviteJobTitle() || '—' }}</span></div>
               <div class="review-row"><span class="review-label">Department</span><span class="review-value">{{ inviteDepartment() || '—' }}</span></div>
               <div class="review-row"><span class="review-label">Role</span><span class="review-value">{{ inviteRole() }}</span></div>
               @if (isOfficerRole(inviteRole())) {

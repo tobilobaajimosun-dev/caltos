@@ -118,3 +118,17 @@ body {
 body {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
+
+// ── Motion accessibility ───────────────────────────────────────────────────────
+// Micro-animations throughout the app are transform/opacity-only with fast
+// ease-out curves; users who prefer reduced motion get none of them.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

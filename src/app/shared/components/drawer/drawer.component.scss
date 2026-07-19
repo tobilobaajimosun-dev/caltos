@@ -14,14 +14,14 @@
   height: 100%;
   background: var(--surface-base);
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
-  animation: slide-in 0.2s ease;
+  animation: slide-in 0.32s cubic-bezier(0.32, 0.72, 0, 1);
 
   &.pos-right { margin-left: auto; }
   &.pos-left { margin-right: auto; }
 }
 
 @keyframes slide-in {
-  from { transform: translateX(24px); opacity: 0; }
+  from { transform: translateX(48px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 

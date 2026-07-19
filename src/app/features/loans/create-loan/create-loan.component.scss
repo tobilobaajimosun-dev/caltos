@@ -2188,7 +2188,8 @@
 
   .wiz-header { padding: 0 16px; }
   .wiz-header-right { gap: 8px; }
-  .wiz-preview-btn span { display: none; } // icon-only preview on phones
+  .wiz-preview-btn { display: none; } // preview hidden on phones
+  .wiz-footer-hint { display: none; } // footer keeps only the action buttons
 
   .wiz-main {
     padding: 16px 16px 120px;

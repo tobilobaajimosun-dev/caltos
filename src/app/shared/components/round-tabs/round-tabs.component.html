@@ -1,4 +1,4 @@
-<div class="round-tabs">
+<div class="round-tabs" #strip [class.is-overflowing]="isOverflowing">
   @for (tab of tabs; track tab.value) {
     <button
       class="tab"

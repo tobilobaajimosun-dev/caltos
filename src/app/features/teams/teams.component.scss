@@ -501,31 +501,10 @@
 }
 
 // Left step rail: active step dark + left accent bar, done steps muted.
-.step-rail {
-  width: 220px;
+// Shared create-product stepper (gradient rail) — sized for the invite overlay
+.invite-stepper {
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding-top: 44px;
-}
-
-.rail-step {
-  position: relative;
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-base);
-  color: var(--text-muted);
-  border-left: 2px solid transparent;
-
-  &.active {
-    color: var(--text-primary);
-    font-weight: 600;
-    border-left-color: var(--color-blue);
-  }
-
-  &.done {
-    color: var(--text-disabled);
-  }
+  padding-top: 20px;
 }
 
 .overlay-main {
@@ -534,6 +513,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+
+  // Every field stretches to the same width so inputs align vertically
+  app-input,
+  app-select,
+  .field {
+    display: block;
+    width: 100%;
+  }
+
+  app-select ::ng-deep .select-trigger { width: 100%; justify-content: space-between; }
 }
 
 .switch-link {
@@ -984,10 +973,8 @@ button.option-card {
 
 .modal-footer-actions {
   display: flex;
-  width: 100%;
+  justify-content: flex-end;
   gap: var(--space-3);
-
-  app-button { flex: 1; }
 }
 
 // ── Mobile ───────────────────────────────────────────────────────────────────
@@ -1005,21 +992,7 @@ button.option-card {
     padding: var(--space-5) var(--space-4) var(--space-10);
   }
 
-  .step-rail {
-    width: 100%;
-    flex-direction: row;
-    padding-top: 0;
-    gap: var(--space-2);
-
-    .rail-step {
-      border-left: none;
-      border-bottom: 2px solid transparent;
-      padding: var(--space-2);
-      font-size: var(--text-sm);
-
-      &.active { border-bottom-color: var(--color-blue); }
-    }
-  }
+  .invite-stepper { display: none; } // mobile relies on step titles
 
   .field-grid {
     grid-template-columns: 1fr;

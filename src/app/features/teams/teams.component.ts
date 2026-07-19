@@ -21,7 +21,9 @@ import {
   IconButtonComponent,
   RowMenuComponent,
   ToggleComponent,
+  WizardStepperComponent,
 } from '../../shared/components';
+import { WizardStep } from '../../shared/components/wizard-stepper/wizard-stepper.component';
 import {
   TeamsService, TeamMember, Role, MemberStatus, AssignedLoan, buildPermissionGroups,
 } from '../../shared/services/teams.service';
@@ -57,7 +59,7 @@ const DEFAULT_EXTRAS: MemberExtras = { jobTitle: '', department: '', autoAssign:
     AvatarComponent, StatusBadgeComponent, RoundTabsComponent, DrawerComponent, ModalComponent,
     SelectComponent, InputComponent, ButtonComponent, PermissionGroupComponent, ColumnTitleComponent,
     TableItemComponent, ConfirmModalComponent, ToastComponent, SearchComponent, IconButtonComponent,
-    RowMenuComponent, ToggleComponent,
+    RowMenuComponent, ToggleComponent, WizardStepperComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown.escape)': 'onEscape()' },
@@ -392,6 +394,17 @@ export class TeamsComponent {
 
   // ── Invite a user (full-screen overlay, 3 steps) ──
   readonly inviteSteps = ['User Details', 'Assign Role', 'Review & Send'];
+
+  /** Same stepper component as the create-product wizard (gradient rail). */
+  readonly inviteWizardSteps: WizardStep[] = [
+    { id: 'details', label: 'User Details' },
+    { id: 'role', label: 'Assign Role' },
+    { id: 'review', label: 'Review & Send' },
+  ];
+
+  onInviteStepClick(i: number) {
+    if (i < this.inviteStep()) this.inviteStep.set(i);
+  }
   readonly inviteStep = signal(0);
 
   readonly inviteFirstName = signal('');
